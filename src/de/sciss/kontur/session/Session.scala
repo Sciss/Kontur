@@ -16,7 +16,7 @@ class Session( name: String ) extends BasicDocument {
 	private val undo  = new de.sciss.app.UndoManager( this )
     private var dirty = false
 
-    val timelines   = new SessionElementSeq[ TimelineElement ]( "Timelines" )
+    val timelines   = new SessionElementSeq[ Timeline ]( "Timelines" )
 //    val audioFiles  = new SessionElementSeq[ AudioFileElement ]( "Audio Files" )
 //    val busses      = new SessionElementSeq[ BusElement ]( "Busses" )
 

@@ -145,15 +145,15 @@ with DynamicListening with Disposable {
 
                      d.lastMark.foreach( lastMark => {
                          editorVar.foreach( ed => {
-        					val id = ed.editBegin( MarkerAxis.this, getResourceString( "editMoveMarker" ))
+        					val ce = ed.editBegin( getResourceString( "editMoveMarker" ))
         					try {
-                        		ed.editRemove( id, d.firstMark )
-                                ed.editAdd( id, lastMark )
-                            	ed.editEnd( id )
+                        		ed.editRemove( ce, d.firstMark )
+                                ed.editAdd( ce, lastMark )
+                           		ed.editEnd( ce )
                             }
                             catch { case e1: IOException => {
         						System.err.println( e1 )
-                				ed.editCancel( id )
+                				ed.editCancel( ce )
                             }}
                          })
 					})
@@ -328,14 +328,14 @@ with DynamicListening with Disposable {
 
         val ed          = editorVar.get
 		val posC		= timelineView.timeline.span.clip( pos )
-		val id          = ed.editBegin( this, getResourceString( "editAddMarker" ))
+		val ce          = ed.editBegin( getResourceString( "editAddMarker" ))
 		try {
-			ed.editAdd( id, new Marker( posC, "Mark" ))
-			ed.editEnd( id )
+			ed.editAdd( ce, new Marker( posC, "Mark" ))
+			ed.editEnd( ce )
 		}
 		catch { case e1: IOException => {	// should never happen
 			e1.printStackTrace()
-			ed.editCancel( id )
+			ed.editCancel( ce )
 		}}
 	}
 
@@ -345,14 +345,14 @@ with DynamicListening with Disposable {
 		getMarkerLeftTo( pos ).foreach( m => {
           val posC	= timelineView.timeline.span.clip( pos )
           val ed      = editorVar.get
-          val id      = ed.editBegin( this, getResourceString( "editDeleteMarker" ))
+          val ce      = ed.editBegin( getResourceString( "editDeleteMarker" ))
           try {
-              ed.editRemove( id, m )
-              ed.editEnd( id )
+              ed.editRemove( ce, m )
+              ed.editEnd( ce )
           }
           catch { case e1: IOException => {	// should never happen
               e1.printStackTrace()
-              ed.editCancel( id )
+              ed.editCancel( ce )
           }}
         })
 	}

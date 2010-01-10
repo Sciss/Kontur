@@ -12,20 +12,21 @@ import de.sciss.kontur.{ Main }
 import de.sciss.kontur.util.{ PrefsUtil }
 import de.sciss.kontur.session.{ Session }
 import java.awt.{ FileDialog, Frame }
-import java.awt.event.{ ActionEvent, KeyEvent }
+import java.awt.event.{ ActionEvent, InputEvent, KeyEvent }
 import java.io.{ File }
 import javax.swing.{ Action, KeyStroke }
 
 class MenuFactory( app: BasicApplication )
 extends BasicMenuFactory( app ) {
+  import BasicMenuFactory._
 
    // ---- actions ----
    private val actionOpen = new ActionOpen( getResourceString( "menuOpen" ),
 										    KeyStroke.getKeyStroke( KeyEvent.VK_O,
-                                            BasicMenuFactory.MENU_SHORTCUT ))
+                                            MENU_SHORTCUT ))
 	private val actionNewEmpty = new ActionNewEmpty( getResourceString( "menuNewEmpty" ),
 											KeyStroke.getKeyStroke( KeyEvent.VK_N,
-                                            BasicMenuFactory.MENU_SHORTCUT ))
+                                            MENU_SHORTCUT ))
 
     def openDocument( f: File ) {
 		actionOpen.perform( f )
@@ -50,6 +51,15 @@ extends BasicMenuFactory( app ) {
 		val smgFileNew  = new MenuGroup( "new", getResourceString( "menuNew" ))
 		smgFileNew.add( new MenuItem( "empty", actionNewEmpty ))
 		mgFile.add( smgFileNew, 0 )
+
+  		// --- timeline menu ---
+		val mgTimeline  = new MenuGroup( "timeline", getResourceString( "menuTimeline" ))
+		mgTimeline.add( new MenuItem( "trimToSelection", getResourceString( "menuTrimToSelection" ),
+							  KeyStroke.getKeyStroke( KeyEvent.VK_F5, MENU_SHORTCUT )))
+
+		mgTimeline.add( new MenuItem( "insertSpan", getResourceString( "menuInsertSpan" ),
+							  KeyStroke.getKeyStroke( KeyEvent.VK_E, MENU_SHORTCUT + InputEvent.SHIFT_MASK )))
+		add( mgTimeline, indexOf( "edit" ) + 1 )
     }
 
   // ---- internal classes ----

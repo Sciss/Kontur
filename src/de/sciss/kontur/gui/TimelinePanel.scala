@@ -12,7 +12,7 @@ import scala.math._
 
 import de.sciss.gui.{ ComponentHost, TopPainter }
 import de.sciss.io.{ Span }
-import de.sciss.kontur.session.{ Marker, SessionElementSeq, TimelineElement,
+import de.sciss.kontur.session.{ Marker, SessionElementSeq, Timeline,
                                 TrackElement, Trail }
 
 /**
@@ -346,7 +346,7 @@ with TopPainter {
 //			updateEditEnabled( !newSpan.isEmpty )
 		}
       }
-      case TimelineElement.RateChanged( oldRate, newRate ) => {
+      case Timeline.RateChanged( oldRate, newRate ) => {
 		timelineRate = newRate
 //		playTimer.setDelay( Math.min( (int) (1000 / (vpScale * timelineRate * Math.abs( playRate ))), 33 ));
       }

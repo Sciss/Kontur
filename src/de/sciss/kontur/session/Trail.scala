@@ -47,11 +47,11 @@ extends Disposable with Model {
 trait TrailEditor[ T <: Stake ]
 extends Editor {
     def track: Trail[ T ]
-	def editInsert( id: Editor#Client, span: Span, touchMode: TouchMode = defaultTouchMode ) : Unit
-	def editRemove( id: Editor#Client, span: Span, touchMode: TouchMode = defaultTouchMode ) : Unit
-	def editClear( id: Editor#Client, span: Span, touchMode: TouchMode = defaultTouchMode ) : Unit
-	def editAdd( id: Editor#Client, stake: T* ) : Unit
-	def editRemove( id: Editor#Client, stake: T* ) : Unit
+	def editInsert( ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode ) : Unit
+	def editRemove( ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode ) : Unit
+	def editClear( ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode ) : Unit
+	def editAdd( ce: AbstractCompoundEdit, stake: T* ) : Unit
+	def editRemove( ce: AbstractCompoundEdit, stake: T* ) : Unit
 	def defaultTouchMode: TouchMode
 }
 

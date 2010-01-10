@@ -7,6 +7,7 @@ package de.sciss.kontur.edit
 
 import java.awt.{ EventQueue }
 import javax.swing.undo.{ UndoManager }
+import de.sciss.app.{ AbstractCompoundEdit }
 import de.sciss.common.{ BasicCompoundEdit }
 
 trait Editor {
@@ -14,11 +15,9 @@ trait Editor {
 //    private var uniqueID = 0
     def undoManager: UndoManager
 
-	def editBegin( source: Object, name: String ) : Client = {
+	def editBegin( name: String ) : AbstractCompoundEdit = {
 		if( !EventQueue.isDispatchThread() ) throw new IllegalMonitorStateException()
-
-//        val id = nextUniqueID
-		Client( source, new BasicCompoundEdit( name ))
+		new BasicCompoundEdit( name )
 	}
     
 //    private def nextUniqueID : Int = {
@@ -27,26 +26,19 @@ trait Editor {
 //      res
 //    }
 
-	def editEnd( id: Client ) {
+	def editEnd( ce: AbstractCompoundEdit ) {
 		if( !EventQueue.isDispatchThread() ) throw new IllegalMonitorStateException()
-
-//		final Client c = map.remove( id );
-//		if( c == null ) throw new IllegalStateException( String.valueOf( id ));
-		id.edit.perform()
-		id.edit.end()
-//		if( undoMgr != null )
-          undoManager.addEdit( id.edit )
+        ce.perform
+        ce.end
+        undoManager.addEdit( ce )
 	}
 
-	def editCancel( id: Client ) {
+	def editCancel( ce: AbstractCompoundEdit ) {
 		if( !EventQueue.isDispatchThread() ) throw new IllegalMonitorStateException()
-
-//		final Client c = map.remove( id );
-//		if( c == null ) throw new IllegalStateException( String.valueOf( id ));
-		id.edit.cancel()
+		ce.cancel()
 	}
 
 //	protected def getClient( int id ) : Client = map( id )
 
-	case class Client( source: Object, edit: BasicCompoundEdit )
+//	case class Client( source: Object, edit: BasicCompoundEdit )
 }

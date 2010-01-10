@@ -11,7 +11,7 @@ import de.sciss.app.{ AbstractApplication, Application, DynamicAncestorAdapter,
                         DynamicListening, GraphicsHandler }
 import de.sciss.gui.{ Axis, ComponentHost, VectorSpace }
 import de.sciss.io.{ Span }
-import de.sciss.kontur.session.{ TimelineElement }
+import de.sciss.kontur.session.{ Timeline }
 import scala.math._
 
 class TimelineAxis( view: TimelineView, host: ComponentHost )
@@ -19,7 +19,7 @@ extends Axis( Axis.HORIZONTAL, Axis.TIMEFORMAT, host )
 with DynamicListening {
 
 	private var isListening		= false
-	private var editorVar: Option[ TimelineView#Editor ] = None
+//	private var editorVar: Option[ TimelineView#Editor ] = None
 
 		// --- Listener ---
     private val mil = new MouseInputAdapter() {
@@ -41,12 +41,12 @@ with DynamicListening {
         	}
 
         	private def dragTimelinePosition( e: MouseEvent ) {
-                editorVar.foreach( ed => {
+                view.editor.foreach( ed => {
                   // translate into a valid time offset
                   val position  = view.timeline.span.clip(
                     view.span.start + (e.getX().toDouble / (getWidth * view.span.getLength)).toLong )
 
-                  val id = ed.editBegin( TimelineAxis.this, getResourceString( "editTimelineView" ))
+                  val ce = ed.editBegin( getResourceString( "editTimelineView" ))
 
                   if( shiftDrag ) {
                     val selSpan = view.selection.span
@@ -60,24 +60,24 @@ with DynamicListening {
         			}
         			val newSelSpan = new Span( min( position, selectionStart ),
         								max( position, selectionStart ))
-        			ed.editSelect( id, newSelSpan )
+        			ed.editSelect( ce, newSelSpan )
                 } else {
         			if( altDrag ) {
-        				ed.editSelect( id, new Span() )
-        				ed.editPosition( id, position )
+        				ed.editSelect( ce, new Span() )
+        				ed.editPosition( ce, position )
         				altDrag = false
         			} else {
-        				ed.editPosition( id, position )
+        				ed.editPosition( ce, position )
         			}
                 }
-                ed.editEnd( id )
+                ed.editEnd( ce )
         	})
             }
         }
 
      private val timelineListener = (x: AnyRef) => x match {
-//        case TimelineElement.SpanChanged => recalcSpace
-        case TimelineElement.RateChanged => recalcSpace
+//        case Timeline.SpanChanged => recalcSpace
+        case Timeline.RateChanged => recalcSpace
         case TimelineView.SpanChanged => recalcSpace
         case _ =>
      }
@@ -87,9 +87,14 @@ with DynamicListening {
  		val app = AbstractApplication.getApplication()
  		setFont( app.getGraphicsHandler().getFont( GraphicsHandler.FONT_SYSTEM | GraphicsHandler.FONT_MINI ))
 
+        if( view.editor.isDefined ) {
+            addMouseListener( mil )
+        	addMouseMotionListener( mil )
+        }
+
         new DynamicAncestorAdapter( this ).addTo( this )
     }
-
+/*
     def editor: Option[ TimelineView#Editor ] = editorVar
 	def editor_=( newEditor: Option[ TimelineView#Editor ]) {
 		if( editorVar != newEditor ) {
@@ -103,7 +108,7 @@ with DynamicListening {
 			editorVar = newEditor
 		}
 	}
-
+*/
 	private def recalcSpace {
     	val visibleSpan = view.span
         val space = if( (getFlags() & Axis.TIMEFORMAT) == 0 ) {
@@ -143,7 +148,7 @@ with DynamicListening {
 
 	override def dispose() {
 		stopListening
-		editor = null
+//		editor = null
 		super.dispose()
 	}
 }

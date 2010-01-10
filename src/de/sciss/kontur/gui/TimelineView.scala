@@ -6,16 +6,32 @@
 package de.sciss.kontur.gui
 
 import javax.swing.undo.{ UndoManager }
+import de.sciss.app.{ AbstractCompoundEdit }
 import de.sciss.io.{ Span }
-import de.sciss.kontur.session.{ Session, TimelineElement }
+import de.sciss.kontur.edit.{ Editor }
+import de.sciss.kontur.session.{ Session, Timeline }
 import de.sciss.kontur.util.{ Model }
 
 object TimelineView {
   case class SpanChanged( oldSpan: Span, newSpan: Span )
 }
 
-class TimelineView( doc: Session, val timeline: TimelineElement )
-extends Model {
+trait TimelineView extends Model {
+  def timeline: Timeline
+  def span: Span
+  def cursor: TimelineCursor
+  def selection: TimelineSelection
+  def editor: Option[ TimelineViewEditor ]
+}
+
+trait TimelineViewEditor extends Editor {
+   def editPosition( id: AbstractCompoundEdit, newPos: Long ) : Unit
+   def editScroll( id: AbstractCompoundEdit, newSpan: Span ) : Unit
+   def editSelect( id: AbstractCompoundEdit, newSpan: Span ) : Unit
+}
+
+class BasicTimelineView( doc: Session, val timeline: Timeline )
+extends TimelineView with TimelineViewEditor {
   import TimelineView._
 
   private var spanVar = new Span
@@ -29,38 +45,48 @@ extends Model {
       }
   }
 
-  val cursor    = new TimelineCursor( timeline )
-  val selection = new TimelineSelection( timeline )
+  val cursor: TimelineCursor       = new BasicTimelineCursor( timeline )
+  val selection: TimelineSelection = new BasicTimelineSelection( timeline )
 
   // ---- constructor ----
   {
-    cursor.addListener( dispatch (_ ))
-    selection.addListener( dispatch (_ ))
+    cursor.addListener( dispatch( _ ))
+    selection.addListener( dispatch( _ ))
+    timeline.addListener( dispatch( _ )) // XXX a little dangerous
   }
 
-  class Editor extends de.sciss.kontur.edit.Editor {
+  def dispose {
+    timeline.removeListener( dispatch( _ ))
+  }
+
+  def editor: Option[ TimelineViewEditor ] = Some( this )
+    // ---- TimelineViewEditor ----
+
      def undoManager: UndoManager = doc.getUndoManager
 
-  	 def editPosition( id: Client, newPos: Long ) {
+  	 def editPosition( id: AbstractCompoundEdit, newPos: Long ) {
        // XXX TODO
      }
 
-	 def editScroll( id: Client, newSpan: Span ) {
+	 def editScroll( id: AbstractCompoundEdit, newSpan: Span ) {
        // XXX TODO
      }
 
-	 def editSelect( id: Client, newSpan: Span ) {
+	 def editSelect( id: AbstractCompoundEdit, newSpan: Span ) {
        // XXX TODO
      }
-  }
 }
 
 object TimelineCursor {
   case class PositionChanged( oldPosition: Long, newPosition: Long )
 }
 
-class TimelineCursor( val timeline: TimelineElement )
-extends Model {
+trait TimelineCursor extends Model {
+  def position: Long
+}
+
+class BasicTimelineCursor( val timeline: Timeline )
+extends TimelineCursor {
   import TimelineCursor._
 
   private var positionVar = 0L
@@ -79,8 +105,12 @@ object TimelineSelection {
   case class SpanChanged( oldSpan: Span, newSpan: Span )
 }
 
-class TimelineSelection( val timeline: TimelineElement )
-extends Model {
+trait TimelineSelection extends Model {
+  def span: Span
+}
+
+class BasicTimelineSelection( val timeline: Timeline )
+extends TimelineSelection {
   import TimelineSelection._
 
   private var spanVar = new Span

@@ -7,7 +7,7 @@ package de.sciss.kontur.gui
 
 import de.sciss.app.{ DynamicListening }
 import de.sciss.gui.{ MenuItem }
-import de.sciss.kontur.session.{ Session, SessionElement, SessionElementSeq, TimelineElement }
+import de.sciss.kontur.session.{ BasicTimeline, Session, SessionElement, SessionElementSeq, Timeline }
 import java.awt.{ Component }
 import java.awt.event.{ ActionEvent }
 import javax.swing.{ AbstractAction }
@@ -56,7 +56,7 @@ extends DefaultMutableTreeNode( seq, true )
    override def toString() = seq.name
 }
 
-class TimelinesTreeNode( model: SessionTreeModel, timelines: SessionElementSeq[ TimelineElement ])
+class TimelinesTreeNode( model: SessionTreeModel, timelines: SessionElementSeq[ Timeline ])
 extends SessionElementSeqTreeNode( timelines )
 with DynamicListening
 with HasContextMenu {
@@ -65,7 +65,7 @@ with HasContextMenu {
      val root = new PopupRoot()
      val miAddNew = new MenuItem( "new", new AbstractAction( "New Timeline" ) {
         def actionPerformed( a: ActionEvent ) {
-           val tl = new TimelineElement
+           val tl = new BasicTimeline( model.doc )
            timelines += tl
 //           new TimelineFrame( doc, tl )
         }
@@ -74,7 +74,7 @@ with HasContextMenu {
      Some( root )
    }
 
-  private def insertElem( idx: Int, elem: TimelineElement ) {
+  private def insertElem( idx: Int, elem: Timeline ) {
     val node = new TimelineTreeNode( model, elem )
     model.insertNodeInto( node, this, idx )
   }
@@ -105,7 +105,7 @@ extends DefaultMutableTreeNode( elem, false ) {
   override def toString() = elem.name
 }
 
-class TimelineTreeNode( model: SessionTreeModel, tl: TimelineElement )
+class TimelineTreeNode( model: SessionTreeModel, tl: Timeline )
 extends SessionElementTreeNode( tl )
 with HasDoubleClickAction {
 

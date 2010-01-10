@@ -6,25 +6,28 @@
 package de.sciss.kontur.gui
 
 import de.sciss.app.{ AbstractApplication, AbstractWindow }
-import de.sciss.common.{ BasicApplication, ShowWindowAction }
-import de.sciss.gui.{ GUIUtil }
-import de.sciss.kontur.session.{ Session, TimelineElement }
+import de.sciss.common.{ BasicApplication, ShowWindowAction , BasicWindowHandler}
+import de.sciss.gui.{ GUIUtil, MenuAction, ParamField, SpringPanel}
+import de.sciss.io.{ Span }
+import de.sciss.kontur.session.{ Session, Timeline }
+import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }
+import java.awt.event.{ ActionEvent }
 import java.awt.{ BorderLayout, Dimension, Point, Rectangle }
 import java.util.{ StringTokenizer }
-import javax.swing.{ Action }
+import javax.swing.{ Action , JOptionPane}
 
 object TimelineFrame {
   protected val lastLeftTop		= new Point()
   protected val KEY_TRACKSIZE	= "tracksize"
 }
 
-class TimelineFrame( doc: Session, tl: TimelineElement )
+class TimelineFrame( doc: Session, tl: Timeline )
 extends AppWindow( AbstractWindow.REGULAR ) {
 
 //  	private var writeProtected	= false
 //	private var wpHaveWarned	= false
 //    private val actionShowWindow= new ShowWindowAction( this )
-    private val timelineView = new TimelineView( doc, tl )
+    private val timelineView = new BasicTimelineView( doc, tl )
     private val panel = new TimelinePanel( timelineView )
 
     // ---- constructor ----
@@ -32,6 +35,18 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 //      app.getMenuFactory().addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
       val cp = getContentPane
       cp.add( panel, BorderLayout.CENTER )
+
+    		// ---- menus and actions ----
+		val mr = app.getMenuBarRoot
+
+//		mr.putMimic( "edit.cut", this, doc.getCutAction() )
+//		mr.putMimic( "edit.copy", this, doc.getCopyAction() )
+//		mr.putMimic( "edit.paste", this, doc.getPasteAction() )
+//		mr.putMimic( "edit.clear", this, doc.getDeleteAction() )
+//		mr.putMimic( "edit.selectAll", this, actionSelectAll )
+
+		mr.putMimic( "timeline.insertSpan", this, new InsertSpanAction )
+//		mr.putMimic( "timeline.trimToSelection", this, doc.getTrimAction() )
 
       init()
   	  updateTitle
@@ -99,4 +114,80 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 //			}
 //		});
 	}
+
+    private class InsertSpanAction extends MenuAction {
+      private var value: Option[ Param ] = None
+      private var space: Option[ ParamSpace ] = None
+
+      def actionPerformed( e: ActionEvent ) : Unit = perform
+
+      def perform {
+			val msgPane     = new SpringPanel( 4, 2, 4, 2 )
+			val timeTrans   = new DefaultUnitTranslator()
+			val ggDuration  = new ParamField( timeTrans )
+			ggDuration.addSpace( ParamSpace.spcTimeHHMMSS )
+			ggDuration.addSpace( ParamSpace.spcTimeSmps )
+			ggDuration.addSpace( ParamSpace.spcTimeMillis )
+			ggDuration.addSpace( ParamSpace.spcTimePercentF )
+			msgPane.gridAdd( ggDuration, 0, 0 )
+			msgPane.makeCompactGrid()
+			GUIUtil.setInitialDialogFocus( ggDuration )
+
+            val tl = timelineView.timeline
+			timeTrans.setLengthAndRate( tl.span.getLength, tl.rate )
+
+            ggDuration.setValue( value getOrElse new Param( 1.0, ParamSpace.TIME | ParamSpace.SECS ))
+			space.foreach( sp => ggDuration.setSpace( sp ))
+
+			val op = new JOptionPane( msgPane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )
+			val result = BasicWindowHandler.showDialog( op, getWindow, getValue( Action.NAME ).toString )
+
+			if( result == JOptionPane.OK_OPTION ) {
+                val v = ggDuration.getValue
+				value			= Some( v )
+				space			= Some( ggDuration.getSpace )
+				val durationSmps = timeTrans.translate( v, ParamSpace.spcTimeSmps ).`val`
+				if( durationSmps > 0.0 ) {
+//					final ProcessingThread proc;
+
+//					proc =
+                      initiate( new Span( timelineView.cursor.position, durationSmps.toLong ))
+//					if( proc != null ) start( proc );
+				}
+			} else {
+               value = None
+               space = None
+            }
+		}
+
+       private def editName : String = {
+         val name = getValue( Action.NAME ).toString
+         if( name.endsWith( "..." )) name.substring( 0, name.length - 3 ) else name
+       }
+
+		def initiate( span: Span ) {
+			if( /* !checkProcess() ||*/ span.isEmpty ) return
+
+    		val tl = timelineView.timeline
+
+			if( (span.start < tl.span.start) || (span.start > tl.span.stop) ) throw new IllegalArgumentException( span.toString )
+
+        tl.editor.foreach( ed => {
+          val ce = ed.editBegin( editName )
+          try {
+            ed.editSpan( ce, tl.span.replaceStop( tl.span.stop + span.getLength ))
+            timelineView.editor.foreach( ved => {
+              if( timelineView.span.isEmpty ) {
+        		ved.editScroll( ce, span )
+              }
+              ved.editSelect( ce, span )
+            })
+            ed.editEnd( ce )
+          }
+          catch {
+            case e => { ed.editCancel( ce ); throw e }
+          }
+		})
+     }
+  }
 }
