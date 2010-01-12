@@ -14,7 +14,12 @@ trait Model {
 //  def name: String
 
   protected def dispatch( change: AnyRef ) {
-      listeners.foreach( _.apply( change ))
+      listeners.foreach( l => try {
+        l.apply( change )
+      } catch {
+        case e: MatchError => // ignored
+        case e => e.printStackTrace() // catch, but print
+      })
   }
 
   def addListener( l: AnyRef => Unit ) {

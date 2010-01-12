@@ -44,9 +44,11 @@ with DynamicListening {
                 view.editor.foreach( ed => {
                   // translate into a valid time offset
                   val position  = view.timeline.span.clip(
-                    view.span.start + (e.getX().toDouble / (getWidth * view.span.getLength)).toLong )
+                    view.span.start + ((e.getX().toDouble / getWidth) * view.span.getLength).toLong )
 
                   val ce = ed.editBegin( getResourceString( "editTimelineView" ))
+
+//println( "HIER : " + position + "; view.span " + view.span + "; timeline.span " + view.timeline.span )
 
                   if( shiftDrag ) {
                     val selSpan = view.selection.span
@@ -75,11 +77,9 @@ with DynamicListening {
             }
         }
 
-     private val timelineListener = (x: AnyRef) => x match {
-//        case Timeline.SpanChanged => recalcSpace
-        case Timeline.RateChanged => recalcSpace
-        case TimelineView.SpanChanged => recalcSpace
-        case _ =>
+     private def timelineListener( msg: AnyRef ) : Unit = msg match {
+        case Timeline.RateChanged( _, _ ) => recalcSpace
+        case TimelineView.SpanChanged( _, _ ) => recalcSpace
      }
 
     // ---- constructor ----
@@ -88,6 +88,7 @@ with DynamicListening {
  		setFont( app.getGraphicsHandler().getFont( GraphicsHandler.FONT_SYSTEM | GraphicsHandler.FONT_MINI ))
 
         if( view.editor.isDefined ) {
+//println( "EDITOR" )
             addMouseListener( mil )
         	addMouseMotionListener( mil )
         }
@@ -111,6 +112,7 @@ with DynamicListening {
 */
 	private def recalcSpace {
     	val visibleSpan = view.span
+// println( "TimelineAxis : recalcSpace. visi = " + visibleSpan )
         val space = if( (getFlags() & Axis.TIMEFORMAT) == 0 ) {
 			VectorSpace.createLinSpace( visibleSpan.start,
 										    visibleSpan.stop,
@@ -129,6 +131,7 @@ with DynamicListening {
     def startListening() {
     	if( !isListening ) {
     		isListening = true
+//println( "TimelineAxis : addListener" )
     		view.addListener( timelineListener )
     		recalcSpace
     	}

@@ -7,7 +7,7 @@ package de.sciss.kontur.session
 
 import scala.collection.mutable.{ ArrayBuffer }
 
-class SessionElementSeq[T <: SessionElement]( val name: String )
+class SessionElementSeq[ T <: SessionElement ]( val name: String )
 extends SessionElement {
 // extends ArrayBuffer[T]
 // with ObservableBuffer[T]
@@ -28,6 +28,12 @@ extends SessionElement {
       dispatch( ElementRemoved( idx, elem ))
     }
   }
+
+  def get( idx: Int ) : Option[ T ] = try {
+     Some( coll( idx ))
+    } catch { case e: IndexOutOfBoundsException => None }
+
+  def indexOf( elem: T ) : Int = coll.indexOf( elem )
 
   def contains( elem: T ) : Boolean = coll.contains( elem )
 

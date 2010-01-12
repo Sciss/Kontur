@@ -18,7 +18,7 @@ object Timeline {
 trait Timeline extends SessionElement {
   def span: Span
   def rate: Double
-  def tracks: SessionElementSeq[ TrackElement[ _ ]]
+  def tracks: SessionElementSeq[ Track[ _ ]]
   def editor: Option[ TimelineEditor ]
 }
 
@@ -39,7 +39,7 @@ extends Timeline with Renameable with TimelineEditor {
 
   def undoManager: UndoManager = doc.getUndoManager
 
-  val tracks = new SessionElementSeq[ TrackElement[ _ ]]( "Tracks" )
+  val tracks = new SessionElementSeq[ Track[ _ ]]( "Tracks" )
 
   def span: Span = spanVar
   def span_=( newSpan: Span ) {
@@ -79,6 +79,11 @@ extends Timeline with Renameable with TimelineEditor {
   }
 
   def editRate( ce: AbstractCompoundEdit, newRate: Double ) {
-       // XXX TODO
+    val edit = new SimpleEdit( "editTimelineRate" ) {
+       lazy val oldRate = rate
+       def apply { oldRate; rate = newRate }
+       def unapply { rate = oldRate }
+    }
+    ce.addPerform( edit )
   }
 }

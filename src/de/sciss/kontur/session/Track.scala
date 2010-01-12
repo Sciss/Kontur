@@ -5,12 +5,12 @@
 
 package de.sciss.kontur.session
 
-object TrackElement {
+object Track {
   case class SelectionChanged( oldState: Boolean, newState: Boolean )
 }
 
-trait TrackElement[ T <: Stake ] extends SessionElement {
-  import TrackElement._
+trait Track[ T <: Stake ] extends SessionElement {
+  import Track._
   
   private var selectedVar = false
   def trail: Trail[ T ]

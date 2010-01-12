@@ -7,14 +7,25 @@ package de.sciss.kontur.gui
 
 import java.awt.{ Color, GradientPaint, Graphics, Graphics2D, Paint }
 import java.awt.event.{ MouseAdapter, MouseEvent, MouseListener }
-import javax.swing.{ BorderFactory, JLabel, JPanel, Spring, SpringLayout }
+import javax.swing.{ BorderFactory, JComponent, JLabel, JPanel, Spring, SpringLayout }
 import scala.math._
 
 import de.sciss.gui.{ GradientPanel }
 import de.sciss.app.{ AbstractApplication, Application, DynamicAncestorAdapter,
                      DynamicListening, GraphicsHandler }
 import de.sciss.util.{ Disposable }
-import de.sciss.kontur.session.{ SessionElementSeq, TrackElement }
+import de.sciss.kontur.session.{ SessionElementSeq, Stake, Track }
+
+trait TrackRowHeaderFactory {
+	def createRowHeader[ T <: Stake ]( t: Track[ T ]) : TrackRowHeader
+}
+
+object DefaultTrackRowHeaderFactory
+extends TrackRowHeaderFactory {
+	def createRowHeader[ T <: Stake ]( t: Track[ T ]) : TrackRowHeader = {
+      new DefaultTrackRowHeader
+    }
+}
 
 /**
  *	A row header in Swing's table 'ideology'
@@ -30,7 +41,11 @@ import de.sciss.kontur.session.{ SessionElementSeq, TrackElement }
  *  @author		Hanns Holger Rutz
  *  @version	0.75, 22-Jul-08
  */
-object TrackRowHeader {
+trait TrackRowHeader {
+  def component: JComponent
+}
+
+object DefaultTrackRowHeader {
     private val colrSelected	= new Color( 0x00, 0x00, 0xFF, 0x2F )
     private val colrUnselected	= new Color( 0x00, 0x00, 0x00, 0x20 )
     private val colrDarken		= new Color( 0x00, 0x00, 0x00, 0x18 )
@@ -42,10 +57,10 @@ object TrackRowHeader {
                                                new Color( colrDarken.getRGB() & 0xFFFFFF, true ))
 }
 
-class TrackRowHeader
+class DefaultTrackRowHeader
 extends JPanel
-with DynamicListening with Disposable {
-  import TrackRowHeader._
+with TrackRowHeader with DynamicListening with Disposable {
+  import DefaultTrackRowHeader._
   
 	private val lbTrackName = new JLabel()
 
@@ -56,8 +71,8 @@ with DynamicListening with Disposable {
 
 //	protected MutableSessionCollection.Editor	editor			= null;
 
-	private var trackVar: Option[ TrackElement[ _ ]] = None
-	private var tracksVar: Option[ SessionElementSeq[ TrackElement[ _ ]]] = None
+	private var trackVar: Option[ Track[ _ ]] = None
+	private var tracksVar: Option[ SessionElementSeq[ Track[ _ ]]] = None
 //	protected MutableSessionCollection			selectedTracks	= null;
 
 	private var	isListening	= false
@@ -127,17 +142,21 @@ with DynamicListening with Disposable {
 */
 	}
 
+    def component: JComponent = this
+
 	protected def getResourceString( key: String ) =
 		AbstractApplication.getApplication().getResourceString( key )
 
-	def track_=( newTrack: Option[ TrackElement[ _ ]]) {
+    def track = trackVar
+	def track_=( newTrack: Option[ Track[ _ ]]) {
 		val wasListening = isListening
 		stopListening
 		trackVar = newTrack
 		if( wasListening ) startListening
 	}
 
-    def tracks_=( newTracks: Option[ SessionElementSeq[ TrackElement[ _ ]]]) {
+    def tracks = tracksVar
+    def tracks_=( newTracks: Option[ SessionElementSeq[ Track[ _ ]]]) {
 		val wasListening = isListening
 		stopListening
 		tracksVar = newTracks
@@ -207,7 +226,7 @@ with DynamicListening with Disposable {
 // ---------------- DynamicListening interface ----------------
 
     private def trackListener( msg: AnyRef ) : Unit = msg match {
-      case TrackElement.SelectionChanged( _, newState ) => {
+      case Track.SelectionChanged( _, newState ) => {
           selected = newState
           repaint()
       }

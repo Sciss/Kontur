@@ -83,10 +83,9 @@ with HasContextMenu {
     model.removeNodeFromParent( getChildAt( idx ).asInstanceOf[ MutableTreeNode ])
   }
 
-  private val listener: (AnyRef) => Unit = _ match {
+  private def listener( msg: AnyRef ) : Unit = msg match {
     case timelines.ElementAdded( idx, elem ) => insertElem( idx, elem )
     case timelines.ElementRemoved( idx, elem ) => removeElem( idx )
-    case _ =>
   }
   
     def startListening {

@@ -8,7 +8,7 @@ package de.sciss.kontur.gui
 import javax.swing.undo.{ UndoManager }
 import de.sciss.app.{ AbstractCompoundEdit }
 import de.sciss.io.{ Span }
-import de.sciss.kontur.edit.{ Editor }
+import de.sciss.kontur.edit.{ Editor, SimpleEdit }
 import de.sciss.kontur.session.{ Session, Timeline }
 import de.sciss.kontur.util.{ Model }
 
@@ -25,16 +25,16 @@ trait TimelineView extends Model {
 }
 
 trait TimelineViewEditor extends Editor {
-   def editPosition( id: AbstractCompoundEdit, newPos: Long ) : Unit
-   def editScroll( id: AbstractCompoundEdit, newSpan: Span ) : Unit
-   def editSelect( id: AbstractCompoundEdit, newSpan: Span ) : Unit
+   def editPosition( ce: AbstractCompoundEdit, newPos: Long ) : Unit
+   def editScroll( ce: AbstractCompoundEdit, newSpan: Span ) : Unit
+   def editSelect( ce: AbstractCompoundEdit, newSpan: Span ) : Unit
 }
 
 class BasicTimelineView( doc: Session, val timeline: Timeline )
 extends TimelineView with TimelineViewEditor {
   import TimelineView._
 
-  private var spanVar = new Span
+  private var spanVar = timeline.span
 
   def span: Span = spanVar
   def span_=( newSpan: Span ) {
@@ -45,8 +45,10 @@ extends TimelineView with TimelineViewEditor {
       }
   }
 
-  val cursor: TimelineCursor       = new BasicTimelineCursor( timeline )
-  val selection: TimelineSelection = new BasicTimelineSelection( timeline )
+  private val basicCsr  = new BasicTimelineCursor( timeline )
+  def cursor: TimelineCursor = basicCsr
+  private val basicSel  = new BasicTimelineSelection( timeline )
+  def selection: TimelineSelection = basicSel
 
   // ---- constructor ----
   {
@@ -62,19 +64,34 @@ extends TimelineView with TimelineViewEditor {
   def editor: Option[ TimelineViewEditor ] = Some( this )
     // ---- TimelineViewEditor ----
 
-     def undoManager: UndoManager = doc.getUndoManager
+  def undoManager: UndoManager = doc.getUndoManager
 
-  	 def editPosition( id: AbstractCompoundEdit, newPos: Long ) {
-       // XXX TODO
-     }
+  def editPosition( ce: AbstractCompoundEdit, newPos: Long ) {
+    val edit = new SimpleEdit( "editTimelinePosition" ) {
+       lazy val oldPos = basicCsr.position
+       def apply { oldPos; basicCsr.position = newPos }
+       def unapply { basicCsr.position = oldPos }
+    }
+    ce.addPerform( edit )
+   }
 
-	 def editScroll( id: AbstractCompoundEdit, newSpan: Span ) {
-       // XXX TODO
-     }
+  def editScroll( ce: AbstractCompoundEdit, newSpan: Span ) {
+    val edit = new SimpleEdit( "editTimelineScroll" ) {
+       lazy val oldSpan = span
+       def apply { oldSpan; span = newSpan }
+       def unapply { span = oldSpan }
+    }
+    ce.addPerform( edit )
+   }
 
-	 def editSelect( id: AbstractCompoundEdit, newSpan: Span ) {
-       // XXX TODO
-     }
+   def editSelect( ce: AbstractCompoundEdit, newSpan: Span ) {
+      val edit = new SimpleEdit( "editTimelineSelection" ) {
+        lazy val oldSpan = basicSel.span
+        def apply { oldSpan; basicSel.span = newSpan }
+        def unapply { basicSel.span = oldSpan }
+      }
+      ce.addPerform( edit )
+   }
 }
 
 object TimelineCursor {

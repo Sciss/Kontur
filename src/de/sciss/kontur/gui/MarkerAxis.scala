@@ -563,7 +563,6 @@ with DynamicListening with Disposable {
 	private def trailListener( msg: AnyRef ) {
       msg match {
         case Trail.Changed( span ) => if( span.touches( visibleSpan )) triggerRedisplay
-        case _ =>
       }
 	}
 
@@ -575,7 +574,6 @@ with DynamicListening with Disposable {
             visibleSpan = newSpan
             triggerRedisplay
         }
-        case _ =>
       }
 	}
     

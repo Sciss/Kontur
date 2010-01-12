@@ -27,14 +27,15 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 //  	private var writeProtected	= false
 //	private var wpHaveWarned	= false
 //    private val actionShowWindow= new ShowWindowAction( this )
-    private val timelineView = new BasicTimelineView( doc, tl )
-    private val panel = new TimelinePanel( timelineView )
+    private val timelineView  = new BasicTimelineView( doc, tl )
+    private val timelinePanel = new TimelinePanel( timelineView )
+    private val trackPanel    = new TrackPanel( timelinePanel )
 
     // ---- constructor ----
     {
 //      app.getMenuFactory().addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
       val cp = getContentPane
-      cp.add( panel, BorderLayout.CENTER )
+      cp.add( trackPanel, BorderLayout.CENTER )
 
     		// ---- menus and actions ----
 		val mr = app.getMenuBarRoot
@@ -151,7 +152,8 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 //					final ProcessingThread proc;
 
 //					proc =
-                      initiate( new Span( timelineView.cursor.position, durationSmps.toLong ))
+                    val pos = timelineView.cursor.position
+                      initiate( new Span( pos, pos + durationSmps.toLong ))
 //					if( proc != null ) start( proc );
 				}
 			} else {

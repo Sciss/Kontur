@@ -13,7 +13,7 @@ import scala.math._
 import de.sciss.gui.{ ComponentHost, TopPainter }
 import de.sciss.io.{ Span }
 import de.sciss.kontur.session.{ Marker, SessionElementSeq, Timeline,
-                                TrackElement, Trail }
+                                Track, Trail }
 
 /**
  *  @author		Hanns Holger Rutz
@@ -57,8 +57,6 @@ with TopPainter {
 
 	protected val markVisible = true
 
-	private var tracksVar: Option[ SessionElementSeq[ TrackElement[ _ ]]] = None
-
 	private var trackTableVar: Option[ TrackTable ] = None
 
    // ---- constructor ----
@@ -83,9 +81,9 @@ with TopPainter {
 		});
 */
 		// ---------- Listeners ----------
-/*
 
-		timelineView.addListener( this );
+		timelineView.addListener( timelineListener )
+/*
 		markAxis.addListener( new MarkerAxis.Listener() {
 			public void markerDragStarted( MarkerAxis.Event e )
 			{
@@ -105,17 +103,15 @@ with TopPainter {
       */
 	}
 
-    private def tracksListener( t: SessionElementSeq[ TrackElement[ _ ]])
+    private def tracksListener( t: SessionElementSeq[ Track[ _ ]])
     ( msg: AnyRef ) : Unit = msg match {
       case t.ElementAdded( idx, elem ) => updateSelectionAndRepaint
       case t.ElementRemoved( idx, elem ) => updateSelectionAndRepaint
-      case TrackElement.SelectionChanged( _, _ ) => updateSelectionAndRepaint
-      case _ =>
+      case Track.SelectionChanged( _, _ ) => updateSelectionAndRepaint
     }
 
     private def markerListener( msg: AnyRef ) : Unit = msg match {
       case Trail.Changed( span ) => repaintMarkers( span )
-      case _ =>
     }
 
     def trackTable = trackTableVar
@@ -123,18 +119,22 @@ with TopPainter {
       trackTableVar = newTT
     }
 
-	def tracks_=( newTracks: Option[ SessionElementSeq[ TrackElement[ _ ]]]) {
-
+	private var tracksVar: Option[ SessionElementSeq[ Track[ _ ]]] = None
+    def tracks = tracksVar
+	def tracks_=( newTracks: Option[ SessionElementSeq[ Track[ _ ]]]) {
         tracksVar.foreach( t => t.removeListener( tracksListener( t )))
         tracksVar = newTracks
         newTracks.foreach( t => t.addListener( tracksListener( t )))
    	}
 
-	def setMarkerTrack( t: Option[ TrackElement[ Marker ]]) {
+    private var markerTrackVar: Option[ Track[ Marker ]] = None
+    def markerTrack = markerTrackVar
+	def markerTrack_=( t: Option[ Track[ Marker ]]) {
       markerTrail.foreach( _.removeListener( markerListener ))
       markerTrail = t.map( _.trail )
       markerTrail.foreach( _.addListener( markerListener ))
       markerAxis.trail = markerTrail
+      markerTrackVar = t
 	}
 
 //	public void addCatchBypass() { /* scroll.addCatchBypass(); XXX*/ }
@@ -205,9 +205,9 @@ with TopPainter {
 */
 	override def dispose {
 		timelineView.removeListener( timelineListener )
-		setMarkerTrack( null )
+		markerTrack = None
 //		this.stop
-		super.dispose()
+		super.dispose
 	}
 
 	private def recalcTransforms( newRect: Rectangle ) {
@@ -310,20 +310,19 @@ with TopPainter {
     	if( timelineSel.isEmpty ) return
 
         trackTableVar.foreach( tt => {
-          val trailMainView	= tt.mainView
-          if( trailMainView == null ) return
+          tt.mainView.foreach( trailMainView => {
+            val x	= trailMainView.getX
+            val y	= trailMainView.getY
+            vpSelections ::= ViewportSelection( timelineAxis.getBounds, colrSelection )
 
-          val x	= trailMainView.getX
-          val y	= trailMainView.getY
-          vpSelections ::= ViewportSelection( timelineAxis.getBounds, colrSelection )
-
-          tracksVar.foreach( ts => {
-            for( t <- ts ) {
-              val r	= tt.getTrackBounds( t, null )
-              r.translate( x, y )
-              vpSelections ::= ViewportSelection( r,
-                 if( t.selected ) colrSelection else colrSelection2 )
-            }
+            tracksVar.foreach( ts => {
+              for( t <- ts ) {
+                val r	= tt.getTrackBounds( t, null )
+                r.translate( x, y )
+                vpSelections ::= ViewportSelection( r,
+                   if( t.selected ) colrSelection else colrSelection2 )
+              }
+            })
           })
         })
 	}
@@ -331,11 +330,12 @@ with TopPainter {
 	// ---------------- TimelineListener interface ----------------
 
     private def timelineListener( msg: AnyRef ): Unit = msg match {
-      case TimelineCursor.PositionChanged( oldPos, newPos ) => {
+      case TimelineCursor.PositionChanged( _, newPos ) => {
+//println( "POSITION CHANGED " + oldPos + " -> " + newPos )
 		timelinePos = newPos
 		updatePositionAndRepaint
       }
-      case TimelineView.SpanChanged( oldSpan, newSpan ) => {
+      case TimelineView.SpanChanged( _, newSpan ) => {
     	timelineVis	= newSpan
 		updateTransformsAndRepaint( false )
       }
@@ -346,11 +346,10 @@ with TopPainter {
 //			updateEditEnabled( !newSpan.isEmpty )
 		}
       }
-      case Timeline.RateChanged( oldRate, newRate ) => {
+      case Timeline.RateChanged( _, newRate ) => {
 		timelineRate = newRate
 //		playTimer.setDelay( Math.min( (int) (1000 / (vpScale * timelineRate * Math.abs( playRate ))), 33 ));
       }
-      case _ =>
     }
 
   private case class ViewportSelection( bounds: Rectangle, color: Color )

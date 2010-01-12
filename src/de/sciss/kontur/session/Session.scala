@@ -48,6 +48,7 @@ class Session( name: String ) extends BasicDocument {
 	def closeDocument( force: Boolean, wasClosed: Flag ) : ProcessingThread = {
 //		return frame.closeDocument( force, wasClosed );	// XXX should be in here not frame!!!
       wasClosed.set( true )
+	  AbstractApplication.getApplication().getDocumentHandler().removeDocument( this, this )
       null
 	}
 

@@ -229,7 +229,7 @@ extends BasicApplication( classOf[ Main ], Main.APP_NAME ) {
 	private var forcedQuit = false
 
     override def quit() {
-      this.synchronized {
+//      this.synchronized {
           val confirmed = new Flag( false )
           val pt          = getMenuFactory().closeAll( forcedQuit, confirmed )
 
@@ -244,7 +244,7 @@ println( "---3" )
 //			SuperColliderClient.getInstance().quit();
 			super.quit()
 		  }
-      }
+//      }
 	}
 
     def forceQuit() {
