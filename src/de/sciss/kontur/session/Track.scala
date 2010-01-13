@@ -14,7 +14,7 @@ trait Track[ T <: Stake ] extends SessionElement {
   
   private var selectedVar = false
   def trail: Trail[ T ]
-  def selected : Boolean
+  def selected : Boolean = selectedVar
   def selected_=( newState: Boolean ) {
     if( selectedVar != newState ) {
       val change = SelectionChanged( selectedVar, newState )

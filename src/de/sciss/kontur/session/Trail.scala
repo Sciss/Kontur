@@ -37,7 +37,7 @@ extends Disposable with Model {
     def visitRange( span: Span, byStart: Boolean = true )( f: (T) => Unit )
 //    def visitAll( visitor: TrailVisitor[T], byStart: Boolean = true )
     def visitAll( byStart: Boolean = true )( f: (T) => Unit )
-    def span: Span
+//    def span: Span
 	def get( idx: Int, byStart: Boolean = true ) : T
 	def indexOf( stake: T, byStart: Boolean = true ) : Int
 	def indexOfPos( pos: Long, byStart: Boolean = true ) : Int

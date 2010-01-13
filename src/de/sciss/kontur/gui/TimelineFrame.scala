@@ -53,21 +53,21 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 		amap.put( "dech", new ActionSpanWidth( 0.5 ))
 //		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT, myMeta ), "samplvl" )
 //		amap.put( "samplvl", new ActionSpanWidth( 0.0 ))
-///		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 ), "retn" )
-///		amap.put( "retn", new ActionScroll( SCROLL_SESSION_START ))
-///		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_LEFT, 0 ), "left" )
-///		amap.put( "left", new ActionScroll( SCROLL_SELECTION_START ))
-///		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT, 0 ), "right" )
-///		amap.put( "right", new ActionScroll( SCROLL_SELECTION_STOP ))
-///		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_F, InputEvent.ALT_MASK ), "fit" )
-///		amap.put( "fit", new ActionScroll( SCROLL_FIT_TO_SELECTION ))
-///		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_A, InputEvent.ALT_MASK ), "entire" )
-///		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_LEFT, myMeta ), "entire" )
-///		amap.put( "entire", new ActionScroll( SCROLL_ENTIRE_SESSION ))
-///		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, InputEvent.SHIFT_MASK ), "seltobeg" )
-///		amap.put( "seltobeg", new ActionSelect( SELECT_TO_SESSION_START ))
-///		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, InputEvent.SHIFT_MASK + InputEvent.ALT_MASK ), "seltoend" )
-///		amap.put( "seltoend", new ActionSelect( SELECT_TO_SESSION_END ))
+		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 ), "retn" )
+		amap.put( "retn", new ActionScroll( ActionScroll.SCROLL_SESSION_START ))
+		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_LEFT, 0 ), "left" )
+		amap.put( "left", new ActionScroll( ActionScroll.SCROLL_SELECTION_START ))
+		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT, 0 ), "right" )
+		amap.put( "right", new ActionScroll( ActionScroll.SCROLL_SELECTION_STOP ))
+		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_F, InputEvent.ALT_MASK ), "fit" )
+		amap.put( "fit", new ActionScroll( ActionScroll.SCROLL_FIT_TO_SELECTION ))
+		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_A, InputEvent.ALT_MASK ), "entire" )
+		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_LEFT, myMeta ), "entire" )
+		amap.put( "entire", new ActionScroll( ActionScroll.SCROLL_ENTIRE_SESSION ))
+		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, InputEvent.SHIFT_MASK ), "seltobeg" )
+		amap.put( "seltobeg", new ActionSelect( ActionSelect.SELECT_TO_SESSION_START ))
+		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, InputEvent.SHIFT_MASK + InputEvent.ALT_MASK ), "seltoend" )
+		amap.put( "seltoend", new ActionSelect( ActionSelect.SELECT_TO_SESSION_END ))
 		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_UP, 0 ), "postoselbegc" )
 		amap.put( "postoselbegc", new ActionSelToPos( 0.0, true ))
 		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_DOWN, 0 ), "postoselendc" )
@@ -96,7 +96,7 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 //		mr.putMimic( "edit.copy", this, doc.getCopyAction() )
 //		mr.putMimic( "edit.paste", this, doc.getPasteAction() )
 //		mr.putMimic( "edit.clear", this, doc.getDeleteAction() )
-///		mr.putMimic( "edit.selectAll", this, new ActionSelectAll )
+		mr.putMimic( "edit.selectAll", this, new ActionSelect( ActionSelect.SELECT_ALL ))
 
 		mr.putMimic( "timeline.insertSpan", this, new ActionInsertSpan )
 //		mr.putMimic( "timeline.trimToSelection", this, doc.getTrimAction() )
@@ -320,4 +320,103 @@ extends AppWindow( AbstractWindow.REGULAR ) {
             })
 		}
 	} // class actionSelToPosClass
+
+    private object ActionScroll {
+      val SCROLL_SESSION_START    = 0
+      val SCROLL_SELECTION_START  = 1
+      val SCROLL_SELECTION_STOP   = 2
+      val SCROLL_FIT_TO_SELECTION = 3
+      val SCROLL_ENTIRE_SESSION   = 4
+    }
+
+	private class ActionScroll( mode: Int )
+	extends AbstractAction {
+        import ActionScroll._
+
+		def actionPerformed( e: ActionEvent ) : Unit = perform
+
+		def perform {
+            timelineView.editor.foreach( ed => {
+                val pos       = timelineView.cursor.position
+                val visiSpan  = timelineView.span
+                val wholeSpan = timelineView.timeline.span
+                if( mode == SCROLL_SESSION_START ) {
+//                if( transport.isRunning ) transport.stop
+                  val posNotZero = pos != wholeSpan.start
+                  val zeroNotVisi = !visiSpan.contains( wholeSpan.start )
+                  if( posNotZero || zeroNotVisi ) {
+                    val ce = ed.editBegin( "scroll" )
+                    if( posNotZero ) ed.editPosition( ce, wholeSpan.start )
+                    if( zeroNotVisi ) {
+                      ed.editScroll( ce, new Span( wholeSpan.start, wholeSpan.start + visiSpan.getLength ))
+                    }
+          			ed.editEnd( ce )
+                  }
+                } else {
+        		  val selSpan = timelineView.selection.span
+                  val newSpan = mode match {
+        			case SCROLL_SELECTION_START => {
+                		val selSpanStart = if( selSpan.isEmpty ) pos else selSpan.start
+                        val start = max( wholeSpan.start, selSpanStart - (visiSpan.getLength >>
+                          (if( visiSpan.contains( selSpanStart )) 1 else 3)) )
+                        val stop = min( wholeSpan.stop, start + visiSpan.getLength )
+                        new Span( start, stop )
+                    }
+        			case SCROLL_SELECTION_STOP => {
+                		val selSpanStop = if( selSpan.isEmpty ) pos else selSpan.stop
+                        val stop = min( wholeSpan.stop, selSpanStop + (visiSpan.getLength >>
+                          (if( visiSpan.contains( selSpanStop )) 1 else 3)) )
+                        val start = max( wholeSpan.start, stop - visiSpan.getLength )
+                        new Span( start, stop )
+                    }
+          			case SCROLL_FIT_TO_SELECTION => selSpan
+        			case SCROLL_ENTIRE_SESSION => timelineView.timeline.span
+            		case _ => throw new IllegalArgumentException( mode.toString )
+	            }
+				if( (visiSpan != newSpan) && !newSpan.isEmpty ) {
+                    val ce = ed.editBegin( "scroll" )
+					ed.editScroll( ce, newSpan )
+          			ed.editEnd( ce )
+                }
+            }
+            })
+		}
+	} // class actionScrollClass
+
+    private object ActionSelect {
+      val SELECT_TO_SESSION_START	= 0
+      val SELECT_TO_SESSION_END		= 1
+      val SELECT_ALL                = 2
+    }
+
+	private class ActionSelect( mode: Int )
+	extends AbstractAction {
+		import ActionSelect._
+
+		def actionPerformed( e: ActionEvent ) : Unit = perform
+
+        def perform {
+          timelineView.editor.foreach( ed => {
+            val pos = timelineView.cursor.position
+			val selSpan = if( timelineView.selection.span.isEmpty ) {
+              new Span( pos, pos )
+            } else {
+              timelineView.selection.span
+            }
+
+            val wholeSpan = timelineView.timeline.span
+            val newSpan = mode match {
+			case SELECT_TO_SESSION_START => new Span( wholeSpan.start, selSpan.stop )
+			case SELECT_TO_SESSION_END => new Span( selSpan.start, wholeSpan.stop )
+            case SELECT_ALL => wholeSpan
+            case _ => throw new IllegalArgumentException( mode.toString )
+			}
+			if( newSpan != selSpan ) {
+              val ce = ed.editBegin( "select" )
+              ed.editSelect( ce, newSpan )
+              ed.editEnd( ce )
+			}
+          })
+		}
+	} // class actionSelectClass
 }

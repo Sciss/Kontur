@@ -11,7 +11,8 @@ import de.sciss.app.{ DocumentHandler }
 import de.sciss.common.{ AppWindow, BasicApplication, BasicDocument, BasicMenuFactory,
                          BasicWindowHandler, ProcessingThread }
 import de.sciss.gui.{ GUIUtil }
-import de.sciss.kontur.gui.{ MainFrame, MenuFactory }
+import de.sciss.kontur.gui.{ MainFrame, MenuFactory, SuperColliderFrame }
+import de.sciss.kontur.sc.{ SuperColliderClient }
 import de.sciss.kontur.util.{ PrefsUtil }
 import de.sciss.util.{ Flag }
 
@@ -171,7 +172,7 @@ extends BasicApplication( classOf[ Main ], Main.APP_NAME ) {
 
 		// ---- init infrastructure ----
 		// warning : reihenfolge is crucial
-//		superCollider		= new SuperColliderClient();
+//		val superCollider = SuperColliderClient.instance
 
 		init()
 
@@ -192,6 +193,8 @@ extends BasicApplication( classOf[ Main ], Main.APP_NAME ) {
 		getWindowHandler().asInstanceOf[ BasicWindowHandler ].setDefaultBorrower( mainFrame )
 //        val ctrlRoom	= new ControlRoomFrame()
 //		val observer	= new ObserverPalette()
+		val scFrame = new SuperColliderFrame()
+        scFrame.setVisible( true )
 
 		// means no preferences found, so
 		// do some more default initializations

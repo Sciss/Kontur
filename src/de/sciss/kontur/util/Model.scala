@@ -9,7 +9,7 @@ import scala.collection.immutable.{ Queue }
 
 trait Model {
   private var listeners: Queue[ AnyRef => Unit ] = Queue.Empty
-  private val sync = new AnyRef
+//  private val sync = new AnyRef
 
 //  def name: String
 
@@ -23,17 +23,17 @@ trait Model {
   }
 
   def addListener( l: AnyRef => Unit ) {
-    sync.synchronized {
+//    sync.synchronized {
       listeners = listeners.enqueue( l )
-    }
+//    }
   }
 
   def removeListener( l: AnyRef => Unit ) {
     var filtered: Queue[ AnyRef => Unit ] = Queue.Empty
-    sync.synchronized {
+//    sync.synchronized {
       listeners.foreach( x => if( x != l )
         filtered = filtered.enqueue( x )) // ugly; no easier way??
       listeners = filtered
-    }
+//    }
   }
 }
