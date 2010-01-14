@@ -18,7 +18,7 @@ object Timeline {
 trait Timeline extends SessionElement {
   def span: Span
   def rate: Double
-  def tracks: SessionElementSeq[ Track[ _ ]]
+  def tracks: SessionElementSeq[ Track ]
   def editor: Option[ TimelineEditor ]
 }
 
@@ -39,7 +39,7 @@ extends Timeline with Renameable with TimelineEditor {
 
   def undoManager: UndoManager = doc.getUndoManager
 
-  val tracks      = new SessionElementSeq[ Track[ _ ]]( "Tracks" )
+  val tracks      = new BasicSessionElementSeq[ Track ]( doc, "Tracks" )
   val audioTrail  = new AudioTrail
 
   def span: Span = spanVar

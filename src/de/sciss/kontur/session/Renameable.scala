@@ -7,7 +7,13 @@ package de.sciss.kontur.session
 
 import de.sciss.kontur.util.{ Model }
 
+object Renameable {
+  case class NameChanged( oldName: String, newName: String )
+}
+
 trait Renameable { self: Model =>
+  import Renameable._
+
   protected var nameVar: String
   def name: String = nameVar
   def name_=( newName: String ) {
@@ -19,6 +25,4 @@ trait Renameable { self: Model =>
       }
 //    }
   }
-
-  case class NameChanged( oldName: String, newName: String )
 }

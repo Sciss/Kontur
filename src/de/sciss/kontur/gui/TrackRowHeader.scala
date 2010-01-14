@@ -14,16 +14,16 @@ import de.sciss.gui.{ GradientPanel }
 import de.sciss.app.{ AbstractApplication, Application, DynamicAncestorAdapter,
                      DynamicListening, GraphicsHandler }
 import de.sciss.util.{ Disposable }
-import de.sciss.kontur.session.{ SessionElementSeq, Stake, Track }
+import de.sciss.kontur.session.{ Renameable, SessionElementSeq, Stake, Track }
 
 trait TrackRowHeaderFactory {
-	def createRowHeader[ T <: Stake ]( t: Track[ T ]) : TrackRowHeader
+	def createRowHeader( t: Track, view: TracksView ) : TrackRowHeader
 }
 
 object DefaultTrackRowHeaderFactory
 extends TrackRowHeaderFactory {
-	def createRowHeader[ T <: Stake ]( t: Track[ T ]) : TrackRowHeader = {
-      new DefaultTrackRowHeader
+	def createRowHeader( t: Track, view: TracksView ) : TrackRowHeader = {
+      new DefaultTrackRowHeader( t, view )
     }
 }
 
@@ -57,22 +57,20 @@ object DefaultTrackRowHeader {
                                                new Color( colrDarken.getRGB() & 0xFFFFFF, true ))
 }
 
-class DefaultTrackRowHeader
+class DefaultTrackRowHeader( track: Track, tracksView: TracksView )
 extends JPanel
 with TrackRowHeader with DynamicListening with Disposable {
   import DefaultTrackRowHeader._
   
 	private val lbTrackName = new JLabel()
 
-	protected var selected		= false
+//	protected var selected		= false
 
 //	private final MapManager.Listener			trackListener;
 //	private final SessionCollection.Listener	selectedTracksListener;
 
 //	protected MutableSessionCollection.Editor	editor			= null;
 
-	private var trackVar: Option[ Track[ _ ]] = None
-	private var tracksVar: Option[ SessionElementSeq[ Track[ _ ]]] = None
 //	protected MutableSessionCollection			selectedTracks	= null;
 
 	private var	isListening	= false
@@ -89,21 +87,38 @@ with TrackRowHeader with DynamicListening with Disposable {
 			 *	@synchronization	attempts exclusive on TRNS + GRP
 			 */
 			override def mousePressed( e: MouseEvent ) {
-				if( /* (editor == null) || */ (trackVar.isEmpty) ) return
-                val t = trackVar.get
-
 //				val id = editor.editBegin( this, getResourceString( "editTrackSelection" ))
-
-				if( e.isAltDown ) {
-                    t.selected = !selected // XXX EDIT
-				} else if( e.isMetaDown ) {
-                    tracksVar.foreach( _.foreach( t2 => t2.selected = !t2.selected )) // XXX EDIT
-				} else if( e.isShiftDown ) {
-                    t.selected = !selected // XXX EDIT
-				} else if( !selected ) {
-                    tracksVar.foreach( _.foreach( t2 => t2.selected = (t2 == t) )) // XXX EDIT
-				}
-//				editor.editEnd( id )
+                tracksView.editor.foreach( ed => {
+                    val ce = ed.editBegin( "trackSelection" )
+                    val thisSel = tracksView.isSelected( track )
+    				if( e.isShiftDown ) { // toggle single
+                      if( thisSel ) {
+                        ed.editDeselect( ce, track )
+                      } else {
+                        ed.editSelect( ce, track )
+                      }
+            		} else if( e.isMetaDown ) { // toggle single, complement reset
+                      val collRest = tracksView.tracks.filter( _ != track )
+                      if( thisSel ) {
+                        ed.editDeselect( ce, track )
+                        ed.editSelect( ce, collRest: _* )
+                      } else {
+                        ed.editSelect( ce, track )
+                        ed.editDeselect( ce, collRest: _* )
+                      }
+                	} else if( e.isAltDown ) { // toggle single and align reset
+                      if( thisSel ) {
+                        ed.editDeselect( ce, tracksView.tracks.toList: _* )
+                      } else {
+                        ed.editSelect( ce, tracksView.tracks.toList: _* )
+                      }
+    				} else if( !thisSel ) { // select single, deselect reset
+                        val collRest = tracksView.tracks.filter( _ != track )
+                        ed.editSelect( ce, track )
+                        ed.editDeselect( ce, collRest: _* )
+        			}
+      				ed.editEnd( ce )
+                })
 		    }
 		}
 
@@ -123,7 +138,8 @@ with TrackRowHeader with DynamicListening with Disposable {
 		setBorder( BorderFactory.createMatteBorder( 0, 0, 0, 2, Color.white ))   // top left bottom right
 
 		// --- Listener ---
-        new DynamicAncestorAdapter( this ).addTo( this );
+      addMouseListener( ml )
+      new DynamicAncestorAdapter( this ).addTo( this );
 
 /*
 		trackListener = new MapManager.Listener() {
@@ -147,6 +163,7 @@ with TrackRowHeader with DynamicListening with Disposable {
 	protected def getResourceString( key: String ) =
 		AbstractApplication.getApplication().getResourceString( key )
 
+/*
     def track = trackVar
 	def track_=( newTrack: Option[ Track[ _ ]]) {
 		val wasListening = isListening
@@ -162,6 +179,7 @@ with TrackRowHeader with DynamicListening with Disposable {
 		tracksVar = newTracks
 		if( wasListening ) startListening
     }
+*/
 
 /*
 	def setEditor( editor: MutableSessionCollection.Editor ) {
@@ -185,7 +203,7 @@ with TrackRowHeader with DynamicListening with Disposable {
 	 *
 	 *	@return	<code>true</code> if the row (and thus the transmitter) is selected
 	 */
-	def isSelected = selected
+//	def isSelected = selected
 
 	override def paintComponent( g: Graphics ) {
 		super.paintComponent( g )
@@ -198,7 +216,7 @@ with TrackRowHeader with DynamicListening with Disposable {
 	g2.translate( x, 0 )
 		g2.setPaint( pntDarken )
 		g2.fillRect( -x, 19, x + 36, 2 )
-		g2.setPaint( if( selected ) pntSelected else pntUnselected )
+		g2.setPaint( if( tracksView.isSelected( track )) pntSelected else pntUnselected )
 		g2.fillRect( -x, 0, x + 36, 20 )
 	g2.translate( -x, 0 )
 
@@ -216,39 +234,33 @@ with TrackRowHeader with DynamicListening with Disposable {
 		g2.fillRect( 0, 0, w, 8 )
 	}
 
-	protected def checkTrackName {
-        val name = trackVar.map( _.name ) getOrElse ""
-		if( lbTrackName.getText != name ) {
-			lbTrackName.setText( name )
+	private def checkTrackName {
+		if( lbTrackName.getText != track.name ) {
+			lbTrackName.setText( track.name )
 		}
 	}
 
 // ---------------- DynamicListening interface ----------------
 
-    private def trackListener( msg: AnyRef ) : Unit = msg match {
-      case Track.SelectionChanged( _, newState ) => {
-          selected = newState
-          repaint()
+    private def tracksViewListener( msg: AnyRef ) : Unit = msg match {
+      case TracksView.SelectionChanged( mod @ _* ) => {
+          if( mod.contains( track )) repaint()
       }
-      case _ =>
+      case Renameable.NameChanged( _, newName ) => checkTrackName
     }
 
     def startListening {
     	if( !isListening ) {
     		isListening = true
-            trackVar.foreach( _.addListener( trackListener ))
+            tracksView.addListener( tracksViewListener )
     		checkTrackName
-    		if( selected != (trackVar.map( _.selected ) getOrElse false) ) {
-    			selected = !selected
-    			repaint()
-        	}
     	}
     }
 
     def stopListening {
     	if( isListening ) {
     		isListening = false
-            trackVar.foreach( _.removeListener( trackListener ))
+            tracksView.removeListener( tracksViewListener )
     	}
     }
 }

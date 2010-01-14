@@ -30,14 +30,18 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 //	private var wpHaveWarned	= false
 //    private val actionShowWindow= new ShowWindowAction( this )
     private val timelineView  = new BasicTimelineView( doc, tl )
-    private val timelinePanel = new TimelinePanel( timelineView )
-    private val trackPanel    = new TrackPanel( timelinePanel )
+    private val tracksView    = new BasicTracksView( doc, tl.tracks )
+    private val timelinePanel = new TimelinePanel( tracksView, timelineView )
+    private val trailView     = new javax.swing.JLabel( "Trail" )
+    private val tracksPanel    = new TracksPanel( timelinePanel, trailView )
 
     // ---- constructor ----
     {
 //      app.getMenuFactory().addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
       val cp = getContentPane
-      cp.add( trackPanel, BorderLayout.CENTER )
+      cp.add( tracksPanel, BorderLayout.CENTER )
+
+//      tracksPanel.tracks = Some( tl.tracks )
 
     	// ---- actions ----
 		val imap		= getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW )
@@ -103,7 +107,7 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 
       init()
   	  updateTitle
-      documentUpdate
+//      documentUpdate
 
       initBounds	// be sure this is after documentUpdate!
 
@@ -113,9 +117,9 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 
 	override protected def alwaysPackSize() = false
 
-  	protected def documentUpdate {
-      // nada
-    }
+  //	protected def documentUpdate {
+  //    // nada
+  //  }
 
 	/**
 	 *  Recreates the main frame's title bar
