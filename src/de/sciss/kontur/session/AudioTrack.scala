@@ -9,5 +9,5 @@ class AudioTrack( doc: Session, tl: BasicTimeline )
 extends Track // [ AudioRegion ]
 with Renameable {
   protected var nameVar = "Audio" // XXX
-  val trail: Trail[ AudioRegion ] = new AudioTrail
+  val trail: Trail[ AudioRegion ] = new AudioTrail( doc )
 }

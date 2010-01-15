@@ -88,6 +88,7 @@ object Axis {
 class Axis( orient: Int = Axis.HORIZONTAL, private var flagsVar: Int = 0, host: Option[ ComponentHost ] = None )
 extends JComponent
 //implements Disposable
+with TopPaintable
 {
     import Axis._
 
@@ -182,6 +183,8 @@ extends JComponent
 
     private val normalRect = new Rectangle
     private def normalBounds: Rectangle = {
+        normalRect.x      = 0
+        normalRect.y      = 0
         normalRect.width  = getWidth
         normalRect.height = getHeight
         normalRect
@@ -249,6 +252,7 @@ extends JComponent
 		})
 
 		g2.setTransform( trnsOrig )
+        paintOnTop( g2 )
     }
 
 	private def recalcTransforms {

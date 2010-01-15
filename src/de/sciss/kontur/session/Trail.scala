@@ -42,16 +42,17 @@ extends Disposable with Model {
 	def indexOf( stake: T, byStart: Boolean = true ) : Int
 	def indexOfPos( pos: Long, byStart: Boolean = true ) : Int
 //	public boolean contains( Stake stake );
+    def editor: Option[ TrailEditor[ T ]]
 }
 
 trait TrailEditor[ T <: Stake ]
 extends Editor {
-    def track: Trail[ T ]
+//    def track: Trail[ T ]
 	def editInsert( ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode ) : Unit
 	def editRemove( ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode ) : Unit
 	def editClear( ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode ) : Unit
-	def editAdd( ce: AbstractCompoundEdit, stake: T* ) : Unit
-	def editRemove( ce: AbstractCompoundEdit, stake: T* ) : Unit
+	def editAdd( ce: AbstractCompoundEdit, stakes: T* ) : Unit
+	def editRemove( ce: AbstractCompoundEdit, stakes: T* ) : Unit
 	def defaultTouchMode: TouchMode
 }
 

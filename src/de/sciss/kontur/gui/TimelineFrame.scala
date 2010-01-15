@@ -8,9 +8,9 @@ package de.sciss.kontur.gui
 import de.sciss.app.{ AbstractApplication, AbstractWindow }
 import de.sciss.common.{ BasicApplication, BasicMenuFactory, ShowWindowAction,
                         BasicWindowHandler}
-import de.sciss.gui.{ GUIUtil, MenuAction, ParamField, SpringPanel}
+import de.sciss.gui.{ GUIUtil, MenuAction, MenuGroup, MenuItem, ParamField, SpringPanel}
 import de.sciss.io.{ Span }
-import de.sciss.kontur.session.{ Session, Timeline }
+import de.sciss.kontur.session.{ AudioRegion, AudioTrack, Session, Timeline }
 import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }
 import java.awt.event.{ ActionEvent, InputEvent, KeyEvent }
 import java.awt.{ BorderLayout, Dimension, Point, Rectangle }
@@ -31,9 +31,9 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 //    private val actionShowWindow= new ShowWindowAction( this )
     private val timelineView  = new BasicTimelineView( doc, tl )
     private val tracksView    = new BasicTracksView( doc, tl.tracks )
-    private val timelinePanel = new TimelinePanel( tracksView, timelineView )
-    private val trailView     = new javax.swing.JLabel( "Trail" )
-    private val tracksPanel    = new TracksPanel( timelinePanel /*, trailView*/ )
+    private val timelinePanel = new TimelinePanel( timelineView )
+//    private val trailView     = new javax.swing.JLabel( "Trail" )
+    private val tracksPanel    = new TracksPanel( tracksView, timelinePanel )
 
     // ---- constructor ----
     {
@@ -93,6 +93,9 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 //		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_TAB, InputEvent.ALT_MASK + InputEvent.SHIFT_MASK ), "extprevreg" )
 //		amap.put( "extprevreg", new ActionSelectRegion( EXTEND_PREV_REGION ))
 
+    	imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_M, BasicMenuFactory.MENU_SHORTCUT ), "debuggen" )
+		amap.put( "debuggen", new ActionDebugGenerator )
+
     	// ---- menus and actions ----
 		val mr = app.getMenuBarRoot
 
@@ -106,7 +109,7 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 
 		mr.putMimic( "timeline.insertSpan", this, new ActionInsertSpan )
 //		mr.putMimic( "timeline.trimToSelection", this, doc.getTrimAction() )
-
+    
       init()
   	  updateTitle
 //      documentUpdate
@@ -130,6 +133,25 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 	def updateTitle {
 		setTitle( "Timeline : " + tl.name + " (" + doc.displayName + ")")
 	}
+
+    private def debugGenerator {
+      doc.audioFiles.get( 0 ).foreach( afe => {
+         tracksView.tracks.find( t => t.isInstanceOf[ AudioTrack ] && tracksView.isSelected( t ))
+          .foreach( t => {
+            val span = new Span( timelineView.cursor.position,
+                                min( timelineView.cursor.position + (timelineView.timeline.rate + 0.5).toLong,
+                                     timelineView.timeline.span.stop ))
+             if( !span.isEmpty ) {
+                t.asInstanceOf[ AudioTrack ].trail.editor.foreach( ed => {
+                    val ce = ed.editBegin( "debug" )
+                    val ar = new AudioRegion( afe, span, afe.name )
+                    ed.editAdd( ce, ar )
+                    ed.editEnd( ce )
+                })
+             }
+         })
+      })
+    }
 
 	private def initBounds {
 		val cp	= getClassPrefs()
@@ -425,4 +447,9 @@ extends AppWindow( AbstractWindow.REGULAR ) {
           })
 		}
 	} // class actionSelectClass
+
+    private class ActionDebugGenerator
+    extends MenuAction( "Debug Generator" ) {
+        def actionPerformed( e: ActionEvent ) : Unit = debugGenerator
+    }
 }

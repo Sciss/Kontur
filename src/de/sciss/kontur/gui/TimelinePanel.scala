@@ -5,7 +5,7 @@
 
 package de.sciss.kontur.gui
 
-import java.awt.{ Color, Graphics2D, Rectangle }
+import java.awt.{ Color, Graphics, Graphics2D, Rectangle }
 import java.awt.event.{ ActionEvent, ActionListener }
 import javax.swing.{ BoxLayout, JComponent, JViewport, Timer }
 import javax.swing.event.{ ChangeEvent, ChangeListener }
@@ -23,9 +23,9 @@ import de.sciss.kontur.session.{ Marker, SessionElementSeq, Timeline,
 //object TimelinePanel {
 //}
 
-class TimelinePanel( val tracksView: TracksView, val timelineView: TimelineView )
+class TimelinePanel( /* val tracksView: TracksView,*/ val timelineView: TimelineView )
 extends JComponent // ComponentHost
-with TopPainter {
+with TopPaintable {
 	private val colrSelection			= new Color( 0x00, 0x00, 0xFF, 0x2F ); // GraphicsUtil.colrSelection;
 	private val colrPosition			= new Color( 0xFF, 0x00, 0x00, 0x7F );
 	private val colrSelection2			= new Color( 0x00, 0x00, 0x00, 0x20 );  // selected timeline span over unselected trns
@@ -41,7 +41,7 @@ with TopPainter {
 	private var timelineSel             = timelineView.selection.span
 	protected var timelinePos           = timelineView.cursor.position
 	protected var timelineRate          = timelineView.timeline.rate
-    private val tracks = tracksView.tracks
+//    private val tracks = tracksView.tracks
 
 //	private final Timer							playTimer;
 
@@ -86,7 +86,7 @@ with TopPainter {
 		// ---------- Listeners ----------
 
 		timelineView.addListener( timelineListener )
-        tracksView.addListener( tracksViewListener )
+//        tracksView.addListener( tracksViewListener )
 /*
 		markAxis.addListener( new MarkerAxis.Listener() {
 			public void markerDragStarted( MarkerAxis.Event e )
@@ -114,7 +114,7 @@ with TopPainter {
         viewPortVar.foreach( _.addChangeListener( viewPortListener ))
     }
 
-    private def tracksViewListener( msg: AnyRef ) : Unit = {
+    def tracksViewListener( tracks: SessionElementSeq[ Track ])( msg: AnyRef ) : Unit = {
 // println(" TimelinePanel : tracksViewListener " + msg )
       msg match {
       case tracks.ElementAdded( idx, elem ) => updateSelectionAndRepaint
@@ -128,7 +128,9 @@ with TopPainter {
 
     def tracksTable = tracksTableVar
     def tracksTable_=( newTT: Option[ TracksPanel ]) {
+      tracksTableVar.foreach( tt => tt.removeListener( tracksViewListener( tt.tracksView.tracks )))
       tracksTableVar = newTT
+      tracksTableVar.foreach( tt => tt.addListener( tracksViewListener( tt.tracksView.tracks )))
     }
 /*
 	private var tracksVar: Option[ SessionElementSeq[ Track[ _ ]]] = None
@@ -171,9 +173,38 @@ with TopPainter {
 		}
 	}
 
-	def paintOnTop( g2: Graphics2D ) {
-		val r = new Rectangle( 0, 0, getWidth(), getHeight() ) // getViewRect();
-		if( vpRecentRect != r ) {
+    private val normalRect = new Rectangle
+    private def normalBounds: Rectangle = {
+        normalRect.x      = 0
+        normalRect.y      = 0
+        normalRect.width  = getWidth
+        normalRect.height = getHeight
+        normalRect
+    }
+
+    private def portBounds: Rectangle = {
+// println( "vp rect = " + viewPort.get.getViewRect )
+      val r = viewPort.get.getViewRect
+      if( r != normalRect ) {
+          normalRect.setBounds( r )
+          viewRectChanged( r )
+      }
+      normalRect
+    }
+
+    // subclasses might want to use this
+    protected def viewRectChanged( r: Rectangle ) {}
+
+//	override def paintComponent( g: Graphics ) {}
+	override def paintChildren( g: Graphics ) {
+//        super.paintComponent( g )
+        super.paintChildren( g )
+        
+        val g2 = g.asInstanceOf[ Graphics2D ]
+//        val r = if( viewPort.isEmpty ) normalBounds else portBounds
+        val r = normalBounds
+
+        if( vpRecentRect != r ) {
             if( vpRecentRect.height != r.height ) updateSelection
 			recalcTransforms( r )
 		}
@@ -189,6 +220,8 @@ with TopPainter {
 
 		g2.setColor( colrPosition )
 		g2.drawLine( vpPosition, 0, vpPosition, vpRecentRect.height )
+
+        paintOnTop( g2 )
 	}
 
 /*
@@ -221,7 +254,8 @@ with TopPainter {
 */
 	/* override */ def dispose {
 		timelineView.removeListener( timelineListener )
-        tracksView.removeListener( tracksViewListener )
+//        tracksView.removeListener( tracksViewListener )
+        tracksTable = None
 //		markerTrack = None
 //		this.stop
 
@@ -231,14 +265,16 @@ with TopPainter {
 	private def recalcTransforms( newRect: Rectangle ) {
 		vpRecentRect = newRect // getViewRect();
 
-		if( !timelineVis.isEmpty ) {
-			vpScale = (vpRecentRect.width.toDouble / max( 1, timelineVis.getLength )).toFloat
+        val span = timelineView.timeline.span // whole line, _not_ view
+
+		if( !span.isEmpty ) {
+			vpScale = (vpRecentRect.width.toDouble / max( 1, span.getLength )).toFloat
 //			playTimer.setDelay( Math.min( (int) (1000 / (vpScale * timelineRate * Math.abs( playRate ))), 33 ));
-			vpPosition		= ((timelinePos - timelineVis.start) * vpScale + 0.5f).toInt
+			vpPosition		= ((timelinePos - span.start) * vpScale + 0.5f).toInt
 			vpPositionRect.setBounds( vpPosition, 0, 1, vpRecentRect.height )
 			if( !timelineSel.isEmpty ) {
-				val x			= ((timelineSel.start - timelineVis.start) * vpScale + 0.5f).toInt + vpRecentRect.x
-				val w			= max( 1, ((timelineSel.stop - timelineVis.start) * vpScale + 0.5f).toInt - x )
+				val x			= ((timelineSel.start - span.start) * vpScale + 0.5f).toInt + vpRecentRect.x
+				val w			= max( 1, ((timelineSel.stop - span.start) * vpScale + 0.5f).toInt - x )
 				vpSelectionRect.setBounds( x, 0, w, vpRecentRect.height )
 			} else {
 				vpSelectionRect.setBounds( 0, 0, 0, 0 )
@@ -255,8 +291,10 @@ with TopPainter {
 		val pEmpty = (vpPositionRect.x + vpPositionRect.width < 0) || (vpPositionRect.x > vpRecentRect.width)
 		if( !pEmpty ) vpUpdateRect.setBounds( vpPositionRect )
 
+        val span = timelineView.timeline.span // whole line, _not_ view
+
 		if( vpScale > 0f ) {
-			vpPosition	= ((timelinePos - timelineVis.start) * vpScale + 0.5f).toInt
+			vpPosition	= ((timelinePos - span.start) * vpScale + 0.5f).toInt
 			// choose update rect such that even a paint manager delay of 200 milliseconds
 			// will still catch the (then advanced) position so we don't see flickering!
 			// XXX this should take playback rate into account, though
@@ -336,12 +374,14 @@ with TopPainter {
   //            val x	= v.getX
   //            val y	= v.getY
 
-              tracks.foreach( t => {
-                val r	= tt.getTrackBounds( t )
+              for( i <- 0 until tt.numTracks ) {
+                tt.getTrack( i ).foreach( t => {
+                   val r = tt.getTrackBounds( t )
 //                r.translate( x, y )
-                vpSelections ::= ViewportSelection( r,
-                   if( tracksView.isSelected( t )) colrSelection else colrSelection2 )
-              })
+                   vpSelections ::= ViewportSelection( r,
+                       if( tt.tracksView.isSelected( t )) colrSelection else colrSelection2 )
+                })
+              }
          })
     }
 
@@ -410,7 +450,15 @@ with TopPainter {
      if( tlLen == 0 || vLen == 0 ) return
      val scale = tlLen.toDouble / vLen
      dim.width = (vw * scale + 0.5).toInt
-	 setPreferredSize( dim )
+     
+//     dim.height = 0
+//     var i = 0; while( i < getComponentCount() ) {
+//       val c = getComponent( i )
+//       dim.height += c.getPreferredSize().height
+//       i += 1
+//     }
+       setPreferredSize( dim )
+//println( "PREFERRED 1 : " + dim )
      revalidate()
      tracksTableVar.foreach( tt => {
        val columnHeader = tt.columnHeaderView

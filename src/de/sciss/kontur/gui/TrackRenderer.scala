@@ -9,7 +9,7 @@ import javax.swing.{ JComponent }
 import de.sciss.kontur.session.{ Track }
 
 trait TrackRendererFactory {
-    def createTrackRenderer( t: Track, view: TracksView ) : TrackRenderer
+    def createTrackRenderer( t: Track, view: TracksView, timelineView: TimelineView ) : TrackRenderer
 }
 
 trait TrackRenderer {
@@ -19,12 +19,12 @@ trait TrackRenderer {
 
 object DefaultTrackRendererFactory
 extends TrackRendererFactory {
-    def createTrackRenderer( t: Track, view: TracksView ) : TrackRenderer =
-      new DefaultTrackRenderer( t, view )
+    def createTrackRenderer( t: Track, tracksView: TracksView, timelineView: TimelineView ) : TrackRenderer =
+      new DefaultTrackRenderer( t, tracksView, timelineView )
 }
 
-class DefaultTrackRenderer( t: Track, view: TracksView )
+class DefaultTrackRenderer( t: Track, tracksView: TracksView, timelineView: TimelineView )
 extends TrackRenderer {
-  val trackHeaderComponent = new DefaultTrackHeaderComponent( t, view )
-  val trackComponent       = new DefaultTrackComponent( t, view )
+  val trackHeaderComponent = new DefaultTrackHeaderComponent( t, tracksView )
+  val trackComponent       = new DefaultTrackComponent( t, tracksView, timelineView )
 }

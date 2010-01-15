@@ -12,22 +12,23 @@ import scala.collection.immutable.{ Queue }
 
 import de.sciss.gui.{ GUIUtil, GradientPanel, StretchedGridLayout }
 import de.sciss.kontur.session.{ Marker, SessionElementSeq, Timeline, Track }
+import de.sciss.kontur.util.{ Model }
 
 /**
  *	@author		Hanns Holger Rutz
  * 	@version	0.12, 11-Jan-10
  */
-class TracksPanel( val timelinePanel: TimelinePanel )
+class TracksPanel( val tracksView: TracksView, val timelinePanel: TimelinePanel )
 extends JScrollPane( VERTICAL_SCROLLBAR_ALWAYS,
                      HORIZONTAL_SCROLLBAR_ALWAYS ) // JPanel( new BorderLayout() )
-with TracksTable {
-    private val tracksView        = timelinePanel.tracksView
+with TracksTable with Model {
+//    private val tracksView        = timelinePanel.tracksView
 //    private val scroll            = new TimelineScroll( timelinePanel.timelineView )
 //	private val allHeaderPanel    = new JPanel( new BorderLayout() )
 //	private val trackHeaderPanel  = new JPanel( new StretchedGridLayout( 0, 1, 1, 1 ))
 
     val columnHeaderView  = Box.createVerticalBox()
-    private val rowHeaderView     = Box.createHorizontalBox()
+    private val rowHeaderView     = Box.createVerticalBox()
 
 //    private val markerTrackHeader = new DefaultTrackRowHeader()
     private var trf: TrackRendererFactory = DefaultTrackRendererFactory
@@ -40,9 +41,11 @@ with TracksTable {
   	private def tracksViewListener( msg: AnyRef ) : Unit = {
 //println(" TracksPanel : tracksViewListener " + msg )
       msg match {
-      case tracks.ElementAdded( idx, t ) => addTrack( idx, t )
-      case tracks.ElementRemoved( idx, t ) => removeTrack( idx, t )
-    }}
+          case tracks.ElementAdded( idx, t ) => addTrack( idx, t )
+          case tracks.ElementRemoved( idx, t ) => removeTrack( idx, t )
+      }
+      dispatch( msg )
+    }
 
     // ---- constructor ----
     {
@@ -129,11 +132,15 @@ with TracksTable {
 //	}
 
     private def addTrack( idx: Int, t: Track ) {
-      val tr = trf.createTrackRenderer( t, tracksView )
+      val tr = trf.createTrackRenderer( t, tracksView, timelinePanel.timelineView )
 //      val trackRowHead = trf.createRowHeader( t, tracksView )
       mapTrackRenderers += (t -> tr)
       rowHeaderView.add( tr.trackHeaderComponent, idx )
-      revalidate(); repaint()
+      timelinePanel.add( tr.trackComponent, idx )
+//      revalidate(); repaint()
+      rowHeaderView.revalidate()
+//println( "ROW HEADER PREF " + rowHeaderView.getPreferredSize() )
+      timelinePanel.revalidate()
     }
 
     private def removeTrack( idx: Int, t: Track ) {
@@ -141,13 +148,16 @@ with TracksTable {
 //      assert( trackHeaderPanel.getComponent( idx ) == trackRowHead )
       mapTrackRenderers -= t
       rowHeaderView.remove( idx )
+      timelinePanel.remove( idx )
       // we could dispose the header if dispose was defined,
       // but we rely on dynamiclistening instead:
       // trackRowHead.dispose
 
       // XXX eventually could check if header was visible
       // (if not we do not need to revalidate)
-      revalidate(); repaint()
+//      revalidate(); repaint()
+      rowHeaderView.revalidate()
+      timelinePanel.revalidate()
     }
 
 /*

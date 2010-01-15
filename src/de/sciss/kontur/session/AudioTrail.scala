@@ -12,6 +12,4 @@ extends Region( s, n ) {
   
 }
 
-class AudioTrail extends BasicTrail[ AudioRegion ] {
-
-}
+class AudioTrail( doc: Session ) extends BasicTrail[ AudioRegion ]( doc )

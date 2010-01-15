@@ -10,5 +10,5 @@ package de.sciss.kontur.session
 //}
 
 trait Track extends SessionElement {
-  def trail: Trail[ _ ]
+  def trail: Trail[ _ <: Stake ]
 }

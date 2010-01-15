@@ -20,6 +20,7 @@ extends SessionElement {
   def foreach[ U ]( f: T => U ): Unit
   def toList: List[ T ]
   def filter( p: (T) => Boolean ): List[ T ]
+  def find( p: (T) => Boolean): Option[ T ]
   def size: Int
 
   def editor: Option[ SessionElementSeqEditor[ T ]]
@@ -84,6 +85,7 @@ with SessionElementSeqEditor[ T ] {
   def foreach[ U ]( f: T => U ): Unit = coll.foreach( f )
   def toList: List[ T ] = coll.toList
   def filter( p: (T) => Boolean ): List[ T ] = coll.filter( p ).toList
+  def find( p: (T) => Boolean): Option[ T ] = coll.find( p )
   def size: Int = coll.size
 
   def editor: Option[ SessionElementSeqEditor[ T ]] = Some( this )

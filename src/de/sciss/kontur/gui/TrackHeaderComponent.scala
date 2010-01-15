@@ -110,9 +110,10 @@ with DynamicListening with Disposable {
 
     // ---- constructor ----
 	{
+
 		val lay	= new SpringLayout()
 		setLayout( lay )
-        setPreferredSize( new Dimension( 64, 64 )) // XXX
+//        setPreferredSize( new Dimension( 64, 64 )) // XXX
 
  		lbTrackName.setFont( AbstractApplication.getApplication().getGraphicsHandler().getFont(
             GraphicsHandler.FONT_SYSTEM | GraphicsHandler.FONT_SMALL ))
@@ -122,6 +123,11 @@ with DynamicListening with Disposable {
 				Spring.constant( -4 ),
 				Spring.minus( Spring.sum( Spring.sum( lay.getConstraint( SpringLayout.SOUTH, this ), Spring.minus( lay.getConstraint( SpringLayout.NORTH, this ))), Spring.constant( -15 ))))))
 		add( lbTrackName )
+
+        val cons2 = lay.getConstraints( this )
+        cons2.setWidth( Spring.constant( 64 ))
+        cons2.setHeight( Spring.constant( 64 ))
+
 		setBorder( BorderFactory.createMatteBorder( 0, 0, 0, 2, Color.white ))   // top left bottom right
 
 		// --- Listener ---
