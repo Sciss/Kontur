@@ -7,7 +7,8 @@ package de.sciss.kontur.gui
 
 import java.awt.{ Color, Graphics2D, Rectangle }
 import java.awt.event.{ ActionEvent, ActionListener }
-import javax.swing.{ BoxLayout, JComponent, Timer }
+import javax.swing.{ BoxLayout, JComponent, JViewport, Timer }
+import javax.swing.event.{ ChangeEvent, ChangeListener }
 import scala.math._
 
 import de.sciss.gui.{ ComponentHost, TopPainter }
@@ -23,7 +24,7 @@ import de.sciss.kontur.session.{ Marker, SessionElementSeq, Timeline,
 //}
 
 class TimelinePanel( val tracksView: TracksView, val timelineView: TimelineView )
-extends ComponentHost
+extends JComponent // ComponentHost
 with TopPainter {
 	private val colrSelection			= new Color( 0x00, 0x00, 0xFF, 0x2F ); // GraphicsUtil.colrSelection;
 	private val colrPosition			= new Color( 0xFF, 0x00, 0x00, 0x7F );
@@ -52,20 +53,21 @@ with TopPainter {
 //	protected long								playStartTime;
 //	protected boolean							isPlaying				= false;
 
-	val timelineAxis = new TimelineAxis( timelineView, this )
+//	val timelineAxis = new TimelineAxis( timelineView, Some( this ))
 //	val markerAxis = new MarkerAxis( timelineView, this )
 	private var markerTrail: Option[ Trail[ Marker ]] = None
 
 	protected val markVisible = true
 
-	private var tracksTableVar: Option[ TracksTable ] = None
+	private var tracksTableVar: Option[ TracksPanel ] = None
+    private var viewPortVar: Option[ JViewport ] = None
 
    // ---- constructor ----
 	{
-		addTopPainter( this )
+//		addTopPainter( this )
 		setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ))
 
-		add( timelineAxis )
+//		add( timelineAxis )
 //		add( markerAxis )
 /*
 		playTimer = new Timer( 33, new ActionListener() {
@@ -105,8 +107,15 @@ with TopPainter {
       */
 	}
 
+    def viewPort = viewPortVar
+    def viewPort_=( newPort: Option[ JViewport ]) {
+        viewPortVar.foreach( _.removeChangeListener( viewPortListener ))
+        viewPortVar = newPort
+        viewPortVar.foreach( _.addChangeListener( viewPortListener ))
+    }
+
     private def tracksViewListener( msg: AnyRef ) : Unit = {
-println(" TimelinePanel : tracksViewListener " + msg )
+// println(" TimelinePanel : tracksViewListener " + msg )
       msg match {
       case tracks.ElementAdded( idx, elem ) => updateSelectionAndRepaint
       case tracks.ElementRemoved( idx, elem ) => updateSelectionAndRepaint
@@ -118,7 +127,7 @@ println(" TimelinePanel : tracksViewListener " + msg )
     }
 
     def tracksTable = tracksTableVar
-    def tracksTable_=( newTT: Option[ TracksTable ]) {
+    def tracksTable_=( newTT: Option[ TracksPanel ]) {
       tracksTableVar = newTT
     }
 /*
@@ -210,12 +219,13 @@ println(" TimelinePanel : tracksViewListener " + msg )
 		playTimer.stop();
 	}
 */
-	override def dispose {
+	/* override */ def dispose {
 		timelineView.removeListener( timelineListener )
         tracksView.removeListener( tracksViewListener )
 //		markerTrack = None
 //		this.stop
-		super.dispose
+
+//		super.dispose
 	}
 
 	private def recalcTransforms( newRect: Rectangle ) {
@@ -317,15 +327,18 @@ println(" TimelinePanel : tracksViewListener " + msg )
 
     	if( timelineSel.isEmpty ) return
 
+//        vpSelections ::= ViewportSelection( timelineAxis.getBounds, colrSelection )
+ 
         tracksTableVar.foreach( tt => {
-          val v = tt.mainView
-            val x	= v.getX
-            val y	= v.getY
-            vpSelections ::= ViewportSelection( timelineAxis.getBounds, colrSelection )
+//          for( i <- 0 until tt.numTracks ) {
+  //            val t = tt.getTrack(idx)
+  //            val v = tt.getTrackRenderer(t)
+  //            val x	= v.getX
+  //            val y	= v.getY
 
-            tracks.foreach( t => {
+              tracks.foreach( t => {
                 val r	= tt.getTrackBounds( t )
-                r.translate( x, y )
+//                r.translate( x, y )
                 vpSelections ::= ViewportSelection( r,
                    if( tracksView.isSelected( t )) colrSelection else colrSelection2 )
               })
@@ -341,8 +354,16 @@ println(" TimelinePanel : tracksViewListener " + msg )
 		updatePositionAndRepaint
       }
       case TimelineView.SpanChanged( _, newSpan ) => {
-    	timelineVis	= newSpan
-		updateTransformsAndRepaint( false )
+        if( timelineVis != newSpan ) {
+          if( viewPortVar.isDefined ) {
+             if( timelineVis.getLength != newSpan.getLength ) {
+                 calcPreferredSize
+             }
+             calcViewPortRect
+          }
+          timelineVis	= newSpan
+          updateTransformsAndRepaint( false )
+        }
       }
       case TimelineSelection.SpanChanged( oldSpan, newSpan ) => {
    		timelineSel	= newSpan
@@ -351,11 +372,66 @@ println(" TimelinePanel : tracksViewListener " + msg )
 //			updateEditEnabled( !newSpan.isEmpty )
 		}
       }
+      case Timeline.SpanChanged( _, newSpan ) if( viewPortVar.isDefined ) => calcPreferredSize
       case Timeline.RateChanged( _, newRate ) => {
 		timelineRate = newRate
 //		playTimer.setDelay( Math.min( (int) (1000 / (vpScale * timelineRate * Math.abs( playRate ))), 33 ));
       }
     }
+
+    private def viewPortListener = new ChangeListener {
+      def stateChanged( e: ChangeEvent ) {
+        viewPortVar.foreach( vp => {
+//          println( "CHANGE : " + e.getSource )
+          val tlSpan  = timelineView.timeline.span
+          val w       = getWidth
+          val scale   = tlSpan.getLength.toDouble / w
+          val r       = vp.getViewRect
+          val start   = (r.x * scale + 0.5).toLong + tlSpan.start
+          val stop    = (r.width * scale + 0.5).toLong + start
+          val newSpan = new Span( start, stop )
+          if( newSpan != timelineVis ) {
+            timelineView.editor.foreach( ed => {
+                val ce = ed.editBegin( "scroll" )
+                ed.editScroll( ce, new Span( start, stop ))
+                ed.editEnd( ce )
+            })
+          }
+        })
+      }
+    }
+
+  private def calcPreferredSize {
+     val vp = viewPortVar.get
+     val dim = getPreferredSize()
+     val vw = vp.getExtentSize.width
+     val tlLen = timelineView.timeline.span.getLength
+     val vLen  = timelineView.span.getLength
+     if( tlLen == 0 || vLen == 0 ) return
+     val scale = tlLen.toDouble / vLen
+     dim.width = (vw * scale + 0.5).toInt
+	 setPreferredSize( dim )
+     revalidate()
+     tracksTableVar.foreach( tt => {
+       val columnHeader = tt.columnHeaderView
+       val dim2 = columnHeader.getPreferredSize
+       dim2.width = dim.width
+       columnHeader.setPreferredSize( dim2 )
+       columnHeader.revalidate()
+     })
+  }
+
+  private def calcViewPortRect {
+     val vp = viewPortVar.get
+     val dim = getPreferredSize()
+     val r = vp.getViewRect
+     val tlSpan = timelineView.timeline.span
+     val vSpan  = timelineView.span
+     if( tlSpan.isEmpty || vSpan.isEmpty ) return
+     val scale = dim.getWidth.toDouble / tlSpan.getLength
+     r.x = ((vSpan.start - tlSpan.start) * scale + 0.5).toInt
+     vp.scrollRectToVisible( r )
+  }
 
   private case class ViewportSelection( bounds: Rectangle, color: Color )
 }

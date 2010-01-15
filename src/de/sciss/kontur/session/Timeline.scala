@@ -40,7 +40,7 @@ extends Timeline with Renameable with TimelineEditor {
   def undoManager: UndoManager = doc.getUndoManager
 
   val tracks      = new BasicSessionElementSeq[ Track ]( doc, "Tracks" )
-  val audioTrail  = new AudioTrail
+//  val audioTrail  = new AudioTrail
 
   def span: Span = spanVar
   def span_=( newSpan: Span ) {

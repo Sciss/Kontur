@@ -6,32 +6,39 @@
 package de.sciss.kontur.gui
 
 import java.awt.{ BorderLayout, Dimension, Rectangle }
-import javax.swing.{ Box, JComponent, JPanel }
+import javax.swing.{ Box, JComponent, JPanel, JScrollPane, ScrollPaneConstants }
+import ScrollPaneConstants._
 import scala.collection.immutable.{ Queue }
 
 import de.sciss.gui.{ GUIUtil, GradientPanel, StretchedGridLayout }
-import de.sciss.kontur.session.{ Marker, SessionElementSeq, Track }
+import de.sciss.kontur.session.{ Marker, SessionElementSeq, Timeline, Track }
 
 /**
  *	@author		Hanns Holger Rutz
  * 	@version	0.12, 11-Jan-10
  */
-class TracksPanel( val timelinePanel: TimelinePanel, val mainView: JComponent )
-extends JPanel( new BorderLayout() )
+class TracksPanel( val timelinePanel: TimelinePanel )
+extends JScrollPane( VERTICAL_SCROLLBAR_ALWAYS,
+                     HORIZONTAL_SCROLLBAR_ALWAYS ) // JPanel( new BorderLayout() )
 with TracksTable {
     private val tracksView        = timelinePanel.tracksView
-    private val scroll            = new TimelineScroll( timelinePanel.timelineView )
-	private val allHeaderPanel    = new JPanel( new BorderLayout() )
-	private val trackHeaderPanel  = new JPanel( new StretchedGridLayout( 0, 1, 1, 1 ))
+//    private val scroll            = new TimelineScroll( timelinePanel.timelineView )
+//	private val allHeaderPanel    = new JPanel( new BorderLayout() )
+//	private val trackHeaderPanel  = new JPanel( new StretchedGridLayout( 0, 1, 1, 1 ))
+
+    val columnHeaderView  = Box.createVerticalBox()
+    private val rowHeaderView     = Box.createHorizontalBox()
+
 //    private val markerTrackHeader = new DefaultTrackRowHeader()
-    private var trhf: TrackRowHeaderFactory = DefaultTrackRowHeaderFactory
+    private var trf: TrackRendererFactory = DefaultTrackRendererFactory
 
 //	private var collTrackHeaders  = Queue[ TrackRowHeader ]()
-	private var mapTrackHeaders   = Map[ Track, TrackRowHeader ]()
+	private var mapTrackRenderers   = Map[ Track, TrackRenderer ]()
     private val tracks = tracksView.tracks
+	private val timelineAxis = new TimelineAxis( timelinePanel.timelineView, None ) // Some( this )
 
   	private def tracksViewListener( msg: AnyRef ) : Unit = {
-println(" TracksPanel : tracksViewListener " + msg )
+//println(" TracksPanel : tracksViewListener " + msg )
       msg match {
       case tracks.ElementAdded( idx, t ) => addTrack( idx, t )
       case tracks.ElementRemoved( idx, t ) => removeTrack( idx, t )
@@ -45,30 +52,44 @@ println(" TracksPanel : tracksViewListener " + msg )
 //		markerTrackHeader.setMaximumSize( new Dimension( 128, markerAxis.getMaximumSize().height ))		// XXX
 
 //		if( !markerAxis.isVisible() ) markerTrackHeader.setVisible( false )
-        val topBox  = Box.createVerticalBox()
+//        val topBox  = Box.createVerticalBox()
         val gp      = GUIUtil.createGradientPanel()
         gp.setBottomBorder( true )
         gp.setLayout( null )
-        gp.setPreferredSize( new Dimension( 64, timelinePanel.timelineAxis.getPreferredSize().height ))
-        topBox.add( gp )
+//        gp.setPreferredSize( new Dimension( 64, timelineAxis.getPreferredSize().height ))
+//        topBox.add( gp )
+//        setBorder( null )
+        getViewport().setBorder( null )
+        setCorner( UPPER_LEFT_CORNER, gp )
+//
 //        topBox.add( markerTrackHeader )
-        allHeaderPanel.add( topBox, BorderLayout.NORTH )
-        allHeaderPanel.add( trackHeaderPanel, BorderLayout.CENTER )
+//        allHeaderPanel.add( topBox, BorderLayout.NORTH )
+//        allHeaderPanel.add( trackHeaderPanel, BorderLayout.CENTER )
 
-        add( timelinePanel, BorderLayout.CENTER )
-		add( allHeaderPanel, BorderLayout.WEST )
-        val southBox = Box.createHorizontalBox()
-		southBox.add( scroll )
+  //      add( timelinePanel, BorderLayout.CENTER )
+        setViewportView( timelinePanel )
 
-        val intruding = true // XXX System.getProperty( )
-        if( intruding ) southBox.add( Box.createHorizontalStrut( 16 ))
-        add( southBox, BorderLayout.SOUTH )
+//		add( allHeaderPanel, BorderLayout.WEST )
+        setRowHeaderView( rowHeaderView )
+        columnHeaderView.add( timelineAxis )
+//columnHeaderView.setBackground( java.awt.Color.blue )
+        setColumnHeaderView( columnHeaderView )
+        timelineAxis.viewPort = Some( getColumnHeader )
+
+//        val southBox = Box.createHorizontalBox()
+//		southBox.add( scroll )
+
+//        val intruding = true // XXX System.getProperty( )
+//        if( intruding ) southBox.add( Box.createHorizontalStrut( 16 ))
+//        add( southBox, BorderLayout.SOUTH )
 
 		timelinePanel.tracksTable = Some( this )
         tracksView.addListener( tracksViewListener )
+//		timelineView.addListener( timelineListener )
         
         { var i = 0; tracks.foreach( t => { addTrack( i, t ); i += 1 })}
 	}
+
 /*
 	private var tracksVar: Option[ SessionElementSeq[ Track[ _ ]]] = None
     def tracks = tracksVar
@@ -87,9 +108,9 @@ println(" TracksPanel : tracksViewListener " + msg )
 		timelinePanel.tracks = tracksVar
    	}
 */
-    def trackRowHeaderFactory = trhf
-	def trackRowHeaderFactory_=( newTRHF: TrackRowHeaderFactory ) {
-		trhf = newTRHF
+    def trackRendererFactory = trf
+	def trackRendererFactory_=( newTRF: TrackRendererFactory ) {
+		trf = newTRF
 	}
 
 	def dispose {
@@ -101,24 +122,25 @@ println(" TracksPanel : tracksViewListener " + msg )
 //      markerTrackHeader.track   = markerTrack
 //      markerTrackHeader.tracks  = tracksVar
 //      if( markerTrack.isDefined ) {
-//          mapTrackHeaders += (markerTrack.get -> markerTrackHeader)
+//          mapTrackRenderers += (markerTrack.get -> markerTrackHeader)
 //      } else {
 //          println( "marker track removal NOT YET IMPLEMENTED" )
 //      }
 //	}
 
     private def addTrack( idx: Int, t: Track ) {
-      val trackRowHead = trhf.createRowHeader( t, tracksView )
-      mapTrackHeaders += (t -> trackRowHead)
-      trackHeaderPanel.add( trackRowHead.component, idx )
+      val tr = trf.createTrackRenderer( t, tracksView )
+//      val trackRowHead = trf.createRowHeader( t, tracksView )
+      mapTrackRenderers += (t -> tr)
+      rowHeaderView.add( tr.trackHeaderComponent, idx )
       revalidate(); repaint()
     }
 
     private def removeTrack( idx: Int, t: Track ) {
-      val trackRowHead = mapTrackHeaders( t )
-      assert( trackHeaderPanel.getComponent( idx ) == trackRowHead )
-      mapTrackHeaders -= t
-      trackHeaderPanel.remove( idx )
+//      val tr = mapTrackRenderers( t )
+//      assert( trackHeaderPanel.getComponent( idx ) == trackRowHead )
+      mapTrackRenderers -= t
+      rowHeaderView.remove( idx )
       // we could dispose the header if dispose was defined,
       // but we rely on dynamiclistening instead:
       // trackRowHead.dispose
@@ -142,7 +164,7 @@ println(" TracksPanel : tracksViewListener " + msg )
 
 			if( !activeTracks.contains( t )) {
 				trackRowHead	= collTrackHeaders.remove( ch )
-				mapTrackHeaders.remove( t )
+				mapTrackRenderers.remove( t )
 				oldNumWaveTracks -= 1
 				// XXX : dispose trnsEdit (e.g. free vectors, remove listeners!!)
 				trackHeaderPanel.remove( trackRowHead )
@@ -163,11 +185,11 @@ println(" TracksPanel : tracksViewListener " + msg )
 				if( trackRowHead.track == Some( t )) continue newLp
 			}
 
-            val trackRowHead = trhf.createRowHeader( t )
+            val trackRowHead = trf.createRowHeader( t )
 			trackRowHead.setTrack( t, activeTracks, selectedTracks )
 			trackRowHead.setEditor( tracksEditor )
 			collTrackHeaders.enqueue( trackRowHead )
-			mapTrackHeaders.put( t, trackRowHead )
+			mapTrackRenderers.put( t, trackRowHead )
 			trackHeaderPanel.add( trackRowHead, ch - 1 ) // XXX tricky! -1 because of marker track
 
 			reval = true
@@ -192,10 +214,9 @@ println(" TracksPanel : tracksViewListener " + msg )
 //	}
 
 	// sync: attempts exclusive on MTE and shared on TIME!
-	private def updateOverviews( allTracks: Boolean ) {
-//		waveView.update( timelineVis );
-		if( allTracks ) timelinePanel.updateAll
-	}
+//	private def updateOverviews( allTracks: Boolean ) {
+//		if( allTracks ) timelinePanel.updateAll
+//	}
 /*
     private var markerTrackVar: Option[ Track ] = None
     def markerTrack = markerTrackVar
@@ -218,17 +239,17 @@ println(" TracksPanel : tracksViewListener " + msg )
 // ------------------ TracksTable interface ------------------
 
 //  	def mainView: JComponent
-	def getRowHeader( t: Track ) : TrackRowHeader = mapTrackHeaders( t )
+	def getTrackRenderer( t: Track ) : TrackRenderer = mapTrackRenderers( t )
     def numTracks: Int = tracks.size
     def getTrack( idx: Int ) : Option[ Track ] = tracks.get( idx )
 	def indexOf( t: Track ) : Int =  tracks.indexOf( t )
 
 	def getTrackBounds( t: Track ) : Rectangle = {
 //        val res = new Rectangle()
-        val trh = mapTrackHeaders.get( t ) getOrElse (throw new IllegalArgumentException( t.toString ))
-		val res = trh.component.getBounds() // ( res )
-		res.x = 0
-        res.width = mainView.getWidth
+        val tr = mapTrackRenderers.get( t ) getOrElse (throw new IllegalArgumentException( t.toString ))
+		val res = tr.trackComponent.getBounds() // ( res )
+//		res.x = 0
+//        res.width = mainView.getWidth
 		res
 	}
 }

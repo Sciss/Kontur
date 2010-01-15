@@ -5,21 +5,23 @@
 
 package de.sciss.kontur.gui
 
+import java.awt.{ Rectangle }
 import java.awt.event.{ MouseEvent }
 import javax.swing.event.{ MouseInputAdapter, MouseInputListener }
 import de.sciss.app.{ AbstractApplication, Application, DynamicAncestorAdapter,
                         DynamicListening, GraphicsHandler }
-import de.sciss.gui.{ Axis, ComponentHost, VectorSpace }
+import de.sciss.gui.{ /* Axis,*/ ComponentHost, VectorSpace }
 import de.sciss.io.{ Span }
 import de.sciss.kontur.session.{ Timeline }
 import scala.math._
 
-class TimelineAxis( view: TimelineView, host: ComponentHost )
+class TimelineAxis( view: TimelineView, host: Option[ ComponentHost ])
 extends Axis( Axis.HORIZONTAL, Axis.TIMEFORMAT, host )
 with DynamicListening {
 
 	private var isListening		= false
 //	private var editorVar: Option[ TimelineView#Editor ] = None
+    private var timelineVis = view.span
 
 		// --- Listener ---
     private val mil = new MouseInputAdapter() {
@@ -44,7 +46,7 @@ with DynamicListening {
                 view.editor.foreach( ed => {
                   // translate into a valid time offset
                   val position  = view.timeline.span.clip(
-                    view.span.start + ((e.getX().toDouble / getWidth) * view.span.getLength).toLong )
+                    timelineVis.start + ((e.getX().toDouble / getWidth) * timelineVis.getLength).toLong )
 
                   val ce = ed.editBegin( getResourceString( "editTimelineView" ))
 
@@ -78,9 +80,29 @@ with DynamicListening {
         }
 
      private def timelineListener( msg: AnyRef ) : Unit = msg match {
-        case Timeline.RateChanged( _, _ ) => recalcSpace
-        case TimelineView.SpanChanged( _, _ ) => recalcSpace
+        case Timeline.RateChanged( _, _ ) => recalcSpace( true )
+        // note: viewport does not necessarily repaint when
+        // view sizes changes, for whatever reason. so we
+        // need to repaint in any case here
+        case TimelineView.SpanChanged( _, newSpan ) /* if( viewPort.isEmpty )*/ =>
+          if( newSpan != timelineVis ) {
+            timelineVis = newSpan
+            recalcSpace( true )
+         }
      }
+
+    // note that the view rect change might be _before_
+    // the delivery of TimelineView.SpanChanged, therefore
+    // we need to synthesize the span from the view rect!
+    override protected def viewRectChanged( r: Rectangle ) {
+        val tlSpan      = view.timeline.span
+        val w           = getWidth
+        val scale       = tlSpan.getLength.toDouble / w
+        val start       = (r.x * scale + 0.5).toLong + tlSpan.start
+        val stop        = (r.width * scale + 0.5).toLong + start
+        val timelineVis = new Span( start, stop )
+        recalcSpace( false )
+    }
 
     // ---- constructor ----
     {
@@ -110,30 +132,34 @@ with DynamicListening {
 		}
 	}
 */
-	private def recalcSpace {
-    	val visibleSpan = view.span
+	private def recalcSpace( trigger: Boolean ) {
 // println( "TimelineAxis : recalcSpace. visi = " + visibleSpan )
-        val space = if( (getFlags() & Axis.TIMEFORMAT) == 0 ) {
-			VectorSpace.createLinSpace( visibleSpan.start,
-										    visibleSpan.stop,
-									    	0.0, 1.0, null, null, null, null )
+        val spc = if( (flags & Axis.TIMEFORMAT) == 0 ) {
+			VectorSpace.createLinSpace( timelineVis.start,
+										timelineVis.stop,
+									  	0.0, 1.0, null, null, null, null )
 		} else {
 			val d1 = 1.0 / view.timeline.rate
-			VectorSpace.createLinSpace( visibleSpan.start * d1,
-											visibleSpan.stop * d1,
-										    0.0, 1.0, null, null, null, null )
+			VectorSpace.createLinSpace( timelineVis.start * d1,
+										timelineVis.stop * d1,
+									    0.0, 1.0, null, null, null, null )
 		}
-		setSpace( space )
+        if( trigger ) {
+          space = spc
+        } else {
+          setSpaceNoRepaint( spc )
+        }
 	}
 
 // ---------------- DynamicListening interface ----------------
 
     def startListening() {
     	if( !isListening ) {
+//println( "TIMELINE AXIS START")
     		isListening = true
-//println( "TimelineAxis : addListener" )
     		view.addListener( timelineListener )
-    		recalcSpace
+            timelineVis = view.span
+    		recalcSpace( true )
     	}
     }
 
@@ -152,6 +178,6 @@ with DynamicListening {
 	override def dispose() {
 		stopListening
 //		editor = null
-		super.dispose()
+		super.dispose
 	}
 }

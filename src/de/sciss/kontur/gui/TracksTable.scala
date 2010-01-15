@@ -10,8 +10,8 @@ import javax.swing.{ JComponent }
 import de.sciss.kontur.session.{ Track }
 
 trait TracksTable {
-	def mainView: JComponent
-	def getRowHeader( t: Track ) : TrackRowHeader
+//	def mainView: JComponent
+	def getTrackRenderer( t: Track ) : TrackRenderer
 	def getTrackBounds( t: Track /*, r: Rectangle*/ ) : Rectangle
 	def numTracks: Int
 	def getTrack( idx: Int ) : Option[ Track ]

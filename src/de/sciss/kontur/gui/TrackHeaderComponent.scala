@@ -5,7 +5,7 @@
 
 package de.sciss.kontur.gui
 
-import java.awt.{ Color, GradientPaint, Graphics, Graphics2D, Paint }
+import java.awt.{ Color, Dimension, GradientPaint, Graphics, Graphics2D, Paint }
 import java.awt.event.{ MouseAdapter, MouseEvent, MouseListener }
 import javax.swing.{ BorderFactory, JComponent, JLabel, JPanel, Spring, SpringLayout }
 import scala.math._
@@ -15,17 +15,6 @@ import de.sciss.app.{ AbstractApplication, Application, DynamicAncestorAdapter,
                      DynamicListening, GraphicsHandler }
 import de.sciss.util.{ Disposable }
 import de.sciss.kontur.session.{ Renameable, SessionElementSeq, Stake, Track }
-
-trait TrackRowHeaderFactory {
-	def createRowHeader( t: Track, view: TracksView ) : TrackRowHeader
-}
-
-object DefaultTrackRowHeaderFactory
-extends TrackRowHeaderFactory {
-	def createRowHeader( t: Track, view: TracksView ) : TrackRowHeader = {
-      new DefaultTrackRowHeader( t, view )
-    }
-}
 
 /**
  *	A row header in Swing's table 'ideology'
@@ -41,11 +30,7 @@ extends TrackRowHeaderFactory {
  *  @author		Hanns Holger Rutz
  *  @version	0.75, 22-Jul-08
  */
-trait TrackRowHeader {
-  def component: JComponent
-}
-
-object DefaultTrackRowHeader {
+object DefaultTrackHeaderComponent {
     private val colrSelected	= new Color( 0x00, 0x00, 0xFF, 0x2F )
     private val colrUnselected	= new Color( 0x00, 0x00, 0x00, 0x20 )
     private val colrDarken		= new Color( 0x00, 0x00, 0x00, 0x18 )
@@ -57,10 +42,11 @@ object DefaultTrackRowHeader {
                                                new Color( colrDarken.getRGB() & 0xFFFFFF, true ))
 }
 
-class DefaultTrackRowHeader( track: Track, tracksView: TracksView )
+class DefaultTrackHeaderComponent( track: Track, tracksView: TracksView )
 extends JPanel
-with TrackRowHeader with DynamicListening with Disposable {
-  import DefaultTrackRowHeader._
+// with TrackRowHeader
+with DynamicListening with Disposable {
+  import DefaultTrackHeaderComponent._
   
 	private val lbTrackName = new JLabel()
 
@@ -126,6 +112,7 @@ with TrackRowHeader with DynamicListening with Disposable {
 	{
 		val lay	= new SpringLayout()
 		setLayout( lay )
+        setPreferredSize( new Dimension( 64, 64 )) // XXX
 
  		lbTrackName.setFont( AbstractApplication.getApplication().getGraphicsHandler().getFont(
             GraphicsHandler.FONT_SYSTEM | GraphicsHandler.FONT_SMALL ))
@@ -158,7 +145,7 @@ with TrackRowHeader with DynamicListening with Disposable {
 */
 	}
 
-    def component: JComponent = this
+//    def component: JComponent = this
 
 	protected def getResourceString( key: String ) =
 		AbstractApplication.getApplication().getResourceString( key )

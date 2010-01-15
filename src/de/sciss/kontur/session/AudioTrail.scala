@@ -7,7 +7,8 @@ package de.sciss.kontur.session
 
 import de.sciss.io.{ Span }
 
-class AudioRegion( s: Span, n: String ) extends Region( s, n ) {
+class AudioRegion( afe: AudioFileElement, s: Span, n: String )
+extends Region( s, n ) {
   
 }
 
