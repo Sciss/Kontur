@@ -478,7 +478,13 @@ with TopPaintable {
      if( tlSpan.isEmpty || vSpan.isEmpty ) return
      val scale = dim.getWidth.toDouble / tlSpan.getLength
      r.x = ((vSpan.start - tlSpan.start) * scale + 0.5).toInt
-     vp.scrollRectToVisible( r )
+     withViewPort( vp ) { vp.scrollRectToVisible( r )}
+  }
+
+  private def withViewPort( vp: JViewport )( thunk: => Unit ) {
+      vp.removeChangeListener( viewPortListener )
+      try { thunk }
+      finally { vp.addChangeListener( viewPortListener )}
   }
 
   private case class ViewportSelection( bounds: Rectangle, color: Color )

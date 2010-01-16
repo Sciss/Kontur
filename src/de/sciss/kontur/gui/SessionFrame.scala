@@ -6,11 +6,13 @@
 package de.sciss.kontur.gui
 
 import de.sciss.app.{ AbstractApplication, AbstractWindow, DynamicAncestorAdapter }
-import de.sciss.common.{ BasicApplication, ShowWindowAction }
-import de.sciss.gui.{ GUIUtil }
+import de.sciss.common.{ BasicApplication, BasicWindowHandler, ShowWindowAction }
+import de.sciss.gui.{ GUIUtil, MenuAction }
+import de.sciss.util.{ Flag }
 import de.sciss.kontur.session.{ Session }
-import java.awt.{ BorderLayout }
-import java.awt.event.{ MouseAdapter, MouseEvent }
+import java.awt.{ BorderLayout, FileDialog, Frame }
+import java.awt.event.{ ActionEvent, MouseAdapter, MouseEvent }
+import java.io.{ File, IOException }
 import javax.swing.{ Action, DropMode, JScrollPane, JTree, ScrollPaneConstants }
 import javax.swing.tree.{ TreeNode }
 
@@ -21,8 +23,18 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 	private var wpHaveWarned	= false
     private val actionShowWindow= new ShowWindowAction( this )
 
+    private val actionClose     = new ActionClose()
+    private val actionSave      = new ActionSave()
+    private val actionSaveAs	= new ActionSaveAs( false )
+
     // ---- constructor ----
     {
+		// ---- menus and actions ----
+		val mr = app.getMenuBarRoot
+		mr.putMimic( "file.close", this, actionClose )
+		mr.putMimic( "file.save", this, actionSave )
+		mr.putMimic( "file.saveAs", this, actionSaveAs )
+
       val cp = getContentPane
       val sessionTreeModel = new SessionTreeModel( doc )
       val ggTree = new JTree( sessionTreeModel )
@@ -64,18 +76,32 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 
       addDynamicListening( sessionTreeModel )
 
+      val winListener = new AbstractWindow.Adapter() {
+          override def windowClosing( e: AbstractWindow.Event ) {
+              actionClose.perform
+          }
+
+          override def windowActivated( e: AbstractWindow.Event ) {
+              // need to check 'disposed' to avoid runtime exception in doc handler if document was just closed
+//              if( !disposed ) {
+                  app.getDocumentHandler().setActiveDocument( SessionFrame.this, doc )
+                  app.getWindowHandler().asInstanceOf[ BasicWindowHandler ].setMenuBarBorrower( SessionFrame.this )
+//              }
+          }
+      }
+      addListener( winListener )
+
       init()
   	  updateTitle
-      documentUpdate
+      doc.addListener( _ match {
+          case Session.DirtyChanged( _ ) => updateTitle
+          case Session.PathChanged( _, _ ) => updateTitle
+      })
 
 //      initBounds	// be sure this is after documentUpdate!
 
 	  setVisible( true )
 	  toFront()
-    }
-
-    private def documentUpdate {
-      
     }
 
 	/**
@@ -87,10 +113,7 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 
 //		actionRevealFile.setFile( afds.length == 0 ? null : afds[ 0 ].file );
 
-		val name = if( doc.getName() == null ) {
-			getResourceString( "frameUntitled" )
-		} else {
-			doc.getName()
+		val name = doc.displayName
 //			try {
 //				for( int i = 0; i < afds.length; i++ ) {
 //					f = afds[ i ].file;
@@ -98,7 +121,6 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 //					writeProtected |= !f.canWrite() || ((f.getParentFile() != null) && !f.getParentFile().canWrite());
 //				}
 //			} catch( SecurityException e ) { /* ignored */ }
-		}
 
 //		if( writeProtected ) {
 //			val icn = GUIUtil.getNoWriteIcon()
@@ -115,6 +137,7 @@ extends AppWindow( AbstractWindow.REGULAR ) {
         actionShowWindow.putValue( Action.NAME, name )
 //		actionSave.setEnabled( !writeProtected && doc.isDirty() )
 		setDirty( doc.isDirty() )
+        setWindowFile( doc.path getOrElse null )
 
 //		final AudioFileInfoPalette infoBox = (AudioFileInfoPalette) app.getComponent( Main.COMP_AUDIOINFO )
 //		if( infoBox != null ) infoBox.updateDocumentName( doc )
@@ -124,5 +147,86 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 //			BasicWindowHandler.showDialog( op, getWindow(), getResourceString( "msgDlgWarn" ))
 //			wpHaveWarned = true
 //		}
+	}
+
+	private class ActionClose extends MenuAction {
+		def actionPerformed( e: ActionEvent ): Unit = perform
+
+        def perform {
+            doc.closeDocument( false, new Flag( false )) // XXX confirm unsaved
+		}
+	}
+
+	// action for the Save-Session menu item
+	private class ActionSave
+	extends MenuAction {
+		/**
+		 *  Saves a Session. If the file
+		 *  wasn't saved before, a file chooser
+		 *  is shown before.
+		 */
+		def actionPerformed( e: ActionEvent ) {
+          val name = getValue( Action.NAME ).toString
+           (doc.path orElse actionSaveAs.query( name )).foreach( f =>
+              perform( name, f, false, false ))
+		}
+
+		protected[gui] def perform( name: String, file: File, asCopy: Boolean, openAfterSave: Boolean ) {
+            try {
+               doc.save( file )
+//                wpHaveWarned = false
+
+                if( !asCopy ) {
+                    app.getMenuFactory().addRecent( file )
+                }
+                if( openAfterSave ) {
+                    app.getMenuFactory().openDocument( file )
+                }
+            }
+            catch { case e1: IOException =>
+				BasicWindowHandler.showErrorDialog( getWindow(), e1, name )
+            }
+		}
+	}
+
+	// action for the Save-Session-As menu item
+	private class ActionSaveAs( asCopy: Boolean )
+	extends MenuAction
+	{
+		private val openAfterSave = new Flag( false )
+
+		/*
+		 *  Query a file name from the user and save the Session
+		 */
+		def actionPerformed( e: ActionEvent ) {
+            val name = getValue( Action.NAME ).toString
+            query( name ).foreach( f => {
+				actionSave.perform( name, f, asCopy, openAfterSave.isSet )
+            })
+		}
+
+		/**
+		 *  Open a file chooser so the user
+		 *  can select a new output file and format for the session.
+		 *
+		 *  @return the AudioFileDescr representing the chosen file path
+		 *			and format or <code>null</code>
+		 *			if the dialog was cancelled.
+		 *
+		 *	@todo	should warn user if saveMarkers is true and format does not support it
+		 */
+		protected[gui] def query( name: String ) : Option[ File ] = {
+          val dlg = new FileDialog( null.asInstanceOf[ Frame ], name, FileDialog.SAVE )
+//          dlg.setFilenameFilter( this )
+//          dlg.show
+          BasicWindowHandler.showDialog( dlg )
+          val dirName   = dlg.getDirectory
+          val fileName  = dlg.getFile
+          if( dirName != null && fileName != null ) {
+            Some( new File( dirName, fileName ))
+          } else {
+            None
+          }
+		}
 	}
 }

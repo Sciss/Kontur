@@ -15,7 +15,7 @@ import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }
 import java.awt.event.{ ActionEvent, InputEvent, KeyEvent }
 import java.awt.{ BorderLayout, Dimension, Point, Rectangle }
 import java.util.{ StringTokenizer }
-import javax.swing.{ AbstractAction, Action , JComponent, JOptionPane, KeyStroke }
+import javax.swing.{ AbstractAction, Action, Box, JComponent, JOptionPane, KeyStroke }
 import scala.math._
 
 object TimelineFrame {
@@ -42,6 +42,10 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 //      app.getMenuFactory().addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
       val cp = getContentPane
       cp.add( tracksPanel, BorderLayout.CENTER )
+      val topBox = Box.createHorizontalBox()
+      topBox.add( Box.createHorizontalGlue() )
+      topBox.add( new TransportPanel() )
+      cp.add( topBox, BorderLayout.NORTH )
 
 //      tracksPanel.tracks = Some( tl.tracks )
 
@@ -109,7 +113,8 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 
 		mr.putMimic( "timeline.insertSpan", this, new ActionInsertSpan )
 //		mr.putMimic( "timeline.trimToSelection", this, doc.getTrimAction() )
-    
+
+      makeUnifiedLook
       init()
   	  updateTitle
 //      documentUpdate
@@ -217,7 +222,7 @@ extends AppWindow( AbstractWindow.REGULAR ) {
             val tl = timelineView.timeline
 			timeTrans.setLengthAndRate( tl.span.getLength, tl.rate )
 
-            ggDuration.setValue( value getOrElse new Param( 1.0, ParamSpace.TIME | ParamSpace.SECS ))
+            ggDuration.setValue( value getOrElse new Param( 60.0, ParamSpace.TIME | ParamSpace.SECS ))
 			space.foreach( sp => ggDuration.setSpace( sp ))
 
 			val op = new JOptionPane( msgPane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )

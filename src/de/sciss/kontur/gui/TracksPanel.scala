@@ -61,7 +61,7 @@ with TracksTable with Model {
         gp.setLayout( null )
 //        gp.setPreferredSize( new Dimension( 64, timelineAxis.getPreferredSize().height ))
 //        topBox.add( gp )
-//        setBorder( null )
+        setBorder( null )
         getViewport().setBorder( null )
         setCorner( UPPER_LEFT_CORNER, gp )
 //

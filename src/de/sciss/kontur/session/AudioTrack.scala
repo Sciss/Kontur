@@ -5,9 +5,15 @@
 
 package de.sciss.kontur.session
 
-class AudioTrack( doc: Session, tl: BasicTimeline )
+class AudioTrack( val id: Long, doc: Session, tl: BasicTimeline )
 extends Track // [ AudioRegion ]
 with Renameable {
   protected var nameVar = "Audio" // XXX
-  val trail: Trail[ AudioRegion ] = new AudioTrail( doc )
+  val trail: AudioTrail = new AudioTrail( doc )
+
+  def toXML =
+    <audioTrack id={id.toString}>
+      <name>{name}</name>
+      {trail.toXML}
+    </audioTrack>
 }

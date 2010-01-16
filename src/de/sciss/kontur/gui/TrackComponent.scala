@@ -8,6 +8,7 @@ package de.sciss.kontur.gui
 import java.awt.{ Color, Dimension, Graphics, Graphics2D }
 import javax.swing.{ JComponent, Spring, SpringLayout }
 import de.sciss.kontur.session.{ Region, Track }
+import de.sciss.app.{ AbstractApplication, GraphicsHandler }
 
 class DefaultTrackComponent( t: Track, tracksView: TracksView, timelineView: TimelineView )
 extends JComponent {
@@ -29,6 +30,8 @@ extends JComponent {
 //        val cons = lay.getConstraints( this )
 //        cons.setWidth( Spring.constant( 64 ))
 //        cons.setHeight( Spring.constant( 64 ))  // XXX
+      setFont( AbstractApplication.getApplication().getGraphicsHandler()
+        .getFont( GraphicsHandler.FONT_LABEL | GraphicsHandler.FONT_MINI ))
     }
 
     override def getPreferredSize() : Dimension = {
@@ -63,6 +66,8 @@ extends JComponent {
             r.width = ((stake.span.stop + off) * scale + 0.5).toInt - r.x
             g.setColor( Color.black )
             g.fillRect( r.x, r.y, r.width, r.height )
+            val clip = g.getClip
+            g.clipRect( r.x, r.y, r.width, r.height )
             g.setColor( Color.white )
             stake match {
               case reg: Region => g.drawString( reg.name, r.x + 4, r.y + 12 )

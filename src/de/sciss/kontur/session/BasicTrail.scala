@@ -10,6 +10,7 @@ import de.sciss.io.{ Span }
 import de.sciss.trees.{ Interval, LongManager, ManagedLong, Rect, RTree, Shaped }
 import de.sciss.kontur.edit.{ SimpleEdit }
 import javax.swing.undo.{ UndoManager }
+import scala.collection.mutable.{ ListBuffer }
 
 /**
  *  Basic trail structure using R-Tree
@@ -45,6 +46,18 @@ with TrailEditor[ T ] {
       tree.findOverlapping( tree.getRoot.bounds, (ss: StoredStake) => {
         f( ss.stake )
       })
+    }
+
+    def getRange( span: Span, byStart: Boolean = true ) : List[ T ] = {
+       val res = new ListBuffer[ T ]()
+       visitRange( span, byStart )( stake => res += stake )
+       res.toList
+    }
+
+    def getAll( byStart: Boolean = true ) : List[ T ] = {
+       val res = new ListBuffer[ T ]()
+       visitAll( byStart )( stake => res += stake )
+       res.toList
     }
 
     def get( idx: Int, byStart: Boolean = true ) : T = {

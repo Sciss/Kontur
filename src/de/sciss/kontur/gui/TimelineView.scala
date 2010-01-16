@@ -67,7 +67,7 @@ extends TimelineView with TimelineViewEditor {
   def undoManager: UndoManager = doc.getUndoManager
 
   def editPosition( ce: AbstractCompoundEdit, newPos: Long ) {
-    val edit = new SimpleEdit( "editTimelinePosition" ) {
+    val edit = new SimpleEdit( "editTimelinePosition", false ) {
        lazy val oldPos = basicCsr.position
        def apply { oldPos; basicCsr.position = newPos }
        def unapply { basicCsr.position = oldPos }
@@ -76,7 +76,7 @@ extends TimelineView with TimelineViewEditor {
    }
 
   def editScroll( ce: AbstractCompoundEdit, newSpan: Span ) {
-    val edit = new SimpleEdit( "editTimelineScroll" ) {
+    val edit = new SimpleEdit( "editTimelineScroll", false ) {
        lazy val oldSpan = span
        def apply { oldSpan; span = newSpan }
        def unapply { span = oldSpan }
@@ -85,7 +85,7 @@ extends TimelineView with TimelineViewEditor {
    }
 
    def editSelect( ce: AbstractCompoundEdit, newSpan: Span ) {
-      val edit = new SimpleEdit( "editTimelineSelection" ) {
+      val edit = new SimpleEdit( "editTimelineSelection", false ) {
         lazy val oldSpan = basicSel.span
         def apply { oldSpan; basicSel.span = newSpan }
         def unapply { basicSel.span = oldSpan }

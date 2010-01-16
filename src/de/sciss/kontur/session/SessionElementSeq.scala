@@ -34,7 +34,7 @@ trait SessionElementSeqEditor[ T ] extends Editor {
   def editRemove( ce: AbstractCompoundEdit, e: T ) : Unit
 }
 
-class BasicSessionElementSeq[ T <: SessionElement ]( doc: Session, val name: String )
+abstract class BasicSessionElementSeq[ T <: SessionElement ]( doc: Session, val name: String )
 extends SessionElementSeq[ T ]
 with SessionElementSeqEditor[ T ] {
 // extends ArrayBuffer[T]
@@ -42,6 +42,12 @@ with SessionElementSeqEditor[ T ] {
   private val coll = new ArrayBuffer[T]()
 
   def undoManager: UndoManager = doc.getUndoManager
+
+  protected def innerXML =
+    <coll>
+      {coll.map(_.toXML)}
+    </coll> \ "coll"
+
 /*
   def +=( elem: T ) {
     val idx = coll.size

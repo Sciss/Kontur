@@ -86,7 +86,7 @@ extends TracksView with TracksViewEditor {
   private def editSetSelection( ce: AbstractCompoundEdit, tracks: Seq[ Track ], state: Boolean ) {
     val tf = tracks.filterNot( t => isSelected( t ) == state )
     if( !tf.isEmpty ) {
-        val edit = new SimpleEdit( "editTrackSelection" ) {
+        val edit = new SimpleEdit( "editTrackSelection", false ) {
             def apply { setSelection( tf, state )}
             def unapply { setSelection( tf, !state )}
         }

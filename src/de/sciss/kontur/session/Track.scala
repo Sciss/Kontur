@@ -12,3 +12,11 @@ package de.sciss.kontur.session
 trait Track extends SessionElement {
   def trail: Trail[ _ <: Stake ]
 }
+
+class Tracks( val id: Long, doc: Session )
+extends BasicSessionElementSeq[ Track ]( doc, "Tracks" ) {
+
+    def toXML =
+       <tracks id={id.toString}>
+      </tracks>
+}

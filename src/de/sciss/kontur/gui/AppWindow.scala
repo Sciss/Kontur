@@ -8,6 +8,7 @@ package de.sciss.kontur.gui
 import de.sciss.app.{ AbstractApplication }
 import de.sciss.common.{ BasicApplication }
 import java.awt.{ Container, Dimension }
+import java.io.{ File }
 import java.util.{ StringTokenizer }
 import javax.swing.{ JFrame, JInternalFrame, RootPaneContainer }
 
@@ -25,23 +26,24 @@ class AppWindow( mode: Int ) extends de.sciss.common.AppWindow( mode ) {
 	}
 
     protected def makeUnifiedLook {
-      getWindow match {
-        case rpc: RootPaneContainer => {
-          rpc.getRootPane().putClientProperty( "apple.awt.brushMetalLook", java.lang.Boolean.TRUE )
-        }
-        case _ =>
-      }
+       putRootPaneProperty( "apple.awt.brushMetalLook", java.lang.Boolean.TRUE )
     }
 
-  protected def setAlpha( amount: Float ) {
+  protected def setWindowFile( f: File ) {
+    putRootPaneProperty( "Window.documentFile", f )
+  }
+
+  private def putRootPaneProperty( name: String, value: AnyRef ) {
       getWindow match {
-        case rpc: RootPaneContainer => {
-          val rp = rpc.getRootPane()
-          rp.putClientProperty( "Window.alpha", new java.lang.Float( amount ))
-          rp.putClientProperty( "apple.awt.draggableWindowBackground", java.lang.Boolean.FALSE )
-        }
+        case rpc: RootPaneContainer =>
+          rpc.getRootPane().putClientProperty( name, value )
         case _ =>
       }
+  }
+
+  protected def setAlpha( amount: Float ) {
+       putRootPaneProperty( "Window.alpha", new java.lang.Float( amount ))
+       putRootPaneProperty( "apple.awt.draggableWindowBackground", java.lang.Boolean.FALSE )
   }
 
 /*  protected def setContentPane( c: Container ) {

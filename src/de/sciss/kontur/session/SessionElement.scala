@@ -10,4 +10,12 @@ import de.sciss.kontur.util.{ Model }
 
 trait SessionElement extends Model {
   def name: String
+  def id: Long
+//  def toXML =
+//    <elem name={name}>
+//    </elem>
+
+  def toXML: scala.xml.Elem
+
+//  protected def innerXML: scala.xml.Elem
 }

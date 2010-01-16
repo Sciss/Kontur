@@ -28,7 +28,7 @@ trait TimelineEditor extends Editor {
   }
 
 
-class BasicTimeline( doc: Session )
+class BasicTimeline( val id: Long, doc: Session )
 extends Timeline with Renameable with TimelineEditor {
   import Timeline._
 
@@ -39,8 +39,16 @@ extends Timeline with Renameable with TimelineEditor {
 
   def undoManager: UndoManager = doc.getUndoManager
 
-  val tracks      = new BasicSessionElementSeq[ Track ]( doc, "Tracks" )
+  val tracks = new Tracks( doc.createID, doc )
 //  val audioTrail  = new AudioTrail
+
+  def toXML =
+    <timeline id={id.toString}>
+      <name>{name}</name>
+      <span start={spanVar.start.toString} stop={spanVar.stop.toString}/>
+      <rate>{rate}</rate>
+      {tracks.toXML}
+    </timeline>
 
   def span: Span = spanVar
   def span_=( newSpan: Span ) {
@@ -87,4 +95,13 @@ extends Timeline with Renameable with TimelineEditor {
     }
     ce.addPerform( edit )
   }
+}
+
+class Timelines( doc: Session )
+extends BasicSessionElementSeq[ Timeline ]( doc, "Timelines" ) {
+  val id = -1L
+  def toXML =
+    <timelines>
+       {innerXML}
+    </timelines>
 }

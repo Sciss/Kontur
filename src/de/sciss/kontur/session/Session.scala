@@ -7,18 +7,54 @@ package de.sciss.kontur.session
 
 import de.sciss.app.{ AbstractApplication }
 import de.sciss.common.{ BasicDocument, ProcessingThread }
+import de.sciss.io.{ IOUtil }
 import de.sciss.util.{ Flag }
+import de.sciss.kontur.util.{ Model }
 import java.awt.{ EventQueue }
+import java.io.{ File, IOException }
+import scala.xml.{ XML }
 
-class Session( name: String ) extends BasicDocument {
+object Session {
+   def newEmpty: Session = {
+     new Session( None )
+   }
+   
+    case class DirtyChanged( newDirty: Boolean )
+    case class PathChanged( oldPath: Option[ File ], newPath: Option[ File ])
+}
+
+class Session( private var pathVar: Option[ File ])
+extends BasicDocument with Model {
+
+    import Session._
 
 	private var pt: Option[ ProcessingThread ] = None
 	private val undo  = new de.sciss.app.UndoManager( this )
     private var dirty = false
+    private var idCount = 0
+//    private var path: Option[ File ] = None
 
-    val timelines   = new BasicSessionElementSeq[ Timeline ]( this, "Timelines" )
-    val audioFiles  = new BasicSessionElementSeq[ AudioFileElement ]( this, "Audio Files" )
+    val timelines   = new Timelines( this )
+    val audioFiles  = new AudioFileSeq( this )
 //    val busses      = new SessionElementSeq[ BusElement ]( "Busses" )
+
+    def createID : Long = {
+      val res = idCount
+      idCount += 1
+      res
+    }
+
+    def toXML =
+      <session>
+        <idCount>{idCount}</idCount>
+        {audioFiles.toXML}
+        {timelines.toXML}
+      </session>
+
+    @throws( classOf[ IOException ])
+    def save( f: File ) {
+      XML.save( f.getAbsolutePath, toXML, "UTF-8", true, null )
+    }
 
 	/**
 	 * 	Starts a <code>ProcessingThread</code>. Only one thread
@@ -52,15 +88,25 @@ class Session( name: String ) extends BasicDocument {
       null
 	}
 
-	def getName() : String = name
-
-    def displayName : String = {
-        if( getName == null ) {
-			getResourceString( "frameUntitled" )
-		} else {
-			getName
-        }
+    def path = pathVar
+    def path_=( newPath: Option[ File ]) {
+       if( newPath != pathVar ) {
+          val change = PathChanged( pathVar, newPath )
+          pathVar = newPath
+          dispatch( change )
+       }
     }
+
+    def name: Option[ String ] = pathVar.map( p => {
+            val n = p.getName()
+            val i = n.lastIndexOf( '.' )
+            if( i == -1 ) n else n.substring( 0, i )
+        })
+
+	def getName() = name getOrElse null
+
+    def displayName =
+       name getOrElse getResourceString( "frameUntitled" )
 
   	protected def getResourceString( key: String ) : String =
 		getApplication().getResourceString( key )
@@ -82,10 +128,4 @@ class Session( name: String ) extends BasicDocument {
     def dispose() {
        // nada
     }
-}
-
-object Session {
-   def newEmpty: Session = {
-     new Session( null )
-   }
 }
