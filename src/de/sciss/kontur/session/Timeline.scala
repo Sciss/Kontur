@@ -1,6 +1,29 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  Timeline.scala
+ *  (Kontur)
+ *
+ *  Copyright (c) 2004-2010 Hanns Holger Rutz. All rights reserved.
+ *
+ *	This software is free software; you can redistribute it and/or
+ *	modify it under the terms of the GNU General Public License
+ *	as published by the Free Software Foundation; either
+ *	version 2, june 1991 of the License, or (at your option) any later version.
+ *
+ *	This software is distributed in the hope that it will be useful,
+ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ *	General Public License for more details.
+ *
+ *	You should have received a copy of the GNU General Public
+ *	License (gpl.txt) along with this software; if not, write to the Free Software
+ *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ *
+ *	For further information, please contact Hanns Holger Rutz at
+ *	contact@sciss.de
+ *
+ *
+ *  Changelog:
  */
 
 package de.sciss.kontur.session
@@ -19,6 +42,7 @@ trait Timeline extends SessionElement {
   def span: Span
   def rate: Double
   def tracks: SessionElementSeq[ Track ]
+  def transport: Option[ Transport ]
   def editor: Option[ TimelineEditor ]
 }
 
@@ -34,21 +58,23 @@ extends Timeline with Renameable with TimelineEditor {
 
   private var spanVar = new Span()
   private var rateVar = 44100.0
-  protected var nameVar = "Untitled"
+  protected var nameVar = "Timeline"
 //  private val sync = new AnyRef
+  private val transportVar = new BasicTransport( this )
 
   def undoManager: UndoManager = doc.getUndoManager
 
+  def transport: Option[ Transport ] = Some( transportVar )
+  
   val tracks = new Tracks( doc.createID, doc )
 //  val audioTrail  = new AudioTrail
 
-  def toXML =
-    <timeline id={id.toString}>
-      <name>{name}</name>
-      <span start={spanVar.start.toString} stop={spanVar.stop.toString}/>
-      <rate>{rate}</rate>
-      {tracks.toXML}
-    </timeline>
+  def toXML = <timeline id={id.toString}>
+  <name>{name}</name>
+  <span start={spanVar.start.toString} stop={spanVar.stop.toString}/>
+  <rate>{rate}</rate>
+  {tracks.toXML}
+</timeline>
 
   def span: Span = spanVar
   def span_=( newSpan: Span ) {

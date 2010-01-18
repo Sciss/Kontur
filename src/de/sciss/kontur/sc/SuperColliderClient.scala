@@ -1,11 +1,35 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  SuperColliderClient.scala
+ *  (Kontur)
+ *
+ *  Copyright (c) 2004-2010 Hanns Holger Rutz. All rights reserved.
+ *
+ *	This software is free software; you can redistribute it and/or
+ *	modify it under the terms of the GNU General Public License
+ *	as published by the Free Software Foundation; either
+ *	version 2, june 1991 of the License, or (at your option) any later version.
+ *
+ *	This software is distributed in the hope that it will be useful,
+ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ *	General Public License for more details.
+ *
+ *	You should have received a copy of the GNU General Public
+ *	License (gpl.txt) along with this software; if not, write to the Free Software
+ *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ *
+ *	For further information, please contact Hanns Holger Rutz at
+ *	contact@sciss.de
+ *
+ *
+ *  Changelog:
  */
 
 package de.sciss.kontur.sc
 
-import de.sciss.app.{ AbstractApplication }
+import de.sciss.app.{ AbstractApplication, DocumentEvent, DocumentListener }
+import de.sciss.kontur.session.{ Session }
 import de.sciss.kontur.util.{ Model, PrefsUtil }
 import de.sciss.tint.sc.{ Server, ServerOptions }
 import de.sciss.util.{ Param }
@@ -25,9 +49,11 @@ class SuperColliderClient extends Model {
     private val app         = AbstractApplication.getApplication()
     private val audioPrefs  = app.getUserPrefs.node( PrefsUtil.NODE_AUDIO )
     private val so          = new ServerOptions
-	private var server: Option[ Server ] = None
+	private var serverVar: Option[ Server ] = None
     private var serverIsReady = false
     private var shouldReboot = false
+
+    private var players = Map[ Session, SuperColliderPlayer ]()
 
     // ---- constructor ----
     {
@@ -39,11 +65,35 @@ class SuperColliderClient extends Model {
 //				outputConfigChanged();
 //			}
 //		};
+      
+        app.getDocumentHandler().addDocumentListener( new DocumentListener {
+        	def documentAdded( e: DocumentEvent ) {
+               e.getDocument match {
+                  case doc: Session => {
+                     players += doc -> new SuperColliderPlayer( SuperColliderClient.this, doc )
+                  }
+                  case _ =>
+               }
+            }
+
+        	def documentRemoved( e: DocumentEvent ) {
+               e.getDocument match {
+                  case doc: Session => {
+                     val player = players( doc )
+                     players -= doc
+                     player.dispose
+                  }
+                  case _ =>
+               }
+            }
+            
+        	def documentFocussed( e: DocumentEvent ) {}
+        })
     }
 
 	def quit {
 //		Server.quitAll
-        server.foreach( _.quit )
+        serverVar.foreach( _.quit )
 	}
 
 	def reboot {
@@ -52,15 +102,17 @@ class SuperColliderClient extends Model {
 	}
 
     def serverCondition : AnyRef = {
-      server.map( _.condition ) getOrElse Server.Offline
+      serverVar.map( _.condition ) getOrElse Server.Offline
     }
+
+    def server = serverVar
 
     private def printError( name: String, t: Throwable ) {
 		System.err.println( name + " : " + t.getClass().getName() + " : " + t.getLocalizedMessage() )
 	}
 
 	def stop {
-        server.foreach( s => {
+        serverVar.foreach( s => {
           if( s.isRunning || s.isBooting ) {
 			try {
 				s.quit // quitAndWait
@@ -89,13 +141,13 @@ class SuperColliderClient extends Model {
 //			nw		= null;
 //		}
 
-		server.foreach( s => {
+		serverVar.foreach( s => {
             s.removeListener( dispatch( _ ))
 //          s.dispose
         })
-        if( server != None ) {
-           server = None
-           dispatch( ServerChanged( server ))
+        if( serverVar != None ) {
+           serverVar = None
+           dispatch( ServerChanged( serverVar ))
         }
 		serverIsReady = false
 	}
@@ -106,7 +158,7 @@ class SuperColliderClient extends Model {
 
 //		if( !EventQueue.isDispatchThread() ) throw new IllegalMonitorStateException();
 
-        server.foreach( s => {
+        serverVar.foreach( s => {
             if( s.isRunning || s.isBooting ) return false
         })
 
@@ -166,8 +218,8 @@ class SuperColliderClient extends Model {
 //			if( dumpMode != kDumpOff ) dumpOSC( dumpMode )
 //			nw	= NodeWatcher.newFrom( server )
 
-            server = Some( s )
-            dispatch( ServerChanged( server ))
+            serverVar = Some( s )
+            dispatch( ServerChanged( serverVar ))
 			s.boot
 			true
 		}

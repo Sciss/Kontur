@@ -1,6 +1,29 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  SessionTreeModel.scala
+ *  (Kontur)
+ *
+ *  Copyright (c) 2004-2010 Hanns Holger Rutz. All rights reserved.
+ *
+ *	This software is free software; you can redistribute it and/or
+ *	modify it under the terms of the GNU General Public License
+ *	as published by the Free Software Foundation; either
+ *	version 2, june 1991 of the License, or (at your option) any later version.
+ *
+ *	This software is distributed in the hope that it will be useful,
+ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ *	General Public License for more details.
+ *
+ *	You should have received a copy of the GNU General Public
+ *	License (gpl.txt) along with this software; if not, write to the Free Software
+ *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ *
+ *	For further information, please contact Hanns Holger Rutz at
+ *	contact@sciss.de
+ *
+ *
+ *  Changelog:
  */
 
 package de.sciss.kontur.gui
@@ -9,9 +32,9 @@ import de.sciss.app.{ DynamicListening }
 import de.sciss.common.{ BasicWindowHandler }
 import de.sciss.gui.{ MenuItem }
 import de.sciss.io.{ AudioFile, AudioFileDescr }
-import de.sciss.kontur.session.{ AudioFileElement, AudioTrack, BasicTimeline,
-                                Session, SessionElement, SessionElementSeq,
-                                Timeline, Track }
+import de.sciss.kontur.session.{ AudioFileElement, AudioTrack, BasicDiffusion,
+                                BasicTimeline, Diffusion, Session, SessionElement,
+                                SessionElementSeq, Timeline, Track }
 import java.awt.{ Component, FileDialog, Frame }
 import java.awt.event.{ ActionEvent }
 import java.io.{ File, FilenameFilter, IOException }
@@ -47,11 +70,7 @@ with DynamicListening {
   }
 
   protected def insertDyn( idx: Int, elem: DynamicTreeNode ) {
-//println( "insertDyn( " + this.toString + ") : " + elem + " @ " + idx )
-// THIS DOES NOT WORK - DOES NOT UPDATE THE MODEL
-//    insert( elem, idx )
-  model.insertNodeInto( elem, this, idx )
-//println( "now child count is " + getChildCount )
+    model.insertNodeInto( elem, this, idx )
     if( isListening ) elem.startListening
   }
   
@@ -61,7 +80,7 @@ with DynamicListening {
           d.stopListening
           model.removeNodeFromParent( d )
       }
-// let is crash
+// let it crash
 //      case _ =>
     }
 //    remove( idx )
@@ -101,10 +120,12 @@ class SessionTreeRoot( val model: SessionTreeModel )
 extends DynamicTreeNode( model, model.doc, true ) {
   private val timelines   = new TimelinesTreeIndex( model, model.doc.timelines )
   private val audioFiles  = new AudioFilesTreeIndex( model, model.doc.audioFiles )
+  private val diffusions  = new DiffusionsTreeIndex( model, model.doc.diffusions )
 
   // ---- constructor ----
   addDyn( timelines )
   addDyn( audioFiles )
+  addDyn( diffusions )
 
   override def toString() = model.doc.displayName
 }
@@ -216,6 +237,30 @@ with HasContextMenu {
     new AudioFileTreeLeaf( model, elem ) // with UniqueCount
 }
 
+class DiffusionsTreeIndex( model: SessionTreeModel, diffusions: SessionElementSeq[ Diffusion ])
+extends SessionElementSeqTreeNode( model, diffusions )
+with HasContextMenu {
+
+    def createContextMenu() : Option[ PopupRoot ] = {
+     val root = new PopupRoot()
+     val miAddNew = new MenuItem( "new", new AbstractAction( "Add Diffusion" ) {
+        def actionPerformed( a: ActionEvent ) {
+           diffusions.editor.foreach( ed => {
+               val ce = ed.editBegin( getValue( Action.NAME ).toString )
+               val diff = new BasicDiffusion( model.doc.createID, model.doc )
+               ed.editInsert( ce, diffusions.size, diff )
+               ed.editEnd( ce )
+           })
+        }
+     })
+     root.add( miAddNew )
+     Some( root )
+   }
+
+  protected def wrap( elem: Diffusion ): DynamicTreeNode =
+    new DiffusionTreeLeaf( model, elem ) // with UniqueCount
+}
+
 class SessionElementTreeNode( model: SessionTreeModel, elem: SessionElement, canExpand: Boolean )
 extends DynamicTreeNode( model, elem, canExpand ) {
   override def toString() = elem.name
@@ -273,6 +318,15 @@ extends SessionElementTreeNode( model, t, false ) {
 
 class AudioFileTreeLeaf( model: SessionTreeModel, afe: AudioFileElement )
 extends SessionElementTreeNode( model, afe, false )
+with HasDoubleClickAction {
+    def doubleClickAction {
+      println( "DANG" )
+   }
+//  override def toString() = "View"
+}
+
+class DiffusionTreeLeaf( model: SessionTreeModel, diff: Diffusion )
+extends SessionElementTreeNode( model, diff, false )
 with HasDoubleClickAction {
     def doubleClickAction {
       println( "DANG" )

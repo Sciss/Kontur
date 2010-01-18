@@ -1,6 +1,29 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  TracksPanel.scala
+ *  (Kontur)
+ *
+ *  Copyright (c) 2004-2010 Hanns Holger Rutz. All rights reserved.
+ *
+ *	This software is free software; you can redistribute it and/or
+ *	modify it under the terms of the GNU General Public License
+ *	as published by the Free Software Foundation; either
+ *	version 2, june 1991 of the License, or (at your option) any later version.
+ *
+ *	This software is distributed in the hope that it will be useful,
+ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ *	General Public License for more details.
+ *
+ *	You should have received a copy of the GNU General Public
+ *	License (gpl.txt) along with this software; if not, write to the Free Software
+ *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ *
+ *	For further information, please contact Hanns Holger Rutz at
+ *	contact@sciss.de
+ *
+ *
+ *  Changelog:
  */
 
 package de.sciss.kontur.gui
@@ -23,7 +46,7 @@ extends JScrollPane( VERTICAL_SCROLLBAR_ALWAYS,
                      HORIZONTAL_SCROLLBAR_ALWAYS ) // JPanel( new BorderLayout() )
 with TracksTable with Model {
 //    private val tracksView        = timelinePanel.tracksView
-//    private val scroll            = new TimelineScroll( timelinePanel.timelineView )
+//    private val scroll            = new TimelineScroll( timelineView )
 //	private val allHeaderPanel    = new JPanel( new BorderLayout() )
 //	private val trackHeaderPanel  = new JPanel( new StretchedGridLayout( 0, 1, 1, 1 ))
 
@@ -36,7 +59,9 @@ with TracksTable with Model {
 //	private var collTrackHeaders  = Queue[ TrackRowHeader ]()
 	private var mapTrackRenderers   = Map[ Track, TrackRenderer ]()
     private val tracks = tracksView.tracks
-	private val timelineAxis = new TimelineAxis( timelinePanel.timelineView, None ) // Some( this )
+    private val timelineView = timelinePanel.timelineView
+	private val timelineAxis = new TimelineAxis( timelineView, None ) // Some( this )
+    private val viewPort = new TimelineViewport( timelineView )
 
   	private def tracksViewListener( msg: AnyRef ) : Unit = {
 //println(" TracksPanel : tracksViewListener " + msg )
@@ -62,7 +87,8 @@ with TracksTable with Model {
 //        gp.setPreferredSize( new Dimension( 64, timelineAxis.getPreferredSize().height ))
 //        topBox.add( gp )
         setBorder( null )
-        getViewport().setBorder( null )
+        setViewport( viewPort )
+        viewPort.setBorder( null )
         setCorner( UPPER_LEFT_CORNER, gp )
 //
 //        topBox.add( markerTrackHeader )
@@ -132,7 +158,7 @@ with TracksTable with Model {
 //	}
 
     private def addTrack( idx: Int, t: Track ) {
-      val tr = trf.createTrackRenderer( t, tracksView, timelinePanel.timelineView )
+      val tr = trf.createTrackRenderer( t, tracksView, timelineView )
 //      val trackRowHead = trf.createRowHeader( t, tracksView )
       mapTrackRenderers += (t -> tr)
       rowHeaderView.add( tr.trackHeaderComponent, idx )

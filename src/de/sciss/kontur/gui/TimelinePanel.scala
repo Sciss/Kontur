@@ -1,6 +1,29 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  TimelinePanel.scala
+ *  (Kontur)
+ *
+ *  Copyright (c) 2004-2010 Hanns Holger Rutz. All rights reserved.
+ *
+ *	This software is free software; you can redistribute it and/or
+ *	modify it under the terms of the GNU General Public License
+ *	as published by the Free Software Foundation; either
+ *	version 2, june 1991 of the License, or (at your option) any later version.
+ *
+ *	This software is distributed in the hope that it will be useful,
+ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ *	General Public License for more details.
+ *
+ *	You should have received a copy of the GNU General Public
+ *	License (gpl.txt) along with this software; if not, write to the Free Software
+ *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ *
+ *	For further information, please contact Hanns Holger Rutz at
+ *	contact@sciss.de
+ *
+ *
+ *  Changelog:
  */
 
 package de.sciss.kontur.gui
@@ -109,9 +132,9 @@ with TopPaintable {
 
     def viewPort = viewPortVar
     def viewPort_=( newPort: Option[ JViewport ]) {
-        viewPortVar.foreach( _.removeChangeListener( viewPortListener ))
+//        viewPortVar.foreach( _.removeChangeListener( viewPortListener ))
         viewPortVar = newPort
-        viewPortVar.foreach( _.addChangeListener( viewPortListener ))
+//        viewPortVar.foreach( _.addChangeListener( viewPortListener ))
     }
 
     def tracksViewListener( tracks: SessionElementSeq[ Track ])( msg: AnyRef ) : Unit = {
@@ -395,6 +418,7 @@ with TopPaintable {
       }
       case TimelineView.SpanChanged( _, newSpan ) => {
         if( timelineVis != newSpan ) {
+/*
           if( viewPortVar.isDefined ) {
              if( timelineVis.getLength != newSpan.getLength ) {
                  calcPreferredSize
@@ -402,6 +426,7 @@ with TopPaintable {
              calcViewPortRect
           }
           timelineVis	= newSpan
+*/
           updateTransformsAndRepaint( false )
         }
       }
@@ -412,13 +437,14 @@ with TopPaintable {
 //			updateEditEnabled( !newSpan.isEmpty )
 		}
       }
-      case Timeline.SpanChanged( _, newSpan ) if( viewPortVar.isDefined ) => calcPreferredSize
+//      case Timeline.SpanChanged( _, newSpan ) if( viewPortVar.isDefined ) => calcPreferredSize
       case Timeline.RateChanged( _, newRate ) => {
 		timelineRate = newRate
 //		playTimer.setDelay( Math.min( (int) (1000 / (vpScale * timelineRate * Math.abs( playRate ))), 33 ));
       }
     }
 
+/*
     private def viewPortListener = new ChangeListener {
       def stateChanged( e: ChangeEvent ) {
         viewPortVar.foreach( vp => {
@@ -440,7 +466,7 @@ with TopPaintable {
         })
       }
     }
-
+*/
   private def calcPreferredSize {
      val vp = viewPortVar.get
      val dim = getPreferredSize()
@@ -469,6 +495,7 @@ with TopPaintable {
      })
   }
 
+/*
   private def calcViewPortRect {
      val vp = viewPortVar.get
      val dim = getPreferredSize()
@@ -486,6 +513,6 @@ with TopPaintable {
       try { thunk }
       finally { vp.addChangeListener( viewPortListener )}
   }
-
+*/
   private case class ViewportSelection( bounds: Rectangle, color: Color )
 }
