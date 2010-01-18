@@ -30,12 +30,14 @@ package de.sciss.kontur.session
 
 import de.sciss.io.{ Span }
 
-class AudioRegion( afe: AudioFileElement, s: Span, n: String )
+class AudioRegion( s: Span, n: String, val audioFile: AudioFileElement,
+                   val offset: Long )
 extends Region( s, n ) {
   def toXML = <stake>
   <name>{name}</name>
   <span start={span.start.toString} stop={span.stop.toString}/>
-  <audioFile idref={afe.id.toString}/>
+  <audioFile idref={audioFile.id.toString}/>
+  <offset>offset</offset>
 </stake>
 }
 

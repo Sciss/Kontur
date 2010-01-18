@@ -28,14 +28,24 @@
 
 package de.sciss.kontur.session
 
-import java.io.{ File }
+import java.io.{ File, IOException }
+import de.sciss.io.{ AudioFile, AudioFileDescr }
 
-class AudioFileElement( val id: Long, path: File ) extends SessionElement {
+class AudioFileElement( val id: Long, val path: File ) extends SessionElement {
   def name: String = path.getName
 
   def toXML = <audioFile id={id.toString}>
   <path>{path.getAbsolutePath}</path>
 </audioFile>
+
+  lazy val descr: Option[ AudioFileDescr ] = {
+      try {
+        val af = AudioFile.openAsRead( path )
+        af.close
+        Some( af.getDescr )
+      }
+      catch { case e1: IOException => None }
+  }
 }
 
 class AudioFileSeq( doc: Session )

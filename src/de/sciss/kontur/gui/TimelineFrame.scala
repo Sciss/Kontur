@@ -67,7 +67,7 @@ extends AppWindow( AbstractWindow.REGULAR ) {
       cp.add( tracksPanel, BorderLayout.CENTER )
       val topBox = Box.createHorizontalBox()
       topBox.add( Box.createHorizontalGlue() )
-      topBox.add( new TransportPanel() )
+      topBox.add( new TransportPanel( timelineView ))
       cp.add( topBox, BorderLayout.NORTH )
 
 //      tracksPanel.tracks = Some( tl.tracks )
@@ -167,12 +167,12 @@ extends AppWindow( AbstractWindow.REGULAR ) {
          tracksView.tracks.find( t => t.isInstanceOf[ AudioTrack ] && tracksView.isSelected( t ))
           .foreach( t => {
             val span = new Span( timelineView.cursor.position,
-                                min( timelineView.cursor.position + (timelineView.timeline.rate + 0.5).toLong,
+                                min( timelineView.cursor.position + (timelineView.timeline.rate * 4 + 0.5).toLong,
                                      timelineView.timeline.span.stop ))
              if( !span.isEmpty ) {
                 t.asInstanceOf[ AudioTrack ].trail.editor.foreach( ed => {
                     val ce = ed.editBegin( "debug" )
-                    val ar = new AudioRegion( afe, span, afe.name )
+                    val ar = new AudioRegion( span, afe.name, afe, 0L )
                     ed.editAdd( ce, ar )
                     ed.editEnd( ce )
                 })

@@ -29,9 +29,13 @@
 package de.sciss.kontur.gui
 
 import java.awt.{ Insets }
-import javax.swing.{ AbstractButton, BoxLayout, ImageIcon, JButton, JPanel, JToggleButton }
+import java.awt.event.{ ActionEvent }
+import javax.swing.{ AbstractAction, AbstractButton, BoxLayout, ImageIcon,
+                    JButton, JPanel, JToggleButton }
+import de.sciss.app.{ DynamicAncestorAdapter, DynamicListening }
+import de.sciss.kontur.session.{ Timeline, Transport }
 
-class TransportPanel extends JPanel {
+class TransportPanel( tlv: TimelineView ) extends JPanel with DynamicListening {
   // ---- constructor ----
   {
       val clz     = classOf[ TransportPanel ]
@@ -45,9 +49,23 @@ class TransportPanel extends JPanel {
       val butPlay = new JButton( icnPlay )
       val butEnd  = new JButton( icnEnd )
 
-      makeSegmented( butBeg, butStop, butPlay, butEnd )
+//      butStop.setAction( new ActionStop )
+//      butPlay.setAction( new ActionPlay )
+      butStop.addActionListener( new ActionStop )
+      butPlay.addActionListener( new ActionPlay )
 
       setLayout( new BoxLayout( this, BoxLayout.X_AXIS ))
+      makeSegmented( butBeg, butStop, butPlay, butEnd )
+
+      new DynamicAncestorAdapter( this ).addTo( this )
+  }
+
+  def startListening {
+
+  }
+
+  def stopListening {
+
   }
 
   private def makeSegmented( buttons: AbstractButton* ) {
@@ -68,4 +86,20 @@ class TransportPanel extends JPanel {
         add( b )
      })
   }
+
+   private class ActionPlay extends AbstractAction {
+      def actionPerformed( e: ActionEvent ) {
+        tlv.timeline.transport.foreach( t => {
+            t.play( tlv.cursor.position, 1.0 )
+        })
+      }
+   }
+
+   private class ActionStop extends AbstractAction {
+      def actionPerformed( e: ActionEvent ) {
+        tlv.timeline.transport.foreach( t => {
+            t.stop
+        })
+      }
+   }
 }
