@@ -36,6 +36,7 @@ import de.sciss.kontur.session.{ AudioFileElement, AudioTrack, BasicDiffusion,
                                 BasicTimeline, Diffusion, Session, SessionElement,
                                 SessionElementSeq, Timeline, Track }
 import java.awt.{ Component, FileDialog, Frame }
+import java.awt.datatransfer.{ DataFlavor, Transferable }
 import java.awt.event.{ ActionEvent }
 import java.io.{ File, FilenameFilter, IOException }
 import javax.swing.{ AbstractAction, Action }
@@ -137,12 +138,10 @@ extends DynamicTreeNode( model, seq, true )
 {
     protected def wrap( elem: T ) : DynamicTreeNode
 
-    private def seqListener( msg: AnyRef ) : Unit = {
-//println( "SessionElementSeqTreeNode : " + msg )
-      msg match {
+    private val seqListener = (msg: AnyRef) => msg match {
       case seq.ElementAdded( idx, elem ) => insertDyn( idx, wrap( elem ))
       case seq.ElementRemoved( idx, elem ) => removeDyn( idx )
-    }}
+    }
     
     override def startListening {
       // cheesy shit ...
@@ -327,9 +326,13 @@ with HasDoubleClickAction {
 
 class DiffusionTreeLeaf( model: SessionTreeModel, diff: Diffusion )
 extends SessionElementTreeNode( model, diff, false )
-with HasDoubleClickAction {
+with HasDoubleClickAction with CanBeDragSource {
     def doubleClickAction {
       println( "DANG" )
    }
-//  override def toString() = "View"
+
+   def transferDataFlavors = List( Diffusion.flavor )
+   def transferData( flavor: DataFlavor ) : AnyRef = flavor match {
+      case Diffusion.flavor => diff
+   }
 }

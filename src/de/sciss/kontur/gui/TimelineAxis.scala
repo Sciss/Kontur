@@ -102,7 +102,7 @@ with DynamicListening {
             }
         }
 
-     private def timelineListener( msg: AnyRef ) : Unit = msg match {
+     private val timelineListener = (msg: AnyRef) => msg match {
         case Timeline.RateChanged( _, _ ) => recalcSpace( true )
         // note: viewport does not necessarily repaint when
         // view sizes changes, for whatever reason. so we

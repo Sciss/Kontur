@@ -70,11 +70,13 @@ with SessionElementSeqEditor[ T ] {
   {coll.map(_.toXML)}
 </coll>
 
+  private val forward = (msg: AnyRef) => dispatch( msg )
+
 /*
   def +=( elem: T ) {
     val idx = coll.size
     coll += elem
-    elem.addListener( dispatch( _ ))
+    elem.addListener( forward )
     dispatch( ElementAdded( idx, elem ))
   }
 
@@ -90,7 +92,7 @@ with SessionElementSeqEditor[ T ] {
 
   def insert( idx: Int, elem: T ) {
     coll.insert( idx, elem )
-    elem.addListener( dispatch( _ ))
+    elem.addListener( forward )
     dispatch( ElementAdded( idx, elem ))
   }
 
@@ -98,7 +100,7 @@ with SessionElementSeqEditor[ T ] {
     val idx = coll.indexOf( elem )
     if( idx >= 0 ) {
       coll.remove( idx )
-      elem.removeListener( dispatch( _ ))
+      elem.removeListener( forward )
       dispatch( ElementRemoved( idx, elem ))
     }
   }

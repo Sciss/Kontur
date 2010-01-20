@@ -259,13 +259,13 @@ extends BasicApplication( classOf[ Main ], Main.APP_NAME ) {
           val confirmed = new Flag( false )
           val pt          = getMenuFactory().closeAll( forcedQuit, confirmed )
 
-println( "---1" )
+//println( "---1" )
           if( pt != null ) {
-println( "---2" )
+//println( "---2" )
             pt.addListener( quitAfterSaveListener )
             pt.getClientArg( "doc" ).asInstanceOf[ BasicDocument ].start( pt )
           } else if( confirmed.isSet() ) {
-println( "---3" )
+//println( "---3" )
 //			OSCRoot.getInstance().quit();
 //			SuperColliderClient.getInstance().quit();
 			super.quit()

@@ -322,7 +322,7 @@ with AdjustmentListener with DynamicListening {
 
 // ---------------- TimelineListener interface ----------------
 
-  private def timelineListener( msg: AnyRef ) : Unit = msg match {
+  private val timelineListener = (msg: AnyRef) => msg match {
     case TimelineSelection.SpanChanged( _, newSpan ) => {
 		timelineSel = newSpan
 		recalcTransforms

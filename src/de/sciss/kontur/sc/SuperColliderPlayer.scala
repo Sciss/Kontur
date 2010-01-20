@@ -45,6 +45,12 @@ extends Disposable {
 //    private var server: Option[ Server ] = client.server
     private var online: Option[ Online ] = None
 
+    private val clientListener = (msg: AnyRef) => msg match {
+       case Server.Running => serverRunning
+       case Server.Offline => serverOffline
+//       case SuperColliderClient.ServerChanged( s ) => serverChanged( s )
+    }
+
     // ---- constructor ----
     {
        clientListener( client.serverCondition )
@@ -60,12 +66,6 @@ extends Disposable {
     private def serverOffline {
        // XXX stop all transports
        online = None
-    }
-
-    private def clientListener( msg: AnyRef ) : Unit = msg match {
-       case Server.Running => serverRunning
-       case Server.Offline => serverOffline
-//       case SuperColliderClient.ServerChanged( s ) => serverChanged( s )
     }
 
     def dispose {
@@ -102,7 +102,7 @@ val amp = 1
 //				          List( i_fadeIn, i_dur - (i_fadeIn + i_fadeOut), i_fadeOut ),
 //				          List( i_finTyp, 1, i_foutTyp ))
 //                 val envGen = EnvGen.kr( env, doneAction = freeSelf ) * amp
-val envGen = Line.kr( amp, amp, doneAction = freeSelf )
+val envGen = Line.kr( amp, amp, i_dur, doneAction = freeSelf )
 				Out.ar( out, DiskIn.ar( numChannels, i_bufNum ) /* * envGen */)
 			 }).send( server )
          }
@@ -155,6 +155,12 @@ val envGen = Line.kr( amp, amp, doneAction = freeSelf )
           private var synth: Option[ Synth ] = None
           private var synDefCount = 1
 
+          private val diffusionListener = (msg: AnyRef) => msg match {
+              case Diffusion.NumInputChannelsChanged( _, _ )  => diffusionChanged( diff )
+              case Diffusion.NumOutputChannelsChanged( _, _ ) => diffusionChanged( diff )
+              case BasicDiffusion.MatrixChanged( _, _ ) => newSynth
+          }
+
           // ---- constructor ----
           {
               diff.addListener( diffusionListener )
@@ -198,12 +204,6 @@ val envGen = Line.kr( amp, amp, doneAction = freeSelf )
                }
                synth = Some( synDef.play( panGroup, List( "in" -> inBus.index ))) // XXX out bus
           }
-
-          private def diffusionListener( msg: AnyRef ) : Unit = msg match {
-              case Diffusion.NumInputChannelsChanged( _, _ )  => diffusionChanged( diff )
-              case Diffusion.NumOutputChannelsChanged( _, _ ) => diffusionChanged( diff )
-              case BasicDiffusion.MatrixChanged( _, _ ) => newSynth
-          }
        }
 
        class OnlineTimeline( val tl: Timeline ) extends ActionListener {
@@ -222,7 +222,17 @@ val envGen = Line.kr( amp, amp, doneAction = freeSelf )
           private val timer             = new javax.swing.Timer( (transportDelta * 1000).toInt, this )
           private val players           = new ArrayBuffer[ TrackPlayer ]()
           private var mapPlayers        = Map[ Track, TrackPlayer ]()
-          
+
+           private val tracksListener = (msg: AnyRef) => msg match {
+              case tracks.ElementAdded( idx, t ) => addTrack( idx, t )
+              case tracks.ElementRemoved( idx, t ) => removeTrack( idx, t )
+           }
+
+          private val transportListener = (msg: AnyRef) => msg match {
+              case Transport.Play( from, rate ) => play( from, rate )
+              case Transport.Stop( pos ) => stop
+           }
+
           // ---- constructor ----
           {
              timer.setInitialDelay( 0 )
@@ -266,16 +276,6 @@ if( verbose ) println( "| | | | | timer " + start )
              player.dispose
           }
 
-          private def tracksListener( msg: AnyRef ) : Unit = msg match {
-              case tracks.ElementAdded( idx, t ) => addTrack( idx, t )
-              case tracks.ElementRemoved( idx, t ) => removeTrack( idx, t )
-           }
-
-          private def transportListener( msg: AnyRef ) : Unit = msg match {
-              case Transport.Play( from, rate ) => play( from, rate )
-              case Transport.Stop( pos ) => stop
-           }
-
           def play( from: Long, rate: Double ) {
 if( verbose ) println( "play ; deltaFrames = " + deltaFrames )
               start = from + latencyFrames
@@ -304,11 +304,17 @@ if( verbose ) println( "stop" )
               private var stakesMap = Map[ AudioRegion, Synth ]()
 
               def step( span: Span ) {
+//println( "step : " + span )
                 track.diffusion.foreach( diff => {
+//println( "---1" )
                   track.trail.visitRange( span )( stake => {
+//println( "---2 " + stake )
                     if( !stakesMap.contains( stake )) {
+//println( "---3 " + stake.audioFile.descr )
                       stake.audioFile.descr.foreach( descr => {
+//println( "---4 " + descr.channels )
                         if( descr.channels == diff.numInputChannels ) {
+//println( "---5" )
                           val bndl        = new MixedBundle
                           val frameOffset = Math.max( 0L, start - stake.span.start )
                           val buffer      = new Buffer( server, 32768, descr.channels )
@@ -317,7 +323,7 @@ if( verbose ) println( "stop" )
                                                                   (stake.offset + frameOffset).toInt )) // XXX toInt
                           val defName     = "disk_" + descr.channels
                           val synth       = new Synth( defName, server )
-                          val durFrames   = Math.max( 0, span.getLength - frameOffset )
+                          val durFrames   = Math.max( 0, stake.span.getLength - frameOffset )
                           val durSecs     = durFrames / sampleRate
 
                           val fadeFrames  = 0f // if( frameOffset == 0 ) min( durFrames, fadeIn.numFrames ) else 0  // XXX a little bit cheesy!
@@ -332,6 +338,7 @@ if( verbose ) println( "stop" )
                           synths += synth
                           stakesMap += (stake -> synth)
                           synth.onEnd {
+println( "--onEnd--")
                                 buffer.close
                                 buffer.free
                                 stakesMap -= stake

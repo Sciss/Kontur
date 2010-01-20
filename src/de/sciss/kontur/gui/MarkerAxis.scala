@@ -583,22 +583,18 @@ with DynamicListening with Disposable {
 
 // ---------------- MarkerManager.Listener interface ----------------
 
-	private def trailListener( msg: AnyRef ) {
-      msg match {
+	private val trailListener = (msg: AnyRef) => msg match {
         case Trail.Changed( span ) => if( span.touches( visibleSpan )) triggerRedisplay
-      }
-	}
+    }
 
 // ---------------- TimelineListener interface ----------------
 
-	private def timelineListener( msg: AnyRef ) {
-      msg match {
+	private val timelineListener = (msg: AnyRef) => msg match {
         case TimelineView.SpanChanged( _, newSpan ) => {
             visibleSpan = newSpan
             triggerRedisplay
         }
-      }
-	}
+    }
     
 // ---------------- internal classes ----------------
 

@@ -73,15 +73,17 @@ extends TimelineView with TimelineViewEditor {
   private val basicSel  = new BasicTimelineSelection( timeline )
   def selection: TimelineSelection = basicSel
 
+  private val forward = (msg: AnyRef) => dispatch( msg )
+
   // ---- constructor ----
   {
-    cursor.addListener( dispatch( _ ))
-    selection.addListener( dispatch( _ ))
-    timeline.addListener( dispatch( _ )) // XXX a little dangerous
+    cursor.addListener( forward )
+    selection.addListener( forward )
+    timeline.addListener( forward ) // XXX a little dangerous
   }
 
   def dispose {
-    timeline.removeListener( dispatch( _ ))
+    timeline.removeListener( forward )
   }
 
   def editor: Option[ TimelineViewEditor ] = Some( this )

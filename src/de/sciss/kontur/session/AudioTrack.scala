@@ -50,6 +50,7 @@ with Renameable {
   def diffusion = diffusionVar
   def diffusion_=( newDiff: Option[ Diffusion ]) {
      if( newDiff != diffusionVar ) {
+println( "KUUKA. new diff = " + newDiff )
         val change = DiffusionChanged( diffusionVar, newDiff )
         diffusionVar = newDiff
         dispatch( change )
@@ -59,6 +60,7 @@ with Renameable {
   def toXML =
     <audioTrack id={id.toString}>
       <name>{name}</name>
+      {diffusion.foreach( diff => <diffusion idref={diff.id.toString}/>)}
       {trail.toXML}
     </audioTrack>
 

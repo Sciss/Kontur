@@ -50,7 +50,7 @@ extends JViewport with DynamicListening {
      timelineView.removeListener( timelineViewListener )
   }
 
-  private def timelineViewListener( msg: AnyRef ) : Unit = msg match {
+  private val timelineViewListener = (msg: AnyRef) => msg match {
       case TimelineView.SpanChanged( oldSpan, newSpan ) => {
 //         val dim = getPreferredSize()
          val tlSpan = timelineView.timeline.span

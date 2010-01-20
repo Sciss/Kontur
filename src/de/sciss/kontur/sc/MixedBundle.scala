@@ -14,7 +14,13 @@ class MixedBundle {
    private val msgs         = new ListBuffer[ OSCMessage ]()
 
    def send( s: Server, time: Double ) {
-     
+      if( prepareMsgs.nonEmpty ) {
+         // XXX cheesy assumption that this is faster than the scheduled one
+         s.sendBundle( -1, prepareMsgs: _* )
+      }
+      if( msgs.nonEmpty ) {
+         s.sendBundle( time, msgs: _* )
+      }
    }
 
    def add( m: OSCMessage ) {

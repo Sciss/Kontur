@@ -29,6 +29,9 @@
 package de.sciss.kontur.gui
 
 import java.awt.{ Color, Dimension, GradientPaint, Graphics, Graphics2D, Paint }
+import java.awt.datatransfer.{ DataFlavor }
+import java.awt.dnd.{ DnDConstants, DropTarget, DropTargetAdapter,
+                     DropTargetDragEvent, DropTargetDropEvent, DropTargetListener }
 import java.awt.event.{ MouseAdapter, MouseEvent, MouseListener }
 import javax.swing.{ BorderFactory, JComponent, JLabel, JPanel, Spring, SpringLayout }
 import scala.math._
@@ -37,7 +40,8 @@ import de.sciss.gui.{ GradientPanel }
 import de.sciss.app.{ AbstractApplication, Application, DynamicAncestorAdapter,
                      DynamicListening, GraphicsHandler }
 import de.sciss.util.{ Disposable }
-import de.sciss.kontur.session.{ Renameable, SessionElementSeq, Stake, Track }
+import de.sciss.kontur.session.{ AudioTrack, Diffusion, Renameable,
+                                SessionElementSeq, Stake, Track }
 
 /**
  *	A row header in Swing's table 'ideology'
@@ -258,7 +262,7 @@ with DynamicListening with Disposable {
 
 // ---------------- DynamicListening interface ----------------
 
-    private def tracksViewListener( msg: AnyRef ) : Unit = msg match {
+    private val tracksViewListener = (msg: AnyRef) => msg match {
       case TracksView.SelectionChanged( mod @ _* ) => {
           if( mod.contains( track )) repaint()
       }
@@ -279,4 +283,41 @@ with DynamicListening with Disposable {
             tracksView.removeListener( tracksViewListener )
     	}
     }
+}
+
+class AudioTrackHeaderComponent( audioTrack: AudioTrack, tracksView: TracksView )
+extends DefaultTrackHeaderComponent( audioTrack, tracksView ) {
+
+    // ---- constructor ----
+    {
+        new DropTarget( this, DnDConstants.ACTION_LINK, new DropTargetAdapter {
+           private def process( dtde: DropTargetDragEvent ) {
+              if( dtde.isDataFlavorSupported( Diffusion.flavor )) {
+                  dtde.acceptDrag( DnDConstants.ACTION_LINK )
+              } else {
+                  dtde.rejectDrag()
+              }
+           }
+
+           override def dragEnter( dtde: DropTargetDragEvent ) : Unit = process( dtde )
+           override def dragOver( dtde: DropTargetDragEvent ) : Unit = process( dtde )
+
+           def drop( dtde: DropTargetDropEvent ) {
+             if( dtde.isDataFlavorSupported( Diffusion.flavor )) {
+                 dtde.acceptDrop( DnDConstants.ACTION_LINK )
+                 dtde.getTransferable().getTransferData( Diffusion.flavor ) match {
+                    case diff: Diffusion => {
+                       val ce = audioTrack.editBegin( "editTrackDiffusion" )
+                       audioTrack.editDiffusion( ce, Some( diff ))
+                       audioTrack.editEnd( ce )
+                       dtde.dropComplete( true )
+                    }
+                    case _ =>
+                 }
+             } else {
+                 dtde.rejectDrop()
+             }
+           }
+        })
+      }
 }

@@ -31,6 +31,7 @@ package de.sciss.kontur.sc
 import de.sciss.app.{ AbstractApplication, DocumentEvent, DocumentListener }
 import de.sciss.kontur.session.{ Session }
 import de.sciss.kontur.util.{ Model, PrefsUtil }
+import de.sciss.scalaosc.{ OSCChannel }
 import de.sciss.tint.sc.{ Server, ServerOptions }
 import de.sciss.util.{ Param }
 import java.io.{ IOException }
@@ -52,8 +53,10 @@ class SuperColliderClient extends Model {
 	private var serverVar: Option[ Server ] = None
     private var serverIsReady = false
     private var shouldReboot = false
+    private var dumpMode = OSCChannel.DUMP_OFF
 
     private var players = Map[ Session, SuperColliderPlayer ]()
+    private val forward = (msg: AnyRef) => dispatch( msg )
 
     // ---- constructor ----
     {
@@ -90,6 +93,13 @@ class SuperColliderClient extends Model {
         	def documentFocussed( e: DocumentEvent ) {}
         })
     }
+
+   def dumpOSC( mode: Int ) {
+      if( mode != dumpMode ) {
+         dumpMode = mode
+         serverVar.foreach( _.dumpOSC( mode ))
+      }
+   }
 
 	def quit {
 //		Server.quitAll
@@ -142,7 +152,7 @@ class SuperColliderClient extends Model {
 //		}
 
 		serverVar.foreach( s => {
-            s.removeListener( dispatch( _ ))
+            s.removeListener( forward )
 //          s.dispose
         })
         if( serverVar != None ) {
@@ -213,7 +223,8 @@ class SuperColliderClient extends Model {
 
 			// loopback is sufficient here
 			val s = new Server( app.getName, so )
-			s.addListener( dispatch( _ ))
+			s.addListener( forward )
+            s.dumpOSC( dumpMode )
 
 //			if( dumpMode != kDumpOff ) dumpOSC( dumpMode )
 //			nw	= NodeWatcher.newFrom( server )

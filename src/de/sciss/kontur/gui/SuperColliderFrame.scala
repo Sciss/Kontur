@@ -49,6 +49,11 @@ class SuperColliderFrame extends AppWindow( AbstractWindow.SUPPORT ) {
      override protected def couldBoot: Boolean = true
    }
 
+   private val clientListener = (msg: AnyRef) => msg match {
+      case SuperColliderClient.ServerChanged( server ) =>
+          serverPanel.server = server
+   }
+   
    // ---- constructor ----
    {
       setTitle( "SuperCollider Server" ) // XXX getResource
@@ -61,6 +66,8 @@ class SuperColliderFrame extends AppWindow( AbstractWindow.SUPPORT ) {
       amap.put( "dumptree", new ActionDumpTree( false ))
       imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_N, InputEvent.SHIFT_MASK ), "dumptreec" )
       amap.put( "dumptreec", new ActionDumpTree( true ))
+      imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_D, 0 ), "dumposc" )
+      amap.put( "dumposc", new ActionDumpOSC )
 
       val cp = getContentPane
       cp.add( serverPanel, BorderLayout.CENTER )
@@ -69,19 +76,24 @@ class SuperColliderFrame extends AppWindow( AbstractWindow.SUPPORT ) {
       init()
    }
 
-   private def clientListener( msg: AnyRef ) : Unit = msg match {
-      case SuperColliderClient.ServerChanged( server ) =>
-          serverPanel.server = server
-   }
-
    private class ActionDumpTree( controls: Boolean  )
    extends AbstractAction {
       def actionPerformed( e: ActionEvent ) {
-         SuperColliderClient.instance.server.foreach( s => {
+         superCollider.server.foreach( s => {
              if( s.condition == Server.Running ) {
                 s.dumpTree( controls )
              }
          })
+      }
+   }
+
+   private class ActionDumpOSC
+   extends AbstractAction {
+      private var dumping = false
+      def actionPerformed( e: ActionEvent ) {
+         dumping = !dumping
+         println( "Dumping is " + (if( dumping ) "on" else "off") ) // XXX resource
+         superCollider.dumpOSC( if( dumping ) 1 else 0 )
       }
    }
 }

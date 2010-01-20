@@ -93,6 +93,7 @@ extends AppWindow( AbstractWindow.REGULAR ) {
              case _ =>
          }
       })
+      new TreeDragSource( ggTree )
 
       cp.add( ggScroll, BorderLayout.CENTER )
       app.getMenuFactory().addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!

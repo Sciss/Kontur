@@ -85,6 +85,50 @@ with TopPaintable {
 	private var tracksTableVar: Option[ TracksPanel ] = None
     private var viewPortVar: Option[ JViewport ] = None
 
+    private val timelineListener = (msg: AnyRef) => msg match {
+      case TimelineCursor.PositionChanged( _, newPos ) => {
+//println( "POSITION CHANGED " + oldPos + " -> " + newPos )
+		timelinePos = newPos
+		updatePositionAndRepaint
+      }
+      case TimelineView.SpanChanged( _, newSpan ) => {
+        if( timelineVis != newSpan ) {
+/*
+          if( viewPortVar.isDefined ) {
+             if( timelineVis.getLength != newSpan.getLength ) {
+                 calcPreferredSize
+             }
+             calcViewPortRect
+          }
+          timelineVis	= newSpan
+*/
+          updateTransformsAndRepaint( false )
+        }
+      }
+      case TimelineSelection.SpanChanged( oldSpan, newSpan ) => {
+   		timelineSel	= newSpan
+		updateSelectionAndRepaint
+		if( oldSpan.isEmpty != newSpan.isEmpty ) {
+//			updateEditEnabled( !newSpan.isEmpty )
+		}
+      }
+//      case Timeline.SpanChanged( _, newSpan ) if( viewPortVar.isDefined ) => calcPreferredSize
+      case Timeline.RateChanged( _, newRate ) => {
+		timelineRate = newRate
+//		playTimer.setDelay( Math.min( (int) (1000 / (vpScale * timelineRate * Math.abs( playRate ))), 33 ));
+      }
+    }
+
+    private def tracksViewListener( tracks: SessionElementSeq[ Track ]) = (msg: AnyRef) => msg match {
+      case tracks.ElementAdded( idx, elem ) => updateSelectionAndRepaint
+      case tracks.ElementRemoved( idx, elem ) => updateSelectionAndRepaint
+      case TracksView.SelectionChanged( _ ) => updateSelectionAndRepaint
+    }
+
+    private val markerListener = (msg: AnyRef) => msg match {
+      case Trail.Changed( span ) => repaintMarkers( span )
+    }
+
    // ---- constructor ----
 	{
 //		addTopPainter( this )
@@ -137,17 +181,13 @@ with TopPaintable {
 //        viewPortVar.foreach( _.addChangeListener( viewPortListener ))
     }
 
-    def tracksViewListener( tracks: SessionElementSeq[ Track ])( msg: AnyRef ) : Unit = {
-// println(" TimelinePanel : tracksViewListener " + msg )
-      msg match {
+/*
+    def tracksViewListener( tracks: SessionElementSeq[ Track ])( msg: AnyRef ) : Unit = msg match {
       case tracks.ElementAdded( idx, elem ) => updateSelectionAndRepaint
       case tracks.ElementRemoved( idx, elem ) => updateSelectionAndRepaint
       case TracksView.SelectionChanged( _ ) => updateSelectionAndRepaint
-    }}
-
-    private def markerListener( msg: AnyRef ) : Unit = msg match {
-      case Trail.Changed( span ) => repaintMarkers( span )
     }
+*/
 
     def tracksTable = tracksTableVar
     def tracksTable_=( newTT: Option[ TracksPanel ]) {
@@ -406,42 +446,6 @@ with TopPaintable {
                 })
               }
          })
-    }
-
-	// ---------------- TimelineListener interface ----------------
-
-    private def timelineListener( msg: AnyRef ): Unit = msg match {
-      case TimelineCursor.PositionChanged( _, newPos ) => {
-//println( "POSITION CHANGED " + oldPos + " -> " + newPos )
-		timelinePos = newPos
-		updatePositionAndRepaint
-      }
-      case TimelineView.SpanChanged( _, newSpan ) => {
-        if( timelineVis != newSpan ) {
-/*
-          if( viewPortVar.isDefined ) {
-             if( timelineVis.getLength != newSpan.getLength ) {
-                 calcPreferredSize
-             }
-             calcViewPortRect
-          }
-          timelineVis	= newSpan
-*/
-          updateTransformsAndRepaint( false )
-        }
-      }
-      case TimelineSelection.SpanChanged( oldSpan, newSpan ) => {
-   		timelineSel	= newSpan
-		updateSelectionAndRepaint
-		if( oldSpan.isEmpty != newSpan.isEmpty ) {
-//			updateEditEnabled( !newSpan.isEmpty )
-		}
-      }
-//      case Timeline.SpanChanged( _, newSpan ) if( viewPortVar.isDefined ) => calcPreferredSize
-      case Timeline.RateChanged( _, newRate ) => {
-		timelineRate = newRate
-//		playTimer.setDelay( Math.min( (int) (1000 / (vpScale * timelineRate * Math.abs( playRate ))), 33 ));
-      }
     }
 
 /*

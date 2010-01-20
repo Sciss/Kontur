@@ -62,6 +62,15 @@ extends TracksView with TracksViewEditor {
 
   private var views = Map[ Track, TrackView ]()
 
+  private val tracksListener = (msg: AnyRef) => {
+    msg match {
+      case tracks.ElementAdded( idx, elem ) => views += (elem -> new TrackView)
+      case tracks.ElementRemoved( idx, elem ) => views -= elem
+      case _ =>
+    }
+    dispatch( msg )
+  }
+  
   // ---- constructor ----
   {
       tracks.foreach( t => views += (t -> new TrackView) )
@@ -70,15 +79,6 @@ extends TracksView with TracksViewEditor {
 
   def dispose {
     tracks.removeListener( tracksListener )
-  }
-
-  private def tracksListener( msg: AnyRef ) {
-    msg match {
-      case tracks.ElementAdded( idx, elem ) => views += (elem -> new TrackView)
-      case tracks.ElementRemoved( idx, elem ) => views -= elem
-      case _ =>
-    }
-    dispatch( msg )
   }
 
   def select( tracks: Track* ) : Unit = setSelection( tracks, true )

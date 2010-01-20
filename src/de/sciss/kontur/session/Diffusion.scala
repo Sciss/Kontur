@@ -28,6 +28,7 @@
 
 package de.sciss.kontur.session
 
+import java.awt.datatransfer.{ DataFlavor }
 import javax.swing.undo.{ UndoManager }
 import de.sciss.app.{ AbstractCompoundEdit }
 import de.sciss.kontur.edit.{ Editor, SimpleEdit }
@@ -36,6 +37,7 @@ import de.sciss.kontur.util.{ Matrix2D }
 object Diffusion {
   case class NumInputChannelsChanged( oldNum: Int, newNum: Int )
   case class NumOutputChannelsChanged( oldNum: Int, newNum: Int )
+  val flavor = new DataFlavor( classOf[ Diffusion ], "Diffusion" )
 }
 
 trait Diffusion extends SessionElement {
