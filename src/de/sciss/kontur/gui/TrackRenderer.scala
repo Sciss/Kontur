@@ -29,10 +29,10 @@
 package de.sciss.kontur.gui
 
 import javax.swing.{ JComponent }
-import de.sciss.kontur.session.{ AudioTrack, Track }
+import de.sciss.kontur.session.{ AudioTrack, Session, Track }
 
 trait TrackRendererFactory {
-    def createTrackRenderer( t: Track, view: TracksView, timelineView: TimelineView ) : TrackRenderer
+    def createTrackRenderer( doc: Session, t: Track, view: TracksView, timelineView: TimelineView ) : TrackRenderer
 }
 
 trait TrackRenderer {
@@ -42,21 +42,21 @@ trait TrackRenderer {
 
 object DefaultTrackRendererFactory
 extends TrackRendererFactory {
-    def createTrackRenderer( t: Track, tracksView: TracksView, timelineView: TimelineView ) : TrackRenderer =
+    def createTrackRenderer( doc: Session, t: Track, tracksView: TracksView, timelineView: TimelineView ) : TrackRenderer =
       t match {
-          case at: AudioTrack => new AudioTrackRenderer( at, tracksView, timelineView )
-          case _ => new DefaultTrackRenderer( t, tracksView, timelineView )
+          case at: AudioTrack => new AudioTrackRenderer( doc, at, tracksView, timelineView )
+          case _ => new DefaultTrackRenderer( doc, t, tracksView, timelineView )
       }
 }
 
-class DefaultTrackRenderer( t: Track, tracksView: TracksView, timelineView: TimelineView )
+class DefaultTrackRenderer( doc: Session, t: Track, tracksView: TracksView, timelineView: TimelineView )
 extends TrackRenderer {
   val trackHeaderComponent = new DefaultTrackHeaderComponent( t, tracksView )
-  val trackComponent       = new DefaultTrackComponent( t, tracksView, timelineView )
+  val trackComponent       = new DefaultTrackComponent( doc, t, tracksView, timelineView )
 }
 
-class AudioTrackRenderer( t: AudioTrack, tracksView: TracksView, timelineView: TimelineView )
+class AudioTrackRenderer( doc: Session, t: AudioTrack, tracksView: TracksView, timelineView: TimelineView )
 extends TrackRenderer {
   val trackHeaderComponent = new AudioTrackHeaderComponent( t, tracksView )
-  val trackComponent       = new DefaultTrackComponent( t, tracksView, timelineView )
+  val trackComponent       = new AudioTrackComponent( doc, t, tracksView, timelineView )
 }

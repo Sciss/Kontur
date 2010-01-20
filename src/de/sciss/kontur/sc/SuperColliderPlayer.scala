@@ -80,14 +80,26 @@ extends Disposable {
        var timelines  = Map[ Timeline, OnlineTimeline ]()
        var diffusions = Map[ Diffusion, OnlineDiffusion ]()
 
+       private val diffListener = (msg: AnyRef) => msg match {
+          case doc.diffusions.ElementAdded( idx, diff ) => addDiffusion( diff )
+          case doc.diffusions.ElementRemoved( idx, diff ) => removeDiffusion( diff )
+       }
+
+       private val timeListener = (msg: AnyRef) => msg match {
+          case doc.timelines.ElementAdded( idx, diff ) => addTimeline( diff )
+          case doc.timelines.ElementRemoved( idx, diff ) => removeTimeline( diff )
+       }
+
        // ---- constructor ----
        {
          doc.timelines.foreach( tl => addTimeline( tl ))
+         doc.timelines.addListener( timeListener )
          doc.diffusions.foreach( diff => addDiffusion( diff ))
+         doc.diffusions.addListener( diffListener )
 
          // XXX dirty dirty testin
          for( numChannels <- 1 to 2 ) {
-            (SynthDef( "disk_" + numChannels ) {
+            val synDef = SynthDef( "disk_" + numChannels ) {
                  val out        = "out".kr
                  val i_bufNum   = "i_bufNum".ir
                  val i_dur      = "i_dur".ir
@@ -104,12 +116,15 @@ val amp = 1
 //                 val envGen = EnvGen.kr( env, doneAction = freeSelf ) * amp
 val envGen = Line.kr( amp, amp, i_dur, doneAction = freeSelf )
 				Out.ar( out, DiskIn.ar( numChannels, i_bufNum ) /* * envGen */)
-			 }).send( server )
+			 }
+//             synDef.writeDefFile( "/Users/rutz/Desktop" )
+             synDef.send( server )
          }
        }
 
        def dispose {
-//          doc.timelines.foreach( tl => removeTimeline( tl ))
+          doc.timelines.removeListener( timeListener )
+          doc.diffusions.removeListener( diffListener )
           timelines.keysIterator.foreach( tl => removeTimeline( tl ))
           diffusions.keysIterator.foreach( diff => removeDiffusion( diff ))
           group.free; panGroup.free
@@ -329,7 +344,7 @@ if( verbose ) println( "stop" )
                           val fadeFrames  = 0f // if( frameOffset == 0 ) min( durFrames, fadeIn.numFrames ) else 0  // XXX a little bit cheesy!
                           val fadeInSecs  = 0f // fadeFrames / s.sampleRate
                           val fadeOutSecs = 0f // min( durFrames - fadeFrames, fadeOut.numFrames ) / s.sampleRate
-                          bndl.add( synth.newMsg( group, List( "bufNum" -> buffer.bufNum,
+                          bndl.add( synth.newMsg( group, List( "i_bufNum" -> buffer.bufNum,
                               "i_dur" -> durSecs.toFloat, "i_fadeIn" -> fadeInSecs,
                               /* "i_finTyp" -> fadeIn.mode,*/ "i_fadeOut" -> fadeOutSecs,
                               /* "i_foutMode" -> fadeOut.mode, "amp" -> gain,*/
@@ -338,7 +353,6 @@ if( verbose ) println( "stop" )
                           synths += synth
                           stakesMap += (stake -> synth)
                           synth.onEnd {
-println( "--onEnd--")
                                 buffer.close
                                 buffer.free
                                 stakesMap -= stake
