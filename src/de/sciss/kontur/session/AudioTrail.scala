@@ -28,7 +28,25 @@
 
 package de.sciss.kontur.session
 
+import java.io.{ IOException }
+import scala.xml.{ Node }
 import de.sciss.io.{ Span }
+
+object AudioRegion {
+   val XML_NODE = "stake"
+
+    def fromXML( doc: Session, node: Node ) : AudioRegion = {
+        val name   = (node \ "name").text
+        val spanN  = node \ "span"
+        val span   = new Span( (spanN \ "@start").text.toLong, (spanN \ "@stop").text.toLong )
+        val afID   = (node \ "audioFile" \ "@idref").text.toLong
+        val af     = doc.audioFiles.getByID( afID ) getOrElse {
+            throw new IOException( "Session corrupt. Referencing an invalid audio file #" + afID )}
+        val offset = (node \ "offset").text.toLong
+
+        new AudioRegion( span, name, af, offset )
+    }
+}
 
 class AudioRegion( s: Span, n: String, val audioFile: AudioFileElement,
                    val offset: Long )
@@ -37,7 +55,7 @@ extends Region( s, n ) {
   <name>{name}</name>
   <span start={span.start.toString} stop={span.stop.toString}/>
   <audioFile idref={audioFile.id.toString}/>
-  <offset>offset</offset>
+  <offset>{offset}</offset>
 </stake>
 }
 
@@ -45,4 +63,9 @@ class AudioTrail( doc: Session ) extends BasicTrail[ AudioRegion ]( doc ) {
   def toXML = <trail>
   {getAll().map(_.toXML)}
 </trail>
+
+   def fromXML( parent: Node ) {
+      val node = SessionElement.getSingleXML( parent, "trail" )
+      add( (node \ AudioRegion.XML_NODE).map( n => AudioRegion.fromXML( doc, n )): _* )
+   }
 }

@@ -29,15 +29,18 @@
 package de.sciss.kontur.gui
 
 import de.sciss.app.{ AbstractApplication, AbstractWindow }
-import de.sciss.common.{ BasicApplication, BasicMenuFactory }
+import de.sciss.common.{ BasicApplication, BasicMenuFactory, BasicWindowHandler }
 import de.sciss.gui.{ MenuAction, MenuGroup, MenuItem }
 import de.sciss.kontur.{ Main }
 import de.sciss.kontur.util.{ PrefsUtil }
 import de.sciss.kontur.session.{ Session }
 import java.awt.{ FileDialog, Frame }
 import java.awt.event.{ ActionEvent, InputEvent, KeyEvent }
-import java.io.{ File }
+import java.io.{ File, FilenameFilter, FileReader, IOException }
 import javax.swing.{ Action, KeyStroke }
+import javax.xml.parsers.{ SAXParserFactory, SAXParser }
+import org.xml.sax.{ Attributes, InputSource, SAXException }
+import org.xml.sax.helpers.{ DefaultHandler }
 
 class MenuFactory( app: BasicApplication )
 extends BasicMenuFactory( app ) {
@@ -56,7 +59,7 @@ extends BasicMenuFactory( app ) {
 	}
 
 	def showPreferences() {
-		var prefsFrame = getApplication().getComponent( Main.COMP_PREFS ).asInstanceOf[ PrefsFrame ]
+		var prefsFrame = app.getComponent( Main.COMP_PREFS ).asInstanceOf[ PrefsFrame ]
 
 		if( prefsFrame == null ) {
 			prefsFrame = new PrefsFrame()
@@ -100,7 +103,7 @@ extends BasicMenuFactory( app ) {
 		protected def perform: Session = {
 //			try {
 				val doc = Session.newEmpty // ( afd );
-				AbstractApplication.getApplication().getDocumentHandler().addDocument( this, doc );
+				app.getDocumentHandler().addDocument( this, doc )
 				new SessionFrame( doc )
 				doc
 //			}
@@ -125,16 +128,22 @@ extends BasicMenuFactory( app ) {
 		}
 
         private def queryFile() : Option[ File ] = {
-			val w = getApplication().getComponent( Main.COMP_MAIN ).asInstanceOf[ AbstractWindow ]
+			val w = app.getComponent( Main.COMP_MAIN ).asInstanceOf[ AbstractWindow ]
 			val frame	= w.getWindow() match {
                case f: Frame => f
                case _ => null
             }
-			val prefs = getApplication().getUserPrefs()
+			val prefs = app.getUserPrefs()
 
-			val fDlg = new FileDialog( frame, getResourceString( "fileDlgOpen" ), FileDialog.LOAD )
+			val fDlg = new FileDialog( frame, getResourceString( "fileDlgOpenSession" ), FileDialog.LOAD )
 			fDlg.setDirectory( prefs.get( PrefsUtil.KEY_FILEOPENDIR, System.getProperty( "user.home" )))
+            val accept = try {
+              Some( new Acceptor )
+            }
+            catch { case _ => None }
+            accept.foreach( a => fDlg.setFilenameFilter( a ))
 			fDlg.setVisible( true )
+            accept.foreach( _.dispose )
 			val strDir	= fDlg.getDirectory()
 			val strFile	= fDlg.getFile()
 
@@ -146,6 +155,60 @@ extends BasicMenuFactory( app ) {
 			Some( new File( strDir, strFile ))
 		}
 
+        private class Acceptor extends DefaultHandler with FilenameFilter {
+            val factory = SAXParserFactory.newInstance()
+            val parser  = factory.newSAXParser()
+
+            def accept( dir: File, name: String ) : Boolean = {
+               val file = new File( dir, name )
+               if( !file.isFile || !file.canRead ) return false
+               try {
+                 var reader = new FileReader( file )
+                 try {
+                    // note that the parsing is hell slow for some reason.
+                    // therefore we do a quick magic cookie check first
+                    val cookie = new Array[ Char ]( 5 )
+                    reader.read( cookie )
+                    if( new String( cookie ) != "<?xml" ) return false
+                    // sucky FileReader does not support reset
+//                    reader.reset()
+                    reader.close()
+                    reader = new FileReader( file )
+                    val is = new InputSource( reader )
+                    parser.reset()
+                    parser.parse( is, this )
+                    false
+                 }
+                 catch {
+                    case e: SessionFoundException => true
+                    case _ => false
+                 }
+                 finally {
+                    try { reader.close() } catch { case e => }
+                 }
+               }
+              catch { case e1: IOException => false }
+            }
+
+            @throws( classOf[ SAXException ])
+            override def startElement( uri: String, localName: String,
+              qName: String, attributes: Attributes ) {
+
+                // eventually we will have a version check here
+                // (using attributes) and
+                // could then throw more detailed information
+                throw (if( qName == Session.XML_START_ELEMENT ) new SessionFoundException
+                else new SessionNotFoundException)
+            }
+
+            def dispose {
+              // nothing actually
+            }
+
+            private class SessionFoundException extends SAXException
+            private class SessionNotFoundException extends SAXException
+        }
+
         /**
      	 *  Loads a new document file.
 		 *  a <code>ProcessingThread</code>
@@ -156,26 +219,25 @@ extends BasicMenuFactory( app ) {
 		 *  @synchronization	this method must be called in event thread
 		 */
 		def perform( path: File ) {
-/*			Session	doc;
+//			Session	doc;
 
-			// check if the document is already open
-			doc = findDocumentForPath( path );
-			if( doc != null ) {
-				doc.getFrame().setVisible( true );
-				doc.getFrame().toFront();
-				return;
-			}
+//			// check if the document is already open
+//			doc = findDocumentForPath( path )
+//			if( doc != null ) {
+//				doc.getFrame().setVisible( true );
+//				doc.getFrame().toFront();
+//				return;
+//			}
 
 			try {
-				doc		= Session.newFrom( path );
-				addRecent( doc.getDisplayDescr().file );
-				AbstractApplication.getApplication().getDocumentHandler().addDocument( this, doc );
-				doc.createFrame();	// must be performed after the doc was added
+				val doc = Session.newFrom( path )
+				addRecent( path )
+				app.getDocumentHandler().addDocument( this, doc )
+				new SessionFrame( doc )
 			}
-			catch( IOException e1 ) {
-				BasicWindowHandler.showErrorDialog( null, e1, getValue( Action.NAME ).toString() );
+			catch { case e1: IOException =>
+				BasicWindowHandler.showErrorDialog( null, e1, getValue( Action.NAME ).toString() )
 			}
-*/
 		}
 	}
 }

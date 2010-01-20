@@ -29,7 +29,20 @@
 package de.sciss.kontur.session
 
 import java.io.{ File, IOException }
+import scala.xml.{ Node }
 import de.sciss.io.{ AudioFile, AudioFileDescr }
+
+object AudioFileElement {
+    val XML_NODE = "audioFile"
+
+    def fromXML( doc: Session, node: Node ) : AudioFileElement = {
+       val id       = (node \ "@id").text.toInt
+       val path     = new File( (node \ "path").text )
+       val afe      = new AudioFileElement( id, path )
+//       afe.fromXML( node )
+       afe
+    }
+}
 
 class AudioFileElement( val id: Long, val path: File ) extends SessionElement {
   def name: String = path.getName
@@ -53,6 +66,14 @@ extends BasicSessionElementSeq[ AudioFileElement ]( doc, "Audio Files" ) {
     val id = -1L
     
     def toXML = <audioFiles>
-  {innerXML}
+  {innerToXML}
 </audioFiles>
+
+  def fromXML( parent: Node ) {
+     val innerXML = SessionElement.getSingleXML( parent, "audioFiles" )
+     innerFromXML( innerXML )
+  }
+
+  protected def elementsFromXML( node: Node ) : Seq[ AudioFileElement ] =
+     (node \ AudioFileElement.XML_NODE).map( n => AudioFileElement.fromXML( doc, n ))
 }

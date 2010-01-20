@@ -30,6 +30,7 @@ package de.sciss.kontur.session
 
 import java.awt.datatransfer.{ DataFlavor }
 import javax.swing.undo.{ UndoManager }
+import scala.xml.{ Node }
 import de.sciss.app.{ AbstractCompoundEdit }
 import de.sciss.kontur.edit.{ Editor, SimpleEdit }
 import de.sciss.kontur.util.{ Matrix2D }
@@ -52,6 +53,15 @@ trait DiffusionEditor extends Editor {
 }
 
 object BasicDiffusion {
+    val XML_NODE = "diffusion"
+
+    def fromXML( doc: Session, node: Node ) : BasicDiffusion = {
+       val id       = (node \ "@id").text.toInt
+       val diff     = new BasicDiffusion( id, doc )
+       diff.fromXML( node )
+       diff
+    }
+
     case class MatrixChanged( oldMatrix: Matrix2D[ Float ], newMatrix: Matrix2D[ Float ])
 }
 
@@ -72,7 +82,22 @@ extends Diffusion with DiffusionEditor with Renameable {
     def toXML =
        <diffusion id={id.toString}>
           <name>{name}</name>
+          <numInputChannels>{numInputChannels}</numInputChannels>
+          <numOutputChannels>{numOutputChannels}</numOutputChannels>
+          <matrix>{matrixVar.toSeq.map( row => rowToXML( row ))}</matrix>
        </diffusion>
+
+    private def rowToXML( row: Seq[ Float ]) =
+      <row>{row.mkString( " " )}</row>
+
+    def fromXML( node: Node ) {
+        nameVar              = (node \ "name").text
+        numInputChannelsVar  = (node \ "numInputChannels").text.toInt
+        numOutputChannelsVar = (node \ "numOutputChannels").text.toInt
+        val rowsN            = (node \ "matrix" \ "row")
+        matrixVar = Matrix2D.fromSeq( rowsN.map( _.text.split( ' ' )
+          .map[ Float, Seq[ Float ]]( _.toFloat )))
+    }
 
     // does not fire!
     private def resizeMatrix: Matrix2D[ Float ] = {
@@ -127,6 +152,14 @@ class Diffusions( doc: Session )
 extends BasicSessionElementSeq[ Diffusion ]( doc, "Diffusions" ) {
   val id = -1L
   def toXML = <diffusions>
-  {innerXML}
+  {innerToXML}
 </diffusions>
+
+  def fromXML( parent: Node ) {
+     val innerXML = SessionElement.getSingleXML( parent, "diffusions" )
+     innerFromXML( innerXML )
+  }
+
+  protected def elementsFromXML( node: Node ) : Seq[ Diffusion ] =
+     (node \ BasicDiffusion.XML_NODE).map( n => BasicDiffusion.fromXML( doc, n ))
 }

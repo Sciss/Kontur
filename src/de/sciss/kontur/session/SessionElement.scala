@@ -30,6 +30,19 @@ package de.sciss.kontur.session
 
 import scala.collection.immutable.{ Queue }
 import de.sciss.kontur.util.{ Model }
+import java.io.{ IOException }
+import scala.xml.{ Node }
+
+object SessionElement {
+  @throws( classOf[ IOException ])
+  def getSingleXML( parent: Node, label: String ) : Node = {
+      val seq = parent \ label
+      val sz  = seq.size
+      if( sz == 0 ) throw new IOException( "Missing XML element '" + label + "'" )
+      if( sz > 1 ) throw new IOException( "XML element '" + label + "' appears more than once" )
+      seq.head
+  }
+}
 
 trait SessionElement extends Model {
   def name: String
@@ -40,5 +53,6 @@ trait SessionElement extends Model {
 
   def toXML: scala.xml.Elem
 
-//  protected def innerXML: scala.xml.Elem
+//  @throws( classOf[ IOException ])
+//  def fromXML( parent: Node ) : Unit
 }

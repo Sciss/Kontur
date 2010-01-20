@@ -35,12 +35,23 @@ import de.sciss.util.{ Flag }
 import de.sciss.kontur.util.{ Model }
 import java.awt.{ EventQueue }
 import java.io.{ File, IOException }
-import scala.xml.{ XML }
+import scala.xml.{ Node, XML }
 
 object Session {
-   def newEmpty: Session = {
-     new Session( None )
-   }
+    def newEmpty: Session = {
+       new Session( None )
+    }
+
+    val XML_START_ELEMENT = "konturSession"
+
+    @throws( classOf[ IOException ])
+    def newFrom( path: File ) : Session = {
+       val xml = XML.loadFile( path )
+       if( xml.label != XML_START_ELEMENT ) throw new IOException( "Not a session file" )
+       val doc = new Session( Some( path ))
+       doc.fromXML( xml )
+       doc
+    }
    
     case class DirtyChanged( newDirty: Boolean )
     case class PathChanged( oldPath: Option[ File ], newPath: Option[ File ])
@@ -75,6 +86,13 @@ extends BasicDocument with Model {
     {diffusions.toXML}
     {timelines.toXML}
 </konturSession>
+
+    @throws( classOf[ IOException ])
+    def fromXML( elem: Node ) {
+       audioFiles.fromXML( elem )
+       diffusions.fromXML( elem )
+       timelines.fromXML( elem )
+    }
 
     @throws( classOf[ IOException ])
     def save( f: File ) {

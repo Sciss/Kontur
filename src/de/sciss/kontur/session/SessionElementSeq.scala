@@ -28,8 +28,10 @@
 
 package de.sciss.kontur.session
 
+import java.io.{ IOException }
 import javax.swing.undo.{ UndoManager }
 import scala.collection.mutable.{ ArrayBuffer }
+import scala.xml.{ Node }
 import de.sciss.app.{ AbstractCompoundEdit }
 import de.sciss.kontur.edit.{ Editor, SimpleEdit }
 
@@ -45,6 +47,9 @@ extends SessionElement {
   def filter( p: (T) => Boolean ): List[ T ]
   def find( p: (T) => Boolean): Option[ T ]
   def size: Int
+
+  // XXX this could be more performative (e.g. using a separate Map)
+  def getByID( id: Long ) : Option[ T ] = find( _.id == id )
 
   def editor: Option[ SessionElementSeqEditor[ T ]]
 
@@ -66,9 +71,18 @@ with SessionElementSeqEditor[ T ] {
 
   def undoManager: UndoManager = doc.getUndoManager
 
-  protected def innerXML = <coll>
+  protected def innerToXML = <coll>
   {coll.map(_.toXML)}
 </coll>
+
+  @throws( classOf[ IOException ])
+  protected def innerFromXML( node: Node ) {
+     val collXML = SessionElement.getSingleXML( node, "coll" )
+     coll ++= elementsFromXML( collXML )
+  }
+
+  @throws( classOf[ IOException ])
+  protected def elementsFromXML( node: Node ) : Seq[ T ]
 
   private val forward = (msg: AnyRef) => dispatch( msg )
 

@@ -29,6 +29,7 @@
 package de.sciss.kontur.session
 
 import javax.swing.undo.{ UndoManager }
+import scala.xml.{ Node }
 import de.sciss.app.{ AbstractCompoundEdit }
 import de.sciss.io.{ Span }
 import de.sciss.kontur.edit.{ Editor, SimpleEdit }
@@ -51,8 +52,22 @@ trait TimelineEditor extends Editor {
 	 def editRate( ce: AbstractCompoundEdit, newRate: Double ) : Unit
   }
 
+object BasicTimeline {
+    val XML_NODE = "timeline"
+    
+    def fromXML( doc: Session, node: Node ) : BasicTimeline = {
+       val id       = (node \ "@id").text.toInt
+       val tracksID = (node \ "tracks" \ "@id").text.toInt
+       val tl       = new BasicTimeline( id, doc, tracksID )
+       tl.fromXML( node )
+       tl
+    }
 
-class BasicTimeline( val id: Long, doc: Session )
+    def newEmpty( doc: Session ) =
+        new BasicTimeline( doc.createID, doc, doc.createID )
+}
+
+class BasicTimeline( val id: Long, doc: Session, tracksID: Long )
 extends Timeline with Renameable with TimelineEditor {
   import Timeline._
 
@@ -66,7 +81,7 @@ extends Timeline with Renameable with TimelineEditor {
 
   def transport: Option[ Transport ] = Some( transportVar )
   
-  val tracks = new Tracks( doc.createID, doc )
+  val tracks = new Tracks( tracksID, doc, this )
 //  val audioTrail  = new AudioTrail
 
   def toXML = <timeline id={id.toString}>
@@ -75,6 +90,14 @@ extends Timeline with Renameable with TimelineEditor {
   <rate>{rate}</rate>
   {tracks.toXML}
 </timeline>
+
+  def fromXML( node: Node ) {
+      nameVar   = (node \ "name").text
+      val spanN = node \ "span"
+      spanVar   = new Span( (spanN \ "@start").text.toLong, (spanN \ "@stop").text.toLong )
+      rateVar   = (node \ "rate").text.toDouble
+      tracks.fromXML( node )
+  }
 
   def span: Span = spanVar
   def span_=( newSpan: Span ) {
@@ -128,6 +151,14 @@ extends BasicSessionElementSeq[ Timeline ]( doc, "Timelines" ) {
   val id = -1L
   def toXML =
     <timelines>
-       {innerXML}
+       {innerToXML}
     </timelines>
+
+  def fromXML( parent: Node ) {
+     val innerXML = SessionElement.getSingleXML( parent, "timelines" )
+     innerFromXML( innerXML )
+  }
+
+  protected def elementsFromXML( node: Node ) : Seq[ Timeline ] =
+     (node \ BasicTimeline.XML_NODE).map( n => BasicTimeline.fromXML( doc, n ))
 }

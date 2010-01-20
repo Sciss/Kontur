@@ -172,7 +172,7 @@ with HasContextMenu {
         def actionPerformed( a: ActionEvent ) {
            timelines.editor.foreach( ed => {
              val ce = ed.editBegin( getValue( Action.NAME ).toString )
-             val tl = new BasicTimeline( model.doc.createID, model.doc )
+             val tl = BasicTimeline.newEmpty( model.doc )
 //             timelines += tl
               ed.editInsert( ce, timelines.size, tl )
               ed.editEnd( ce )

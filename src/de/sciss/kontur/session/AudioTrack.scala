@@ -28,11 +28,22 @@
 
 package de.sciss.kontur.session
 
+import java.io.{ IOException }
 import javax.swing.undo.{ UndoManager }
+import scala.xml.{ Node }
 import de.sciss.app.{ AbstractCompoundEdit }
 import de.sciss.kontur.edit.{ Editor, SimpleEdit }
 
 object AudioTrack {
+   val XML_NODE = "audioTrack"
+
+   def fromXML( node: Node, doc: Session, tl: BasicTimeline ) : AudioTrack = {
+       val id    = (node \ "@id").text.toInt
+       val at    = new AudioTrack( id, doc, tl )
+       at.fromXML( node )
+       at
+   }
+
    case class DiffusionChanged( oldDiff: Option[ Diffusion ], newDiff: Option[ Diffusion ])
 }
 
@@ -50,7 +61,6 @@ with Renameable {
   def diffusion = diffusionVar
   def diffusion_=( newDiff: Option[ Diffusion ]) {
      if( newDiff != diffusionVar ) {
-println( "KUUKA. new diff = " + newDiff )
         val change = DiffusionChanged( diffusionVar, newDiff )
         diffusionVar = newDiff
         dispatch( change )
@@ -60,9 +70,20 @@ println( "KUUKA. new diff = " + newDiff )
   def toXML =
     <audioTrack id={id.toString}>
       <name>{name}</name>
-      {diffusion.foreach( diff => <diffusion idref={diff.id.toString}/>)}
+      {diffusion.map( diff => <diffusion idref={diff.id.toString}/>) getOrElse scala.xml.Null}
       {trail.toXML}
     </audioTrack>
+
+  def fromXML( node: Node ) {
+      nameVar = (node \ "name").text
+      (node \ "diffusion").foreach( diffN => {
+//println( "KUUKA" )
+          val diffID = (diffN \ "@idref").text.toInt
+          diffusionVar = Some( doc.diffusions.getByID( diffID ) getOrElse {
+            throw new IOException( "Session corrupt. Referencing an invalid diffusion #" + diffID )})
+      })
+      trail.fromXML( node )
+  }
 
   def editor: Option[ TrackEditor ] = Some( this )
   // ---- TrackEditor ----

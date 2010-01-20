@@ -36,6 +36,16 @@ object Matrix2D {
       val data = IntMap( (0 until numRows).map( i => Tuple2( i, row )): _* )
       new Matrix2D( numRows, numColumns, data )
    }
+
+   def fromSeq[ T ]( arr: Seq[ Seq[ T ]]) : Matrix2D[ T ] = {
+      val numRows = arr.size
+      if( numRows == 0 ) return new Matrix2D( 0, 0, IntMap[ IntMap[ T ]]() )
+      val numColumns = arr.head.size
+
+      val data = IntMap( (0 until numRows).map( i => Tuple2( i,
+          IntMap( (0 until numColumns).map( j => Tuple2( j, arr( i )( j ))): _* ))): _* )
+      new Matrix2D( numRows, numColumns, data )
+   }
 }
 
 class Matrix2D[ T ] private ( val numRows: Int, val numColumns: Int,
@@ -52,6 +62,9 @@ class Matrix2D[ T ] private ( val numRows: Int, val numColumns: Int,
         val newData = data + Tuple2(row, newRow)
         new Matrix2D( numRows, numColumns, newData )
    }
+
+   def toSeq : Seq[ Seq[ T ]] =
+      List.tabulate[ T ]( numRows, numColumns )( (row, col) => data( row )( col ))
 
    def resize[ S >: T ]( newRows: Int, newColumns: Int, fill: S ) : Matrix2D[ S ] = {
       var newData: IntMap[ IntMap[ S ]] = data
