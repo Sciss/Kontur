@@ -56,7 +56,9 @@ extends AppWindow( AbstractWindow.REGULAR ) {
     private val tracksView    = new BasicTracksView( doc, tl.tracks )
     private val timelinePanel = new TimelinePanel( timelineView )
 //    private val trailView     = new javax.swing.JLabel( "Trail" )
-    private val tracksPanel    = new TracksPanel( doc, tracksView, timelinePanel )
+    private val trailsView     = new BasicTrailsView( doc, tl.tracks )
+    private val tracksPanel    = new TracksPanel( doc, tracksView, trailsView,
+                                                  timelinePanel )
 
     // ---- constructor ----
     {

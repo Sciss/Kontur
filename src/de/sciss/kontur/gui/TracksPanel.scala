@@ -41,7 +41,8 @@ import de.sciss.kontur.util.{ Model }
  *	@author		Hanns Holger Rutz
  * 	@version	0.12, 11-Jan-10
  */
-class TracksPanel( doc: Session, val tracksView: TracksView, val timelinePanel: TimelinePanel )
+class TracksPanel( doc: Session, val tracksView: TracksView, val trailsView: TrailsView,
+                   val timelinePanel: TimelinePanel )
 extends JScrollPane( VERTICAL_SCROLLBAR_ALWAYS,
                      HORIZONTAL_SCROLLBAR_ALWAYS ) // JPanel( new BorderLayout() )
 with TracksTable with Model {
@@ -158,7 +159,7 @@ with TracksTable with Model {
 //	}
 
     private def addTrack( idx: Int, t: Track ) {
-      val tr = trf.createTrackRenderer( doc, t, tracksView, timelineView )
+      val tr = trf.createTrackRenderer( doc, t, tracksView, trailsView, timelineView )
 //      val trackRowHead = trf.createRowHeader( t, tracksView )
       mapTrackRenderers += (t -> tr)
       rowHeaderView.add( tr.trackHeaderComponent, idx )

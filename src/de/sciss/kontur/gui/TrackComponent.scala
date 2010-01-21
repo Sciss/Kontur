@@ -34,19 +34,26 @@ import java.awt.datatransfer.{ DataFlavor, Transferable }
 import java.awt.dnd.{ DnDConstants, DropTarget, DropTargetAdapter,
                      DropTargetDragEvent, DropTargetDropEvent, DropTargetEvent,
                      DropTargetListener }
+import java.awt.event.{ MouseEvent }
 import java.beans.{ PropertyChangeListener, PropertyChangeEvent }
 import java.io.{ File, IOException }
 import java.nio.{ CharBuffer }
 import javax.swing.{ JComponent, Spring, SpringLayout, TransferHandler }
+import javax.swing.event.{ MouseInputAdapter }
 import scala.math._
 import de.sciss.kontur.session.{ AudioFileElement, AudioRegion, AudioTrack,
                                 Region, Session, Stake, Track }
 import de.sciss.app.{ AbstractApplication, GraphicsHandler }
 import de.sciss.io.{ AudioFile, Span }
 
-class DefaultTrackComponent( doc: Session, t: Track, tracksView: TracksView, timelineView: TimelineView )
+class DefaultTrackComponent( doc: Session, t: Track, tracksView: TracksView,
+                             trailsView: TrailsView, timelineView: TimelineView )
 extends JComponent {
 
+    protected val p_rect  = new Rectangle()
+    protected var p_off   = -timelineView.timeline.span.start
+    protected var p_scale = getWidth.toDouble / timelineView.timeline.span.getLength
+    
     {
 //        val rnd = new java.util.Random()
 //        setBackground( Color.getHSBColor( rnd.nextFloat(), 0.5f, 1f ))
@@ -66,7 +73,50 @@ extends JComponent {
 //        cons.setHeight( Spring.constant( 64 ))  // XXX
       setFont( AbstractApplication.getApplication().getGraphicsHandler()
         .getFont( GraphicsHandler.FONT_LABEL | GraphicsHandler.FONT_MINI ))
+
+       val mia = new MouseInputAdapter {
+          override def mousePressed( e: MouseEvent ) {
+//println( "pressed" )
+              trailsView.editor.foreach( ed => {
+                  val pos    = screenToVirtual( e.getX )
+//println( "virtual " + pos )
+                  val span   = new Span( pos, pos + 1 )
+                  val stakes = t.trail.getRange( span )
+                  if( e.isShiftDown ) {
+                      if( stakes.isEmpty ) return
+                      val stake = stakes.head
+                      val ce = ed.editBegin( "editSelectStakes" )
+                      if( trailsView.isSelected( stake )) {
+                          ed.editDeselect( ce, stake )
+                      } else {
+                          ed.editSelect( ce, stake )
+                      }
+                      ed.editEnd( ce )
+                  } else {
+                      if( stakes.isEmpty ) {
+                          val ce = ed.editBegin( "editSelectStakes" )
+                          ed.editDeselect( ce, trailsView.selectedStakes.toList: _* )
+                          ed.editEnd( ce )
+                      } else {
+                          val stake = stakes.head
+                          if( trailsView.isSelected( stake )) return
+                          val ce = ed.editBegin( "editSelectStakes" )
+                          ed.editDeselect( ce, (trailsView.selectedStakes - stake).toList: _* )
+                          ed.editSelect( ce, stake )
+                          ed.editEnd( ce )
+                      }
+                  }
+              })
+          }
+       }
+       if( trailsView.editor.isDefined ) {
+           addMouseListener( mia )
+           addMouseMotionListener( mia )
+       }
     }
+
+    protected def screenToVirtual( x: Int ) =
+        (x.toLong / p_scale - p_off + 0.5).toLong
 
     override def getPreferredSize() : Dimension = {
        val dim = super.getPreferredSize()
@@ -85,10 +135,6 @@ extends JComponent {
        dim.height = 64
        dim
     }
-
-    protected val p_rect  = new Rectangle()
-    protected var p_off   = 0L
-    protected var p_scale = 0.0
 
     override def paintComponent( g: Graphics ) {
         super.paintComponent( g )
@@ -114,7 +160,7 @@ extends JComponent {
         t.trail.visitRange( span )( stake => {
           p_rect.x     = ((stake.span.start + p_off) * p_scale + 0.5).toInt
           p_rect.width = ((stake.span.stop + p_off) * p_scale + 0.5).toInt - p_rect.x
-          g2.setColor( Color.black )
+          g2.setColor( if( trailsView.isSelected( stake )) Color.blue else Color.black )
           g2.fillRect( p_rect.x, 0, p_rect.width, p_rect.height )
           val clipOrig = g2.getClip
           g2.clipRect( p_rect.x, 0, p_rect.width, p_rect.height )
@@ -133,8 +179,9 @@ object AudioTrackComponent {
    protected val colrDropRegionFg = new Color( 0xFF, 0xFF, 0xFF, 0x7F )
 }
 
-class AudioTrackComponent( doc: Session, audioTrack: AudioTrack, tracksView: TracksView, timelineView: TimelineView )
-extends DefaultTrackComponent( doc, audioTrack, tracksView, timelineView ) {
+class AudioTrackComponent( doc: Session, audioTrack: AudioTrack, tracksView: TracksView,
+                           trailsView: TrailsView, timelineView: TimelineView )
+extends DefaultTrackComponent( doc, audioTrack, tracksView, trailsView, timelineView ) {
     import AudioTrackComponent._
 
 //    private var stringDragEntry: Option[ StringDragEntry ] = None
@@ -276,7 +323,7 @@ println( "--- 3" )
                       val span   = new Span( arr( 1 ).toLong, arr( 2 ).toLong )
                       val tlSpan = timelineView.timeline.span
                       val insPos = max( tlSpan.start, min( tlSpan.stop,
-                          (dtde.getLocation().x.toLong / p_scale - p_off + 0.5).toLong ))
+                          screenToVirtual( dtde.getLocation().x )))
                       pasteExtern( path, span, insPos )
                    }
                    catch { case e1: NumberFormatException => }
@@ -337,7 +384,8 @@ println( "--- 3" )
 //i+=1
           p_rect.x     = ((ar.span.start + p_off) * p_scale + 0.5).toInt
           p_rect.width = ((ar.span.stop + p_off) * p_scale + 0.5).toInt - p_rect.x
-          g2.setColor( Color.black )
+//          g2.setColor( Color.black )
+          g2.setColor( if( trailsView.isSelected( ar )) Color.blue else Color.black )
           g2.fillRoundRect( p_rect.x, 0, p_rect.width, p_rect.height, 5, 5 )
           val clipOrig = g2.getClip
           g2.clipRect( p_rect.x + 2, 2, p_rect.width - 4, p_rect.height - 4 )

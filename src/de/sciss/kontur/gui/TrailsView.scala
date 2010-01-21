@@ -42,6 +42,7 @@ object TrailsView {
 trait TrailsView extends Model {
     def isSelected( s: Stake ) : Boolean
     def editor: Option[ TrailsViewEditor ]
+    def selectedStakes: Set[ Stake ]
 }
 
 trait TrailsViewEditor extends Editor {
@@ -56,7 +57,9 @@ class BasicTrailsView( doc: Session, val tracks: SessionElementSeq[ Track ])
 extends TrailsView with TrailsViewEditor {
   import TrailsView._
 
-  private var selectedStakes = Set[ Stake ]()
+  private var selectedStakesVar = Set[ Stake ]()
+
+  def selectedStakes = selectedStakesVar
 
   private val tracksListener = (msg: AnyRef) => msg match {
       case tracks.ElementAdded( idx, t ) => addTrack( t )
@@ -76,7 +79,7 @@ extends TrailsView with TrailsViewEditor {
   def dispose {
     tracks.removeListener( tracksListener )
     tracks.foreach( t => removeTrack( t ))
-    selectedStakes = Set[ Stake ]()
+    selectedStakesVar = Set[ Stake ]()
   }
 
   private def addTrack( t: Track ) {
@@ -98,23 +101,28 @@ extends TrailsView with TrailsViewEditor {
 
   private def setSelection( stakes: Seq[ Stake ], state: Boolean ) {
      val toChangeSet = stakes.toSet[ Stake ]
-     val (selected, unselected) = selectedStakes.partition( x => toChangeSet.contains( x ))
+     val (selected, unselected) = toChangeSet.partition( x => selectedStakesVar.contains( x ))
+//println( "setSelection : " + stakes + "; " + state + "; --> selected = " + selected.toList +
+        "; unselected = " + unselected.toList )
 
      val changedStakes = (if( state ) {
         if( unselected.isEmpty ) return
-        selectedStakes ++= unselected
+        selectedStakesVar ++= unselected
         unselected
      } else {
         if( selected.isEmpty ) return
-        selectedStakes --= selected
+        selectedStakesVar --= selected
         selected
      }).toList
 
      if( changedStakes.isEmpty ) return
+
+//println( "after sel : " + selectedStakesVar.toList )
+
      dispatch( SelectionChanged( unionSpan( changedStakes: _* ), changedStakes: _* ))
   }
 
-  def isSelected( stake: Stake ) : Boolean = selectedStakes.contains( stake )
+  def isSelected( stake: Stake ) : Boolean = selectedStakesVar.contains( stake )
 
   def editor: Option[ TrailsViewEditor ] = Some( this )
    // ---- TrailsViewEditor ----

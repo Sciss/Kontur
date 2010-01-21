@@ -32,7 +32,9 @@ import javax.swing.{ JComponent }
 import de.sciss.kontur.session.{ AudioTrack, Session, Track }
 
 trait TrackRendererFactory {
-    def createTrackRenderer( doc: Session, t: Track, view: TracksView, timelineView: TimelineView ) : TrackRenderer
+    def createTrackRenderer( doc: Session, t: Track, tracksView: TracksView,
+                             trailsView: TrailsView, timelineView: TimelineView ) :
+     TrackRenderer
 }
 
 trait TrackRenderer {
@@ -42,21 +44,28 @@ trait TrackRenderer {
 
 object DefaultTrackRendererFactory
 extends TrackRendererFactory {
-    def createTrackRenderer( doc: Session, t: Track, tracksView: TracksView, timelineView: TimelineView ) : TrackRenderer =
+    def createTrackRenderer( doc: Session, t: Track, tracksView: TracksView,
+                             trailsView: TrailsView, timelineView: TimelineView ) :
+     TrackRenderer =
       t match {
-          case at: AudioTrack => new AudioTrackRenderer( doc, at, tracksView, timelineView )
-          case _ => new DefaultTrackRenderer( doc, t, tracksView, timelineView )
+          case at: AudioTrack => new AudioTrackRenderer( doc, at, tracksView,
+                                                        trailsView, timelineView )
+          case _ => new DefaultTrackRenderer( doc, t, tracksView, trailsView, timelineView )
       }
 }
 
-class DefaultTrackRenderer( doc: Session, t: Track, tracksView: TracksView, timelineView: TimelineView )
+class DefaultTrackRenderer( doc: Session, t: Track, tracksView: TracksView,
+                            trailsView: TrailsView, timelineView: TimelineView )
 extends TrackRenderer {
   val trackHeaderComponent = new DefaultTrackHeaderComponent( t, tracksView )
-  val trackComponent       = new DefaultTrackComponent( doc, t, tracksView, timelineView )
+  val trackComponent       = new DefaultTrackComponent( doc, t, tracksView,
+                                                       trailsView, timelineView )
 }
 
-class AudioTrackRenderer( doc: Session, t: AudioTrack, tracksView: TracksView, timelineView: TimelineView )
+class AudioTrackRenderer( doc: Session, t: AudioTrack, tracksView: TracksView,
+                          trailsView: TrailsView, timelineView: TimelineView )
 extends TrackRenderer {
   val trackHeaderComponent = new AudioTrackHeaderComponent( t, tracksView )
-  val trackComponent       = new AudioTrackComponent( doc, t, tracksView, timelineView )
+  val trackComponent       = new AudioTrackComponent( doc, t, tracksView, trailsView,
+                                                      timelineView )
 }
