@@ -79,6 +79,7 @@ extends TracksView with TracksViewEditor {
 
   def dispose {
     tracks.removeListener( tracksListener )
+    views = Map[ Track, TrackView ]()
   }
 
   def select( tracks: Track* ) : Unit = setSelection( tracks, true )

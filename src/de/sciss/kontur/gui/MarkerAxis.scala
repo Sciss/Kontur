@@ -584,7 +584,8 @@ with DynamicListening with Disposable {
 // ---------------- MarkerManager.Listener interface ----------------
 
 	private val trailListener = (msg: AnyRef) => msg match {
-        case Trail.Changed( span ) => if( span.touches( visibleSpan )) triggerRedisplay
+//        case Trail.Changed( span ) => if( span.touches( visibleSpan )) triggerRedisplay
+         case _ => println( "MarkerAxis : trailListener : NOT YET IMPLEMENTED")
     }
 
 // ---------------- TimelineListener interface ----------------

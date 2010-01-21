@@ -101,7 +101,7 @@ with TrailEditor[ T ] {
          tree.insert( StoredStake( stake ))
          modSpan = if( modSpan.isEmpty ) stake.span else modSpan.union( stake.span )
        })
-       if( !modSpan.isEmpty ) dispatch( Trail.Changed( modSpan ))
+       if( !modSpan.isEmpty ) dispatch( Trail.StakesAdded( modSpan, stakes: _* ))
     }
 
     def remove( stakes: T* ) {
@@ -110,7 +110,7 @@ with TrailEditor[ T ] {
          tree.remove( StoredStake( stake ))
          modSpan = if( modSpan.isEmpty ) stake.span else modSpan.union( stake.span )
        })
-       if( !modSpan.isEmpty ) dispatch( Trail.Changed( modSpan ))
+       if( !modSpan.isEmpty ) dispatch( Trail.StakesRemoved( modSpan, stakes: _* ))
     }
 
     def dispose {}

@@ -51,7 +51,9 @@ trait Stake {
 }
 
 object Trail {
-  case class Changed( span: Span )
+  case class StakesAdded( span: Span, stakes: Stake* )
+  case class StakesRemoved( span: Span, stakes: Stake* )
+  case class StakesChanged( span: Span, stakes: Stake* )
 }
 
 trait Trail[ T <: Stake ]

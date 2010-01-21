@@ -125,9 +125,9 @@ with TopPaintable {
       case TracksView.SelectionChanged( _ ) => updateSelectionAndRepaint
     }
 
-    private val markerListener = (msg: AnyRef) => msg match {
-      case Trail.Changed( span ) => repaintMarkers( span )
-    }
+//    private val markerListener = (msg: AnyRef) => msg match {
+//      case Trail.Changed( span ) => repaintMarkers( span )
+//    }
 
    // ---- constructor ----
 	{
