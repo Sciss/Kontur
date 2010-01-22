@@ -49,9 +49,9 @@ import de.sciss.kontur.session.{ Marker, SessionElementSeq, Timeline,
 class TimelinePanel( /* val tracksView: TracksView,*/ val timelineView: TimelineView )
 extends JComponent // ComponentHost
 with TopPaintable {
-	private val colrSelection			= new Color( 0x00, 0x00, 0xFF, 0x2F ); // GraphicsUtil.colrSelection;
+	private val colrSelection			= new Color( 0x00, 0x00, 0xFF, 0x4F ); // GraphicsUtil.colrSelection;
 	private val colrPosition			= new Color( 0xFF, 0x00, 0x00, 0x7F );
-	private val colrSelection2			= new Color( 0x00, 0x00, 0x00, 0x20 );  // selected timeline span over unselected trns
+	private val colrSelection2			= new Color( 0x00, 0x00, 0x00, 0x40 );  // selected timeline span over unselected trns
 	private var vpRecentRect			= new Rectangle()
 	private var vpPosition				= -1
 	private val vpPositionRect          = new Rectangle()

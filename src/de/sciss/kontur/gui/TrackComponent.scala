@@ -48,12 +48,18 @@ import de.sciss.app.{ AbstractApplication, DynamicAncestorAdapter,
 import de.sciss.io.{ AudioFile, Span }
 
 class DefaultTrackComponent( doc: Session, t: Track, tracksView: TracksView,
-                             trailsView: TrailsView, timelineView: TimelineView )
+                             timelineView: TimelineView )
 extends JComponent with DynamicListening {
 
-    protected val p_rect  = new Rectangle()
-    protected var p_off   = -timelineView.timeline.span.start
-    protected var p_scale = getWidth.toDouble / timelineView.timeline.span.getLength
+    protected val trailView = tracksView.trailView( t )
+    protected val trailViewEditor = trailView.map( _.editor ) getOrElse None
+    protected val p_rect    = new Rectangle()
+    protected var p_off     = -timelineView.timeline.span.start
+    protected var p_scale   = getWidth.toDouble / timelineView.timeline.span.getLength
+
+    // finally we use some powerful functional shit. coooool
+    protected val isSelected: Stake => Boolean =
+        (trailView.map( _.isSelected _ ) getOrElse (_ => false))
 
     private def checkSpanRepaint( span: Span ) {
         if( span.overlaps( timelineView.span )) {
@@ -61,8 +67,8 @@ extends JComponent with DynamicListening {
         }
     }
 
-    private val trailsViewListener = (msg: AnyRef) => msg match {
-        case TrailsView.SelectionChanged( span, stakes @ _* ) => checkSpanRepaint( span )
+    private val trailViewListener = (msg: AnyRef) => msg match {
+        case TrailView.SelectionChanged( span, stakes @ _* ) => checkSpanRepaint( span )
     }
 
     private val trailListener = (msg: AnyRef) => msg match {
@@ -93,7 +99,7 @@ extends JComponent with DynamicListening {
        val mia = new MouseInputAdapter {
           override def mousePressed( e: MouseEvent ) {
 //println( "pressed" )
-              trailsView.editor.foreach( ed => {
+              trailViewEditor.foreach( ed => {
                   val pos    = screenToVirtual( e.getX )
 //println( "virtual " + pos )
                   val span   = new Span( pos, pos + 1 )
@@ -102,30 +108,26 @@ extends JComponent with DynamicListening {
                       if( stakes.isEmpty ) return
                       val stake = stakes.head
                       val ce = ed.editBegin( "editSelectStakes" )
-                      if( trailsView.isSelected( stake )) {
+                      if( isSelected( stake )) {
                           ed.editDeselect( ce, stake )
                       } else {
                           ed.editSelect( ce, stake )
                       }
                       ed.editEnd( ce )
                   } else {
-                      if( stakes.isEmpty ) {
-                          val ce = ed.editBegin( "editSelectStakes" )
-                          ed.editDeselect( ce, trailsView.selectedStakes.toList: _* )
-                          ed.editEnd( ce )
-                      } else {
-                          val stake = stakes.head
-                          if( trailsView.isSelected( stake )) return
-                          val ce = ed.editBegin( "editSelectStakes" )
-                          ed.editDeselect( ce, (trailsView.selectedStakes - stake).toList: _* )
-                          ed.editSelect( ce, stake )
-                          ed.editEnd( ce )
-                      }
+                      val stakeO = stakes.headOption
+                      stakeO.foreach( stake => if( isSelected( stake )) return )
+                      val ce = ed.editBegin( "editSelectStakes" )
+                      tracksView.forEachTrailViewEditor( ed2 => {
+                          ed2.editDeselect( ce, ed2.view.selectedStakes.toList: _* )
+                      })
+                      stakeO.foreach( stake => ed.editSelect( ce, stake ))
+                      ed.editEnd( ce )
                   }
               })
           }
        }
-       if( trailsView.editor.isDefined ) {
+       if( trailViewEditor.isDefined ) {
            addMouseListener( mia )
            addMouseMotionListener( mia )
        }
@@ -134,13 +136,13 @@ extends JComponent with DynamicListening {
     }
 
     def startListening {
-       trailsView.addListener( trailsViewListener )
+       trailView.foreach( _.addListener( trailViewListener ))
        t.trail.addListener( trailListener )
     }
 
     def stopListening {
        t.trail.removeListener( trailListener )
-       trailsView.removeListener( trailsViewListener )
+       trailView.foreach( _.removeListener( trailViewListener ))
     }
 
     protected def screenToVirtual( x: Int ) =
@@ -198,7 +200,7 @@ extends JComponent with DynamicListening {
         t.trail.visitRange( span )( stake => {
           p_rect.x     = virtualToScreen( stake.span.start )
           p_rect.width = ((stake.span.stop + p_off) * p_scale + 0.5).toInt - p_rect.x
-          g2.setColor( if( trailsView.isSelected( stake )) Color.blue else Color.black )
+          g2.setColor( if( isSelected( stake )) Color.blue else Color.black )
           g2.fillRect( p_rect.x, 0, p_rect.width, p_rect.height )
           val clipOrig = g2.getClip
           g2.clipRect( p_rect.x, 0, p_rect.width, p_rect.height )
@@ -218,8 +220,8 @@ object AudioTrackComponent {
 }
 
 class AudioTrackComponent( doc: Session, audioTrack: AudioTrack, tracksView: TracksView,
-                           trailsView: TrailsView, timelineView: TimelineView )
-extends DefaultTrackComponent( doc, audioTrack, tracksView, trailsView, timelineView ) {
+                           timelineView: TimelineView )
+extends DefaultTrackComponent( doc, audioTrack, tracksView, timelineView ) {
     import AudioTrackComponent._
 
 //    private var stringDragEntry: Option[ StringDragEntry ] = None
@@ -433,7 +435,7 @@ println( "--- 3" )
           p_rect.x     = ((ar.span.start + p_off) * p_scale + 0.5).toInt
           p_rect.width = ((ar.span.stop + p_off) * p_scale + 0.5).toInt - p_rect.x
 //          g2.setColor( Color.black )
-          g2.setColor( if( trailsView.isSelected( ar )) Color.blue else Color.black )
+          g2.setColor( if( isSelected( ar )) Color.blue else Color.black )
           g2.fillRoundRect( p_rect.x, 0, p_rect.width, p_rect.height, 5, 5 )
           val clipOrig = g2.getClip
           g2.clipRect( p_rect.x + 2, 2, p_rect.width - 4, p_rect.height - 4 )

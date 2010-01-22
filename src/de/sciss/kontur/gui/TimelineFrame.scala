@@ -33,7 +33,7 @@ import de.sciss.common.{ BasicApplication, BasicMenuFactory, ShowWindowAction,
                         BasicWindowHandler}
 import de.sciss.gui.{ GUIUtil, MenuAction, MenuGroup, MenuItem, ParamField, SpringPanel}
 import de.sciss.io.{ Span }
-import de.sciss.kontur.session.{ AudioRegion, AudioTrack, Session, Timeline }
+import de.sciss.kontur.session.{ AudioRegion, AudioTrack, Session, Stake, Timeline }
 import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }
 import java.awt.event.{ ActionEvent, InputEvent, KeyEvent }
 import java.awt.{ BorderLayout, Dimension, Point, Rectangle }
@@ -56,9 +56,8 @@ extends AppWindow( AbstractWindow.REGULAR ) {
     private val tracksView    = new BasicTracksView( doc, tl.tracks )
     private val timelinePanel = new TimelinePanel( timelineView )
 //    private val trailView     = new javax.swing.JLabel( "Trail" )
-    private val trailsView     = new BasicTrailsView( doc, tl.tracks )
-    private val tracksPanel    = new TracksPanel( doc, tracksView, trailsView,
-                                                  timelinePanel )
+//    private val trailsView     = new BasicTrailsView( doc, tl.tracks )
+    private val tracksPanel    = new TracksPanel( doc, tracksView, timelinePanel )
 
     // ---- constructor ----
     {
@@ -122,18 +121,18 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 //		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_TAB, InputEvent.ALT_MASK + InputEvent.SHIFT_MASK ), "extprevreg" )
 //		amap.put( "extprevreg", new ActionSelectRegion( EXTEND_PREV_REGION ))
 
-    	imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_M, BasicMenuFactory.MENU_SHORTCUT ), "debuggen" )
-		amap.put( "debuggen", new ActionDebugGenerator )
+//    	imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_M, BasicMenuFactory.MENU_SHORTCUT ), "debuggen" )
+//		amap.put( "debuggen", new ActionDebugGenerator )
 
     	// ---- menus and actions ----
 		val mr = app.getMenuBarRoot
 
 		mr.putMimic( "edit.undo", this, doc.getUndoManager.getUndoAction )
 		mr.putMimic( "edit.redo", this, doc.getUndoManager.getRedoAction )
-//		mr.putMimic( "edit.cut", this, doc.getCutAction() )
-//		mr.putMimic( "edit.copy", this, doc.getCopyAction() )
-//		mr.putMimic( "edit.paste", this, doc.getPasteAction() )
-//		mr.putMimic( "edit.clear", this, doc.getDeleteAction() )
+		mr.putMimic( "edit.cut", this, new ActionCut() )
+		mr.putMimic( "edit.copy", this, new ActionCopy() )
+		mr.putMimic( "edit.paste", this, new ActionPaste() )
+		mr.putMimic( "edit.clear", this, new ActionDelete() )
 		mr.putMimic( "edit.selectAll", this, new ActionSelect( ActionSelect.SELECT_ALL ))
 
 		mr.putMimic( "timeline.insertSpan", this, new ActionInsertSpan )
@@ -478,8 +477,54 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 		}
 	} // class actionSelectClass
 
-    private class ActionDebugGenerator
-    extends MenuAction( "Debug Generator" ) {
-        def actionPerformed( e: ActionEvent ) : Unit = debugGenerator
+//    private class ActionDebugGenerator
+//    extends MenuAction( "Debug Generator" ) {
+//        def actionPerformed( e: ActionEvent ) : Unit = debugGenerator
+//    }
+
+    private class ActionCut
+    extends MenuAction {
+        def actionPerformed( e: ActionEvent ) : Unit = perform
+
+        def perform {
+            println( "CUT NOT YET IMPLEMENTED")
+        }
+    }
+
+    private class ActionCopy
+    extends MenuAction {
+        def actionPerformed( e: ActionEvent ) : Unit = perform
+
+        def perform {
+            println( "COPY NOT YET IMPLEMENTED")
+        }
+    }
+
+    private class ActionPaste
+    extends MenuAction {
+        def actionPerformed( e: ActionEvent ) : Unit = perform
+
+        def perform {
+            println( "PASTE NOT YET IMPLEMENTED")
+        }
+    }
+
+    private class ActionDelete
+    extends MenuAction {
+        def actionPerformed( e: ActionEvent ) : Unit = perform
+
+        def perform {
+            tracksView.editor.foreach( ed => {
+                val ce = ed.editBegin( getValue( Action.NAME ).toString )
+                tracksView.forEachTrailViewEditor( ed2 => {
+                    val stakes = ed2.view.selectedStakes.toList
+                    ed2.editDeselect( ce, stakes.toList: _* )
+//                    ed2.view.trail.editor.foreach( ed3 => {
+//                        ed3.editRemove( ce, stakes: _* )
+//                    })
+                })
+                ed.editEnd( ce )
+            })
+        }
     }
 }

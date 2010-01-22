@@ -1,5 +1,5 @@
 /*
- *  TrailsView.scala
+ *  TrailView.scala
  *  (Kontur)
  *
  *  Copyright (c) 2004-2010 Hanns Holger Rutz. All rights reserved.
@@ -35,60 +35,67 @@ import de.sciss.kontur.edit.{ Editor, SimpleEdit }
 import de.sciss.kontur.session.{ Session, SessionElementSeq, Stake, Track, Trail }
 import de.sciss.kontur.util.{ Model }
 
-object TrailsView {
+object TrailView {
     case class SelectionChanged( span: Span, stakes: Stake* )
 }
 
-trait TrailsView extends Model {
+trait TrailView extends Model {
     def isSelected( s: Stake ) : Boolean
-    def editor: Option[ TrailsViewEditor ]
+    def editor: Option[ TrailViewEditor ]
     def selectedStakes: Set[ Stake ]
+    def trail: Trail[ _ ]
 }
 
-trait TrailsViewEditor extends Editor {
+trait TrailViewEditor extends Editor {
    def editSelect( ce: AbstractCompoundEdit, stakes: Stake* ) : Unit
    def editDeselect( ce: AbstractCompoundEdit, stakes: Stake* ) : Unit
+   def view: TrailView
 }
 
 // XXX currently assumes a 1:1 mapping between tracks and trails
 // which might not be the case in the future (several tracks could
 // share a trail?)
-class BasicTrailsView( doc: Session, val tracks: SessionElementSeq[ Track ])
-extends TrailsView with TrailsViewEditor {
-  import TrailsView._
+class BasicTrailView( doc: Session, val trail: Trail[ _ ])
+extends TrailView with TrailViewEditor {
+  import TrailView._
 
   private var selectedStakesVar = Set[ Stake ]()
 
   def selectedStakes = selectedStakesVar
 
+/*
   private val tracksListener = (msg: AnyRef) => msg match {
       case tracks.ElementAdded( idx, t ) => addTrack( t )
       case tracks.ElementRemoved( idx, t ) => removeTrack( t )
     }
-
+*/
   private val trailListener = (msg: AnyRef) => msg match {
       case Trail.StakesRemoved( span, stakes @ _* ) => deselect( stakes: _* )
   }
 
   // ---- constructor ----
   {
-      tracks.foreach( t => addTrack( t ))
-      tracks.addListener( tracksListener )
+//      tracks.foreach( t => addTrack( t ))
+//      tracks.addListener( tracksListener )
+     trail.addListener( trailListener )
   }
+
+  def view: TrailView = this
 
   def dispose {
-    tracks.removeListener( tracksListener )
-    tracks.foreach( t => removeTrack( t ))
-    selectedStakesVar = Set[ Stake ]()
+//    tracks.removeListener( tracksListener )
+//    tracks.foreach( t => removeTrack( t ))
+     trail.removeListener( trailListener )
+     selectedStakesVar = Set[ Stake ]()
   }
 
-  private def addTrack( t: Track ) {
-     t.trail.addListener( trailListener )
-  }
+//  private def addTrack( t: Track ) {
+//     t.trail.addListener( trailListener )
+//  }
 
-  private def removeTrack( t: Track ) {
-     t.trail.removeListener( trailListener )
-  }
+//  private def removeTrack( t: Track ) {
+//     t.trail.removeListener( trailListener )
+//  }
 
   def select( stakes: Stake* ) : Unit = setSelection( stakes, true )
   def deselect( stakes: Stake* ) : Unit = setSelection( stakes, false )
@@ -124,8 +131,8 @@ extends TrailsView with TrailsViewEditor {
 
   def isSelected( stake: Stake ) : Boolean = selectedStakesVar.contains( stake )
 
-  def editor: Option[ TrailsViewEditor ] = Some( this )
-   // ---- TrailsViewEditor ----
+  def editor: Option[ TrailViewEditor ] = Some( this )
+   // ---- TrailViewEditor ----
 
   def undoManager: UndoManager = doc.getUndoManager
 
@@ -146,7 +153,7 @@ extends TrailsView with TrailsViewEditor {
     }
   }
 
-  private class StakeView {
-    var selected = false
-  }
+//  private class StakeView {
+//    var selected = false
+//  }
 }

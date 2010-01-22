@@ -49,6 +49,16 @@ trait TracksView extends Model {
     def isSelected( t: Track ) : Boolean
 
     def editor: Option[ TracksViewEditor ]
+    def trailView( track: Track ) : Option[ TrailView ]
+
+    // shorthand construct
+    def forEachTrailViewEditor( f: TrailViewEditor => Unit ) {
+        tracks.foreach( t => {
+            trailView( t ).foreach( tv => {
+                tv.editor.foreach( ed => f( ed ))
+            })
+        })
+    }
 }
 
 trait TracksViewEditor extends Editor {
@@ -64,8 +74,11 @@ extends TracksView with TracksViewEditor {
 
   private val tracksListener = (msg: AnyRef) => {
     msg match {
-      case tracks.ElementAdded( idx, elem ) => views += (elem -> new TrackView)
-      case tracks.ElementRemoved( idx, elem ) => views -= elem
+      case tracks.ElementAdded( idx, t ) => views += (t -> new TrackView( t ))
+      case tracks.ElementRemoved( idx, t ) => {
+          views( t ).dispose
+          views -= t
+      }
       case _ =>
     }
     dispatch( msg )
@@ -73,17 +86,21 @@ extends TracksView with TracksViewEditor {
   
   // ---- constructor ----
   {
-      tracks.foreach( t => views += (t -> new TrackView) )
+      tracks.foreach( t => views += (t -> new TrackView( t )) )
       tracks.addListener( tracksListener )
   }
 
   def dispose {
     tracks.removeListener( tracksListener )
+    views.foreach( _._2.dispose )
     views = Map[ Track, TrackView ]()
   }
 
   def select( tracks: Track* ) : Unit = setSelection( tracks, true )
   def deselect( tracks: Track* ) : Unit = setSelection( tracks, false )
+
+  def trailView( t: Track ) : Option[ TrailView ] =
+     views.get( t ).map( _.trailView )
 
   private def setSelection( tracks: Seq[ Track ], state: Boolean ) {
       val tf = tracks.filterNot( t => isSelected( t ) == state )
@@ -119,7 +136,12 @@ extends TracksView with TracksViewEditor {
     }
   }
 
-  private class TrackView {
-    var selected = false
+  private class TrackView( t: Track ) {
+      var selected  = false
+      val trailView = new BasicTrailView( doc, t.trail )
+
+      def dispose {
+          trailView.dispose
+      }
   }
 }
