@@ -42,17 +42,33 @@ import javax.swing.{ JComponent, Spring, SpringLayout, TransferHandler }
 import javax.swing.event.{ MouseInputAdapter }
 import scala.math._
 import de.sciss.kontur.session.{ AudioFileElement, AudioRegion, AudioTrack,
-                                Region, Session, Stake, Track }
-import de.sciss.app.{ AbstractApplication, GraphicsHandler }
+                                Region, Session, Stake, Track, Trail }
+import de.sciss.app.{ AbstractApplication, DynamicAncestorAdapter,
+                     DynamicListening, GraphicsHandler }
 import de.sciss.io.{ AudioFile, Span }
 
 class DefaultTrackComponent( doc: Session, t: Track, tracksView: TracksView,
                              trailsView: TrailsView, timelineView: TimelineView )
-extends JComponent {
+extends JComponent with DynamicListening {
 
     protected val p_rect  = new Rectangle()
     protected var p_off   = -timelineView.timeline.span.start
     protected var p_scale = getWidth.toDouble / timelineView.timeline.span.getLength
+
+    private def checkSpanRepaint( span: Span ) {
+        if( span.overlaps( timelineView.span )) {
+            repaint( span )
+        }
+    }
+
+    private val trailsViewListener = (msg: AnyRef) => msg match {
+        case TrailsView.SelectionChanged( span, stakes @ _* ) => checkSpanRepaint( span )
+    }
+
+    private val trailListener = (msg: AnyRef) => msg match {
+        case Trail.StakesAdded( span, stakes @ _* ) => checkSpanRepaint( span )
+        case Trail.StakesRemoved( span, stakes @ _* ) => checkSpanRepaint( span )
+    }
     
     {
 //        val rnd = new java.util.Random()
@@ -113,10 +129,32 @@ extends JComponent {
            addMouseListener( mia )
            addMouseMotionListener( mia )
        }
+
+       new DynamicAncestorAdapter( this ).addTo( this )
+    }
+
+    def startListening {
+       trailsView.addListener( trailsViewListener )
+       t.trail.addListener( trailListener )
+    }
+
+    def stopListening {
+       t.trail.removeListener( trailListener )
+       trailsView.removeListener( trailsViewListener )
     }
 
     protected def screenToVirtual( x: Int ) =
         (x.toLong / p_scale - p_off + 0.5).toLong
+
+    protected def virtualToScreen( pos: Long ) =
+        ((pos + p_off) * p_scale + 0.5).toInt
+
+    protected def repaint( span: Span, outcode: Int = 2 ) {
+        val x1 = virtualToScreen( span.start )
+        val x2 = virtualToScreen( span.stop )
+        val r  = new Rectangle( x1 - outcode, 0, x2 - x1 + outcode + outcode, getHeight )
+        repaint( r )
+    }
 
     override def getPreferredSize() : Dimension = {
        val dim = super.getPreferredSize()
@@ -158,7 +196,7 @@ extends JComponent {
 
     protected def paintSpan( g2: Graphics2D, span: Span ) {
         t.trail.visitRange( span )( stake => {
-          p_rect.x     = ((stake.span.start + p_off) * p_scale + 0.5).toInt
+          p_rect.x     = virtualToScreen( stake.span.start )
           p_rect.width = ((stake.span.stop + p_off) * p_scale + 0.5).toInt - p_rect.x
           g2.setColor( if( trailsView.isSelected( stake )) Color.blue else Color.black )
           g2.fillRect( p_rect.x, 0, p_rect.width, p_rect.height )
@@ -185,8 +223,8 @@ extends DefaultTrackComponent( doc, audioTrack, tracksView, trailsView, timeline
     import AudioTrackComponent._
 
 //    private var stringDragEntry: Option[ StringDragEntry ] = None
-//    private var dropLoc : Option[ TransferHandler.DropLocation ] = None
-    private var dropLoc : Option[ Point ] = None
+//    private var dropPos : Option[ TransferHandler.dropPosation ] = None
+    private var dropPos : Option[ Long ] = None
 //    private var dropT : Option[ Transferable ] = None
 
 /*
@@ -198,15 +236,15 @@ extends DefaultTrackComponent( doc, audioTrack, tracksView, trailsView, timeline
              val t = sup.getTransferable()
              if( t.isDataFlavorSupported( DataFlavor.stringFlavor )) {
                 println( "supported" )
-                dropLoc = Some( sup.getDropLocation )
+                dropPos = Some( sup.getdropPosation )
 //                dropT   = Some( sup.getTransferable )
 //                val o = t.getTransferData( DataFlavor.stringFlavor )
 //                println( "dragging '" + o + "'" )
                 repaint()
                 true
              } else
-               if( dropLoc != None ) {
-                   dropLoc = None
+               if( dropPos != None ) {
+                   dropPos = None
 //                   dropT   = None
                    repaint()
                }
@@ -215,7 +253,7 @@ extends DefaultTrackComponent( doc, audioTrack, tracksView, trailsView, timeline
 
         	override def importData( c: JComponent, t: Transferable ) : Boolean = {
 //println ("IMPORT")
-               dropLoc = None
+               dropPos = None
 //               dropT = None
         		try {
                     if( t.isDataFlavorSupported( DataFlavor.stringFlavor )) {
@@ -241,10 +279,10 @@ extends DefaultTrackComponent( doc, audioTrack, tracksView, trailsView, timeline
       
 //        setTransferHandler( th )
 /*
-        addPropertyChangeListener( "dropLocation", new PropertyChangeListener {
+        addPropertyChangeListener( "dropPosation", new PropertyChangeListener {
             def propertyChange( pce: PropertyChangeEvent ) {
-                val loc = pce.getNewValue().asInstanceOf[ TransferHandler.DropLocation ]
-                dropLoc = if( loc != null ) Some( loc ) else None
+                val loc = pce.getNewValue().asInstanceOf[ TransferHandler.dropPosation ]
+                dropPos = if( loc != null ) Some( loc ) else None
                 repaint()
             }
         })
@@ -291,28 +329,39 @@ println( "--- 3" )
            }
 
            override def dragExit( dte: DropTargetEvent ) {
-              if( dropLoc.isDefined ) {
-                 dropLoc = None
-                 repaint()
-              }
+              dropPos.foreach( pos => {
+                 dropPos = None
+                 repaint( new Span( pos, pos ))
+              })
            }
 
            private def process( dtde: DropTargetDragEvent ) {
               val newLoc = if( dtde.isDataFlavorSupported( DataFlavor.stringFlavor )) {
                   dtde.acceptDrag( DnDConstants.ACTION_COPY )
-                  Some( dtde.getLocation )
+                  Some( screenToVirtual( dtde.getLocation.x ))
               } else {
                   dtde.rejectDrag()
                   None
               }
-              if( newLoc != dropLoc ) {
-                  dropLoc = newLoc
-                  repaint() // XXX dirty region
+              if( newLoc != dropPos ) {
+                  val dirtySpan = if( dropPos.isDefined ) {
+                     val pos1 = dropPos.get
+                     val pos2 = newLoc getOrElse pos1
+                     new Span( min( pos1, pos2 ), max( pos1, pos2 ))
+                  } else {
+                     val pos1 = newLoc.get
+                     new Span( pos1, pos1 )
+                  }
+                  dropPos = newLoc
+                  repaint( dirtySpan )
               }
            }
 
            def drop( dtde: DropTargetDropEvent ) {
-              dropLoc = None
+              dropPos.foreach( pos => {
+                 dropPos = None
+                 repaint( new Span( pos, pos ))
+              })
               if( dtde.isDataFlavorSupported( DataFlavor.stringFlavor )) {
                  dtde.acceptDrop( DnDConstants.ACTION_COPY )
                  val str = dtde.getTransferable().getTransferData( DataFlavor.stringFlavor ).toString()
@@ -332,7 +381,6 @@ println( "--- 3" )
              } else {
                  dtde.rejectDrop()
              }
-             repaint() // XXX dirty region
            }
         })
       }
@@ -370,7 +418,7 @@ println( "--- 3" )
 
       override protected def paintSpan( g2: Graphics2D, span: Span ) {
 //        var i = 0
-//println( "paint " + dropLoc )
+//println( "paint " + dropPos )
 //dropT.foreach( t => {
 //    try {
 //      val o = t.getTransferData( DataFlavor.stringFlavor )
@@ -408,8 +456,8 @@ println( "--- 3" )
              g2.setClip( clipOrig )
          })
 */
-        dropLoc.foreach( loc => {
-             p_rect.x     = loc.x - 1 // loc.getDropPoint().x
+        dropPos.foreach( loc => {
+             p_rect.x     = virtualToScreen( loc ) - 1 // loc.getDropPoint().x
              p_rect.width = 3
              g2.setColor( colrDropRegionBg )
              g2.fillRect( p_rect.x, 0, p_rect.width, p_rect.height )

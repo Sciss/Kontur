@@ -119,10 +119,17 @@ with TopPaintable {
       }
     }
 
-    private def tracksViewListener( tracks: SessionElementSeq[ Track ]) = (msg: AnyRef) => msg match {
+    private var tracksViewListener: Option[ AnyRef => Unit ] = None
+
+    private def tracksViewListenerF( tracks: SessionElementSeq[ Track ]) = (msg: AnyRef) => {
+//      println( "tracksViewListener : " + msg )
+      msg match {
       case tracks.ElementAdded( idx, elem ) => updateSelectionAndRepaint
       case tracks.ElementRemoved( idx, elem ) => updateSelectionAndRepaint
-      case TracksView.SelectionChanged( _ ) => updateSelectionAndRepaint
+      case TracksView.SelectionChanged( _ ) => {
+//println( "....gugu" )
+          updateSelectionAndRepaint
+      }}
     }
 
 //    private val markerListener = (msg: AnyRef) => msg match {
@@ -191,9 +198,18 @@ with TopPaintable {
 
     def tracksTable = tracksTableVar
     def tracksTable_=( newTT: Option[ TracksPanel ]) {
-      tracksTableVar.foreach( tt => tt.removeListener( tracksViewListener( tt.tracksView.tracks )))
+      tracksTableVar.foreach( tt => {
+          tracksViewListener.foreach( l => tt.removeListener( l ))
+      })
       tracksTableVar = newTT
-      tracksTableVar.foreach( tt => tt.addListener( tracksViewListener( tt.tracksView.tracks )))
+//println( "aqui1" )
+      tracksViewListener = None
+      tracksTableVar.foreach( tt =>{
+//println( "aqui2" )
+           val l = tracksViewListenerF( tt.tracksView.tracks )
+           tracksViewListener = Some( l )
+           tt.addListener( l )
+      })
     }
 /*
 	private var tracksVar: Option[ SessionElementSeq[ Track[ _ ]]] = None

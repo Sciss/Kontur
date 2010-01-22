@@ -103,7 +103,7 @@ extends TrailsView with TrailsViewEditor {
      val toChangeSet = stakes.toSet[ Stake ]
      val (selected, unselected) = toChangeSet.partition( x => selectedStakesVar.contains( x ))
 //println( "setSelection : " + stakes + "; " + state + "; --> selected = " + selected.toList +
-        "; unselected = " + unselected.toList )
+//        "; unselected = " + unselected.toList )
 
      val changedStakes = (if( state ) {
         if( unselected.isEmpty ) return

@@ -89,6 +89,7 @@ extends TracksView with TracksViewEditor {
       val tf = tracks.filterNot( t => isSelected( t ) == state )
       if( !tf.isEmpty ) {
         val change = SelectionChanged( tracks: _* )
+//println( "setSelection " + change )
         tracks.foreach( t => views( t ).selected = state )
         dispatch( change )
       }

@@ -65,10 +65,11 @@ with TracksTable with Model {
     private val viewPort = new TimelineViewport( timelineView )
 
   	private val tracksViewListener = (msg: AnyRef) => {
-//println(" TracksPanel : tracksViewListener " + msg )
+//println( "TracksPanel : tracksViewListener " + msg )
       msg match {
           case tracks.ElementAdded( idx, t ) => addTrack( idx, t )
           case tracks.ElementRemoved( idx, t ) => removeTrack( idx, t )
+          case _ => // println( "nadisima" )
       }
       dispatch( msg )
     }
