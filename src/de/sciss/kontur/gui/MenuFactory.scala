@@ -94,8 +94,8 @@ extends BasicMenuFactory( app ) {
 		mgTimeline.add( new MenuItem( "removeSpan", getResourceString( "menuRemoveSpan" ),
 							  KeyStroke.getKeyStroke( KeyEvent.VK_BACK_SLASH, MENU_SHORTCUT | InputEvent.SHIFT_MASK )))
         mgTimeline.addSeparator()
-		mgTimeline.add( new MenuItem( "splitObject", getResourceString( "menuSplitObject" ),
-							  KeyStroke.getKeyStroke( KeyEvent.VK_E, myCtrl )))
+		mgTimeline.add( new MenuItem( "splitObjects", getResourceString( "menuSplitObjects" ),
+							  KeyStroke.getKeyStroke( KeyEvent.VK_X, myCtrl )))
 		add( mgTimeline, indexOf( "edit" ) + 1 )
     }
 

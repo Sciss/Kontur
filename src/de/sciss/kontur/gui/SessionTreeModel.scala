@@ -48,7 +48,7 @@ abstract class DynamicTreeNode( model: SessionTreeModel, obj: AnyRef, canExpand:
 extends DefaultMutableTreeNode( obj, canExpand )
 with DynamicListening {
 
-  type Tr = Track[ _ <: Stake[ _ ]]
+//  type Tr = Track[ _ <: Stake[ _ ]]
 
   private var isListening = false
 
@@ -310,11 +310,11 @@ with HasContextMenu {
         case _ => None
     }
 
-  protected def wrap( elem: Tr ): DynamicTreeNode =
+  protected def wrap( elem: Track ): DynamicTreeNode =
     new TrackTreeLeaf( model, elem )
 }
 
-class TrackTreeLeaf[ T <: Stake[ _ ]]( model: SessionTreeModel, t: Track[ T ])
+class TrackTreeLeaf( model: SessionTreeModel, t: Track )
 extends SessionElementTreeNode( model, t, false ) {
 }
 

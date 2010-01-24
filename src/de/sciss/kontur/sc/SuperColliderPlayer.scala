@@ -238,7 +238,7 @@ val envGen = Line.kr( amp, amp, i_dur, doneAction = freeSelf )
           private var start             = 0L
           private val timer             = new javax.swing.Timer( (transportDelta * 1000).toInt, this )
           private val players           = new ArrayBuffer[ TrackPlayer ]()
-          private var mapPlayers        = Map[ Track[ _ ], TrackPlayer ]()
+          private var mapPlayers        = Map[ Track, TrackPlayer ]()
 
            private val tracksListener = (msg: AnyRef) => msg match {
               case tracks.ElementAdded( idx, t ) => addTrack( idx, t )
@@ -276,7 +276,7 @@ if( verbose ) println( "| | | | | timer " + start )
               start += deltaFrames
           }
 
-          private def addTrack( idx: Int, t: Track[ _ ]) {
+          private def addTrack( idx: Int, t: Track ) {
              val player: TrackPlayer = t match {
              case at: AudioTrack => new AudioTrackPlayer( at )
              case _ => new DummyPlayer( t )
@@ -285,7 +285,7 @@ if( verbose ) println( "| | | | | timer " + start )
              players.insert( idx, player )
           }
 
-          private def removeTrack( idx: Int, t: Track[ _ ]) {
+          private def removeTrack( idx: Int, t: Track ) {
              val ptest = mapPlayers( t )
              mapPlayers -= t
              val player = players.remove( idx )
@@ -305,11 +305,11 @@ if( verbose ) println( "stop" )
           }
 
            trait TrackPlayer extends Disposable {
-              def track: Track[ _ ]
+              def track: Track
               def step( span: Span )
            }
 
-           class DummyPlayer( val track: Track[ _ ])
+           class DummyPlayer( val track: Track )
            extends TrackPlayer {
               def dispose {}
               def step( span: Span ) {}

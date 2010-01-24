@@ -48,9 +48,11 @@ object AudioTrack {
 }
 
 class AudioTrack( val id: Long, doc: Session, tl: BasicTimeline )
-extends Track[ AudioRegion ] with TrackEditor[ AudioRegion ] // [ AudioRegion ]
+extends Track with TrackEditor // [ AudioRegion ]
 with Renameable {
   import AudioTrack._
+
+  type T = AudioRegion
 
   protected var nameVar = "Audio" // XXX
 
@@ -85,7 +87,7 @@ with Renameable {
       trail.fromXML( node )
   }
 
-  def editor: Option[ TrackEditor[ AudioRegion ]] = Some( this )
+  def editor: Option[ TrackEditor ] = Some( this )
   // ---- TrackEditor ----
   def editDiffusion( ce: AbstractCompoundEdit, newDiff: Option[ Diffusion ]) {
     val edit = new SimpleEdit( "editTrackDiffusion" ) {

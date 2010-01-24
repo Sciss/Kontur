@@ -123,7 +123,7 @@ with TopPaintable {
 
     private var tracksViewListener: Option[ AnyRef => Unit ] = None
 
-    private def tracksViewListenerF( tracks: SessionElementSeq[ Track[ _ <: Stake[ _ ]]]) = (msg: AnyRef) => {
+    private def tracksViewListenerF( tracks: SessionElementSeq[ Track ]) = (msg: AnyRef) => {
 //      println( "tracksViewListener : " + msg )
       msg match {
       case tracks.ElementAdded( idx, elem ) => updateSelectionAndRepaint

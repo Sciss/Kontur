@@ -44,7 +44,7 @@ trait Timeline extends SessionElement {
 
   def span: Span
   def rate: Double
-  def tracks: SessionElementSeq[ Track[ _ <: Stake[ _ ]]]
+  def tracks: SessionElementSeq[ Track ]
   def transport: Option[ Transport ]
   def editor: Option[ TimelineEditor ]
 }

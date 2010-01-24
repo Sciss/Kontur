@@ -36,9 +36,9 @@ import de.sciss.kontur.session.{ Stake, Track }
 
 trait TracksTable {
 //	def mainView: JComponent
-	def getTrackRenderer( t: Track[ _ <: Stake[ _ ]]) : TrackRenderer
-	def getTrackBounds( t: Track[ _ <: Stake[ _ ]] /*, r: Rectangle*/ ) : Rectangle
+	def getTrackRenderer( t: Track ) : TrackRenderer
+	def getTrackBounds( t: Track /*, r: Rectangle*/ ) : Rectangle
 	def numTracks: Int
-	def getTrack( idx: Int ) : Option[ Track[ _ <: Stake[ _ ]]]
-	def indexOf( t: Track[ _ <: Stake[ _ ]]) : Int
+	def getTrack( idx: Int ) : Option[ Track ]
+	def indexOf( t: Track ) : Int
 }

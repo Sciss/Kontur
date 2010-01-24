@@ -71,7 +71,7 @@ object DefaultTrackHeaderComponent {
                                                new Color( colrDarken.getRGB() & 0xFFFFFF, true ))
 }
 
-class DefaultTrackHeaderComponent( track: Track[ _ <: Stake[ _ ]], tracksView: TracksView )
+class DefaultTrackHeaderComponent( track: Track, tracksView: TracksView )
 extends JPanel
 // with TrackRowHeader
 with DynamicListening with Disposable {

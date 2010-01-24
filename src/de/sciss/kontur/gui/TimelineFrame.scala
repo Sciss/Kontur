@@ -135,10 +135,11 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 		mr.putMimic( "edit.clear", this, new ActionDelete() )
 		mr.putMimic( "edit.selectAll", this, new ActionSelect( ActionSelect.SELECT_ALL ))
 
-		mr.putMimic( "timeline.insertSpan", this, new ActionInsertSpan )
 //		mr.putMimic( "timeline.trimToSelection", this, doc.getTrimAction() )
 		mr.putMimic( "timeline.insertSpan", this, new ActionInsertSpan )
-		mr.putMimic( "timeline.splitObject", this, new ActionSplitObjects )
+//		mr.putMimic( "timeline.clearSpan", this, new ActionClearSpan )
+//		mr.putMimic( "timeline.removeSpan", this, new ActionRemoveSpan )
+		mr.putMimic( "timeline.splitObjects", this, new ActionSplitObjects )
 
       makeUnifiedLook
       init()
@@ -520,10 +521,11 @@ extends AppWindow( AbstractWindow.REGULAR ) {
                 val ce = ed.editBegin( getValue( Action.NAME ).toString )
                 tracksView.tracks.foreach( t => {
                    tracksView.trailView( t ).foreach( tv => {
-                       tv.editor.foreach( ed2 => {
-                           val stakes = tv.selectedStakes.toList
+                       val tvCast = tv.asInstanceOf[ TrailView[ t.T ]]
+                       tvCast.editor.foreach( ed2 => {
+                           val stakes = tvCast.selectedStakes.toList
                            ed2.editDeselect( ce, stakes: _* )
-                           tv.trail.editor.foreach( ed3 => {
+                           tvCast.trail.editor.foreach( ed3 => {
                                ed3.editRemove( ce, stakes: _* )
                            })
                        })
@@ -545,17 +547,19 @@ extends AppWindow( AbstractWindow.REGULAR ) {
                 val span = new Span( pos, pos )
                 tracksView.tracks.foreach( t => {
                    tracksView.trailView( t ).foreach( tv => {
-                       tv.editor.foreach( ed2 => {
+                       val tvCast = tv.asInstanceOf[ TrailView[ t.T ]]
+                       tvCast.editor.foreach( ed2 => {
                            val selectedStakes = ed2.view.selectedStakes
-                           val trail = tv.trail
+                           val trail = tvCast.trail
                            trail.editor.foreach( ted => {
 //                            ted.editClearSpan( ce, span )( stake => tv.isSelected( span ))
-                              var toDeselect = trail.emptyList
+//                            var toDeselect = trail.emptyList
+                              var toDeselect: List[ t.T ] = Nil // = trail.emptyList
                               var toRemove   = trail.emptyList
                               var toAdd      = trail.emptyList
                               var toSelect   = trail.emptyList
                               trail.visitRange( span )( stake => {
-                                  if( tv.isSelected( stake )) {
+                                  if( tvCast.isSelected( stake )) {
                                       toDeselect ::= stake
                                       toRemove ::= stake
 //                                    val splitted = stake.split( pos )
