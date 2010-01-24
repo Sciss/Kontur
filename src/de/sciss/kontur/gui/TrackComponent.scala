@@ -47,7 +47,9 @@ import de.sciss.app.{ AbstractApplication, DynamicAncestorAdapter,
                      DynamicListening, GraphicsHandler }
 import de.sciss.io.{ AudioFile, Span }
 
-class DefaultTrackComponent( doc: Session, t: Track, tracksView: TracksView,
+//import Track.Tr
+
+class DefaultTrackComponent( doc: Session, t: Track[ _ <: Stake[ _ ]], tracksView: TracksView,
                              timelineView: TimelineView )
 extends JComponent with DynamicListening {
 
@@ -58,7 +60,7 @@ extends JComponent with DynamicListening {
     protected var p_scale   = getWidth.toDouble / timelineView.timeline.span.getLength
 
     // finally we use some powerful functional shit. coooool
-    protected val isSelected: Stake => Boolean =
+    protected val isSelected: Stake[ _ ] => Boolean =
         (trailView.map( _.isSelected _ ) getOrElse (_ => false))
 
     private def checkSpanRepaint( span: Span ) {
@@ -71,9 +73,10 @@ extends JComponent with DynamicListening {
         case TrailView.SelectionChanged( span, stakes @ _* ) => checkSpanRepaint( span )
     }
 
+    private val trail = t.trail
     private val trailListener = (msg: AnyRef) => msg match {
-        case Trail.StakesAdded( span, stakes @ _* ) => checkSpanRepaint( span )
-        case Trail.StakesRemoved( span, stakes @ _* ) => checkSpanRepaint( span )
+        case trail.StakesAdded( span, stakes @ _* ) => checkSpanRepaint( span )
+        case trail.StakesRemoved( span, stakes @ _* ) => checkSpanRepaint( span )
     }
     
     {
@@ -118,8 +121,12 @@ extends JComponent with DynamicListening {
                       val stakeO = stakes.headOption
                       stakeO.foreach( stake => if( isSelected( stake )) return )
                       val ce = ed.editBegin( "editSelectStakes" )
-                      tracksView.forEachTrailViewEditor( ed2 => {
-                          ed2.editDeselect( ce, ed2.view.selectedStakes.toList: _* )
+                      tracksView.tracks.foreach( t => {
+                         tracksView.trailView( t ).foreach( tv => {
+                             tv.editor.foreach( ed2 => {
+                                ed2.editDeselect( ce, ed2.view.selectedStakes.toList: _* )
+                             })
+                         })
                       })
                       stakeO.foreach( stake => ed.editSelect( ce, stake ))
                       ed.editEnd( ce )

@@ -34,8 +34,10 @@ import ScrollPaneConstants._
 import scala.collection.immutable.{ Queue }
 
 import de.sciss.gui.{ GUIUtil, GradientPanel, StretchedGridLayout }
-import de.sciss.kontur.session.{ Marker, Session, SessionElementSeq, Timeline, Track }
+import de.sciss.kontur.session.{ Marker, Session, SessionElementSeq, Stake, Timeline, Track }
 import de.sciss.kontur.util.{ Model }
+
+//import Track.Tr
 
 /**
  *	@author		Hanns Holger Rutz
@@ -58,7 +60,8 @@ with TracksTable with Model {
     private var trf: TrackRendererFactory = DefaultTrackRendererFactory
 
 //	private var collTrackHeaders  = Queue[ TrackRowHeader ]()
-	private var mapTrackRenderers   = Map[ Track, TrackRenderer ]()
+//	private var mapTrackRenderers   = Map[ Track[ T <: Stake[ T ]], TrackRenderer ]()
+	private var mapTrackRenderers   = Map[ Track[ _ <: Stake[ _ ]], TrackRenderer ]()
     private val tracks = tracksView.tracks
     private val timelineView = timelinePanel.timelineView
 	private val timelineAxis = new TimelineAxis( timelineView, None ) // Some( this )
@@ -159,7 +162,7 @@ with TracksTable with Model {
 //      }
 //	}
 
-    private def addTrack( idx: Int, t: Track ) {
+    private def addTrack( idx: Int, t: Track[ _ <: Stake[ _ ]]) {
       val tr = trf.createTrackRenderer( doc, t, tracksView, timelineView )
 //      val trackRowHead = trf.createRowHeader( t, tracksView )
       mapTrackRenderers += (t -> tr)
@@ -171,7 +174,7 @@ with TracksTable with Model {
       timelinePanel.revalidate()
     }
 
-    private def removeTrack( idx: Int, t: Track ) {
+    private def removeTrack( idx: Int, t: Track[ _ <: Stake[ _ ]]) {
 //      val tr = mapTrackRenderers( t )
 //      assert( trackHeaderPanel.getComponent( idx ) == trackRowHead )
       mapTrackRenderers -= t
@@ -277,12 +280,12 @@ with TracksTable with Model {
 // ------------------ TracksTable interface ------------------
 
 //  	def mainView: JComponent
-	def getTrackRenderer( t: Track ) : TrackRenderer = mapTrackRenderers( t )
+	def getTrackRenderer[ T <: Stake[ T ]]( t: Track[ T ]) : TrackRenderer = mapTrackRenderers( t )
     def numTracks: Int = tracks.size
-    def getTrack( idx: Int ) : Option[ Track ] = tracks.get( idx )
-	def indexOf( t: Track ) : Int =  tracks.indexOf( t )
+    def getTrack( idx: Int ) : Option[ Track[ _ <: Stake[ _ ]]] = tracks.get( idx )
+	def indexOf[ T <: Stake[ T ]]( t: Track[ T ]) : Int =  tracks.indexOf( t )
 
-	def getTrackBounds( t: Track ) : Rectangle = {
+	def getTrackBounds[ T <: Stake[ T ]]( t: Track[ T ]) : Rectangle = {
 //        val res = new Rectangle()
         val tr = mapTrackRenderers.get( t ) getOrElse (throw new IllegalArgumentException( t.toString ))
 		val res = tr.trackComponent.getBounds() // ( res )

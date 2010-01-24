@@ -34,7 +34,7 @@ import de.sciss.gui.{ MenuItem }
 import de.sciss.io.{ AudioFile, AudioFileDescr }
 import de.sciss.kontur.session.{ AudioFileElement, AudioTrack, BasicDiffusion,
                                 BasicTimeline, Diffusion, Session, SessionElement,
-                                SessionElementSeq, Timeline, Track }
+                                SessionElementSeq, Stake, Timeline, Track }
 import java.awt.{ Component, FileDialog, Frame }
 import java.awt.datatransfer.{ DataFlavor, Transferable }
 import java.awt.event.{ ActionEvent }
@@ -47,6 +47,9 @@ import scala.collection.JavaConversions.{ JEnumerationWrapper }
 abstract class DynamicTreeNode( model: SessionTreeModel, obj: AnyRef, canExpand: Boolean )
 extends DefaultMutableTreeNode( obj, canExpand )
 with DynamicListening {
+
+  type Tr = Track[ _ <: Stake[ _ ]]
+
   private var isListening = false
 
     def startListening {
@@ -131,12 +134,12 @@ extends DynamicTreeNode( model, model.doc, true ) {
   override def toString() = model.doc.displayName
 }
 
-abstract class SessionElementSeqTreeNode[ T <: SessionElement ](
-  model: SessionTreeModel, seq: SessionElementSeq[ T ])
+abstract class SessionElementSeqTreeNode[ El <: SessionElement ](
+  model: SessionTreeModel, seq: SessionElementSeq[ El ])
 extends DynamicTreeNode( model, seq, true )
 // with HasContextMenu
 {
-    protected def wrap( elem: T ) : DynamicTreeNode
+    protected def wrap( elem: El ) : DynamicTreeNode
 
     private val seqListener = (msg: AnyRef) => msg match {
       case seq.ElementAdded( idx, elem ) => insertDyn( idx, wrap( elem ))
@@ -307,11 +310,11 @@ with HasContextMenu {
         case _ => None
     }
 
-  protected def wrap( elem: Track ): DynamicTreeNode =
+  protected def wrap( elem: Tr ): DynamicTreeNode =
     new TrackTreeLeaf( model, elem )
 }
 
-class TrackTreeLeaf( model: SessionTreeModel, t: Track )
+class TrackTreeLeaf[ T <: Stake[ _ ]]( model: SessionTreeModel, t: Track[ T ])
 extends SessionElementTreeNode( model, t, false ) {
 }
 

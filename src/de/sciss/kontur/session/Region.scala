@@ -30,4 +30,12 @@ package de.sciss.kontur.session
 
 import de.sciss.io.{ Span }
 
-case class Region( span: Span, name: String ) extends Stake
+trait RegionTrait[ +Repr ] extends Stake[ Repr ] { val name: String }
+
+case class Region( span: Span, name: String ) extends RegionTrait[ Region ] {
+    def replaceStart( newStart: Long ): Region =
+       copy( span = new Span( newStart, span.stop ))
+
+    def replaceStop( newStop: Long ): Region  =
+       copy( span = new Span( span.start, newStop ))
+}

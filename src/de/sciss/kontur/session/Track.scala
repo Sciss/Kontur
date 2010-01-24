@@ -36,17 +36,24 @@ import de.sciss.kontur.edit.{ Editor }
 //  def trail: Trail[ T ]
 //}
 
-trait Track extends SessionElement {
-  def trail: Trail[ _ <: Stake ]
-  def editor: Option[ TrackEditor ]
+//object Track {
+//  private type T
+//  type Tr = Track[ T <: Stake[ T ]]
+//}
+
+// import Track.Tr
+
+trait Track[ T <: Stake[ T ]] extends SessionElement {
+  def trail: Trail[ T ]
+  def editor: Option[ TrackEditor[ T ]]
 }
 
-trait TrackEditor extends Editor {
+trait TrackEditor[ T <: Stake[ T ]] extends Editor {
   
 }
 
 class Tracks( val id: Long, doc: Session, tl: BasicTimeline )
-extends BasicSessionElementSeq[ Track ]( doc, "Tracks" ) {
+extends BasicSessionElementSeq[ Track[ _ <: Stake [ _ ]]]( doc, "Tracks" ) {
 
     def toXML = <tracks id={id.toString}>
   {innerToXML}
@@ -57,7 +64,7 @@ extends BasicSessionElementSeq[ Track ]( doc, "Tracks" ) {
      innerFromXML( innerXML )
   }
 
-  protected def elementsFromXML( node: Node ) : Seq[ Track ] =
+  protected def elementsFromXML( node: Node ) : Seq[ Track[ _ <: Stake[ _ ]]] =
     node.child.filter( _.label != "#PCDATA" ).map( ch => ch.label match {
     case AudioTrack.XML_NODE => AudioTrack.fromXML( ch, doc, tl )
     case lb => throw new IOException( "Unknown track type '" + lb + "'" )

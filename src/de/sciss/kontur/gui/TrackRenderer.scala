@@ -29,10 +29,12 @@
 package de.sciss.kontur.gui
 
 import javax.swing.{ JComponent }
-import de.sciss.kontur.session.{ AudioTrack, Session, Track }
+import de.sciss.kontur.session.{ AudioTrack, Session, Stake, Track }
+
+//import Track.Tr
 
 trait TrackRendererFactory {
-    def createTrackRenderer( doc: Session, t: Track, tracksView: TracksView,
+    def createTrackRenderer( doc: Session, t: Track[ _ <: Stake[ _ ]], tracksView: TracksView,
                              timelineView: TimelineView ) :
      TrackRenderer
 }
@@ -44,7 +46,7 @@ trait TrackRenderer {
 
 object DefaultTrackRendererFactory
 extends TrackRendererFactory {
-    def createTrackRenderer( doc: Session, t: Track, tracksView: TracksView,
+    def createTrackRenderer( doc: Session, t: Track[ _ <: Stake[ _ ]], tracksView: TracksView,
                              timelineView: TimelineView ) :
      TrackRenderer =
       t match {
@@ -54,7 +56,7 @@ extends TrackRendererFactory {
       }
 }
 
-class DefaultTrackRenderer( doc: Session, t: Track, tracksView: TracksView,
+class DefaultTrackRenderer( doc: Session, t: Track[ _ <: Stake[ _ ]], tracksView: TracksView,
                             timelineView: TimelineView )
 extends TrackRenderer {
   val trackHeaderComponent = new DefaultTrackHeaderComponent( t, tracksView )

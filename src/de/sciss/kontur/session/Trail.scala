@@ -46,18 +46,27 @@ case object TouchNone   extends TouchMode( 0 )
 case object TouchSplit  extends TouchMode( 1 )
 case object TouchResize extends TouchMode( 2 )
 
-trait Stake {
-  def span: Span
+trait Stake[ +Repr ] {
+  Repr =>
+  val span: Span
+  def replaceStart( newStart: Long ) : Repr
+  def replaceStop( newStart: Long ) : Repr
+
+//  def split( pos: Long ) : Tuple2[ this.type, this.type ] =
+//    Tuple2( replaceStop( pos ), replaceStart( pos ))
 }
 
-object Trail {
-  case class StakesAdded( span: Span, stakes: Stake* )
-  case class StakesRemoved( span: Span, stakes: Stake* )
-//  case class StakesChanged( span: Span, stakes: Stake* )
-}
+//object Trail {
+//  case class StakesAdded( span: Span, stakes: Stake* )
+//  case class StakesRemoved( span: Span, stakes: Stake* )
+//}
 
-trait Trail[ T <: Stake ]
+trait Trail[ T <: Stake[ T ]]
 extends Disposable with Model {
+//    type St = T
+
+    def emptyList: List[ T ] = Nil
+
 //    def visitRange( visitor: TrailVisitor[T], span: Span, byStart: Boolean = true )( f: (T) => Unit )
     def visitRange( span: Span, byStart: Boolean = true )( f: (T) => Unit )
 //    def visitAll( visitor: TrailVisitor[T], byStart: Boolean = true )
@@ -70,11 +79,14 @@ extends Disposable with Model {
 	def indexOfPos( pos: Long, byStart: Boolean = true ) : Int
 //	public boolean contains( Stake stake );
     def editor: Option[ TrailEditor[ T ]]
+
+    case class StakesAdded( span: Span, stakes: T* )
+    case class StakesRemoved( span: Span, stakes: T* )
 }
 
-trait TrailEditor[ T <: Stake ]
+trait TrailEditor[ T <: Stake[ T ]]
 extends Editor {
-//    def track: Trail[ T ]
+//    type St = T
 	def editInsert( ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode ) : Unit
 	def editRemove( ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode ) : Unit
 	def editClear( ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode ) : Unit

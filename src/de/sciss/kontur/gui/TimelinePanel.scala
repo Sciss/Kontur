@@ -36,8 +36,10 @@ import scala.math._
 
 import de.sciss.gui.{ ComponentHost, TopPainter }
 import de.sciss.io.{ Span }
-import de.sciss.kontur.session.{ Marker, SessionElementSeq, Timeline,
+import de.sciss.kontur.session.{ Marker, SessionElementSeq, Stake, Timeline,
                                 Track, Trail }
+
+//import Track.Tr
 
 /**
  *  @author		Hanns Holger Rutz
@@ -121,7 +123,7 @@ with TopPaintable {
 
     private var tracksViewListener: Option[ AnyRef => Unit ] = None
 
-    private def tracksViewListenerF( tracks: SessionElementSeq[ Track ]) = (msg: AnyRef) => {
+    private def tracksViewListenerF( tracks: SessionElementSeq[ Track[ _ <: Stake[ _ ]]]) = (msg: AnyRef) => {
 //      println( "tracksViewListener : " + msg )
       msg match {
       case tracks.ElementAdded( idx, elem ) => updateSelectionAndRepaint

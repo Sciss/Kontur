@@ -43,6 +43,8 @@ import de.sciss.util.{ Disposable }
 import de.sciss.kontur.session.{ AudioTrack, Diffusion, Renameable,
                                 SessionElementSeq, Stake, Track }
 
+//import Track.Tr
+
 /**
  *	A row header in Swing's table 'ideology'
  *	is a component left to the leftmost
@@ -69,7 +71,7 @@ object DefaultTrackHeaderComponent {
                                                new Color( colrDarken.getRGB() & 0xFFFFFF, true ))
 }
 
-class DefaultTrackHeaderComponent( track: Track, tracksView: TracksView )
+class DefaultTrackHeaderComponent( track: Track[ _ <: Stake[ _ ]], tracksView: TracksView )
 extends JPanel
 // with TrackRowHeader
 with DynamicListening with Disposable {

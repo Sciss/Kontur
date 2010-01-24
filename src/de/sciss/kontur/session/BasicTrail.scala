@@ -39,9 +39,8 @@ import scala.collection.mutable.{ ListBuffer }
  *  Basic trail structure using R-Tree
  *  in the background
  */
-class BasicTrail[ T <: Stake ]( doc: Session ) extends Trail[ T ]
+class BasicTrail[ T <: Stake[ T ]]( doc: Session ) extends Trail[ T ]
 with TrailEditor[ T ] {
-
     implicit private def numberView( num: Long ) = new ManagedLong( num )
     implicit private val numberManager = LongManager
     private type LongRect     = Rect[ Long ]
@@ -101,7 +100,7 @@ with TrailEditor[ T ] {
          tree.insert( StoredStake( stake ))
          modSpan = if( modSpan.isEmpty ) stake.span else modSpan.union( stake.span )
        })
-       if( !modSpan.isEmpty ) dispatch( Trail.StakesAdded( modSpan, stakes: _* ))
+       if( !modSpan.isEmpty ) dispatch( StakesAdded( modSpan, stakes: _* ))
     }
 
     def remove( stakes: T* ) {
@@ -110,7 +109,7 @@ with TrailEditor[ T ] {
          tree.remove( StoredStake( stake ))
          modSpan = if( modSpan.isEmpty ) stake.span else modSpan.union( stake.span )
        })
-       if( !modSpan.isEmpty ) dispatch( Trail.StakesRemoved( modSpan, stakes: _* ))
+       if( !modSpan.isEmpty ) dispatch( StakesRemoved( modSpan, stakes: _* ))
     }
 
     def dispose {}

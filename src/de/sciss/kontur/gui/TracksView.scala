@@ -32,45 +32,52 @@ import javax.swing.undo.{ UndoManager }
 import scala.collection.mutable.{ ArrayBuffer }
 import de.sciss.app.{ AbstractCompoundEdit }
 import de.sciss.kontur.edit.{ Editor, SimpleEdit }
-import de.sciss.kontur.session.{ Session, SessionElementSeq, Stake, Track }
+import de.sciss.kontur.session.{ AudioTrack, Session, SessionElementSeq, Stake, Track }
 import de.sciss.kontur.util.{ Model }
 
 object TracksView {
 //  case class SelectionChanged[ T <: Stake ]( tracks: Track[ T ]* )
 //    case class SelectionChanged[ T ]( tracks: Track[ T ]* )
-    case class SelectionChanged( tracks: Track* )
+    case class SelectionChanged( tracks: Track[ _ <: Stake[ _ ]]* )
 }
 
+//import Track.Tr
+
 trait TracksView extends Model {
-    def tracks: SessionElementSeq[ Track ]
+
+    def tracks: SessionElementSeq[ Track[ _ <: Stake[ _ ]]]
 
 //    def addToSelection( t: Track[ _ ]* ) : Unit
 //    def removeFromSelection( t: Track[ _ ]* ) : Unit
-    def isSelected( t: Track ) : Boolean
+    def isSelected( t: Track[ _ <: Stake[ _ ]]) : Boolean
 
     def editor: Option[ TracksViewEditor ]
-    def trailView( track: Track ) : Option[ TrailView ]
+//    def trailView[ T <: Stake[ T ]]( track: Track[ T ]) : Option[ TrailView[ T ]]
+    def trailView( track: Track[ _ <: Stake[ _ ]]) : Option[ TrailView[ _ <: Stake[ _ ]]]
 
     // shorthand construct
-    def forEachTrailViewEditor( f: TrailViewEditor => Unit ) {
-        tracks.foreach( t => {
-            trailView( t ).foreach( tv => {
-                tv.editor.foreach( ed => f( ed ))
-            })
-        })
-    }
+//    def forEachTrailViewEditor( f: TrailViewEditor[ _ <: Stake ] => Unit ) {
+//        tracks.foreach( t => {
+//            trailView( t ).foreach( tv => {
+//                tv.editor.foreach( ed => f( ed ))
+//            })
+//        })
+//    }
 }
 
 trait TracksViewEditor extends Editor {
-   def editSelect( ce: AbstractCompoundEdit, tracks: Track* ) : Unit
-   def editDeselect( ce: AbstractCompoundEdit, tracks: Track* ) : Unit
+   def editSelect( ce: AbstractCompoundEdit, tracks: Track[ _ <: Stake[ _ ]]* ) : Unit
+   def editDeselect( ce: AbstractCompoundEdit, tracks: Track[ _ <: Stake[ _ ]]* ) : Unit
 }
 
-class BasicTracksView( doc: Session, val tracks: SessionElementSeq[ Track ])
+class BasicTracksView( doc: Session, val tracks: SessionElementSeq[ Track[ _ <: Stake[ _ ]]])
 extends TracksView with TracksViewEditor {
   import TracksView._
 
-  private var views = Map[ Track, TrackView ]()
+//  private type T
+//  private type TrV = TrackView[ _ ] // [ T <: Stake[ T ]]
+
+  private var views = Map[ Track[ _ <: Stake[ _ ]], TrackView ]()
 
   private val tracksListener = (msg: AnyRef) => {
     msg match {
@@ -93,16 +100,16 @@ extends TracksView with TracksViewEditor {
   def dispose {
     tracks.removeListener( tracksListener )
     views.foreach( _._2.dispose )
-    views = Map[ Track, TrackView ]()
+    views = Map[ Track[ _ <: Stake[ _ ]], TrackView ]()
   }
 
-  def select( tracks: Track* ) : Unit = setSelection( tracks, true )
-  def deselect( tracks: Track* ) : Unit = setSelection( tracks, false )
+  def select( tracks: Track[ _ <: Stake[ _ ]]* ) : Unit = setSelection( tracks, true )
+  def deselect( tracks: Track[ _ <: Stake[ _ ]]* ) : Unit = setSelection( tracks, false )
 
-  def trailView( t: Track ) : Option[ TrailView ] =
-     views.get( t ).map( _.trailView )
+  def trailView( t: Track[ _ <: Stake[ _ ]]) : Option[ TrailView[ _ <: Stake[ _ ]]] =
+     views.get( t ).map( _.trailView.asInstanceOf[ TrailView[ _ <: Stake[ _ ]]])
 
-  private def setSelection( tracks: Seq[ Track ], state: Boolean ) {
+  private def setSelection( tracks: Seq[ Track[ _ <: Stake[ _ ]]], state: Boolean ) {
       val tf = tracks.filterNot( t => isSelected( t ) == state )
       if( !tf.isEmpty ) {
         val change = SelectionChanged( tracks: _* )
@@ -112,20 +119,20 @@ extends TracksView with TracksViewEditor {
       }
   }
 
-  def isSelected( t: Track ) : Boolean = views( t ).selected
+  def isSelected( t: Track[ _ <: Stake[ _ ]]) : Boolean = views( t ).selected
 
   def editor: Option[ TracksViewEditor ] = Some( this )
    // ---- TracksViewEditor ----
 
   def undoManager: UndoManager = doc.getUndoManager
 
-  def editSelect( ce: AbstractCompoundEdit, tracks: Track* ) : Unit =
+  def editSelect( ce: AbstractCompoundEdit, tracks: Track[ _ <: Stake[ _ ]]* ) : Unit =
     editSetSelection( ce, tracks, true )
 
-  def editDeselect( ce: AbstractCompoundEdit, tracks: Track* ) : Unit =
+  def editDeselect( ce: AbstractCompoundEdit, tracks: Track[ _ <: Stake[ _ ]]* ) : Unit =
     editSetSelection( ce, tracks, false )
 
-  private def editSetSelection( ce: AbstractCompoundEdit, tracks: Seq[ Track ], state: Boolean ) {
+  private def editSetSelection( ce: AbstractCompoundEdit, tracks: Seq[ Track[ _ <: Stake[ _ ]]], state: Boolean ) {
     val tf = tracks.filterNot( t => isSelected( t ) == state )
     if( !tf.isEmpty ) {
         val edit = new SimpleEdit( "editTrackSelection", false ) {
@@ -136,10 +143,11 @@ extends TracksView with TracksViewEditor {
     }
   }
 
-  private class TrackView( t: Track ) {
+  private class TrackView( t: Track[ _ <: Stake[ _ ]]) {
       var selected  = false
-      val trailView = new BasicTrailView( doc, t.trail )
-
+      val trailView = t match {
+        case at: AudioTrack => new BasicTrailView( doc, at.trail )
+      } // let it crash
       def dispose {
           trailView.dispose
       }

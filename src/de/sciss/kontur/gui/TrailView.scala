@@ -36,30 +36,33 @@ import de.sciss.kontur.session.{ Session, SessionElementSeq, Stake, Track, Trail
 import de.sciss.kontur.util.{ Model }
 
 object TrailView {
-    case class SelectionChanged( span: Span, stakes: Stake* )
+    case class SelectionChanged( span: Span, stakes: Stake[ _ ]* )
 }
 
-trait TrailView extends Model {
-    def isSelected( s: Stake ) : Boolean
-    def editor: Option[ TrailViewEditor ]
-    def selectedStakes: Set[ Stake ]
-    def trail: Trail[ _ ]
+trait TrailView[ T <: Stake[ T ]] extends Model {
+    def isSelected( s: T ) : Boolean
+    def editor: Option[ TrailViewEditor[ T ]]
+    def selectedStakes: Set[ T ]
+    def trail: Trail[ T ]
+
+//    case class SelectionChanged( span: Span, stakes: T* )
 }
 
-trait TrailViewEditor extends Editor {
-   def editSelect( ce: AbstractCompoundEdit, stakes: Stake* ) : Unit
-   def editDeselect( ce: AbstractCompoundEdit, stakes: Stake* ) : Unit
-   def view: TrailView
+trait TrailViewEditor[ T <: Stake[ T ]] extends Editor {
+//   type St = T
+   def editSelect( ce: AbstractCompoundEdit, stakes: T* ) : Unit
+   def editDeselect( ce: AbstractCompoundEdit, stakes: T* ) : Unit
+   def view: TrailView[ T ]
 }
 
 // XXX currently assumes a 1:1 mapping between tracks and trails
 // which might not be the case in the future (several tracks could
 // share a trail?)
-class BasicTrailView( doc: Session, val trail: Trail[ _ ])
-extends TrailView with TrailViewEditor {
+class BasicTrailView[ T <: Stake[ T ]]( doc: Session, val trail: Trail[ T ])
+extends TrailView[ T ] with TrailViewEditor[ T ] {
   import TrailView._
 
-  private var selectedStakesVar = Set[ Stake ]()
+  private var selectedStakesVar = Set[ T ]()
 
   def selectedStakes = selectedStakesVar
 
@@ -70,7 +73,7 @@ extends TrailView with TrailViewEditor {
     }
 */
   private val trailListener = (msg: AnyRef) => msg match {
-      case Trail.StakesRemoved( span, stakes @ _* ) => deselect( stakes: _* )
+      case trail.StakesRemoved( span, stakes @ _* ) => deselect( stakes: _* )
   }
 
   // ---- constructor ----
@@ -80,13 +83,13 @@ extends TrailView with TrailViewEditor {
      trail.addListener( trailListener )
   }
 
-  def view: TrailView = this
+  def view: TrailView[ T ] = this
 
   def dispose {
 //    tracks.removeListener( tracksListener )
 //    tracks.foreach( t => removeTrack( t ))
      trail.removeListener( trailListener )
-     selectedStakesVar = Set[ Stake ]()
+     selectedStakesVar = Set[ T ]()
   }
 
 //  private def addTrack( t: Track ) {
@@ -97,17 +100,17 @@ extends TrailView with TrailViewEditor {
 //     t.trail.removeListener( trailListener )
 //  }
 
-  def select( stakes: Stake* ) : Unit = setSelection( stakes, true )
-  def deselect( stakes: Stake* ) : Unit = setSelection( stakes, false )
+  def select( stakes: T* ) : Unit = setSelection( stakes, true )
+  def deselect( stakes: T* ) : Unit = setSelection( stakes, false )
 
-  private def unionSpan( stakes: Stake* ) : Span = {
+  private def unionSpan( stakes: T* ) : Span = {
      var span = stakes.headOption.map( _.span ) getOrElse new Span()
      stakes.foreach( s => (span = span.union( s.span )))
      span
   }
 
-  private def setSelection( stakes: Seq[ Stake ], state: Boolean ) {
-     val toChangeSet = stakes.toSet[ Stake ]
+  private def setSelection( stakes: Seq[ T ], state: Boolean ) {
+     val toChangeSet = stakes.toSet[ T ]
      val (selected, unselected) = toChangeSet.partition( x => selectedStakesVar.contains( x ))
 //println( "setSelection : " + stakes + "; " + state + "; --> selected = " + selected.toList +
 //        "; unselected = " + unselected.toList )
@@ -129,20 +132,20 @@ extends TrailView with TrailViewEditor {
      dispatch( SelectionChanged( unionSpan( changedStakes: _* ), changedStakes: _* ))
   }
 
-  def isSelected( stake: Stake ) : Boolean = selectedStakesVar.contains( stake )
+  def isSelected( stake: T ) : Boolean = selectedStakesVar.contains( stake )
 
-  def editor: Option[ TrailViewEditor ] = Some( this )
+  def editor: Option[ TrailViewEditor[ T ]] = Some( this )
    // ---- TrailViewEditor ----
 
   def undoManager: UndoManager = doc.getUndoManager
 
-  def editSelect( ce: AbstractCompoundEdit, stakes: Stake* ) : Unit =
+  def editSelect( ce: AbstractCompoundEdit, stakes: T* ) : Unit =
     editSetSelection( ce, stakes, true )
 
-  def editDeselect( ce: AbstractCompoundEdit, stakes: Stake* ) : Unit =
+  def editDeselect( ce: AbstractCompoundEdit, stakes: T* ) : Unit =
     editSetSelection( ce, stakes, false )
 
-  private def editSetSelection( ce: AbstractCompoundEdit, stakes: Seq[ Stake ], state: Boolean ) {
+  private def editSetSelection( ce: AbstractCompoundEdit, stakes: Seq[ T ], state: Boolean ) {
     val sf = stakes.filterNot( stake => isSelected( stake ) == state )
     if( !sf.isEmpty ) {
         val edit = new SimpleEdit( "editStakeSelection", false ) {

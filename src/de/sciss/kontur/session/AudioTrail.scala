@@ -48,15 +48,21 @@ object AudioRegion {
     }
 }
 
-class AudioRegion( s: Span, n: String, val audioFile: AudioFileElement,
-                   val offset: Long )
-extends Region( s, n ) {
+case class AudioRegion( span: Span, name: String, audioFile: AudioFileElement,
+                        offset: Long )
+extends RegionTrait[ AudioRegion ] {
   def toXML = <stake>
   <name>{name}</name>
   <span start={span.start.toString} stop={span.stop.toString}/>
   <audioFile idref={audioFile.id.toString}/>
   <offset>{offset}</offset>
 </stake>
+
+    def replaceStart( newStart: Long ): AudioRegion =
+      copy( span = new Span( newStart, span.stop ), offset = offset + newStart - span.start )
+
+    def replaceStop( newStop: Long ): AudioRegion =
+      copy( span = new Span( span.start, newStop ))
 }
 
 class AudioTrail( doc: Session ) extends BasicTrail[ AudioRegion ]( doc ) {

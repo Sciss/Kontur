@@ -31,13 +31,15 @@ package de.sciss.kontur.sc
 import java.awt.event.{ ActionEvent, ActionListener }
 import scala.collection.mutable.{ ArrayBuffer }
 import de.sciss.kontur.session.{ AudioRegion, AudioTrack, BasicDiffusion,
-                                Diffusion, Session, Timeline, Track, Transport }
+                                Diffusion, Session, Stake, Timeline, Track, Transport }
 import de.sciss.io.{ Span }
 import de.sciss.util.{ Disposable }
 import de.sciss.tint.sc._
 import SC._
 import de.sciss.tint.sc.ugen._
 import scala.math._
+
+//import Track.Tr
 
 class SuperColliderPlayer( client: SuperColliderClient, val doc: Session )
 extends Disposable {
@@ -236,7 +238,7 @@ val envGen = Line.kr( amp, amp, i_dur, doneAction = freeSelf )
           private var start             = 0L
           private val timer             = new javax.swing.Timer( (transportDelta * 1000).toInt, this )
           private val players           = new ArrayBuffer[ TrackPlayer ]()
-          private var mapPlayers        = Map[ Track, TrackPlayer ]()
+          private var mapPlayers        = Map[ Track[ _ ], TrackPlayer ]()
 
            private val tracksListener = (msg: AnyRef) => msg match {
               case tracks.ElementAdded( idx, t ) => addTrack( idx, t )
@@ -274,8 +276,8 @@ if( verbose ) println( "| | | | | timer " + start )
               start += deltaFrames
           }
 
-          private def addTrack( idx: Int, t: Track ) {
-             val player = t match {
+          private def addTrack( idx: Int, t: Track[ _ ]) {
+             val player: TrackPlayer = t match {
              case at: AudioTrack => new AudioTrackPlayer( at )
              case _ => new DummyPlayer( t )
              }
@@ -283,7 +285,7 @@ if( verbose ) println( "| | | | | timer " + start )
              players.insert( idx, player )
           }
 
-          private def removeTrack( idx: Int, t: Track ) {
+          private def removeTrack( idx: Int, t: Track[ _ ]) {
              val ptest = mapPlayers( t )
              mapPlayers -= t
              val player = players.remove( idx )
@@ -303,11 +305,11 @@ if( verbose ) println( "stop" )
           }
 
            trait TrackPlayer extends Disposable {
-              def track: Track
+              def track: Track[ _ ]
               def step( span: Span )
            }
 
-           class DummyPlayer( val track: Track )
+           class DummyPlayer( val track: Track[ _ ])
            extends TrackPlayer {
               def dispose {}
               def step( span: Span ) {}

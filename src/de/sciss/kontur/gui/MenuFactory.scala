@@ -71,6 +71,10 @@ extends BasicMenuFactory( app ) {
 	protected def getOpenAction() : Action = actionOpen
 
   	protected def addMenuItems() {
+		// Ctrl on Mac / Ctrl+Alt on PC
+		val myCtrl = if( MENU_SHORTCUT == InputEvent.CTRL_MASK ) InputEvent.CTRL_MASK | InputEvent.ALT_MASK
+        else InputEvent.CTRL_MASK
+
 		// --- file menu ---
 
 		val mgFile      = get( "file" ).asInstanceOf[ MenuGroup ]
@@ -84,7 +88,14 @@ extends BasicMenuFactory( app ) {
 							  KeyStroke.getKeyStroke( KeyEvent.VK_F5, MENU_SHORTCUT )))
 
 		mgTimeline.add( new MenuItem( "insertSpan", getResourceString( "menuInsertSpan" ),
-							  KeyStroke.getKeyStroke( KeyEvent.VK_E, MENU_SHORTCUT + InputEvent.SHIFT_MASK )))
+							  KeyStroke.getKeyStroke( KeyEvent.VK_E, MENU_SHORTCUT | InputEvent.SHIFT_MASK )))
+		mgTimeline.add( new MenuItem( "clearSpan", getResourceString( "menuClearSpan" ),
+							  KeyStroke.getKeyStroke( KeyEvent.VK_BACK_SLASH, MENU_SHORTCUT )))
+		mgTimeline.add( new MenuItem( "removeSpan", getResourceString( "menuRemoveSpan" ),
+							  KeyStroke.getKeyStroke( KeyEvent.VK_BACK_SLASH, MENU_SHORTCUT | InputEvent.SHIFT_MASK )))
+        mgTimeline.addSeparator()
+		mgTimeline.add( new MenuItem( "splitObject", getResourceString( "menuSplitObject" ),
+							  KeyStroke.getKeyStroke( KeyEvent.VK_E, myCtrl )))
 		add( mgTimeline, indexOf( "edit" ) + 1 )
     }
 
