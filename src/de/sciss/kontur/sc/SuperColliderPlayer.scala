@@ -50,6 +50,7 @@ extends Disposable {
     private val clientListener = (msg: AnyRef) => msg match {
        case Server.Running => serverRunning
        case Server.Offline => serverOffline
+       case _ => // because we call the listener directly!
 //       case SuperColliderClient.ServerChanged( s ) => serverChanged( s )
     }
 

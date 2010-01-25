@@ -28,27 +28,28 @@
 
 package de.sciss.kontur.gui
 
-import de.sciss.app.{ AbstractApplication, AbstractWindow }
-import de.sciss.gui.{ ComboBoxEditorBorder, PathField, PrefCheckBox, PrefParamField,
+import de.sciss.app.{ AbstractApplication, AbstractWindow, PreferenceEntrySync }
+import de.sciss.gui.{ ComboBoxEditorBorder, CoverGrowBox, PathField,
+                     PrefCheckBox, PrefComboBox, PrefParamField,
                      StringItem, TreeExpanderButton }
-import de.sciss.common.{ BasicPathField }
+import de.sciss.common.{ BasicWindowHandler, BasicPathField }
 import de.sciss.util.{ Param, ParamSpace }
 import de.sciss.kontur.{ Main }
 import de.sciss.kontur.util.{ PrefsUtil }
 import PrefsUtil._
-import java.awt.{ BorderLayout, Color, SystemColor }
-import java.awt.event.{ ActionEvent }
+import java.awt.{ BorderLayout, Color, Dimension, SystemColor }
+import java.awt.event.{ ActionEvent, ActionListener }
 import java.util.prefs.{ Preferences }
 import javax.swing.{ AbstractAction, AbstractButton, ButtonGroup, GroupLayout,
                     JButton, JComboBox, JComponent, JLabel, JPanel, JScrollPane,
-                    JTable, JToggleButton, JToolBar, ScrollPaneConstants,
-                    WindowConstants }
+                    JTable, JToggleButton, JToolBar, OverlayLayout, ScrollPaneConstants,
+                    SwingConstants, UIManager, WindowConstants }
 
 class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
 
     // ---- constructor ----
     {
-      setTitle( "Preferences" ) // getResourceString( "framePrefs" )
+      setTitle( getResourceString( "framePrefs" ))
       setResizable( false )
       makeUnifiedLook
       
@@ -124,35 +125,92 @@ class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
         (panel, layout)
     }
 
+    override def dispose {
+        app.removeComponent( Main.COMP_PREFS )
+        super.dispose
+    }
+    
     private def generalPanel : JComponent = {
+		val prefs   = app.getUserPrefs()
 
         val (panel, layout) = createPanel
 
-        val ggOne   = new JLabel( "One" )
-        val ggTwo   = new javax.swing.JTextField( "Two" )
-        val ggThree = new JLabel( "Three" )
-        val ggFour  = new javax.swing.JTextField( "Four" )
+//        val ggWarn = new JPanel()
+//        ggWarn.setLayout( new OverlayLayout( ggWarn ))
+        val lbWarn = new JLabel( getResourceString( "warnLookAndFeelUpdate" ),
+                                 UIManager.getIcon( "OptionPane.warningIcon" ),
+                                 SwingConstants.LEADING )
+        lbWarn.setVisible( false )
+//        ggWarn.add( new JComponent() {
+//            override def getPreferredSize() = lbWarn.getPreferredSize()
+//        })
+        val ggWarn = new JPanel() {
+            setOpaque( false )
+            override def getPreferredSize() = lbWarn.getPreferredSize()
+        }
+        ggWarn.add( lbWarn )
 
-        layout.setHorizontalGroup( layout.createSequentialGroup()
-          .addGroup( layout.createParallelGroup()
-            .addComponent( ggOne )
-            .addComponent( ggThree )
+        def addWarn( b: { def addActionListener( l: ActionListener ): Unit }, pes: PreferenceEntrySync ) {
+			val initialValue = pes.getPreferenceNode().get( pes.getPreferenceKey(), null )
+            b.addActionListener( new ActionListener {
+                def actionPerformed( e: ActionEvent ) {
+                  val newValue = pes.getPreferenceNode().get( pes.getPreferenceKey(), initialValue )
+        		  if( newValue != initialValue ) {
+                      lbWarn.setVisible( true )
+                  }
+                }
+			})
+        }
+
+        val lbLAF   = new JLabel( getResourceString( "prefsLookAndFeel" ))
+        val ggLAF   = new PrefComboBox()
+		val lafInfos = UIManager.getInstalledLookAndFeels()
+        for( info <- lafInfos ) {
+            ggLAF.addItem( new StringItem( info.getClassName(), info.getName() ))
+        }
+        ggLAF.setPreferences( prefs, KEY_LOOKANDFEEL )
+        addWarn( ggLAF, ggLAF )
+
+        val ggLAFDeco = new PrefCheckBox( getResourceString( "prefsLAFDecoration" ))
+        ggLAFDeco.setPreferences( prefs, BasicWindowHandler.KEY_LAFDECORATION )
+        addWarn( ggLAFDeco, ggLAFDeco )
+
+        val ggInternalFrames = new PrefCheckBox( getResourceString( "prefsInternalFrames" ))
+        ggInternalFrames.setPreferences( prefs, BasicWindowHandler.KEY_INTERNALFRAMES )
+        addWarn( ggInternalFrames, ggInternalFrames )
+
+        val ggIntrudingSize = new PrefCheckBox( getResourceString( "prefsIntrudingSize" ))
+        ggIntrudingSize.setPreferences( prefs, CoverGrowBox.KEY_INTRUDINGSIZE )
+        addWarn( ggIntrudingSize, ggIntrudingSize )
+
+        val ggFloatingPalettes = new PrefCheckBox( getResourceString( "prefsFloatingPalettes" ))
+        ggFloatingPalettes.setPreferences( prefs, BasicWindowHandler.KEY_FLOATINGPALETTES )
+        addWarn( ggFloatingPalettes, ggFloatingPalettes )
+    
+        layout.setHorizontalGroup( layout.createParallelGroup()
+          .addGroup( layout.createSequentialGroup()
+            .addComponent( lbLAF )
+            .addGroup( layout.createParallelGroup()
+              .addComponent( ggLAF )
+              .addComponent( ggLAFDeco )
+              .addComponent( ggInternalFrames )
+              .addComponent( ggIntrudingSize )
+              .addComponent( ggFloatingPalettes )
+            )
           )
-          .addGroup( layout.createParallelGroup()
-            .addComponent( ggTwo )
-            .addComponent( ggFour )
-          )
-        )
+          .addComponent( ggWarn )
+         )
 
         layout.setVerticalGroup( layout.createSequentialGroup()
           .addGroup( layout.createParallelGroup( GroupLayout.Alignment.BASELINE )
-            .addComponent( ggOne )
-            .addComponent( ggTwo )
+            .addComponent( lbLAF )
+            .addComponent( ggLAF )
           )
-          .addGroup( layout.createParallelGroup( GroupLayout.Alignment.BASELINE )
-            .addComponent( ggThree )
-            .addComponent( ggFour )
-          )
+          .addComponent( ggLAFDeco )
+          .addComponent( ggInternalFrames )
+          .addComponent( ggIntrudingSize )
+          .addComponent( ggFloatingPalettes )
+          .addComponent( ggWarn )
         )
         panel
     }
@@ -170,8 +228,8 @@ val bg = panel.getBackground
         ggApp.setPreferences( prefs, KEY_SUPERCOLLIDERAPP )
 ggApp.setBackground( bg )
 
-        val lbBoot  = new JLabel( getResourceString( "prefsAutoBoot" ))
-        val ggBoot  = new PrefCheckBox( " " ) // space to have proper baseline!
+//        val lbBoot  = new JLabel( getResourceString( "prefsAutoBoot" ))
+        val ggBoot  = new PrefCheckBox( getResourceString( "prefsAutoBoot" )) // space to have proper baseline!
         ggBoot.setPreferences( prefs, KEY_AUTOBOOT )
 
         val lbInterfaces = new JLabel( getResourceString( "labelAudioIFs" ))
@@ -201,7 +259,7 @@ ggRateParam.setBackground( bg )
         layout.setHorizontalGroup( layout.createSequentialGroup()
           .addGroup( layout.createParallelGroup( GroupLayout.Alignment.TRAILING )
             .addComponent( lbApp )
-            .addComponent( lbBoot )
+//            .addComponent( lbBoot )
             .addComponent( lbInterfaces )
             .addComponent( lbRate )
             .addGroup( layout.createSequentialGroup()
@@ -222,10 +280,11 @@ ggRateParam.setBackground( bg )
             .addComponent( lbApp )
             .addComponent( ggApp )
           )
-          .addGroup( layout.createParallelGroup( GroupLayout.Alignment.BASELINE )
-            .addComponent( lbBoot )
-            .addComponent( ggBoot )
-          )
+//          .addGroup( layout.createParallelGroup( GroupLayout.Alignment.BASELINE )
+//            .addComponent( lbBoot )
+//            .addComponent( ggBoot )
+//          )
+          .addComponent( ggBoot )
           .addGroup( layout.createParallelGroup( GroupLayout.Alignment.LEADING )
             .addComponent( lbInterfaces )
             .addComponent( ggInterfaces )

@@ -128,6 +128,9 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 	  toFront()
     }
 
+    override protected def autoUpdatePrefs = true
+	override protected def alwaysPackSize = false
+
 	/**
 	 *  Recreates the main frame's title bar
 	 *  after a sessions name changed (clear/load/save as session)

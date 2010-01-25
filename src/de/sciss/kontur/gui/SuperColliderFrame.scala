@@ -39,7 +39,8 @@ import javax.swing.{ AbstractAction, BorderFactory, Box, JButton, JComponent,
           JPanel, JProgressBar, KeyStroke, OverlayLayout }
 import scala.math._
 
-class SuperColliderFrame extends AppWindow( AbstractWindow.SUPPORT ) {
+// note: should be PALETTE, but then we loose the key actions...
+class SuperColliderFrame extends AppWindow( AbstractWindow.SUPPORT /* PALETTE */ ) {
    private val superCollider = SuperColliderClient.instance
    private val serverPanel = new ServerStatusPanel(
      ServerStatusPanel.COUNTS | ServerStatusPanel.BOOT_BUTTON ) {
@@ -75,6 +76,8 @@ class SuperColliderFrame extends AppWindow( AbstractWindow.SUPPORT ) {
       superCollider.addListener( clientListener )
       init()
    }
+
+   override protected def autoUpdatePrefs = true
 
    private class ActionDumpTree( controls: Boolean  )
    extends AbstractAction {

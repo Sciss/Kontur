@@ -97,7 +97,11 @@ extends BasicMenuFactory( app ) {
 		mgTimeline.add( new MenuItem( "splitObjects", getResourceString( "menuSplitObjects" ),
 							  KeyStroke.getKeyStroke( KeyEvent.VK_X, myCtrl )))
 		add( mgTimeline, indexOf( "edit" ) + 1 )
-    }
+
+  		// --- window menu ---
+		val mgWindow  = get( "window" ).asInstanceOf[ MenuGroup ]
+  		mgWindow.add( new MenuItem( "observer", new ActionObserver( getResourceString( "paletteObserver" ), KeyStroke.getKeyStroke( KeyEvent.VK_NUMPAD3, MENU_SHORTCUT ))), 3 )
+  }
 
   // ---- internal classes ----
 	// action for the New-Empty Document menu item
@@ -249,6 +253,19 @@ extends BasicMenuFactory( app ) {
 			catch { case e1: IOException =>
 				BasicWindowHandler.showErrorDialog( null, e1, getValue( Action.NAME ).toString() )
 			}
+		}
+	}
+
+	// action for the Observer menu item
+	private class ActionObserver( text: String, shortcut: KeyStroke )
+	extends MenuAction( text, shortcut ) {
+		def actionPerformed( e: ActionEvent ) {
+            val f = app.getComponent( Main.COMP_OBSERVER ) match {
+                case fr: ObserverFrame => fr
+                case _ => new ObserverFrame()
+            }
+			f.setVisible( true )
+			f.toFront()
 		}
 	}
 }

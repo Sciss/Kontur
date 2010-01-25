@@ -31,7 +31,7 @@ package de.sciss.kontur.gui
 import de.sciss.app.{ AbstractApplication, AbstractWindow }
 import de.sciss.common.{ BasicApplication, BasicMenuFactory, ShowWindowAction,
                         BasicWindowHandler}
-import de.sciss.gui.{ GUIUtil, MenuAction, MenuGroup, MenuItem, ParamField, SpringPanel}
+import de.sciss.gui.{ GUIUtil, MenuAction, MenuGroup, MenuItem, SpringPanel}
 import de.sciss.io.{ Span }
 import de.sciss.kontur.session.{ AudioRegion, AudioTrack, Session, Stake, Timeline }
 import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }

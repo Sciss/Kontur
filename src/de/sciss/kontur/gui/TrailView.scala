@@ -160,3 +160,10 @@ extends TrailView[ T ] with TrailViewEditor[ T ] {
 //    var selected = false
 //  }
 }
+
+/*
+trait TrailsView extends Model {
+    def isSelected[ T <: Stake[ T ]]( s: T ) : Boolean
+    def selectedStakes: Set[ _ <: Stake[ _ ]]
+}
+*/

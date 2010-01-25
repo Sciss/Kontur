@@ -28,10 +28,11 @@
 
 package de.sciss.kontur.gui
 
-import de.sciss.app.{ DynamicListening }
+import de.sciss.app.{ AbstractApplication, DynamicListening }
 import de.sciss.common.{ BasicWindowHandler }
 import de.sciss.gui.{ MenuItem }
 import de.sciss.io.{ AudioFile, AudioFileDescr }
+import de.sciss.kontur.{ Main }
 import de.sciss.kontur.session.{ AudioFileElement, AudioTrack, BasicDiffusion,
                                 BasicTimeline, Diffusion, Session, SessionElement,
                                 SessionElementSeq, Stake, Timeline, Track }
@@ -331,7 +332,11 @@ class DiffusionTreeLeaf( model: SessionTreeModel, diff: Diffusion )
 extends SessionElementTreeNode( model, diff, false )
 with HasDoubleClickAction with CanBeDragSource {
     def doubleClickAction {
-      println( "DANG" )
+        val page      = DiffusionObserverPage.instance
+        val observer  = AbstractApplication.getApplication()
+          .getComponent( Main.COMP_OBSERVER ).asInstanceOf[ ObserverFrame ]
+        page.setObjects( diff )
+        observer.selectPage( page.id )
    }
 
    def transferDataFlavors = List( Diffusion.flavor )

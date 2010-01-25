@@ -45,7 +45,7 @@ import de.sciss.app.{ AbstractApplication, AncestorAdapter, Application, BasicEv
                      DynamicAncestorAdapter, DynamicListening, EventManager,
                      GraphicsHandler }
 import de.sciss.common.{ BasicWindowHandler }
-import de.sciss.gui.{ ComponentHost, DoClickAction, MenuAction, ParamField,
+import de.sciss.gui.{ ComponentHost, DoClickAction, MenuAction,
                      SpringPanel }
 import de.sciss.io.{ Span }
 import de.sciss.util.{ DefaultUnitTranslator, Disposable, Param, ParamSpace }

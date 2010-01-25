@@ -48,8 +48,9 @@ trait Diffusion extends SessionElement {
 }
 
 trait DiffusionEditor extends Editor {
-    def editSetNumInputChannels( ce: AbstractCompoundEdit, newNum: Int )
-    def editSetNumOutputChannels( ce: AbstractCompoundEdit, newNum: Int )
+    def editSetNumInputChannels( ce: AbstractCompoundEdit, newNum: Int ) : Unit
+    def editSetNumOutputChannels( ce: AbstractCompoundEdit, newNum: Int ) : Unit
+    def editRename( ce: AbstractCompoundEdit, newName: String ) : Unit
 }
 
 object BasicDiffusion {
@@ -76,8 +77,6 @@ extends Diffusion with DiffusionEditor with Renameable {
     private var numInputChannelsVar  = 1
     private var numOutputChannelsVar = 1
     private var matrixVar = Matrix2D.fill( 1, 1, 1f )
-
-    def matrix = matrixVar
 
     def toXML =
        <diffusion id={id.toString}>
@@ -120,7 +119,7 @@ extends Diffusion with DiffusionEditor with Renameable {
          dispatchMatrixChange( oldMatrix )
       }
     }
-    def numOutputChannels = numInputChannelsVar
+    def numOutputChannels = numOutputChannelsVar
     def numOutputChannels_=( newNum: Int ) {
       if( newNum != numOutputChannelsVar ) {
          val change = NumOutputChannelsChanged( numOutputChannelsVar, newNum )
@@ -130,21 +129,62 @@ extends Diffusion with DiffusionEditor with Renameable {
          dispatchMatrixChange( oldMatrix )
       }
     }
+    def matrix = matrixVar
+    def matrix_=( newMatrix: Matrix2D[ Float ]) {
+        var changes: List[ AnyRef ] = Nil
+        if( newMatrix != matrixVar ) {
+           changes ::= MatrixChanged( matrixVar, newMatrix )
+           matrixVar = newMatrix
+        }
+        if( newMatrix.numColumns != numOutputChannelsVar ) {
+           changes ::= NumOutputChannelsChanged( numOutputChannelsVar, newMatrix.numColumns )
+           numOutputChannelsVar = newMatrix.numColumns
+        }
+        if( newMatrix.numRows != numInputChannelsVar ) {
+           changes ::= NumInputChannelsChanged( numInputChannelsVar, newMatrix.numRows )
+           numInputChannelsVar = newMatrix.numRows
+        }
+        changes.foreach( msg => dispatch( msg ))
+    }
 
     def undoManager: UndoManager = doc.getUndoManager
 
     def editor: Option[ DiffusionEditor ] = Some( this )
     // ---- DiffusionEditor ----
     def editSetNumInputChannels( ce: AbstractCompoundEdit, newNum: Int ) {
-       throw new RuntimeException( "NOT YET IMPLEMENTED" )
+        val edit = new SimpleEdit( "editSetNumInputChannels" ) {
+           lazy val oldNum = numInputChannels
+           def apply { oldNum; numInputChannels = newNum }
+           def unapply { numInputChannels = oldNum }
+        }
+        ce.addPerform( edit )
     }
 
     def editSetNumOutputChannels( ce: AbstractCompoundEdit, newNum: Int ) {
-       throw new RuntimeException( "NOT YET IMPLEMENTED" )
+        val edit = new SimpleEdit( "editSetNumOutputChannels" ) {
+           lazy val oldNum = numOutputChannels
+           def apply { oldNum; numOutputChannels = newNum }
+           def unapply { numOutputChannels = oldNum }
+        }
+        ce.addPerform( edit )
     }
 
-    def editSetMatrix( ce: AbstractCompoundEdit, matrix: Array[ Array[ Float ]]) {
-       throw new RuntimeException( "NOT YET IMPLEMENTED" )
+    def editSetMatrix( ce: AbstractCompoundEdit, newMatrix: Matrix2D[ Float ]) {
+        val edit = new SimpleEdit( "editSetMatrix" ) {
+           lazy val oldMatrix = matrix
+           def apply { oldMatrix; matrix = newMatrix }
+           def unapply { matrix = oldMatrix }
+        }
+        ce.addPerform( edit )
+    }
+
+    def editRename( ce: AbstractCompoundEdit, newName: String ) {
+        val edit = new SimpleEdit( "editRenameDiffusion" ) {
+           lazy val oldName = name
+           def apply { oldName; name = newName }
+           def unapply { name = oldName }
+        }
+        ce.addPerform( edit )
     }
 }
 
