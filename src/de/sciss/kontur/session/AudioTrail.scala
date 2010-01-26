@@ -31,6 +31,7 @@ package de.sciss.kontur.session
 import java.io.{ IOException }
 import scala.xml.{ Node }
 import de.sciss.io.{ Span }
+import scala.math._
 
 object AudioRegion {
    val XML_NODE = "stake"
@@ -50,7 +51,7 @@ object AudioRegion {
 
 case class AudioRegion( span: Span, name: String, audioFile: AudioFileElement,
                         offset: Long )
-extends RegionTrait[ AudioRegion ] {
+extends RegionTrait[ AudioRegion ] with SlidableStake[ AudioRegion ] {
   def toXML = <stake>
   <name>{name}</name>
   <span start={span.start.toString} stop={span.stop.toString}/>
@@ -58,11 +59,39 @@ extends RegionTrait[ AudioRegion ] {
   <offset>{offset}</offset>
 </stake>
 
+   def move( delta: Long ) : AudioRegion = copy( span = span.shift( delta ))
+
+   def moveOuter( delta: Long ) : AudioRegion = {
+      val d = max( -offset, min( audioFile.numFrames - span.getLength, delta ))
+      if( d == 0 ) this
+      else copy( span = span.shift( d ), offset = offset + d )
+   }
+   
+   def moveInner( delta: Long ) : AudioRegion = {
+      val d = max( -offset, min( audioFile.numFrames - span.getLength, delta ))
+      if( d == 0 ) this
+      else copy( offset = offset + d )
+   }
+   
+   def moveStart( delta: Long ) : AudioRegion = {
+      val d = max( -offset, min( span.getLength - 1, delta ))
+      if( d == 0 ) this
+      else copy( span = span.replaceStart( span.start + d ), offset = offset + d )
+   }
+
+   def moveStop( delta: Long ) : AudioRegion = {
+      val d = max( -(span.getLength - 1), min( audioFile.numFrames - span.getLength, delta ))
+      if( d == 0 ) this
+      else copy( span = span.replaceStop( span.stop + d ))
+   }
+
+/*
     def replaceStart( newStart: Long ): AudioRegion =
       copy( span = new Span( newStart, span.stop ), offset = offset + newStart - span.start )
 
     def replaceStop( newStop: Long ): AudioRegion =
       copy( span = new Span( span.start, newStop ))
+*/
 }
 
 class AudioTrail( doc: Session ) extends BasicTrail[ AudioRegion ]( doc ) {

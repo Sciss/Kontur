@@ -202,10 +202,18 @@ with HasContextMenu {
         def actionPerformed( a: ActionEvent ) {
            audioFiles.editor.foreach( ed => {
              getPath.foreach( path => {
-               val ce = ed.editBegin( getValue( Action.NAME ).toString )
-               val afe = new AudioFileElement( model.doc.createID, path )
-               ed.editInsert( ce, audioFiles.size, afe )
-               ed.editEnd( ce )
+               val name = getValue( Action.NAME ).toString
+               try {
+                  val af = AudioFile.openAsRead( path )
+                  val afd = af.getDescr()
+                  af.close
+                  val ce = ed.editBegin( name )
+                  val afe = new AudioFileElement( model.doc.createID, path,
+                     afd.length, afd.channels )
+                  ed.editInsert( ce, audioFiles.size, afe )
+                  ed.editEnd( ce )
+               }
+               catch { case e1: IOException => BasicWindowHandler.showErrorDialog( null, e1, name )}
              })
            })
         }

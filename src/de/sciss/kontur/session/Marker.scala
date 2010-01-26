@@ -33,9 +33,5 @@ import de.sciss.io.{ Span }
 case class Marker( pos: Long, name: String ) extends Stake[ Marker ] {
     val span = new Span( pos, pos )
 
-    def replaceStart( newStart: Long ): Marker =
-      copy( pos = newStart )
-
-    def replaceStop( newStop: Long ): Marker =
-      copy( pos = newStop )
+    def move( delta: Long ): Marker = copy( pos = pos + delta )
 }

@@ -35,22 +35,36 @@ import de.sciss.io.{ AudioFile, AudioFileDescr }
 object AudioFileElement {
     val XML_NODE = "audioFile"
 
-    def fromXML( doc: Session, node: Node ) : AudioFileElement = {
-       val id       = (node \ "@id").text.toInt
-       val path     = new File( (node \ "path").text )
-       val afe      = new AudioFileElement( id, path )
-//       afe.fromXML( node )
-       afe
-    }
+   def fromXML( doc: Session, node: Node ) : AudioFileElement = {
+      val id            = (node \ "@id").text.toInt
+      val path          = new File( (node \ "path").text )
+      val numFrames     = (node \ "numFrames").text.toLong
+      val numChannels   = (node \ "numChannels").text.toInt
+      val afe           = new AudioFileElement( id, path, numFrames, numChannels )
+//    afe.fromXML( node )
+      afe
+   }
+
+   @throws( classOf[ IOException ])
+   def fromPath( doc: Session, path: File ) : AudioFileElement = {
+      val af      = AudioFile.openAsRead( path )
+      val descr   = af.getDescr
+      af.close
+      new AudioFileElement( doc.createID, path, descr.length, descr.channels )
+   }
 }
 
-class AudioFileElement( val id: Long, val path: File ) extends SessionElement {
+class AudioFileElement( val id: Long, val path: File, val numFrames: Long, val numChannels: Int )
+extends SessionElement {
   def name: String = path.getName
 
   def toXML = <audioFile id={id.toString}>
   <path>{path.getAbsolutePath}</path>
+  <numFrames>{numFrames}</numFrames>
+  <numChannels>{numChannels}</numChannels>
 </audioFile>
 
+/*
   lazy val descr: Option[ AudioFileDescr ] = {
       try {
         val af = AudioFile.openAsRead( path )
@@ -59,6 +73,7 @@ class AudioFileElement( val id: Long, val path: File ) extends SessionElement {
       }
       catch { case e1: IOException => None }
   }
+*/
 }
 
 class AudioFileSeq( doc: Session )

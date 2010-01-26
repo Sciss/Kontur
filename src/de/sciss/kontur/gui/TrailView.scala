@@ -36,7 +36,9 @@ import de.sciss.kontur.session.{ Session, SessionElementSeq, Stake, Track, Trail
 import de.sciss.kontur.util.{ Model }
 
 object TrailView {
-    case class SelectionChanged( span: Span, stakes: Stake[ _ ]* )
+   // FUCKING SCHEISS DOES NOT COMPILE ANY MORE
+//    case class SelectionChanged( span: Span, stakes: Stake[ _ ]* )
+    case class SelectionChanged( span: Span )
 }
 
 trait TrailView[ T <: Stake[ T ]] extends Model {
@@ -129,7 +131,8 @@ extends TrailView[ T ] with TrailViewEditor[ T ] {
 
 //println( "after sel : " + selectedStakesVar.toList )
 
-     dispatch( SelectionChanged( unionSpan( changedStakes: _* ), changedStakes: _* ))
+//     dispatch( SelectionChanged( unionSpan( changedStakes: _* ), changedStakes: _* ))
+     dispatch( SelectionChanged( unionSpan( changedStakes: _* )))
   }
 
   def isSelected( stake: T ) : Boolean = selectedStakesVar.contains( stake )

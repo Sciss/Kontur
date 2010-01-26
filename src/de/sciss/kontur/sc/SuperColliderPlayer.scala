@@ -329,17 +329,17 @@ if( verbose ) println( "stop" )
 //println( "---2 " + stake )
                     if( !stakesMap.contains( stake )) {
 //println( "---3 " + stake.audioFile.descr )
-                      stake.audioFile.descr.foreach( descr => {
+                      val numChannels = stake.audioFile.numChannels
 //println( "---4 " + descr.channels )
-                        if( descr.channels == diff.numInputChannels ) {
+                        if( numChannels == diff.numInputChannels ) {
 //println( "---5" )
                           val bndl        = new MixedBundle
                           val frameOffset = Math.max( 0L, start - stake.span.start )
-                          val buffer      = new Buffer( server, 32768, descr.channels )
+                          val buffer      = new Buffer( server, 32768, numChannels )
                           bndl.addPrepare( buffer.allocMsg )
                           bndl.addPrepare( buffer.cueSoundFileMsg( stake.audioFile.path.getAbsolutePath,
                                                                   (stake.offset + frameOffset).toInt )) // XXX toInt
-                          val defName     = "disk_" + descr.channels
+                          val defName     = "disk_" + numChannels
                           val synth       = new Synth( defName, server )
                           val durFrames   = Math.max( 0, stake.span.getLength - frameOffset )
                           val durSecs     = durFrames / sampleRate
@@ -364,7 +364,6 @@ if( verbose ) println( "stop" )
                           val bndlTime = Math.max( 0.0, (stake.span.start - start) / sampleRate ) + bufferLatency
                           bndl.send( server, bndlTime )
                         }
-                      })
                     }
                   })
                 })

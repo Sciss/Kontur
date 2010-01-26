@@ -33,7 +33,8 @@ import de.sciss.common.{ BasicApplication, BasicMenuFactory, ShowWindowAction,
                         BasicWindowHandler}
 import de.sciss.gui.{ GUIUtil, MenuAction, MenuGroup, MenuItem, SpringPanel}
 import de.sciss.io.{ Span }
-import de.sciss.kontur.session.{ AudioRegion, AudioTrack, Session, Stake, Timeline }
+import de.sciss.kontur.session.{ AudioRegion, AudioTrack, Session, Stake,
+                                 ResizableStake, Timeline }
 import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }
 import java.awt.event.{ ActionEvent, InputEvent, KeyEvent }
 import java.awt.{ BorderLayout, Dimension, Point, Rectangle }
@@ -527,7 +528,7 @@ extends AppWindow( AbstractWindow.REGULAR ) {
         	val pos	= timelineView.cursor.position
             timelineView.timeline.editor.foreach( ed => {
                 val ce = ed.editBegin( getValue( Action.NAME ).toString )
-                val span = new Span( pos, pos )
+                val span = new Span( pos, pos ) // XXX should verify that we don't hit stakes at their margins?
                 tracksPanel.foreach( elem => {
                       val track = elem.track // "stable"
                        val tvCast = elem.trailView.asInstanceOf[ TrailView[ track.T ]]
@@ -541,19 +542,22 @@ extends AppWindow( AbstractWindow.REGULAR ) {
                               var toRemove   = trail.emptyList
                               var toAdd      = trail.emptyList
                               var toSelect   = trail.emptyList
-                              trail.visitRange( span )( stake => {
-                                  if( tvCast.isSelected( stake )) {
-                                      toDeselect ::= stake
-                                      toRemove ::= stake
-//                                    val splitted = stake.split( pos )
-                                      val stake1 = stake.replaceStop( pos )
-                                      val stake2 = stake.replaceStart( pos )
-                                      toAdd ::= stake1
-                                      toAdd ::= stake2
-                                      toSelect ::= stake1
-                                      toSelect ::= stake2
-                                  }
-                              })
+                              trail.visitRange( span )( stake =>
+                                 if( tvCast.isSelected( stake )) stake match {
+                                    case rStake: ResizableStake[ _ ] => {
+                                       toDeselect ::= stake
+                                       toRemove ::= stake
+//                                     val splitted = stake.split( pos )
+                                       val stake1 = rStake.moveStop( pos - stake.span.stop )
+                                       val stake2 = rStake.moveStart( pos - stake.span.start )
+                                       toAdd ::= stake1
+                                       toAdd ::= stake2
+                                       toSelect ::= stake1
+                                       toSelect ::= stake2
+                                    }
+                                    case _ =>
+                                 }
+                              )
                               ed2.editDeselect( ce, toDeselect: _* )
                               ted.editRemove( ce, toRemove: _* )
                               ted.editAdd( ce, toAdd: _* )

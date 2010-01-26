@@ -161,6 +161,7 @@ trait TrackStakeTool extends TrackTool {
             comp.addMouseListener( this )
             comp.addMouseMotionListener( this )
 //          comp.addKeyListener( this )
+            comp.requestFocus
         }
 
         override def mouseReleased( e: MouseEvent ) {
@@ -203,6 +204,7 @@ trait TrackStakeTool extends TrackTool {
                 e.getComponent().addKeyListener( this )
                 dragBegin( this )
             }
+            dragAdjust( this )
         }
 
         def keyPressed( e: KeyEvent ) {

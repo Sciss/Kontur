@@ -49,11 +49,18 @@ case object TouchResize extends TouchMode( 2 )
 trait Stake[ +Repr ] {
   Repr =>
   val span: Span
-  def replaceStart( newStart: Long ) : Repr
-  def replaceStop( newStart: Long ) : Repr
+//  def reshape( newStart: Long, newStop: Long, innerMotion: Long ) : Repr
+   def move( delta: Long ) : Repr
+}
 
-//  def split( pos: Long ) : Tuple2[ this.type, this.type ] =
-//    Tuple2( replaceStop( pos ), replaceStart( pos ))
+trait ResizableStake[ +Repr ] extends Stake[ Repr ] {
+   def moveStart( delta: Long ) : Repr
+   def moveStop( delta: Long ) : Repr
+}
+
+trait SlidableStake[ +Repr ] extends Stake[ Repr ] {
+   def moveOuter( delta: Long ) : Repr
+   def moveInner( delta: Long ) : Repr
 }
 
 //object Trail {
