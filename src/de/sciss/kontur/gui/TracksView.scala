@@ -35,6 +35,8 @@ import de.sciss.kontur.edit.{ Editor, SimpleEdit }
 import de.sciss.kontur.session.{ AudioTrack, Session, SessionElementSeq, Stake, Track }
 import de.sciss.kontur.util.{ Model }
 
+/*
+
 object TracksView {
 //  case class SelectionChanged[ T <: Stake ]( tracks: Track[ T ]* )
 //    case class SelectionChanged[ T ]( tracks: Track[ T ]* )
@@ -153,3 +155,4 @@ extends TracksView with TracksViewEditor {
       }
   }
 }
+*/

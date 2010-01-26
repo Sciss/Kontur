@@ -84,7 +84,7 @@ with TopPaintable {
 
 	protected val markVisible = true
 
-	private var tracksTableVar: Option[ TracksPanel ] = None
+	private var trackListVar: TrackList = new DummyTrackList
     private var viewPortVar: Option[ JViewport ] = None
 
     private val timelineListener = (msg: AnyRef) => msg match {
@@ -121,17 +121,13 @@ with TopPaintable {
       }
     }
 
-    private var tracksViewListener: Option[ AnyRef => Unit ] = None
-
-    private def tracksViewListenerF( tracks: SessionElementSeq[ Track ]) = (msg: AnyRef) => {
-//      println( "tracksViewListener : " + msg )
-      msg match {
-      case tracks.ElementAdded( idx, elem ) => updateSelectionAndRepaint
-      case tracks.ElementRemoved( idx, elem ) => updateSelectionAndRepaint
-      case TracksView.SelectionChanged( _ ) => {
+    private val trackListListener = (msg: AnyRef) => msg match {
+      case TrackList.ElementAdded( idx, elem ) => updateSelectionAndRepaint
+      case TrackList.ElementRemoved( idx, elem ) => updateSelectionAndRepaint
+      case TrackList.SelectionChanged( _ @ _* ) => {
 //println( "....gugu" )
           updateSelectionAndRepaint
-      }}
+      }
     }
 
 //    private val markerListener = (msg: AnyRef) => msg match {
@@ -198,45 +194,13 @@ with TopPaintable {
     }
 */
 
-    def tracksTable = tracksTableVar
-    def tracksTable_=( newTT: Option[ TracksPanel ]) {
-      tracksTableVar.foreach( tt => {
-          tracksViewListener.foreach( l => tt.removeListener( l ))
-      })
-      tracksTableVar = newTT
-//println( "aqui1" )
-      tracksViewListener = None
-      tracksTableVar.foreach( tt =>{
-//println( "aqui2" )
-           val l = tracksViewListenerF( tt.tracksView.tracks )
-           tracksViewListener = Some( l )
-           tt.addListener( l )
-      })
+    def trackList = trackListVar
+    def trackList_=( newTL: TrackList ) {
+      trackListVar.removeListener( trackListListener )
+      trackListVar = newTL
+      trackListVar.addListener( trackListListener )
+      updateSelectionAndRepaint
     }
-/*
-	private var tracksVar: Option[ SessionElementSeq[ Track[ _ ]]] = None
-    def tracks = tracksVar
-	def tracks_=( newTracks: Option[ SessionElementSeq[ Track[ _ ]]]) {
-        tracksVar.foreach( t => t.removeListener( tracksListener( t )))
-        tracksVar = newTracks
-        newTracks.foreach( t => t.addListener( tracksListener( t )))
-   	}
-*/
-
-/*
-    private var markerTrackVar: Option[ Track ] = None
-    def markerTrack = markerTrackVar
-	def markerTrack_=( t: Option[ Track ]) {
-      markerTrail.foreach( _.removeListener( markerListener ))
-      markerTrail = t.map( _.trail )
-      markerTrail.foreach( _.addListener( markerListener ))
-      markerAxis.trail = markerTrail
-      markerTrackVar = t
-	}
-*/
-
-//	public void addCatchBypass() { /* scroll.addCatchBypass(); XXX*/ }
-//	public void removeCatchBypass() { /* scroll.removeCatchBypass(); XXX*/ }
 
 	protected def repaintMarkers( affectedSpan: Span ) {
 		if( !markVisible || !affectedSpan.touches( timelineVis )) return
@@ -336,7 +300,7 @@ with TopPaintable {
 	/* override */ def dispose {
 		timelineView.removeListener( timelineListener )
 //        tracksView.removeListener( tracksViewListener )
-        tracksTable = None
+        trackList = new DummyTrackList
 //		markerTrack = None
 //		this.stop
 
@@ -448,22 +412,11 @@ with TopPaintable {
 
 //        vpSelections ::= ViewportSelection( timelineAxis.getBounds, colrSelection )
  
-        tracksTableVar.foreach( tt => {
-//          for( i <- 0 until tt.numTracks ) {
-  //            val t = tt.getTrack(idx)
-  //            val v = tt.getTrackRenderer(t)
-  //            val x	= v.getX
-  //            val y	= v.getY
-
-              for( i <- 0 until tt.numTracks ) {
-                tt.getTrack( i ).foreach( t => {
-                   val r = tt.getTrackBounds( t )
-//                r.translate( x, y )
-                   vpSelections ::= ViewportSelection( r,
-                       if( tt.tracksView.isSelected( t )) colrSelection else colrSelection2 )
-                })
-              }
-         })
+        trackList.foreach( elem => {
+           val r = trackList.getBounds( elem )
+           vpSelections ::= ViewportSelection( r,
+               if( elem.selected ) colrSelection else colrSelection2 )
+        })
     }
 
 /*
@@ -489,6 +442,8 @@ with TopPaintable {
       }
     }
 */
+
+/*
   private def calcPreferredSize {
      val vp = viewPortVar.get
      val dim = getPreferredSize()
@@ -508,14 +463,13 @@ with TopPaintable {
        setPreferredSize( dim )
 //println( "PREFERRED 1 : " + dim )
      revalidate()
-     tracksTableVar.foreach( tt => {
-       val columnHeader = tt.columnHeaderView
-       val dim2 = columnHeader.getPreferredSize
-       dim2.width = dim.width
-       columnHeader.setPreferredSize( dim2 )
-       columnHeader.revalidate()
-     })
+     val columnHeader = trackList.columnHeaderView
+     val dim2 = columnHeader.getPreferredSize
+     dim2.width = dim.width
+     columnHeader.setPreferredSize( dim2 )
+     columnHeader.revalidate()
   }
+*/
 
 /*
   private def calcViewPortRect {

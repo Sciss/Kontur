@@ -53,11 +53,11 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 //	private var wpHaveWarned	= false
 //    private val actionShowWindow= new ShowWindowAction( this )
     private val timelineView  = new BasicTimelineView( doc, tl )
-    private val tracksView    = new BasicTracksView( doc, tl.tracks )
+//    private val trackList     = new BasicTrackList( doc, timelineView )
     private val timelinePanel = new TimelinePanel( timelineView )
 //    private val trailView     = new javax.swing.JLabel( "Trail" )
 //    private val trailsView     = new BasicTrailsView( doc, tl.tracks )
-    private val tracksPanel    = new TracksPanel( doc, tracksView, timelinePanel )
+    private val tracksPanel    = new TracksPanel( doc, timelinePanel )
 
     // ---- constructor ----
     {
@@ -165,25 +165,6 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 	def updateTitle {
 		setTitle( "Timeline : " + tl.name + " (" + doc.displayName + ")")
 	}
-
-    private def debugGenerator {
-      doc.audioFiles.get( 0 ).foreach( afe => {
-         tracksView.tracks.find( t => t.isInstanceOf[ AudioTrack ] && tracksView.isSelected( t ))
-          .foreach( t => {
-            val span = new Span( timelineView.cursor.position,
-                                min( timelineView.cursor.position + (timelineView.timeline.rate * 4 + 0.5).toLong,
-                                     timelineView.timeline.span.stop ))
-             if( !span.isEmpty ) {
-                t.asInstanceOf[ AudioTrack ].trail.editor.foreach( ed => {
-                    val ce = ed.editBegin( "debug" )
-                    val ar = new AudioRegion( span, afe.name, afe, 0L )
-                    ed.editAdd( ce, ar )
-                    ed.editEnd( ce )
-                })
-             }
-         })
-      })
-    }
 
 	private def initBounds {
 		val cp	= getClassPrefs()
@@ -517,19 +498,18 @@ extends AppWindow( AbstractWindow.REGULAR ) {
         def actionPerformed( e: ActionEvent ) : Unit = perform
 
         def perform {
-            tracksView.editor.foreach( ed => {
+            tracksPanel.editor.foreach( ed => {
                 val ce = ed.editBegin( getValue( Action.NAME ).toString )
-                tracksView.tracks.foreach( t => {
-                   tracksView.trailView( t ).foreach( tv => {
-                       val tvCast = tv.asInstanceOf[ TrailView[ t.T ]]
-                       tvCast.editor.foreach( ed2 => {
-                           val stakes = tvCast.selectedStakes.toList
-                           ed2.editDeselect( ce, stakes: _* )
-                           tvCast.trail.editor.foreach( ed3 => {
-                               ed3.editRemove( ce, stakes: _* )
-                           })
-                       })
-                   })
+                tracksPanel.foreach( elem => {
+                     val t = elem.track // "stable"
+                     val tvCast = elem.trailView.asInstanceOf[ TrailView[ t.T ]] // que se puede...
+                     tvCast.editor.foreach( ed2 => {
+                         val stakes = tvCast.selectedStakes.toList
+                         ed2.editDeselect( ce, stakes: _* )
+                         tvCast.trail.editor.foreach( ed3 => {
+                             ed3.editRemove( ce, stakes: _* )
+                         })
+                     })
                 })
                 ed.editEnd( ce )
             })
@@ -545,16 +525,16 @@ extends AppWindow( AbstractWindow.REGULAR ) {
             timelineView.timeline.editor.foreach( ed => {
                 val ce = ed.editBegin( getValue( Action.NAME ).toString )
                 val span = new Span( pos, pos )
-                tracksView.tracks.foreach( t => {
-                   tracksView.trailView( t ).foreach( tv => {
-                       val tvCast = tv.asInstanceOf[ TrailView[ t.T ]]
+                tracksPanel.foreach( elem => {
+                      val track = elem.track // "stable"
+                       val tvCast = elem.trailView.asInstanceOf[ TrailView[ track.T ]]
                        tvCast.editor.foreach( ed2 => {
                            val selectedStakes = ed2.view.selectedStakes
                            val trail = tvCast.trail
                            trail.editor.foreach( ted => {
 //                            ted.editClearSpan( ce, span )( stake => tv.isSelected( span ))
 //                            var toDeselect = trail.emptyList
-                              var toDeselect: List[ t.T ] = Nil // = trail.emptyList
+                              var toDeselect: List[ track.T ] = Nil // = trail.emptyList
                               var toRemove   = trail.emptyList
                               var toAdd      = trail.emptyList
                               var toSelect   = trail.emptyList
@@ -576,7 +556,6 @@ extends AppWindow( AbstractWindow.REGULAR ) {
                               ted.editAdd( ce, toAdd: _* )
                               ed2.editSelect( ce, toSelect: _* )
                            })
-                       })
                    })
                 })
                 ed.editEnd( ce )

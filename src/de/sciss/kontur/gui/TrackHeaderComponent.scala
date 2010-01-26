@@ -71,7 +71,7 @@ object DefaultTrackHeaderComponent {
                                                new Color( colrDarken.getRGB() & 0xFFFFFF, true ))
 }
 
-class DefaultTrackHeaderComponent( track: Track, tracksView: TracksView )
+class DefaultTrackHeaderComponent( protected val track: Track, trackList: TrackList )
 extends JPanel
 // with TrackRowHeader
 with DynamicListening with Disposable {
@@ -79,14 +79,8 @@ with DynamicListening with Disposable {
   
 	private val lbTrackName = new JLabel()
 
-//	protected var selected		= false
-
-//	private final MapManager.Listener			trackListener;
-//	private final SessionCollection.Listener	selectedTracksListener;
-
-//	protected MutableSessionCollection.Editor	editor			= null;
-
-//	protected MutableSessionCollection			selectedTracks	= null;
+    protected lazy val trackListElement = trackList.getElement( track ).get
+//    protected val trailView = trackListElement.trailView.asInstanceOf[ TrailView[ track.T ]]
 
 	private var	isListening	= false
 
@@ -103,33 +97,33 @@ with DynamicListening with Disposable {
 			 */
 			override def mousePressed( e: MouseEvent ) {
 //				val id = editor.editBegin( this, getResourceString( "editTrackSelection" ))
-                tracksView.editor.foreach( ed => {
+                trackList.editor.foreach( ed => {
                     val ce = ed.editBegin( "trackSelection" )
-                    val thisSel = tracksView.isSelected( track )
+                    val thisSel = trackListElement.selected
     				if( e.isShiftDown ) { // toggle single
                       if( thisSel ) {
-                        ed.editDeselect( ce, track )
+                        ed.editDeselect( ce, trackListElement )
                       } else {
-                        ed.editSelect( ce, track )
+                        ed.editSelect( ce, trackListElement )
                       }
             		} else if( e.isMetaDown ) { // toggle single, complement reset
-                      val collRest = tracksView.tracks.filter( _ != track )
+                      val collRest = trackList.filter( _ != trackListElement )
                       if( thisSel ) {
-                        ed.editDeselect( ce, track )
+                        ed.editDeselect( ce, trackListElement )
                         ed.editSelect( ce, collRest: _* )
                       } else {
-                        ed.editSelect( ce, track )
+                        ed.editSelect( ce, trackListElement )
                         ed.editDeselect( ce, collRest: _* )
                       }
                 	} else if( e.isAltDown ) { // toggle single and align reset
                       if( thisSel ) {
-                        ed.editDeselect( ce, tracksView.tracks.toList: _* )
+                        ed.editDeselect( ce, trackList.toList: _* )
                       } else {
-                        ed.editSelect( ce, tracksView.tracks.toList: _* )
+                        ed.editSelect( ce, trackList.toList: _* )
                       }
     				} else if( !thisSel ) { // select single, deselect reset
-                        val collRest = tracksView.tracks.filter( _ != track )
-                        ed.editSelect( ce, track )
+                        val collRest = trackList.filter( _ != trackListElement )
+                        ed.editSelect( ce, trackListElement )
                         ed.editDeselect( ce, collRest: _* )
         			}
       				ed.editEnd( ce )
@@ -238,7 +232,7 @@ with DynamicListening with Disposable {
 	g2.translate( x, 0 )
 		g2.setPaint( pntDarken )
 		g2.fillRect( -x, 19, x + 36, 2 )
-		g2.setPaint( if( tracksView.isSelected( track )) pntSelected else pntUnselected )
+		g2.setPaint( if( trackListElement.selected ) pntSelected else pntUnselected )
 		g2.fillRect( -x, 0, x + 36, 20 )
 	g2.translate( -x, 0 )
 
@@ -264,9 +258,9 @@ with DynamicListening with Disposable {
 
 // ---------------- DynamicListening interface ----------------
 
-    private val tracksViewListener = (msg: AnyRef) => msg match {
-      case TracksView.SelectionChanged( mod @ _* ) => {
-          if( mod.contains( track )) repaint()
+    private val trackListListener = (msg: AnyRef) => msg match {
+      case TrackList.SelectionChanged( mod @ _* ) => {
+          if( mod.contains( trackListElement )) repaint()
       }
       case Renameable.NameChanged( _, newName ) => checkTrackName
     }
@@ -274,7 +268,7 @@ with DynamicListening with Disposable {
     def startListening {
     	if( !isListening ) {
     		isListening = true
-            tracksView.addListener( tracksViewListener )
+            trackList.addListener( trackListListener )
     		checkTrackName
     	}
     }
@@ -282,13 +276,13 @@ with DynamicListening with Disposable {
     def stopListening {
     	if( isListening ) {
     		isListening = false
-            tracksView.removeListener( tracksViewListener )
+            trackList.removeListener( trackListListener )
     	}
     }
 }
 
-class AudioTrackHeaderComponent( audioTrack: AudioTrack, tracksView: TracksView )
-extends DefaultTrackHeaderComponent( audioTrack, tracksView ) {
+class AudioTrackHeaderComponent( audioTrack: AudioTrack, trackList: TrackList )
+extends DefaultTrackHeaderComponent( audioTrack, trackList ) {
 
     // ---- constructor ----
     {
