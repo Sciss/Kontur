@@ -24,6 +24,7 @@
  *
  *
  *  Changelog:
+ *    26-Jan-10   fiddled around with scalac crashes
  */
 
 package de.sciss.kontur.gui
