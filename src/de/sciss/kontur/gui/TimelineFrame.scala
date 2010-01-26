@@ -58,15 +58,18 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 //    private val trailView     = new javax.swing.JLabel( "Trail" )
 //    private val trailsView     = new BasicTrailsView( doc, tl.tracks )
     private val tracksPanel    = new TracksPanel( doc, timelinePanel )
+    private val trackTools     = new TrackToolsPanel( tracksPanel, timelineView )
 
     // ---- constructor ----
     {
-      timelinePanel.viewPort = Some( tracksPanel.getViewport )
+      tracksPanel.registerTools( trackTools )
+      timelinePanel.viewPort    = Some( tracksPanel.getViewport )
 
 //      app.getMenuFactory().addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
       val cp = getContentPane
       cp.add( tracksPanel, BorderLayout.CENTER )
       val topBox = Box.createHorizontalBox()
+      topBox.add( trackTools )
       topBox.add( Box.createHorizontalGlue() )
       topBox.add( new TransportPanel( timelineView ))
       cp.add( topBox, BorderLayout.NORTH )

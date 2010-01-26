@@ -34,7 +34,7 @@ import java.awt.datatransfer.{ DataFlavor, Transferable }
 import java.awt.dnd.{ DnDConstants, DropTarget, DropTargetAdapter,
                      DropTargetDragEvent, DropTargetDropEvent, DropTargetEvent,
                      DropTargetListener }
-import java.awt.event.{ MouseEvent }
+import java.awt.event.{ MouseAdapter, MouseEvent }
 import java.beans.{ PropertyChangeListener, PropertyChangeEvent }
 import java.io.{ File, IOException }
 import java.nio.{ CharBuffer }
@@ -51,7 +51,7 @@ import de.sciss.io.{ AudioFile, Span }
 
 class DefaultTrackComponent( doc: Session, protected val track: Track, trackList: TrackList,
                              timelineView: TimelineView )
-extends JComponent with DynamicListening {
+extends JComponent with TrackToolsListener with DynamicListening {
 
 //    protected val track     = t // necessary for trail.trail (DO NOT ASK WHY)
     protected val trail     = track.trail // "stable"
@@ -63,6 +63,8 @@ extends JComponent with DynamicListening {
     protected var p_off     = -timelineView.timeline.span.start
     protected var p_scale   = getWidth.toDouble / timelineView.timeline.span.getLength
 
+    protected var trackTools: Option[ TrackTools ] = None
+
 //    // finally we use some powerful functional shit. coooool
 //    protected val isSelected: track.T /* Stake[ _ ]*/ => Boolean =
 //        (trailView.map( _.isSelected _ ) getOrElse (_ => false))
@@ -71,6 +73,10 @@ extends JComponent with DynamicListening {
         if( span.overlaps( timelineView.span )) {
             repaint( span )
         }
+    }
+
+    def registerTools( tools: TrackTools ) {
+        trackTools = Some( tools )
     }
 
     private val trailViewListener = (msg: AnyRef) => msg match {
@@ -82,38 +88,14 @@ extends JComponent with DynamicListening {
         case trail.StakesRemoved( span, stakes @ _* ) => checkSpanRepaint( span )
     }
 
-    private val mia = new MouseInputAdapter {
+    private val mia = new MouseAdapter {
       override def mousePressed( e: MouseEvent ) {
-//println( "pressed" )
-          trailViewEditor.foreach( ed => {
+          trackTools.foreach( tt => {
               val pos    = screenToVirtual( e.getX )
-//println( "virtual " + pos )
               val span   = new Span( pos, pos + 1 )
               val stakes = trail.getRange( span )
-              if( e.isShiftDown ) {
-                  if( stakes.isEmpty ) return
-                  val stake = stakes.head
-                  val ce = ed.editBegin( "editSelectStakes" )
-                  if( trailView.isSelected( stake )) {
-                      ed.editDeselect( ce, stake )
-                  } else {
-                      ed.editSelect( ce, stake )
-                  }
-                  ed.editEnd( ce )
-              } else {
-                  val stakeO = stakes.headOption
-                  stakeO.foreach( stake => if( trailView.isSelected( stake )) return )
-                  val ce = ed.editBegin( "editSelectStakes" )
-                  trackList.foreach( elem => {
-                      val t = elem.track // "stable"
-                      val tvCast = elem.trailView.asInstanceOf[ TrailView[ t.T ]]
-                      tvCast.editor.foreach( ed2 => {
-                         ed2.editDeselect( ce, ed2.view.selectedStakes.toList: _* )
-                      })
-                  })
-                  stakeO.foreach( stake => ed.editSelect( ce, stake ))
-                  ed.editEnd( ce )
-              }
+              val stakeO = stakes.headOption
+              tt.currentTool.handleSelect( e, trackListElement, pos, stakeO )
           })
       }
    }
@@ -152,13 +134,13 @@ extends JComponent with DynamicListening {
        trail.addListener( trailListener )
        if( trailViewEditor.isDefined ) {
            addMouseListener( mia )
-           addMouseMotionListener( mia )
+//           addMouseMotionListener( mia )
        }
     }
 
     def stopListening {
        removeMouseListener( mia )
-       removeMouseMotionListener( mia )
+//       removeMouseMotionListener( mia )
        trail.removeListener( trailListener )
        trailView.removeListener( trailViewListener )
     }

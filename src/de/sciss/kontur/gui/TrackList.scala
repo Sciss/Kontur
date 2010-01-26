@@ -70,6 +70,9 @@ trait TrackList extends Model {
     def filter( p: (TrackListElement) => Boolean ): List[ TrackListElement ] =
         toList.filter( p )
 
+    def find( p: (TrackListElement) => Boolean ): Option[ TrackListElement ] =
+        toList.find( p )
+
     def toList: List[ TrackListElement ] = {
         val buf = new ListBuffer[ TrackListElement ]()
         var i = 0
@@ -79,6 +82,8 @@ trait TrackList extends Model {
         }
         buf.toList
     }
+
+    def indexOf( e: TrackListElement ) = toList.indexOf( e )
 }
 
 class DummyTrackList extends TrackList {
@@ -141,6 +146,11 @@ extends TrackList with TrackListEditor {
 
    override def filter( p: (TrackListElement) => Boolean ): List[ TrackListElement ] =
         elements.filter( p ).toList
+
+   override def find( p: (TrackListElement) => Boolean ): Option[ TrackListElement ] =
+        elements.find( p )
+
+   override def indexOf( e: TrackListElement ) : Int = elements.indexOf( e )
 
    override def toList: List[ TrackListElement ] = elements.toList
 

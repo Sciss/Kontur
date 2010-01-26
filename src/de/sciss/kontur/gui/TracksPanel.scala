@@ -46,7 +46,7 @@ import de.sciss.kontur.util.{ Model }
 class TracksPanel( val doc: Session, val timelinePanel: TimelinePanel )
 extends JScrollPane( VERTICAL_SCROLLBAR_ALWAYS,
                      HORIZONTAL_SCROLLBAR_ALWAYS ) // JPanel( new BorderLayout() )
-with BasicTrackList {
+with BasicTrackList with TrackToolsListener {
     // note: timelineView is accessed in the constructor of BasicTrackList
     lazy val timelineView         = timelinePanel.timelineView
 
@@ -55,6 +55,7 @@ with BasicTrackList {
 
     private val timelineAxis      = new TimelineAxis( timelineView, None ) // Some( this )
     private val viewPort          = new TimelineViewport( timelineView )
+    private var trackTools: Option[ TrackTools ] = None
 
     private val trackListListener = (msg: AnyRef) => msg match {
        case TrackList.ElementAdded(   idx: Int, e: TrackListElement ) => addTrack( idx, e )
@@ -89,11 +90,40 @@ with BasicTrackList {
 //	override def dispose {
 //	}
 
+    private val trackToolsListener = (msg: AnyRef) => msg match {
+        case TrackTools.ToolChanged( oldTool, newTool ) => {
+            timelinePanel.setCursor( newTool.defaultCursor )
+        }
+    }
+
+	def registerTools( tt: TrackTools ) {
+        trackTools.foreach( tt => {
+            tt.removeListener( trackToolsListener )
+        })
+        trackTools = Some( tt )
+        tt.addListener( trackToolsListener )
+
+        // update state
+        trackToolsListener( TrackTools.ToolChanged( tt.currentTool, tt.currentTool ))
+
+        // propagate
+        foreach( _.renderer.trackComponent match {
+            case ttl: TrackToolsListener => ttl.registerTools( tt )
+            case _ =>
+        })
+    }
+
     private def addTrack( idx: Int, elem: TrackListElement ) {
-      rowHeaderView.add( elem.renderer.trackHeaderComponent, idx )
-      timelinePanel.add( elem.renderer.trackComponent, idx )
-      rowHeaderView.revalidate()
-      timelinePanel.revalidate()
+        trackTools.foreach( tt => {
+            elem.renderer.trackComponent match {
+                case ttl: TrackToolsListener => ttl.registerTools( tt )
+                case _ =>
+            }
+        })
+        rowHeaderView.add( elem.renderer.trackHeaderComponent, idx )
+        timelinePanel.add( elem.renderer.trackComponent, idx )
+        rowHeaderView.revalidate()
+        timelinePanel.revalidate()
     }
 
     private def removeTrack( idx: Int, elem: TrackListElement ) {

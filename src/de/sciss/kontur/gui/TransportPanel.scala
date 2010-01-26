@@ -35,7 +35,8 @@ import javax.swing.{ AbstractAction, AbstractButton, BoxLayout, ImageIcon,
 import de.sciss.app.{ DynamicAncestorAdapter, DynamicListening }
 import de.sciss.kontur.session.{ Timeline, Transport }
 
-class TransportPanel( tlv: TimelineView ) extends JPanel with DynamicListening {
+class TransportPanel( tlv: TimelineView )
+extends SegmentedButtonPanel with DynamicListening {
   // ---- constructor ----
   {
       val clz     = classOf[ TransportPanel ]
@@ -55,7 +56,7 @@ class TransportPanel( tlv: TimelineView ) extends JPanel with DynamicListening {
       butPlay.addActionListener( new ActionPlay )
 
       setLayout( new BoxLayout( this, BoxLayout.X_AXIS ))
-      makeSegmented( butBeg, butStop, butPlay, butEnd )
+      setButtons( List( butBeg, butStop, butPlay, butEnd ))
 
       new DynamicAncestorAdapter( this ).addTo( this )
   }
@@ -66,25 +67,6 @@ class TransportPanel( tlv: TimelineView ) extends JPanel with DynamicListening {
 
   def stopListening {
 
-  }
-
-  private def makeSegmented( buttons: AbstractButton* ) {
-     val first = buttons.head
-     val last  = buttons.last
-     buttons.foreach( b => {
-/*
-        b.putClientProperty( "JButton.buttonType", "bevel" )
-        b.putClientProperty( "JComponent.sizeVariant", "small" )
-*/
-        b.putClientProperty( "JButton.buttonType", "segmentedCapsule" )
-        b.putClientProperty( "JButton.segmentPosition",
-          if( b == first && b == last ) "only"
-          else if( b == first ) "first"
-          else if( b == last ) "last"
-          else "middle" )
-        b.setFocusable( false )
-        add( b )
-     })
   }
 
    private class ActionPlay extends AbstractAction {
