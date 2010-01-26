@@ -86,6 +86,7 @@ extends Disposable with Model {
 	def indexOfPos( pos: Long, byStart: Boolean = true ) : Int
 //	public boolean contains( Stake stake );
     def editor: Option[ TrailEditor[ T ]]
+//    def newEmpty: Trail[ T ]
 
     case class StakesAdded( span: Span, stakes: T* )
     case class StakesRemoved( span: Span, stakes: T* )

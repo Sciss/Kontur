@@ -43,10 +43,10 @@ import javax.swing.{ JComponent, Spring, SpringLayout, TransferHandler }
 import javax.swing.event.{ MouseInputAdapter }
 import scala.math._
 import de.sciss.kontur.session.{ AudioFileElement, AudioRegion, AudioTrack,
-                                Region, ResizableStake, Session, SlidableStake,
-                                Stake, Track, Trail }
-import de.sciss.app.{ AbstractApplication, DynamicAncestorAdapter,
-                     DynamicListening, GraphicsHandler }
+                                BasicTrail, Region, RegionTrait, ResizableStake,
+                                Session, SlidableStake, Stake, Track, Trail }
+import de.sciss.app.{ AbstractApplication, AbstractCompoundEdit,
+                      DynamicAncestorAdapter,DynamicListening, GraphicsHandler }
 import de.sciss.io.{ AudioFile, Span }
 
 //import Track.Tr
@@ -117,8 +117,8 @@ extends JComponent with TrackToolsListener with DynamicListening {
       }
    }
 
-   private def startToolOnSelectedStakes : Span = {
-      val (start, stop) = trailView.selectedStakes.foldLeft(
+   private def unionSpan( stakes: scala.collection.IterableLike[ Stake[ _ ], _ ]) : Span = {
+      val (start, stop) = stakes.foldLeft(
          (Long.MaxValue, Long.MinValue) )( (tup, stake) =>
             (min( tup._1, stake.span.start ), max( tup._2, stake.span.stop)) )
       if( start < stop ) {
@@ -128,14 +128,34 @@ extends JComponent with TrackToolsListener with DynamicListening {
 
    private val toolListener = (msg: AnyRef) => msg match {
         case TrackMoveTool.DragBegin( move ) => {
-            val union = startToolOnSelectedStakes
+            val union = unionSpan( trailView.selectedStakes )
             if( !union.isEmpty ) {
-               val mrp = new MoveResizePainter( union )
+               val mrp = new MoveResizePainter( union, painter )
                painter = mrp
                mrp.adjustMove( move.deltaTime, move.deltaVertical )
-//               println( "DragBegin" )
-//               drag.callRepaint
+               mrp.adjusted
             }
+        }
+        case TrackMoveTool.DragAdjust( _, move ) => {
+           painter match {
+              case mrp: MoveResizePainter => {
+                    mrp.adjustMove( move.deltaTime, move.deltaVertical )
+                    mrp.adjusted
+              }
+              case _ =>
+           }
+        }
+        case TrackMoveTool.DragEnd( move, ce ) => {
+           painter match {
+              case mrp: MoveResizePainter => mrp.finish( ce )
+              case _ =>
+           }
+        }
+        case TrackMoveTool.DragCancel => {
+           painter match {
+              case mrp: MoveResizePainter => mrp.cancel
+              case _ =>
+           }
         }
    }
 
@@ -241,14 +261,14 @@ extends JComponent with TrackToolsListener with DynamicListening {
     }
 
    protected trait DefaultPainterTrait extends Painter {
-      def paintStake( pc: PaintContext )( stake: track.T ) {
+      def paintStake( pc: PaintContext, stake: track.T, selected: Boolean ) {
          val x = pc.virtualToScreen( stake.span.start )
          val width = ((stake.span.stop + pc.p_off) * pc.p_scale + 0.5).toInt - x
          val g2 = pc.g2
-         g2.setColor( if( trailView.isSelected( stake )) Color.blue else Color.black )
+         g2.setColor( if( selected ) Color.blue else Color.black )
          g2.fillRoundRect( x, 0, width, pc.height, 5, 5 )
          stake match {
-            case reg: Region => {
+            case reg: RegionTrait[ _ ] => {
                val clipOrig = g2.getClip
                g2.clipRect( x + 2, 2, width - 4, pc.height - 4 )
                g2.setColor( Color.white )
@@ -260,41 +280,34 @@ extends JComponent with TrackToolsListener with DynamicListening {
       }
 
       def paint( pc: PaintContext ) {
-         trail.visitRange( pc.viewSpan )( paintStake( pc ) _ )
+         trail.visitRange( pc.viewSpan )(
+            stake => paintStake( pc, stake, trailView.isSelected( stake )))
       }
    }
 
    protected object DefaultPainter extends DefaultPainterTrait
 
-   protected class MoveResizePainter( union: Span )
+   protected class MoveResizePainter( initialUnion: Span, val oldPainter: Painter )
    extends DefaultPainterTrait {
-      private var lastDraggedUnion = union
+      private var lastDraggedUnion = initialUnion
       private var move           = 0L
       private var moveOuter      = 0L
       private var moveInner      = 0L
       private var moveStart      = 0L
       private var moveStop       = 0L
       private var moveVertical   = 0
+      private var dragTrail: BasicTrail[ track.T ] = null
 
       def adjustMove( newMove: Long, newMoveVertical: Int ) {
          move           = newMove
          moveVertical   = newMoveVertical
-         adjusted
       }
 
-      private def adjusted {
-         val newDraggedUnion = new Span( union.start + move + moveOuter + moveStart,
-                                         union.stop + move + moveOuter + moveStop )
-         val repaintSpan = newDraggedUnion.union( lastDraggedUnion )
-         lastDraggedUnion  = newDraggedUnion
-         checkSpanRepaint( repaintSpan )
-      }
-
-      override def paint( pc: PaintContext ) {
-         val tlSpan = timelineView.timeline.span
-         val ps = paintStake( pc ) _
-         trail.visitRange( pc.viewSpan )( stake => {
-            val tStake = if( trailView.isSelected( stake )) {
+      def adjusted {
+         dragTrail = new BasicTrail[ track.T ]( doc )
+         var tStakes: List[ track.T ] = Nil
+         trailView.selectedStakes.foreach( stake => {
+            val tStake: track.T =
                if( move != 0L ) {
                   stake.move( move )
                } else if( moveOuter != 0L ) {
@@ -320,9 +333,38 @@ extends JComponent with TrackToolsListener with DynamicListening {
                } else {
                   stake
                }
-            } else stake
+            tStakes ::= tStake
+         })
+         dragTrail.add( tStakes: _* )
+         val newDraggedUnion = unionSpan( tStakes )
+         val repaintSpan = newDraggedUnion.union( lastDraggedUnion )
+         lastDraggedUnion  = newDraggedUnion
+         checkSpanRepaint( repaintSpan )
+      }
 
-            ps( stake )
+      def finish( ce: AbstractCompoundEdit ) {
+         painter = oldPainter
+         // refresh is handled through stake exchange
+         trail.editor.foreach( ed => {
+             ed.editRemove( ce, trailView.selectedStakes.toList: _* )
+             ed.editAdd( ce, dragTrail.getAll(): _* )
+         })
+      }
+
+      def cancel {
+         val repaintSpan = lastDraggedUnion.union( initialUnion )
+         painter = oldPainter
+         checkSpanRepaint( repaintSpan )
+      }
+
+      override def paint( pc: PaintContext ) {
+         val tlSpan = timelineView.timeline.span
+         val vwSpan = pc.viewSpan
+         trail.visitRange( vwSpan )( stake => {
+            if( !trailView.isSelected( stake )) paintStake( pc, stake, false )
+         })
+         dragTrail.visitRange( vwSpan )( stake => {
+            paintStake( pc, stake, true )
          })
       }
    }

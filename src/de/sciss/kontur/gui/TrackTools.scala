@@ -231,7 +231,7 @@ extends BasicTrackStakeTool( trackList, timelineView ) {
    private var currentMoveVar: Option[ Move ] = None
 
    protected def dragStarted( d: this.Drag ) : Boolean =
-       d.currentEvent.getPoint().distanceSq( d.firstEvent.getPoint() ) > 4
+       d.currentEvent.getPoint().distanceSq( d.firstEvent.getPoint() ) > 16
 
    private def dragToMove( d: Drag ) : Move = {
        TrackMoveTool.Move( d.currentPos - d.firstPos,
@@ -255,7 +255,13 @@ extends BasicTrackStakeTool( trackList, timelineView ) {
 
    protected def dragEnd( d: this.Drag ) {
       currentMoveVar.foreach( move => {
-          dispatch( DragEnd( move, null ))  // XXX
+         // XXX it becomes a little arbitrary which editor
+         // to use to initiate an edit... should change this somehow
+         timelineView.timeline.editor.foreach( ed => {
+            val ce = ed.editBegin( name )
+            dispatch( DragEnd( move, ce ))
+            ed.editEnd( ce )
+         })
       })
    }
 
