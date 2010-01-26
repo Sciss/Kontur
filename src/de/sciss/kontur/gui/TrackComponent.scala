@@ -50,9 +50,25 @@ import de.sciss.io.{ AudioFile, Span }
 
 //import Track.Tr
 
+object DefaultTrackComponent {
+   protected case class PaintContext( g2: Graphics2D, p_off: Long,
+                                   p_scale: Double, height: Int,
+                                   viewSpan: Span ) {
+
+      def virtualToScreen( pos: Long ) =
+         ((pos + p_off) * p_scale + 0.5).toInt
+   }
+
+   protected trait Painter {
+      def paint( pc: PaintContext ) : Unit
+   }
+}
+
 class DefaultTrackComponent( doc: Session, protected val track: Track, trackList: TrackList,
                              timelineView: TimelineView )
 extends JComponent with TrackToolsListener with DynamicListening {
+
+      import DefaultTrackComponent._
 
 //    protected val track     = t // necessary for trail.trail (DO NOT ASK WHY)
     protected val trail     = track.trail // "stable"
@@ -223,19 +239,7 @@ extends JComponent with TrackToolsListener with DynamicListening {
         painter.paint( pc )
     }
 
-   protected case class PaintContext( g2: Graphics2D, p_off: Long,
-                                      p_scale: Double, height: Int,
-                                      viewSpan: Span ) {
-
-      def virtualToScreen( pos: Long ) =
-        ((pos + p_off) * p_scale + 0.5).toInt
-   }
-
-   protected trait Painter {
-      def paint( pc: PaintContext ) : Unit
-   }
-
-   protected trait DefaultPainter extends Painter {
+   protected trait DefaultPainterTrait extends Painter {
       def paintStake( pc: PaintContext )( stake: track.T ) {
          val x = pc.virtualToScreen( stake.span.start )
          val width = ((stake.span.stop + pc.p_off) * pc.p_scale + 0.5).toInt - x
@@ -259,10 +263,10 @@ extends JComponent with TrackToolsListener with DynamicListening {
       }
    }
 
-   protected object DefaultPainter extends DefaultPainter
+   protected object DefaultPainter extends DefaultPainterTrait
 
    protected class MoveResizePainter( union: Span )
-   extends DefaultPainter {
+   extends DefaultPainterTrait {
       private var lastDraggedUnion = union
       private var move           = 0L
       private var moveOuter      = 0L
