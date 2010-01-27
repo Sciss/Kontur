@@ -63,6 +63,8 @@ object DefaultTrackComponent {
    protected trait Painter {
       def paint( pc: PaintContext ) : Unit
    }
+
+   val MIN_SPAN_LEN = 64  // XXX somewhat arbitrary (one control block in default scsynth)
 }
 
 class DefaultTrackComponent( doc: Session, protected val track: Track, trackList: TrackList,
@@ -126,17 +128,17 @@ extends JComponent with TrackToolsListener with DynamicListening {
       } else new Span()
    }
 
+   // XXX different tools should use different listeners
+   // for more efficient matching
    private val toolListener = (msg: AnyRef) => msg match {
-        case TrackMoveTool.DragBegin( move ) => {
+        case TrackStakeTool.DragBegin => {
             val union = unionSpan( trailView.selectedStakes )
             if( !union.isEmpty ) {
                val mrp = new MoveResizePainter( union, painter )
                painter = mrp
-               mrp.adjustMove( move.deltaTime, move.deltaVertical )
-               mrp.adjusted
             }
         }
-        case TrackMoveTool.DragAdjust( _, move ) => {
+        case TrackMoveTool.DragAdjust( move ) => {
            painter match {
               case mrp: MoveResizePainter => {
                     mrp.adjustMove( move.deltaTime, move.deltaVertical )
@@ -145,13 +147,22 @@ extends JComponent with TrackToolsListener with DynamicListening {
               case _ =>
            }
         }
-        case TrackMoveTool.DragEnd( move, ce ) => {
+        case TrackResizeTool.DragAdjust( resize ) => {
+           painter match {
+              case mrp: MoveResizePainter => {
+                    mrp.adjustResize( resize.deltaStart, resize.deltaStop )
+                    mrp.adjusted
+              }
+              case _ =>
+           }
+        }
+        case TrackStakeTool.DragEnd( ce ) => {
            painter match {
               case mrp: MoveResizePainter => mrp.finish( ce )
               case _ =>
            }
         }
-        case TrackMoveTool.DragCancel => {
+        case TrackStakeTool.DragCancel => {
            painter match {
               case mrp: MoveResizePainter => mrp.cancel
               case _ =>
@@ -161,6 +172,7 @@ extends JComponent with TrackToolsListener with DynamicListening {
 
    protected def participatesInTool( t: TrackTool ) = t match {
       case _ : TrackMoveTool => true
+      case _ : TrackResizeTool => true
       case _ => false
    }
 
@@ -303,16 +315,32 @@ extends JComponent with TrackToolsListener with DynamicListening {
          moveVertical   = newMoveVertical
       }
 
+      def adjustResize( newMoveStart: Long, newMoveStop: Long ) {
+         moveStart   = newMoveStart
+         moveStop    = newMoveStop
+      }
+
       def adjusted {
          dragTrail = new BasicTrail[ track.T ]( doc )
          var tStakes: List[ track.T ] = Nil
+         val tlSpan = timelineView.timeline.span
          trailView.selectedStakes.foreach( stake => {
             val tStake: track.T =
                if( move != 0L ) {
-                  stake.move( move )
+                  val m = if( move < 0)
+                     max( tlSpan.start - stake.span.start, move )
+                  else
+                     min( tlSpan.stop - stake.span.stop, move )
+                  stake.move( m )
                } else if( moveOuter != 0L ) {
                   stake match {
-                     case sStake: SlidableStake[ _ ] => sStake.moveOuter( moveOuter )
+                     case sStake: SlidableStake[ _ ] => {
+                        val mOuter = if( moveOuter < 0)
+                           max( tlSpan.start - stake.span.start, moveOuter )
+                        else
+                           min( tlSpan.stop - stake.span.stop, moveOuter )
+                        sStake.moveOuter( mOuter )
+                     }
                      case _ => stake
                   }
                } else if( moveInner != 0L ) {
@@ -322,12 +350,26 @@ extends JComponent with TrackToolsListener with DynamicListening {
                   }
                } else if( moveStart != 0L ) {
                   stake match {
-                     case rStake: ResizableStake[ _ ] => rStake.moveStart( moveStart )
+                     case rStake: ResizableStake[ _ ] => {
+                        val mStart = if( moveStart < 0 )
+                           max( tlSpan.start - stake.span.start, moveStart )
+                        else
+                           min( stake.span.getLength - MIN_SPAN_LEN, moveStart )
+
+//println( "stake " + stake.span + "; moveStart " + moveStart + "; mStart " + mStart )
+                        rStake.moveStart( mStart )
+                     }
                      case _ => stake
                   }
                } else if( moveStop != 0L ) {
                   stake match {
-                     case rStake: ResizableStake[ _ ] => rStake.moveStop( moveStop )
+                     case rStake: ResizableStake[ _ ] => {
+                        val mStop = if( moveStop < 0 )
+                           max( -stake.span.getLength + MIN_SPAN_LEN, moveStop )
+                        else
+                           min( tlSpan.stop - stake.span.stop, moveStop )
+                        rStake.moveStop( mStop )
+                     }
                      case _ => stake
                   }
                } else {
@@ -345,9 +387,20 @@ extends JComponent with TrackToolsListener with DynamicListening {
       def finish( ce: AbstractCompoundEdit ) {
          painter = oldPainter
          // refresh is handled through stake exchange
+         val oldStakes = trailView.selectedStakes // .toList
+         val newStakes = dragTrail.getAll()
+         // remove stakes that have not changed
+         val oldStakesF = (oldStakes -- newStakes).toList
+         val newStakesF = newStakes.filterNot( st => oldStakes.contains( st ))
+         trailView.editor.foreach( ed => {
+             ed.editDeselect( ce, oldStakesF: _* )
+         })
          trail.editor.foreach( ed => {
-             ed.editRemove( ce, trailView.selectedStakes.toList: _* )
-             ed.editAdd( ce, dragTrail.getAll(): _* )
+             ed.editRemove( ce, oldStakesF: _* )
+             ed.editAdd( ce, newStakesF: _* )
+         })
+         trailView.editor.foreach( ed => {
+             ed.editSelect( ce, newStakesF: _* )
          })
       }
 

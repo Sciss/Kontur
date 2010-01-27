@@ -35,8 +35,10 @@ import de.sciss.common.{ BasicMenuFactory }
 
 class TrackToolsPanel( trackList: TrackList, timelineView: TimelineView )
 extends JPanel with TrackTools {
-    private val tools = List( new TrackCursorTool( trackList, timelineView ),
-                              new TrackMoveTool( trackList, timelineView ))
+   private val tools = List( new TrackCursorTool( trackList, timelineView ),
+                             new TrackMoveTool( trackList, timelineView ),
+                             new TrackResizeTool( trackList, timelineView )
+   )
 
     private var currentToolVar: TrackTool = tools.head
     private val ggCombo = new JComboBox()
@@ -47,6 +49,7 @@ extends JPanel with TrackTools {
         val amap    = ggCombo.getActionMap()
         val meta    = BasicMenuFactory.MENU_SHORTCUT
 
+        ggCombo.setPrototypeDisplayValue( "XXXXXX" ) // XXX why the heck?
         var i = 1; tools.foreach( t => {
             val key = "tool" + i
             imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_0 + i, meta ), key )

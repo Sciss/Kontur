@@ -33,6 +33,7 @@ import java.awt.event.{ ActionEvent, KeyEvent, KeyListener, MouseEvent }
 import javax.swing.{ AbstractAction, AbstractButton, BoxLayout, ImageIcon,
                      JButton, JPanel, JToggleButton, SwingUtilities }
 import javax.swing.event.{ MouseInputAdapter }
+import scala.math._
 import de.sciss.app.{ AbstractCompoundEdit }
 import de.sciss.kontur.session.{ Stake, Track, Trail }
 import de.sciss.kontur.util.{ Model }
@@ -74,17 +75,16 @@ class TrackCursorTool( trackList: TrackList, timelineView: TimelineView ) extend
     }
 }
 
-object TrackMoveTool {
-    case class DragBegin( move: Move )
-    case class DragAdjust( oldMove: Move, newMove: Move )
-    case class DragEnd( move: Move, commit: AbstractCompoundEdit )
+object TrackStakeTool {
+    case object DragBegin
+    case class DragEnd( commit: AbstractCompoundEdit )
     case object DragCancel
-
-    case class Move( deltaTime: Long, deltaVertical: Int )
 }
 
 trait TrackStakeTool extends TrackTool {
     tool =>
+
+    import TrackStakeTool._
 
     protected def trackList: TrackList
     protected def timelineView: TimelineView
@@ -128,8 +128,6 @@ trait TrackStakeTool extends TrackTool {
         )
     }
 
-    protected def dragEnd( d: Drag ) : Unit
-    protected def dragCancel( d: Drag ) : Unit
     protected def dragStarted( d: Drag ) : Boolean
     protected def dragBegin( d: Drag )
     protected def dragAdjust( d: Drag )
@@ -141,6 +139,20 @@ trait TrackStakeTool extends TrackTool {
         (e.getX.toLong / p_scale - p_off + 0.5).toLong
     }
 
+   protected def dragEnd( d: this.Drag ) {
+      // XXX it becomes a little arbitrary which editor
+      // to use to initiate an edit... should change this somehow
+      timelineView.timeline.editor.foreach( ed => {
+         val ce = ed.editBegin( name )
+         dispatch( DragEnd( ce ))
+         ed.editEnd( ce )
+      })
+   }
+
+   protected def dragCancel( d: this.Drag ) {
+      dispatch( DragCancel )
+   }
+   
     protected class Drag( val firstEvent: MouseEvent, val firstTLE: TrackListElement,
                         val firstPos: Long, val firstStake: Stake[ _ ])
     extends MouseInputAdapter with KeyListener {
@@ -220,18 +232,26 @@ trait TrackStakeTool extends TrackTool {
 
 abstract class BasicTrackStakeTool( protected val trackList: TrackList,
                                     protected val timelineView: TimelineView )
-extends TrackStakeTool
+extends TrackStakeTool {
+
+   protected def dragStarted( d: this.Drag ) : Boolean =
+      d.currentEvent.getPoint().distanceSq( d.firstEvent.getPoint() ) > 16
+}
+
+
+object TrackMoveTool {
+    case class DragAdjust( newMove: Move )
+    case class Move( deltaTime: Long, deltaVertical: Int )
+}
 
 class TrackMoveTool( trackList: TrackList, timelineView: TimelineView )
 extends BasicTrackStakeTool( trackList, timelineView ) {
-    import TrackMoveTool._
+   import TrackStakeTool._
+   import TrackMoveTool._
 
    def defaultCursor = Cursor.getPredefinedCursor( Cursor.HAND_CURSOR )
    val name = "Move"
    private var currentMoveVar: Option[ Move ] = None
-
-   protected def dragStarted( d: this.Drag ) : Boolean =
-       d.currentEvent.getPoint().distanceSq( d.firstEvent.getPoint() ) > 16
 
    private def dragToMove( d: Drag ) : Move = {
        TrackMoveTool.Move( d.currentPos - d.firstPos,
@@ -241,46 +261,70 @@ extends BasicTrackStakeTool( trackList, timelineView ) {
    protected def dragBegin( d: this.Drag ) {
        val move = dragToMove( d )
        currentMoveVar = Some( move )
-       dispatch( DragBegin( move ))
+       dispatch( DragBegin )
+       dispatch( DragAdjust( move ))
    }
 
    protected def dragAdjust( d: this.Drag ) {
       currentMoveVar.foreach( oldMove => {
           val move = dragToMove( d )
-          if( move != currentMoveVar )
-          currentMoveVar = Some( move )
-          dispatch( DragAdjust( oldMove, move ))
+          if( move != oldMove ) {
+             currentMoveVar = Some( move )
+             dispatch( DragAdjust( move ))
+          }
       })
-   }
-
-   protected def dragEnd( d: this.Drag ) {
-      currentMoveVar.foreach( move => {
-         // XXX it becomes a little arbitrary which editor
-         // to use to initiate an edit... should change this somehow
-         timelineView.timeline.editor.foreach( ed => {
-            val ce = ed.editBegin( name )
-            dispatch( DragEnd( move, ce ))
-            ed.editEnd( ce )
-         })
-      })
-   }
-
-   protected def dragCancel( d: this.Drag ) {
-      if( currentMoveVar.isDefined ) {
-          currentMoveVar = None
-          dispatch( DragCancel )
-      }
    }
    
-   def currentMove = currentMoveVar
+//   def currentMove = currentMoveVar
+}
+
+object TrackResizeTool {
+    case class DragAdjust( newResize: Resize )
+    case class Resize( deltaStart: Long, deltaStop: Long )
+}
+
+class TrackResizeTool( trackList: TrackList, timelineView: TimelineView )
+extends BasicTrackStakeTool( trackList, timelineView ) {
+   import TrackStakeTool._
+   import TrackResizeTool._
+
+   def defaultCursor = Cursor.getPredefinedCursor( Cursor.W_RESIZE_CURSOR )
+   val name = "Resize"
+   private var currentResizeVar: Option[ Resize ] = None
+
+   private def dragToResize( d: Drag ) : Resize = {
+      val (deltaStart, deltaStop ) =
+         if( abs( d.firstPos - d.firstStake.span.start ) <
+             abs( d.firstPos - d.firstStake.span.stop )) {
+
+            (d.currentPos - d.firstPos, 0L)
+         } else {
+            (0L, d.currentPos - d.firstPos)
+         }
+      Resize( deltaStart, deltaStop )
+   }
+
+   protected def dragBegin( d: this.Drag ) {
+       val resize = dragToResize( d )
+       currentResizeVar = Some( resize )
+       dispatch( DragBegin )
+       dispatch( DragAdjust( resize ))
+   }
+
+   protected def dragAdjust( d: this.Drag ) {
+      currentResizeVar.foreach( oldResize => {
+          val resize = dragToResize( d )
+          if( resize != oldResize ) {
+             currentResizeVar = Some( resize )
+             dispatch( DragAdjust( resize ))
+          }
+      })
+   }
+
+//   def currentResize = currentResizeVar
 }
 
 /*
-class TrackResizeTool( trackList: TrackList ) extends BasicTrackStakeTool( trackList ) {
-   def defaultCursor = Cursor.getPredefinedCursor( Cursor.W_RESIZE_CURSOR )
-   val name = "Resize"
-}
-
 class TrackGainTool( trackList: TrackList ) extends BasicTrackStakeTool( trackList ) {
    def defaultCursor = Cursor.getPredefinedCursor( Cursor.N_RESIZE_CURSOR )
    val name = "Gain"
