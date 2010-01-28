@@ -29,6 +29,8 @@ trait SonagramPaintController {
 }
 
 object SonagramOverview {
+   var verbose = false
+
    private var constQCache   = Map[ SonagramSpec, ConstQCache ]()
    private var imageCache    = Map[ Dimension, ImageCache ]()
    private var fileBufCache  = Map[ SonagramImageSpec, FileBufCache ]()
@@ -167,7 +169,7 @@ object SonagramOverview {
                runningWorker = Some( next )
                next.addPropertyChangeListener( new PropertyChangeListener {
                   def propertyChange( e: PropertyChangeEvent ) {
-println( "WorkingSonagram got in : " + e.getPropertyName + " / " + e.getNewValue )
+if( verbose ) println( "WorkingSonagram got in : " + e.getPropertyName + " / " + e.getNewValue )
                      if( e.getNewValue == SwingWorker.StateValue.DONE ) {
                         runningWorker = None
                         dequeue( next )
@@ -236,12 +238,13 @@ class SonagramOverview @throws( classOf[ IOException ]) private (
 
    // for all prospective IOExceptions, guarantee cleanup
 //   private val sonaFiles         = try { createFiles( 8, 8, 8 )
-   private val sonaFiles         = try { createFiles( 5, 5, 5, 5 )
+//   private val sonaFiles         = try { createFiles( 5, 5, 5, 5 )
+   private val sonaFiles         = try { createFiles( 6, 6, 6, 6 )
    } catch { case e1: IOException => { dispose; throw e1 }}
 
    // ---- constructor ----
    {
-println( "fftSize = " + fftSize + "; numKernels = " + numKernels + "; fftStepSize = " + fftStepSize )
+if( verbose ) println( "fftSize = " + fftSize + "; numKernels = " + numKernels + "; fftStepSize = " + fftStepSize )
       queue( this )
    }
 
@@ -272,7 +275,7 @@ println( "fftSize = " + fftSize + "; numKernels = " + numKernels + "; fftStepSiz
       val start         = startD.toLong  // i.e. trunc
 //      val transX        = (-(startD % 1.0) / idealDecim).toFloat
       val transX        = (-(startD % 1.0) * scaleW).toFloat
-      val stop          = ceil( spanStop / in.totalDecim ).toLong
+      val stop          = ceil( spanStop / in.totalDecim ).toLong // XXX include startD % 1.0 ?
 
       var windowsRead   = 0L
       val imgW          = imgSpec.dim.width
@@ -357,12 +360,16 @@ println( "fftSize = " + fftSize + "; numKernels = " + numKernels + "; fftStepSiz
 
    protected def render( ws: WorkingSonagram ) {
       try {
+val t1 = System.currentTimeMillis
          primaryRender( ws, masterFile, sonaFiles.head )
          releaseCQ() // we do not need it anymore
+val t2 = System.currentTimeMillis
          sonaFiles.sliding( 2, 1 ).foreach( pair => {
             if( ws.isCancelled ) return
             secondaryRender( ws, pair.head, pair.last )
          })
+val t3 = System.currentTimeMillis
+println( "primary : secondary ratio = " + (t2 - t1).toDouble / (t3 - t1) )
       }
       finally {
          masterFile.cleanUp
@@ -425,6 +432,8 @@ println( "fftSize = " + fftSize + "; numKernels = " + numKernels + "; fftStepSiz
       val bufSize       = dec * numKernels
 //    val buf           = new Array[ Array[ Float ]]( numChannels, bufSize )
       val buf           = Array.ofDim[ Float ]( numChannels, bufSize )
+      // since dec is supposed to be even, this
+      // lands on the beginning of a kernel:
       var inOff         = bufSize / 2
       var inLen         = bufSize - inOff
       var windowsRead   = 0L
@@ -435,7 +444,7 @@ println( "fftSize = " + fftSize + "; numKernels = " + numKernels + "; fftStepSiz
             in.seekWindow( windowsRead )
             in.af.readFrames( buf, inOff, chunkLen )
          }
-         windowsRead += 1
+         windowsRead += chunkLen / numKernels
          if( chunkLen < inLen ) {
             { var ch = 0; while( ch < numChannels ) {
                Arrays.fill( buf( ch ), inOff + chunkLen, fftSize, 0f )
@@ -444,10 +453,10 @@ println( "fftSize = " + fftSize + "; numKernels = " + numKernels + "; fftStepSiz
          { var ch = 0; while( ch < numChannels ) {
             val convBuf = buf( ch )
             var i = 0; while( i < numKernels ) {
-               var sum = convBuf( i )
-               var j = numKernels; while( j < bufSize ) {
+               var sum = 0f
+               var j = i; while( j < bufSize ) {
                   sum += convBuf( j )
-               j += 1 }
+               j += numKernels }
                convBuf( i ) = sum / dec
             i += 1 }
          ch += 1 }}
@@ -491,6 +500,8 @@ println( "fftSize = " + fftSize + "; numKernels = " + numKernels + "; fftStepSiz
       var currentPath   = cachePath
       var totalDecim    = fftStepSize
       var numWindows    = (masterDescr.length + fftStepSize - 1) / fftStepSize
+
+if( decimFactors.exists( _ % 2 != 0 )) println( "WARNING: only even decim factors supported ATM" )
       
       try {
          (1 :: decimFactors.toList).foreach( decimFactor => {

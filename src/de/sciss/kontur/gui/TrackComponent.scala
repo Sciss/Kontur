@@ -615,7 +615,8 @@ with SonagramPaintController {
             case ar: AudioRegion => {
                val x = pc.virtualToScreen( ar.span.start )
                val width = ((ar.span.stop + pc.p_off) * pc.p_scale + 0.5).toInt - x
-               val x1C = max( x, pc.clip.x - 2 )
+//             val x1C = max( x, pc.clip.x - 2 )
+               val x1C = max( x + 1, pc.clip.x - 2 ) // + 1 for left margin
                val x2C = min( x + width, pc.clip.x + pc.clip.width + 3 )
                if( x1C < x2C ) { // skip this if we are not overlapping with clip
                   val g2 = pc.g2
@@ -623,11 +624,11 @@ with SonagramPaintController {
                   g2.fillRoundRect( x, 0, width, pc.height, 5, 5 )
                   val clipOrig = g2.getClip
                   ar.audioFile.sona.foreach( sona => {
-                    g2.clipRect( x, 15, width, pc.height - 16 )
+                    g2.clipRect( x + 1, 15, width - 1, pc.height - 16 )
 //                  sona.paint( new Span( ar.offset, ar.offset + ar.span.getLength ),
 //                    g2, x, 15, width, pc.height - 16, component )
                      val dStart = ar.offset - ar.span.start
-                     val startC = pc.screenToVirtualD( x1C )
+                     val startC = max( 0.0, pc.screenToVirtualD( x1C ))
                      val stopC  = pc.screenToVirtualD( x2C )
                      sona.paint( startC + dStart, stopC + dStart, g2,
                         x1C, 15, x2C - x1C, pc.height - 16, component )

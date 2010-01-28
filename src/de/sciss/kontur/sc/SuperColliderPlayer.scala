@@ -120,7 +120,7 @@ val amp = 1
 val envGen = Line.kr( amp, amp, i_dur, doneAction = freeSelf )
 				Out.ar( out, DiskIn.ar( numChannels, i_bufNum ) /* * envGen */)
 			 }
-//             synDef.writeDefFile( "/Users/rutz/Desktop" )
+             synDef.writeDefFile( "/Users/rutz/Desktop" )
              synDef.send( server )
          }
        }
@@ -356,6 +356,7 @@ if( verbose ) println( "stop" )
                           synths += synth
                           stakesMap += (stake -> synth)
                           synth.onEnd {
+//println( "onEnd : " + synth )
                                 buffer.close
                                 buffer.free
                                 stakesMap -= stake
