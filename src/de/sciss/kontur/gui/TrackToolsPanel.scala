@@ -30,11 +30,21 @@ package de.sciss.kontur.gui
 
 import java.awt.event.{ ActionEvent, ActionListener, KeyEvent }
 import javax.swing.{ AbstractAction, Box, BoxLayout, ButtonGroup, JButton, JComboBox,
-                     JComponent, JPanel, JToggleButton, KeyStroke }
+                     JComponent, JPanel, JSlider, JToggleButton, KeyStroke }
+import javax.swing.event.{ ChangeEvent, ChangeListener }
+import scala.math._
 import de.sciss.common.{ BasicMenuFactory }
+
+object TrackToolsPanel {
+   private def linexp( x: Double, inLo: Double, inHi: Double, outLo: Double, outHi: Double ) =
+      pow( outHi / outLo, (x - inLo) / (inHi - inLo) ) * outLo
+}
 
 class TrackToolsPanel( trackList: TrackList, timelineView: TimelineView )
 extends JPanel with TrackTools {
+   import TrackTools._
+   import TrackToolsPanel._
+
    private val tools = List( new TrackCursorTool( trackList, timelineView ),
                              new TrackMoveTool( trackList, timelineView ),
                              new TrackResizeTool( trackList, timelineView )
@@ -42,6 +52,7 @@ extends JPanel with TrackTools {
 
     private var currentToolVar: TrackTool = tools.head
     private val ggCombo = new JComboBox()
+    private var visualBoostVar = 1f
 
     // ---- constructor ----
     {
@@ -49,7 +60,6 @@ extends JPanel with TrackTools {
         val amap    = ggCombo.getActionMap()
         val meta    = BasicMenuFactory.MENU_SHORTCUT
 
-        ggCombo.setPrototypeDisplayValue( "XXXXXX" ) // XXX why the heck?
         var i = 1; tools.foreach( t => {
             val key = "tool" + i
             imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_0 + i, meta ), key )
@@ -71,21 +81,37 @@ extends JPanel with TrackTools {
         ggCombo.putClientProperty( "JComboBox.isSquare", java.lang.Boolean.TRUE )
         ggCombo.putClientProperty( "JComponent.sizeVariant", "small" )
 
+        val ggVisualBoost = new JSlider( 0, 128 )
+        ggVisualBoost.setFocusable( false )
+        ggVisualBoost.putClientProperty( "JComponent.sizeVariant", "small" )
+        ggVisualBoost.addChangeListener( new ChangeListener {
+           def stateChanged( e: ChangeEvent ) {
+              val newVisualBoost = linexp( ggVisualBoost.getValue, 0, 128, 1, 512 ).toFloat
+              if( newVisualBoost != visualBoostVar ) {
+                 val change = VisualBoostChanged( visualBoostVar, newVisualBoost )
+                 visualBoostVar = newVisualBoost
+                 dispatch( change )
+              }
+           }
+        })
+
         setLayout( new BoxLayout( this, BoxLayout.X_AXIS ))
         add( Box.createHorizontalGlue )
         add( ggCombo )
+        add( ggVisualBoost )
         add( Box.createHorizontalGlue )
     }
 
     private def changeTool( newTool: TrackTool ) {
         if( newTool != currentToolVar ) {
-            val change = TrackTools.ToolChanged( currentToolVar, newTool )
+            val change = ToolChanged( currentToolVar, newTool )
             currentToolVar = newTool
             dispatch( change )
         }
     }
 
     def currentTool: TrackTool = currentToolVar
+    def visualBoost: Float = visualBoostVar
 
     private class ToolAction( t: TrackTool ) extends AbstractAction( t.name ) {
         def actionPerformed( e: ActionEvent ) {

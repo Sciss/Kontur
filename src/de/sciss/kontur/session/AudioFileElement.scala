@@ -32,6 +32,10 @@ import java.io.{ File, IOException }
 import scala.xml.{ Node }
 import de.sciss.io.{ AudioFile, AudioFileDescr }
 
+import de.sciss.app.{ AbstractApplication }
+import de.sciss.kontur.io.{ SonagramOverview }
+import de.sciss.kontur.util.{ PrefsUtil }
+
 object AudioFileElement {
     val XML_NODE = "audioFile"
 
@@ -74,6 +78,16 @@ extends SessionElement {
       catch { case e1: IOException => None }
   }
 */
+
+   // XXX it would be good to keep
+   lazy val sona : Option[ SonagramOverview ] = {
+      try {
+         val prefs       = AbstractApplication.getApplication().getUserPrefs().node( PrefsUtil.NODE_IO )
+         val cacheFolder = new File( prefs.get( PrefsUtil.KEY_SONACACHEFOLDER, "/tmp" ))
+         Some( SonagramOverview.fromPath( path, List( cacheFolder )))
+      }
+      catch { case e1: IOException => None }
+   }
 }
 
 class AudioFileSeq( doc: Session )

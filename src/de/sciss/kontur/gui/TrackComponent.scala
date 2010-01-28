@@ -36,12 +36,15 @@ import java.awt.dnd.{ DnDConstants, DropTarget, DropTargetAdapter,
                      DropTargetDragEvent, DropTargetDropEvent, DropTargetEvent,
                      DropTargetListener }
 import java.awt.event.{ MouseAdapter, MouseEvent }
+import java.awt.image.{ ImageObserver }
 import java.beans.{ PropertyChangeListener, PropertyChangeEvent }
 import java.io.{ File, IOException }
 import java.nio.{ CharBuffer }
 import javax.swing.{ JComponent, Spring, SpringLayout, TransferHandler }
 import javax.swing.event.{ MouseInputAdapter }
+import scala.collection.{ IterableLike }
 import scala.math._
+import de.sciss.kontur.io.{ SonagramPaintController }
 import de.sciss.kontur.session.{ AudioFileElement, AudioRegion, AudioTrack,
                                 BasicTrail, Region, RegionTrait, ResizableStake,
                                 Session, SlidableStake, Stake, Track, Trail }
@@ -52,19 +55,23 @@ import de.sciss.io.{ AudioFile, Span }
 //import Track.Tr
 
 object DefaultTrackComponent {
-   protected case class PaintContext( g2: Graphics2D, p_off: Long,
+   protected[gui] case class PaintContext( g2: Graphics2D, p_off: Long,
                                    p_scale: Double, height: Int,
-                                   viewSpan: Span ) {
+                                   viewSpan: Span, clip: Rectangle ) {
 
-      def virtualToScreen( pos: Long ) =
-         ((pos + p_off) * p_scale + 0.5).toInt
+      def virtualToScreen( pos: Long ) = ((pos + p_off) * p_scale + 0.5).toInt
+      def virtualToScreenD( pos: Long )= (pos + p_off) * p_scale
+      def screenToVirtual( loc: Int )  = (loc / p_scale - p_off + 0.5).toLong
+      def screenToVirtualD( loc: Int ) = loc / p_scale - p_off
    }
 
-   protected trait Painter {
+   protected[gui] trait Painter {
       def paint( pc: PaintContext ) : Unit
    }
 
    val MIN_SPAN_LEN = 64  // XXX somewhat arbitrary (one control block in default scsynth)
+   val colrBg     = new Color( 0x68, 0x68, 0x68 )
+   val colrBgSel  = Color.blue
 }
 
 class DefaultTrackComponent( doc: Session, protected val track: Track, trackList: TrackList,
@@ -85,27 +92,27 @@ extends JComponent with TrackToolsListener with DynamicListening {
 */
     protected var trackTools: Option[ TrackTools ] = None
 
-    private var painter: Painter = DefaultPainter
+    private var painter: Painter = createDefaultPainter
 
 //    // finally we use some powerful functional shit. coooool
 //    protected val isSelected: track.T /* Stake[ _ ]*/ => Boolean =
 //        (trailView.map( _.isSelected _ ) getOrElse (_ => false))
 
-    private def checkSpanRepaint( span: Span ) {
-        if( span.overlaps( timelineView.span )) {
-            repaint( span )
-        }
-    }
+   protected def checkSpanRepaint( span: Span, outcode: Int = 2, tm: Long = 0L ) {
+      if( span.overlaps( timelineView.span )) {
+         repaint( span, outcode, tm )
+      }
+   }
 
-    private val trailViewListener = (msg: AnyRef) => msg match {
-//        case TrailView.SelectionChanged( span, stakes @ _* ) => checkSpanRepaint( span )
-        case TrailView.SelectionChanged( span ) => checkSpanRepaint( span )
-    }
+   private val trailViewListener = (msg: AnyRef) => msg match {
+//    case TrailView.SelectionChanged( span, stakes @ _* ) => checkSpanRepaint( span )
+      case TrailView.SelectionChanged( span ) => checkSpanRepaint( span )
+   }
 
-    private val trailListener = (msg: AnyRef) => msg match {
-        case trail.StakesAdded( span, stakes @ _* ) => checkSpanRepaint( span )
-        case trail.StakesRemoved( span, stakes @ _* ) => checkSpanRepaint( span )
-    }
+   private val trailListener = (msg: AnyRef) => msg match {
+      case trail.StakesAdded( span, stakes @ _* ) => checkSpanRepaint( span )
+      case trail.StakesRemoved( span, stakes @ _* ) => checkSpanRepaint( span )
+   }
 
     private val mia = new MouseAdapter {
       override def mousePressed( e: MouseEvent ) {
@@ -115,18 +122,15 @@ extends JComponent with TrackToolsListener with DynamicListening {
               val stakes = trail.getRange( span )
               val stakeO = stakes.headOption
               tt.currentTool.handleSelect( e, trackListElement, pos, stakeO )
+              if( (e.getClickCount == 2) && !stakes.isEmpty ) showObserverPage
           })
       }
    }
 
-   private def unionSpan( stakes: scala.collection.IterableLike[ Stake[ _ ], _ ]) : Span = {
-      val (start, stop) = stakes.foldLeft(
-         (Long.MaxValue, Long.MinValue) )( (tup, stake) =>
-            (min( tup._1, stake.span.start ), max( tup._2, stake.span.stop)) )
-      if( start < stop ) {
-         new Span( start, stop )
-      } else new Span()
-   }
+   protected def createDefaultPainter() = new DefaultPainter()
+
+   protected def createMoveResizePainter( initialUnion: Span, oldPainter: Painter ) =
+      new MoveResizePainter( initialUnion, oldPainter )
 
    // XXX different tools should use different listeners
    // for more efficient matching
@@ -134,7 +138,7 @@ extends JComponent with TrackToolsListener with DynamicListening {
         case TrackStakeTool.DragBegin => {
             val union = unionSpan( trailView.selectedStakes )
             if( !union.isEmpty ) {
-               val mrp = new MoveResizePainter( union, painter )
+               val mrp = createMoveResizePainter( union, painter )
                painter = mrp
             }
         }
@@ -170,6 +174,23 @@ extends JComponent with TrackToolsListener with DynamicListening {
         }
    }
 
+   private def unionSpan( stakes: IterableLike[ Stake[ _ ], _ ]) : Span = {
+      val (start, stop) = stakes.foldLeft(
+         (Long.MaxValue, Long.MinValue) )( (tup, stake) =>
+            (min( tup._1, stake.span.start ), max( tup._2, stake.span.stop)) )
+      if( start < stop ) {
+         new Span( start, stop )
+      } else new Span()
+   }
+
+   private def showObserverPage {
+//       val page      = StakeObserverPage.instance
+//       val observer  = AbstractApplication.getApplication()
+//          .getComponent( Main.COMP_OBSERVER ).asInstanceOf[ ObserverFrame ]
+//       page.setObjects( trailView.selectedStakes: _* )
+//       observer.selectPage( page.id )
+   }
+
    protected def participatesInTool( t: TrackTool ) = t match {
       case _ : TrackMoveTool => true
       case _ : TrackResizeTool => true
@@ -177,10 +198,13 @@ extends JComponent with TrackToolsListener with DynamicListening {
    }
 
    private val trackToolsListener = (msg: AnyRef) => msg match {
-       case TrackTools.ToolChanged( oldTool, newTool ) => {
-            oldTool.removeListener( toolListener )
-            if( participatesInTool( newTool )) newTool.addListener( toolListener )
-       }
+      case TrackTools.ToolChanged( oldTool, newTool ) => {
+         oldTool.removeListener( toolListener )
+         if( participatesInTool( newTool )) newTool.addListener( toolListener )
+      }
+      case TrackTools.VisualBoostChanged( _, boost ) => {
+         setVisualBoost( boost )
+      }
    }
    
     {
@@ -219,6 +243,8 @@ extends JComponent with TrackToolsListener with DynamicListening {
        trailView.removeListener( trailViewListener )
     }
 
+   protected def setVisualBoost( boost: Float ) {}
+
    protected def screenToVirtual( x: Int ) : Long = {
       val width   = getWidth
       if( width == 0 ) return 0L
@@ -235,11 +261,11 @@ extends JComponent with TrackToolsListener with DynamicListening {
       ((pos - tlSpan.start) * scale + 0.5).toInt
    }
 
-   protected def repaint( span: Span, outcode: Int = 2 ) {
+   protected def repaint( span: Span, outcode: Int = 2, tm: Long = 0L ) {
         val x1 = virtualToScreen( span.start )
         val x2 = virtualToScreen( span.stop )
-        val r  = new Rectangle( x1 - outcode, 0, x2 - x1 + outcode + outcode, getHeight )
-        repaint( r )
+//        val r  = new Rectangle( x1 - outcode, 0, x2 - x1 + outcode + outcode, getHeight )
+        repaint( tm, x1 - outcode, 0, x2 - x1 + outcode + outcode, getHeight )
     }
 
     override def getPreferredSize() : Dimension = {
@@ -260,24 +286,26 @@ extends JComponent with TrackToolsListener with DynamicListening {
        dim
     }
 
+    private val clipRect = new Rectangle // avoid re-allocation
     override def paintComponent( g: Graphics ) {
         super.paintComponent( g )
 
         val g2 = g.asInstanceOf[ Graphics2D ]
+        g2.getClipBounds( clipRect )
         val pc = PaintContext( g2, -timelineView.timeline.span.start,
                                getWidth.toDouble / timelineView.timeline.span.getLength,
-                               getHeight, timelineView.span )
+                               getHeight, timelineView.span, clipRect )
 
         g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON )
         painter.paint( pc )
     }
 
-   protected trait DefaultPainterTrait extends Painter {
+   protected class DefaultPainter extends Painter {
       def paintStake( pc: PaintContext, stake: track.T, selected: Boolean ) {
          val x = pc.virtualToScreen( stake.span.start )
          val width = ((stake.span.stop + pc.p_off) * pc.p_scale + 0.5).toInt - x
          val g2 = pc.g2
-         g2.setColor( if( selected ) Color.blue else Color.black )
+         g2.setColor( if( selected ) colrBgSel else colrBg )
          g2.fillRoundRect( x, 0, width, pc.height, 5, 5 )
          stake match {
             case reg: RegionTrait[ _ ] => {
@@ -297,10 +325,8 @@ extends JComponent with TrackToolsListener with DynamicListening {
       }
    }
 
-   protected object DefaultPainter extends DefaultPainterTrait
-
    protected class MoveResizePainter( initialUnion: Span, val oldPainter: Painter )
-   extends DefaultPainterTrait {
+   extends DefaultPainter {
       private var lastDraggedUnion = initialUnion
       private var move           = 0L
       private var moveOuter      = 0L
@@ -430,10 +456,15 @@ object AudioTrackComponent {
 
 class AudioTrackComponent( doc: Session, audioTrack: AudioTrack, trackList: TrackList,
                            timelineView: TimelineView )
-extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView ) {
+extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
+with SonagramPaintController {
+    component =>
+    
     import AudioTrackComponent._
+    import DefaultTrackComponent._
 
     private var dropPos : Option[ Long ] = None
+    private var visualBoost = 1f
 
     // ---- constructor ----
     {
@@ -503,6 +534,16 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView ) {
         })
       }
 
+   override def registerTools( tools: TrackTools ) {
+      visualBoost = tools.visualBoost
+      super.registerTools( tools )
+   }
+
+   override protected def setVisualBoost( boost: Float ) {
+      visualBoost = boost
+      checkSpanRepaint( timelineView.span, tm = 200L )
+   }
+
       private def pasteExtern( path: File, fileSpan: Span, insPos: Long ) {
          try {
             val af = AudioFile.openAsRead( path )
@@ -556,4 +597,51 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView ) {
              g.fillRect( x, 0, 3, getHeight )
         })
     }
+
+   override protected def createDefaultPainter() =
+      new DefaultPainter() with AudioStakePainter
+
+   override protected def createMoveResizePainter( initialUnion: Span, oldPainter: Painter ) =
+      new MoveResizePainter( initialUnion, oldPainter ) with AudioStakePainter
+
+   // ---- SonagramPaintController ----
+   def imageObserver: ImageObserver = this
+   def adjustGain( amp: Float, pos: Double ) = amp * visualBoost // eventually fades here...
+
+   protected trait AudioStakePainter extends DefaultPainter {
+//      DefaultPainter =>
+      override def paintStake( pc: PaintContext, stake: track.T, selected: Boolean ) {
+         stake match {
+            case ar: AudioRegion => {
+               val x = pc.virtualToScreen( ar.span.start )
+               val width = ((ar.span.stop + pc.p_off) * pc.p_scale + 0.5).toInt - x
+               val x1C = max( x, pc.clip.x - 2 )
+               val x2C = min( x + width, pc.clip.x + pc.clip.width + 3 )
+               if( x1C < x2C ) { // skip this if we are not overlapping with clip
+                  val g2 = pc.g2
+                  g2.setColor( if( selected ) colrBgSel else colrBg )
+                  g2.fillRoundRect( x, 0, width, pc.height, 5, 5 )
+                  val clipOrig = g2.getClip
+                  ar.audioFile.sona.foreach( sona => {
+                    g2.clipRect( x, 15, width, pc.height - 16 )
+//                  sona.paint( new Span( ar.offset, ar.offset + ar.span.getLength ),
+//                    g2, x, 15, width, pc.height - 16, component )
+                     val dStart = ar.offset - ar.span.start
+                     val startC = pc.screenToVirtualD( x1C )
+                     val stopC  = pc.screenToVirtualD( x2C )
+                     sona.paint( startC + dStart, stopC + dStart, g2,
+                        x1C, 15, x2C - x1C, pc.height - 16, component )
+                     g2.setClip( clipOrig )
+//                   g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON )
+                  })
+                  g2.clipRect( x + 2, 2, width - 4, pc.height - 4 )
+                  g2.setColor( Color.white )
+                  g2.drawString( ar.name, x + 4, 12 )
+                  g2.setClip( clipOrig )
+               }
+            }
+            case _ => super.paintStake( pc, stake, selected )
+         }
+      }
+   }
 }

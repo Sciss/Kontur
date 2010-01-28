@@ -40,10 +40,12 @@ import de.sciss.kontur.util.{ Model }
 
 object TrackTools {
     case class ToolChanged( oldTool: TrackTool, newTool: TrackTool )
+    case class VisualBoostChanged( oldBoost: Float, newBoost: Float ) // XXX this should really be somewhere else
 }
 
 trait TrackTools extends Model {
     def currentTool: TrackTool
+    def visualBoost: Float // XXX this should really be somewhere else
 }
 
 //class DummyTrackTools extends TrackTools {

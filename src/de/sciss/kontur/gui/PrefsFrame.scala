@@ -30,7 +30,7 @@ package de.sciss.kontur.gui
 
 import de.sciss.app.{ AbstractApplication, AbstractWindow, PreferenceEntrySync }
 import de.sciss.gui.{ ComboBoxEditorBorder, CoverGrowBox, PathField,
-                     PrefCheckBox, PrefComboBox, PrefParamField,
+                     PrefCheckBox, PrefComboBox, PrefPathField, PrefParamField,
                      StringItem, TreeExpanderButton }
 import de.sciss.common.{ BasicWindowHandler, BasicPathField }
 import de.sciss.util.{ Param, ParamSpace }
@@ -84,9 +84,7 @@ class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
       }
 
       val tabGeneral = newTab( "prefsGeneral", generalPanel )
-
-		// ---------- audio pane ----------
-
+      newTab( "prefsIO", ioPanel )
       newTab( "prefsAudio", audioPanel )
       
       cp.add( tb, BorderLayout.NORTH )
@@ -214,6 +212,27 @@ class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
         )
         panel
     }
+
+   private def ioPanel : JComponent = {
+		val prefs   = app.getUserPrefs().node( NODE_IO )
+
+      val (panel, layout) = createPanel
+
+      val txSonaCacheFolder   = getResourceString( "prefsSonaCacheFolder" )
+      val lbSonaCacheFolder   = new JLabel( txSonaCacheFolder )
+      val ggSonaCacheFolder   = new PrefPathField( PathField.TYPE_FOLDER, txSonaCacheFolder )
+      ggSonaCacheFolder.setPreferences( prefs, KEY_SONACACHEFOLDER )
+
+      layout.setHorizontalGroup( layout.createSequentialGroup()
+         .addComponent( lbSonaCacheFolder )
+         .addComponent( ggSonaCacheFolder )
+      )
+      layout.setVerticalGroup( layout.createParallelGroup( GroupLayout.Alignment.BASELINE )
+         .addComponent( lbSonaCacheFolder )
+         .addComponent( ggSonaCacheFolder )
+      )
+      panel
+   }
 
     private def audioPanel : JComponent = {
 		val prefs   = app.getUserPrefs().node( NODE_AUDIO );

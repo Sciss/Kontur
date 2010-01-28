@@ -28,7 +28,7 @@
 
 package de.sciss.kontur.gui
 
-import java.awt.{ BorderLayout, Dimension, Rectangle }
+import java.awt.{ BorderLayout, Color, Dimension, Rectangle }
 import javax.swing.{ Box, JComponent, JPanel, JScrollPane, ScrollPaneConstants }
 import ScrollPaneConstants._
 import scala.collection.immutable.{ Queue }
@@ -68,6 +68,7 @@ with BasicTrackList with TrackToolsListener {
 //        gp.setBottomBorder( true )
 //        gp.setLayout( null )
         setBorder( null )
+        viewPort.setBackground( new Color( 0x28, 0x28, 0x28 ))
         setViewport( viewPort )
         viewPort.setBorder( null )
 //        setCorner( UPPER_LEFT_CORNER, gp )
