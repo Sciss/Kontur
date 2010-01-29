@@ -66,6 +66,15 @@ extends RegionTrait[ AudioRegion ] with SlidableStake[ AudioRegion ] {
   {if( fadeOut.isDefined ) Some( <fadeOut>{fadeOut.map( _.toXML )}</fadeOut> ) else None}
 </stake>
 
+   def replaceGain( newGain: Float ) : AudioRegion =
+      copy( gain = newGain )
+
+   def replaceFadeIn( newFadeIn: Option[ FadeSpec ]) : AudioRegion =
+      copy( fadeIn = newFadeIn )
+
+   def replaceFadeOut( newFadeOut: Option[ FadeSpec ]) : AudioRegion =
+      copy( fadeOut = newFadeOut )
+
    def move( delta: Long ) : AudioRegion = copy( span = span.shift( delta ))
 
    def moveOuter( delta: Long ) : AudioRegion = {

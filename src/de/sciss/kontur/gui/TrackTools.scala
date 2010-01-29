@@ -233,69 +233,65 @@ trait TrackStakeTool extends TrackTool {
     }
 }
 
-abstract class BasicTrackStakeTool( protected val trackList: TrackList,
-                                    protected val timelineView: TimelineView )
+abstract class BasicTrackStakeTool[ Param <: AnyRef ](
+   protected val trackList: TrackList, protected val timelineView: TimelineView )
 extends TrackStakeTool {
+   import TrackStakeTool._
 
+   protected var currentParamVar: Option[ Param ] = None
+
+   protected def dragToParam( d: Drag ) : Param
+   
    protected def dragStarted( d: this.Drag ) : Boolean =
       d.currentEvent.getPoint().distanceSq( d.firstEvent.getPoint() ) > 16
+   
+   protected def dragBegin( d: this.Drag ) {
+       val p = dragToParam( d )
+       currentParamVar = Some( p )
+       dispatch( DragBegin )
+       dispatch( p )
+   }
+
+   protected def dragAdjust( d: this.Drag ) {
+      currentParamVar.foreach( oldP => {
+          val p = dragToParam( d )
+          if( p != oldP ) {
+             currentParamVar = Some( p )
+             dispatch( p )
+          }
+      })
+   }
 }
 
-
 object TrackMoveTool {
-    case class DragAdjust( newMove: Move )
     case class Move( deltaTime: Long, deltaVertical: Int )
 }
 
 class TrackMoveTool( trackList: TrackList, timelineView: TimelineView )
-extends BasicTrackStakeTool( trackList, timelineView ) {
-   import TrackStakeTool._
+extends BasicTrackStakeTool[ TrackMoveTool.Move ]( trackList, timelineView ) {
    import TrackMoveTool._
 
    def defaultCursor = Cursor.getPredefinedCursor( Cursor.HAND_CURSOR )
    val name = "Move"
-   private var currentMoveVar: Option[ Move ] = None
 
-   private def dragToMove( d: Drag ) : Move = {
-       TrackMoveTool.Move( d.currentPos - d.firstPos,
-            trackList.indexOf( d.currentTLE ) - trackList.indexOf( d.firstTLE ))
+   protected def dragToParam( d: Drag ) : Move = {
+       Move( d.currentPos - d.firstPos,
+             trackList.indexOf( d.currentTLE ) - trackList.indexOf( d.firstTLE ))
    }
-   
-   protected def dragBegin( d: this.Drag ) {
-       val move = dragToMove( d )
-       currentMoveVar = Some( move )
-       dispatch( DragBegin )
-       dispatch( DragAdjust( move ))
-   }
-
-   protected def dragAdjust( d: this.Drag ) {
-      currentMoveVar.foreach( oldMove => {
-          val move = dragToMove( d )
-          if( move != oldMove ) {
-             currentMoveVar = Some( move )
-             dispatch( DragAdjust( move ))
-          }
-      })
-   }
-   
-//   def currentMove = currentMoveVar
 }
 
 object TrackResizeTool {
-    case class DragAdjust( newResize: Resize )
     case class Resize( deltaStart: Long, deltaStop: Long )
 }
 
 class TrackResizeTool( trackList: TrackList, timelineView: TimelineView )
-extends BasicTrackStakeTool( trackList, timelineView ) {
-   import TrackStakeTool._
+extends BasicTrackStakeTool[ TrackResizeTool.Resize ]( trackList, timelineView ) {
    import TrackResizeTool._
 
    def defaultCursor = Cursor.getPredefinedCursor( Cursor.W_RESIZE_CURSOR )
    val name = "Resize"
-   private var currentResizeVar: Option[ Resize ] = None
 
-   private def dragToResize( d: Drag ) : Resize = {
+   protected def dragToParam( d: Drag ) : Resize = {
       val (deltaStart, deltaStop ) =
          if( abs( d.firstPos - d.firstStake.span.start ) <
              abs( d.firstPos - d.firstStake.span.stop )) {
@@ -306,71 +302,60 @@ extends BasicTrackStakeTool( trackList, timelineView ) {
          }
       Resize( deltaStart, deltaStop )
    }
-
-   protected def dragBegin( d: this.Drag ) {
-       val resize = dragToResize( d )
-       currentResizeVar = Some( resize )
-       dispatch( DragBegin )
-       dispatch( DragAdjust( resize ))
-   }
-
-   protected def dragAdjust( d: this.Drag ) {
-      currentResizeVar.foreach( oldResize => {
-          val resize = dragToResize( d )
-          if( resize != oldResize ) {
-             currentResizeVar = Some( resize )
-             dispatch( DragAdjust( resize ))
-          }
-      })
-   }
-
-//   def currentResize = currentResizeVar
 }
 
 object TrackGainTool {
-    case class DragAdjust( newGain: Float )
+    case class Gain( factor: Float )
 }
 
 class TrackGainTool( trackList: TrackList, timelineView: TimelineView )
-extends BasicTrackStakeTool( trackList, timelineView ) {
-   import TrackStakeTool._
+extends BasicTrackStakeTool[ TrackGainTool.Gain ]( trackList, timelineView ) {
    import TrackGainTool._
    
    def defaultCursor = Cursor.getPredefinedCursor( Cursor.N_RESIZE_CURSOR )
    val name = "Gain"
-   private var currentGainVar: Option[ Float ] = None
 
    override protected def dragStarted( d: this.Drag ) : Boolean =
       d.currentEvent.getY != d.firstEvent.getY
 
-   private def dragToGain( d: Drag ) : Float = {
+   protected def dragToParam( d: Drag ) : Gain = {
       val dy = d.firstEvent.getY - d.currentEvent.getY
       // use 0.1 dB per pixel. eventually we could use modifier keys...
-      val gainFactor = (MathUtil.dBToLinear( dy / 10 )).toFloat
-      gainFactor
-   }
-
-   protected def dragBegin( d: this.Drag ) {
-       val gain = dragToGain( d )
-       currentGainVar = Some( gain )
-       dispatch( DragBegin )
-       dispatch( DragAdjust( gain ))
-   }
-
-   protected def dragAdjust( d: this.Drag ) {
-      currentGainVar.foreach( oldGain => {
-          val gain = dragToGain( d )
-          if( gain != oldGain ) {
-             currentGainVar = Some( gain )
-             dispatch( DragAdjust( gain ))
-          }
-      })
+      val factor = (MathUtil.dBToLinear( dy / 10 )).toFloat
+      Gain( factor )
    }
 }
 
-/*
-class TrackFadeTool( trackList: TrackList ) extends BasicTrackStakeTool( trackList ) {
+object TrackFadeTool {
+    case class Fade( deltaFadeIn: Long, deltaFadeOut: Long,
+                     deltaFadeInCurve: Float, deltaFadeOutCurve: Float )
+}
+
+class TrackFadeTool( trackList: TrackList, timelineView: TimelineView )
+extends BasicTrackStakeTool[ TrackFadeTool.Fade ]( trackList, timelineView ) {
+   import TrackFadeTool._
+
    def defaultCursor = Cursor.getPredefinedCursor( Cursor.NW_RESIZE_CURSOR )
    val name = "Fade"
+
+   protected def dragToParam( d: Drag ) : Fade = {
+      val leftHand = abs( d.firstPos - d.firstStake.span.start ) <
+                     abs( d.firstPos - d.firstStake.span.stop )
+      val (deltaTime, deltaCurve) = if( d.firstEvent.isAltDown ) {  // kurvendorfer
+         val dy = d.firstEvent.getY - d.currentEvent.getY
+         (0L, if( leftHand ) -dy else dy)
+      } else {
+         (if( leftHand ) d.currentPos - d.firstPos else d.firstPos - d.currentPos, 0)
+      }
+      if( leftHand ) Fade( deltaTime, 0L, deltaCurve, 0f )
+      else Fade( 0L, deltaTime, 0f, deltaCurve )
+   }
+
+   override protected def dragStarted( d: this.Drag ) : Boolean = {
+      if( d.firstEvent.isAltDown ) {
+         d.currentEvent.getY != d.firstEvent.getY
+      } else {
+         d.currentEvent.getX != d.firstEvent.getX
+      }
+   }
 }
-*/

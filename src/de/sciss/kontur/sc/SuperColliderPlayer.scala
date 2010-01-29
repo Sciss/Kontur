@@ -121,8 +121,8 @@ extends Disposable {
                     S( i_dur - (i_fadeIn + i_fadeOut), 1 ),
                     S( i_fadeOut, i_foutFloor, varShape( i_foutShape, i_foutCurve ))))
 
-//                 val envGen = EnvGen.kr( env, doneAction = freeSelf ) * amp
-val envGen = Line.kr( amp, amp, i_dur, doneAction = freeSelf )
+                 val envGen = EnvGen.kr( env, doneAction = freeSelf ) * amp
+//val envGen = Line.kr( amp, amp, i_dur, doneAction = freeSelf )
 				 Out.ar( out, DiskIn.ar( numChannels, i_bufNum ) * envGen )
 			 }
 //             synDef.writeDefFile( "/Users/rutz/Desktop" )
@@ -309,18 +309,21 @@ if( verbose ) println( "play ; deltaFrames = " + deltaFrames )
 
           def stop {
 if( verbose ) println( "stop" )
+players.foreach( _.stop )
               timer.stop()
           }
 
            trait TrackPlayer extends Disposable {
               def track: Track
               def step( span: Span )
+              def stop
            }
 
            class DummyPlayer( val track: Track )
            extends TrackPlayer {
               def dispose {}
               def step( span: Span ) {}
+              def stop {}
            }
 
            class AudioTrackPlayer( val track: AudioTrack )
@@ -383,9 +386,13 @@ if( verbose ) println( "stop" )
                 })
               }
 
-              def dispose {
+              def stop {
                 synths.foreach( _.free )
                 synths = Set[ Synth ]()
+              }
+
+              def dispose {
+                 stop
               }
            }
         }
