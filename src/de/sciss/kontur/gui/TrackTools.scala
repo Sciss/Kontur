@@ -37,6 +37,7 @@ import scala.math._
 import de.sciss.app.{ AbstractCompoundEdit }
 import de.sciss.kontur.session.{ Stake, Track, Trail }
 import de.sciss.kontur.util.{ Model }
+import de.sciss.dsp.{ MathUtil }
 
 object TrackTools {
     case class ToolChanged( oldTool: TrackTool, newTool: TrackTool )
@@ -326,12 +327,48 @@ extends BasicTrackStakeTool( trackList, timelineView ) {
 //   def currentResize = currentResizeVar
 }
 
-/*
-class TrackGainTool( trackList: TrackList ) extends BasicTrackStakeTool( trackList ) {
-   def defaultCursor = Cursor.getPredefinedCursor( Cursor.N_RESIZE_CURSOR )
-   val name = "Gain"
+object TrackGainTool {
+    case class DragAdjust( newGain: Float )
 }
 
+class TrackGainTool( trackList: TrackList, timelineView: TimelineView )
+extends BasicTrackStakeTool( trackList, timelineView ) {
+   import TrackStakeTool._
+   import TrackGainTool._
+   
+   def defaultCursor = Cursor.getPredefinedCursor( Cursor.N_RESIZE_CURSOR )
+   val name = "Gain"
+   private var currentGainVar: Option[ Float ] = None
+
+   override protected def dragStarted( d: this.Drag ) : Boolean =
+      d.currentEvent.getY != d.firstEvent.getY
+
+   private def dragToGain( d: Drag ) : Float = {
+      val dy = d.firstEvent.getY - d.currentEvent.getY
+      // use 0.1 dB per pixel. eventually we could use modifier keys...
+      val gainFactor = (MathUtil.dBToLinear( dy / 10 )).toFloat
+      gainFactor
+   }
+
+   protected def dragBegin( d: this.Drag ) {
+       val gain = dragToGain( d )
+       currentGainVar = Some( gain )
+       dispatch( DragBegin )
+       dispatch( DragAdjust( gain ))
+   }
+
+   protected def dragAdjust( d: this.Drag ) {
+      currentGainVar.foreach( oldGain => {
+          val gain = dragToGain( d )
+          if( gain != oldGain ) {
+             currentGainVar = Some( gain )
+             dispatch( DragAdjust( gain ))
+          }
+      })
+   }
+}
+
+/*
 class TrackFadeTool( trackList: TrackList ) extends BasicTrackStakeTool( trackList ) {
    def defaultCursor = Cursor.getPredefinedCursor( Cursor.NW_RESIZE_CURSOR )
    val name = "Fade"

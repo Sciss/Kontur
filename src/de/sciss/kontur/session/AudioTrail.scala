@@ -44,19 +44,26 @@ object AudioRegion {
         val af     = doc.audioFiles.getByID( afID ) getOrElse {
             throw new IOException( "Session corrupt. Referencing an invalid audio file #" + afID )}
         val offset = (node \ "offset").text.toLong
+        val gain   = (node \ "gain").headOption.map( _.text.toFloat ) getOrElse 1f
+        val fadeIn = (node \ "fadeIn"  \ "fade").headOption.map( n => FadeSpec.fromXML( n ))
+        val fadeOut= (node \ "fadeOut" \ "fade").headOption.map( n => FadeSpec.fromXML( n ))
 
-        new AudioRegion( span, name, af, offset )
+        new AudioRegion( span, name, af, offset, gain, fadeIn, fadeOut )
     }
 }
 
 case class AudioRegion( span: Span, name: String, audioFile: AudioFileElement,
-                        offset: Long )
+                        offset: Long, gain: Float, fadeIn: Option[ FadeSpec ],
+                        fadeOut: Option[ FadeSpec ])
 extends RegionTrait[ AudioRegion ] with SlidableStake[ AudioRegion ] {
   def toXML = <stake>
   <name>{name}</name>
   <span start={span.start.toString} stop={span.stop.toString}/>
   <audioFile idref={audioFile.id.toString}/>
   <offset>{offset}</offset>
+  {if( gain != 0f ) Some( <gain>{gain}</gain> ) else None}
+  {if( fadeIn.isDefined )  Some( <fadeIn>{fadeIn.map( _.toXML )}</fadeIn> ) else None}
+  {if( fadeOut.isDefined ) Some( <fadeOut>{fadeOut.map( _.toXML )}</fadeOut> ) else None}
 </stake>
 
    def move( delta: Long ) : AudioRegion = copy( span = span.shift( delta ))

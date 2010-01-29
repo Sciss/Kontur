@@ -44,7 +44,8 @@ object AudioFileElement {
       val path          = new File( (node \ "path").text )
       val numFrames     = (node \ "numFrames").text.toLong
       val numChannels   = (node \ "numChannels").text.toInt
-      val afe           = new AudioFileElement( id, path, numFrames, numChannels )
+      val sampleRate    = (node \ "sampleRate").text.toDouble
+      val afe           = new AudioFileElement( id, path, numFrames, numChannels, sampleRate )
 //    afe.fromXML( node )
       afe
    }
@@ -54,11 +55,12 @@ object AudioFileElement {
       val af      = AudioFile.openAsRead( path )
       val descr   = af.getDescr
       af.close
-      new AudioFileElement( doc.createID, path, descr.length, descr.channels )
+      new AudioFileElement( doc.createID, path, descr.length, descr.channels, descr.rate )
    }
 }
 
-class AudioFileElement( val id: Long, val path: File, val numFrames: Long, val numChannels: Int )
+class AudioFileElement( val id: Long, val path: File, val numFrames: Long,
+                        val numChannels: Int, val sampleRate: Double )
 extends SessionElement {
   def name: String = path.getName
 
@@ -66,6 +68,7 @@ extends SessionElement {
   <path>{path.getAbsolutePath}</path>
   <numFrames>{numFrames}</numFrames>
   <numChannels>{numChannels}</numChannels>
+  <sampleRate>{sampleRate}</sampleRate>
 </audioFile>
 
 /*

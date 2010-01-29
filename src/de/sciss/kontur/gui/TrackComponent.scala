@@ -92,7 +92,7 @@ extends JComponent with TrackToolsListener with DynamicListening {
 */
     protected var trackTools: Option[ TrackTools ] = None
 
-    private var painter: Painter = createDefaultPainter
+    protected var painter: Painter = createDefaultPainter
 
 //    // finally we use some powerful functional shit. coooool
 //    protected val isSelected: track.T /* Stake[ _ ]*/ => Boolean =
@@ -127,54 +127,56 @@ extends JComponent with TrackToolsListener with DynamicListening {
       }
    }
 
-   protected def createDefaultPainter() = new DefaultPainter()
+   private val moveResizeToolListener = (msg: AnyRef) => msg match {
+        case TrackStakeTool.DragBegin => {
+            val union = unionSpan( trailView.selectedStakes )
+            if( !union.isEmpty ) {
+               painter = createMoveResizePainter( union, painter )
+            }
+        }
+        case TrackMoveTool.DragAdjust( move ) => painter match {
+           case mrp: MoveResizePainter => {
+                 mrp.adjustMove( move.deltaTime, move.deltaVertical )
+                 mrp.adjusted
+           }
+           case _ =>
+        }
+        case TrackResizeTool.DragAdjust( resize ) => painter match {
+           case mrp: MoveResizePainter => {
+                 mrp.adjustResize( resize.deltaStart, resize.deltaStop )
+                 mrp.adjusted
+           }
+           case _ =>
+        }
+        case TrackStakeTool.DragEnd( ce ) => painter match {
+           case mrp: MoveResizePainter => mrp.finish( ce )
+           case _ =>
+        }
+        case TrackStakeTool.DragCancel => painter match {
+           case mrp: MoveResizePainter => mrp.cancel
+           case _ =>
+        }
+   }
+
+   private var toolListener: Option[ AnyRef => Unit ] = None
+
+   private val trackToolsListener = (msg: AnyRef) => msg match {
+      case TrackTools.ToolChanged( oldTool, newTool ) => {
+         toolListener.foreach( tl => oldTool.removeListener( tl ))
+         toolListener = selectToolListener( newTool )
+         toolListener.foreach( tl => newTool.addListener( tl ))
+      }
+      case TrackTools.VisualBoostChanged( _, boost ) => {
+         setVisualBoost( boost )
+      }
+   }
+   
+   protected def createDefaultPainter() = new DefaultPainterTrait {}
 
    protected def createMoveResizePainter( initialUnion: Span, oldPainter: Painter ) =
       new MoveResizePainter( initialUnion, oldPainter )
 
-   // XXX different tools should use different listeners
-   // for more efficient matching
-   private val toolListener = (msg: AnyRef) => msg match {
-        case TrackStakeTool.DragBegin => {
-            val union = unionSpan( trailView.selectedStakes )
-            if( !union.isEmpty ) {
-               val mrp = createMoveResizePainter( union, painter )
-               painter = mrp
-            }
-        }
-        case TrackMoveTool.DragAdjust( move ) => {
-           painter match {
-              case mrp: MoveResizePainter => {
-                    mrp.adjustMove( move.deltaTime, move.deltaVertical )
-                    mrp.adjusted
-              }
-              case _ =>
-           }
-        }
-        case TrackResizeTool.DragAdjust( resize ) => {
-           painter match {
-              case mrp: MoveResizePainter => {
-                    mrp.adjustResize( resize.deltaStart, resize.deltaStop )
-                    mrp.adjusted
-              }
-              case _ =>
-           }
-        }
-        case TrackStakeTool.DragEnd( ce ) => {
-           painter match {
-              case mrp: MoveResizePainter => mrp.finish( ce )
-              case _ =>
-           }
-        }
-        case TrackStakeTool.DragCancel => {
-           painter match {
-              case mrp: MoveResizePainter => mrp.cancel
-              case _ =>
-           }
-        }
-   }
-
-   private def unionSpan( stakes: IterableLike[ Stake[ _ ], _ ]) : Span = {
+   protected def unionSpan( stakes: IterableLike[ Stake[ _ ], _ ]) : Span = {
       val (start, stop) = stakes.foldLeft(
          (Long.MaxValue, Long.MinValue) )( (tup, stake) =>
             (min( tup._1, stake.span.start ), max( tup._2, stake.span.stop)) )
@@ -191,21 +193,12 @@ extends JComponent with TrackToolsListener with DynamicListening {
 //       observer.selectPage( page.id )
    }
 
-   protected def participatesInTool( t: TrackTool ) = t match {
-      case _ : TrackMoveTool => true
-      case _ : TrackResizeTool => true
-      case _ => false
-   }
-
-   private val trackToolsListener = (msg: AnyRef) => msg match {
-      case TrackTools.ToolChanged( oldTool, newTool ) => {
-         oldTool.removeListener( toolListener )
-         if( participatesInTool( newTool )) newTool.addListener( toolListener )
+   protected def selectToolListener( t: TrackTool ): Option[ AnyRef => Unit ] =
+      t match {
+         case _ : TrackMoveTool   => Some( moveResizeToolListener )
+         case _ : TrackResizeTool => Some( moveResizeToolListener )
+         case _ => None
       }
-      case TrackTools.VisualBoostChanged( _, boost ) => {
-         setVisualBoost( boost )
-      }
-   }
    
     {
       setFont( AbstractApplication.getApplication().getGraphicsHandler()
@@ -300,7 +293,9 @@ extends JComponent with TrackToolsListener with DynamicListening {
         painter.paint( pc )
     }
 
-   protected class DefaultPainter extends Painter {
+//   protected class DefaultPainter extends DefaultPainterTrait
+
+   protected trait DefaultPainterTrait extends Painter {
       def paintStake( pc: PaintContext, stake: track.T, selected: Boolean ) {
          val x = pc.virtualToScreen( stake.span.start )
          val width = ((stake.span.stop + pc.p_off) * pc.p_scale + 0.5).toInt - x
@@ -325,16 +320,82 @@ extends JComponent with TrackToolsListener with DynamicListening {
       }
    }
 
-   protected class MoveResizePainter( initialUnion: Span, val oldPainter: Painter )
-   extends DefaultPainter {
+   trait TransformativePainter extends DefaultPainterTrait {
+//      this: Painter =>
+
+      protected val initialUnion: Span
+      protected val oldPainter: Painter
       private var lastDraggedUnion = initialUnion
+
+      protected var dragTrail: Option[ BasicTrail[ track.T ]] = None
+
+      def adjusted {
+         val tTrail = new BasicTrail[ track.T ]( doc )
+         dragTrail = Some( tTrail )
+         val tStakes = trailView.selectedStakes.toList.map( transform _ )
+         tTrail.add( tStakes: _* )
+         val newDraggedUnion = unionSpan( tStakes )
+         val repaintSpan = newDraggedUnion.union( lastDraggedUnion )
+         lastDraggedUnion  = newDraggedUnion
+         checkSpanRepaint( repaintSpan )
+      }
+
+      protected def transform( stake: track.T ): track.T
+
+      def finish( ce: AbstractCompoundEdit ) {
+         painter = oldPainter
+         // refresh is handled through stake exchange
+         dragTrail.foreach( tTrail => {
+            val oldStakes = trailView.selectedStakes // .toList
+            val newStakes = tTrail.getAll()
+            // remove stakes that have not changed
+            val oldStakesF = (oldStakes -- newStakes).toList
+            val newStakesF = newStakes.filterNot( st => oldStakes.contains( st ))
+            trailView.editor.foreach( ed => {
+                ed.editDeselect( ce, oldStakesF: _* )
+            })
+            trail.editor.foreach( ed => {
+                ed.editRemove( ce, oldStakesF: _* )
+                ed.editAdd( ce, newStakesF: _* )
+            })
+            trailView.editor.foreach( ed => {
+                ed.editSelect( ce, newStakesF: _* )
+            })
+         })
+      }
+
+      def cancel {
+         val repaintSpan = lastDraggedUnion.union( initialUnion )
+         painter = oldPainter
+         checkSpanRepaint( repaintSpan )
+      }
+
+      override def paint( pc: PaintContext ) {
+         if( dragTrail.isEmpty ) {
+            super.paint( pc )
+            return
+         }
+
+         val tlSpan = timelineView.timeline.span
+         val vwSpan = pc.viewSpan
+         trail.visitRange( vwSpan )( stake => {
+            if( !trailView.isSelected( stake )) paintStake( pc, stake, false )
+         })
+         dragTrail.foreach( _.visitRange( vwSpan )( stake =>
+            paintStake( pc, stake, true )
+         ))
+      }
+   }
+
+   protected class MoveResizePainter( protected val initialUnion: Span,
+                                      protected val oldPainter: Painter )
+   extends DefaultPainterTrait with TransformativePainter {
       private var move           = 0L
       private var moveOuter      = 0L
       private var moveInner      = 0L
       private var moveStart      = 0L
       private var moveStop       = 0L
       private var moveVertical   = 0
-      private var dragTrail: BasicTrail[ track.T ] = null
 
       def adjustMove( newMove: Long, newMoveVertical: Int ) {
          move           = newMove
@@ -346,112 +407,64 @@ extends JComponent with TrackToolsListener with DynamicListening {
          moveStop    = newMoveStop
       }
 
-      def adjusted {
-         dragTrail = new BasicTrail[ track.T ]( doc )
-         var tStakes: List[ track.T ] = Nil
+      protected def transform( stake: track.T ) : track.T = {
          val tlSpan = timelineView.timeline.span
-         trailView.selectedStakes.foreach( stake => {
-            val tStake: track.T =
-               if( move != 0L ) {
-                  val m = if( move < 0)
-                     max( tlSpan.start - stake.span.start, move )
+         if( move != 0L ) {
+            val m = if( move < 0)
+               max( tlSpan.start - stake.span.start, move )
+            else
+               min( tlSpan.stop - stake.span.stop, move )
+            stake.move( m )
+         } else if( moveOuter != 0L ) {
+            stake match {
+               case sStake: SlidableStake[ _ ] => {
+                  val mOuter = if( moveOuter < 0)
+                     max( tlSpan.start - stake.span.start, moveOuter )
                   else
-                     min( tlSpan.stop - stake.span.stop, move )
-                  stake.move( m )
-               } else if( moveOuter != 0L ) {
-                  stake match {
-                     case sStake: SlidableStake[ _ ] => {
-                        val mOuter = if( moveOuter < 0)
-                           max( tlSpan.start - stake.span.start, moveOuter )
-                        else
-                           min( tlSpan.stop - stake.span.stop, moveOuter )
-                        sStake.moveOuter( mOuter )
-                     }
-                     case _ => stake
-                  }
-               } else if( moveInner != 0L ) {
-                  stake match {
-                     case sStake: SlidableStake[ _ ] => sStake.moveInner( moveInner )
-                     case _ => stake
-                  }
-               } else if( moveStart != 0L ) {
-                  stake match {
-                     case rStake: ResizableStake[ _ ] => {
-                        val mStart = if( moveStart < 0 )
-                           max( tlSpan.start - stake.span.start, moveStart )
-                        else
-                           min( stake.span.getLength - MIN_SPAN_LEN, moveStart )
+                     min( tlSpan.stop - stake.span.stop, moveOuter )
+                  sStake.moveOuter( mOuter )
+               }
+               case _ => stake
+            }
+         } else if( moveInner != 0L ) {
+            stake match {
+               case sStake: SlidableStake[ _ ] => sStake.moveInner( moveInner )
+               case _ => stake
+            }
+         } else if( moveStart != 0L ) {
+            stake match {
+               case rStake: ResizableStake[ _ ] => {
+                  val mStart = if( moveStart < 0 )
+                     max( tlSpan.start - stake.span.start, moveStart )
+                  else
+                     min( stake.span.getLength - MIN_SPAN_LEN, moveStart )
 
 //println( "stake " + stake.span + "; moveStart " + moveStart + "; mStart " + mStart )
-                        rStake.moveStart( mStart )
-                     }
-                     case _ => stake
-                  }
-               } else if( moveStop != 0L ) {
-                  stake match {
-                     case rStake: ResizableStake[ _ ] => {
-                        val mStop = if( moveStop < 0 )
-                           max( -stake.span.getLength + MIN_SPAN_LEN, moveStop )
-                        else
-                           min( tlSpan.stop - stake.span.stop, moveStop )
-                        rStake.moveStop( mStop )
-                     }
-                     case _ => stake
-                  }
-               } else {
-                  stake
+                  rStake.moveStart( mStart )
                }
-            tStakes ::= tStake
-         })
-         dragTrail.add( tStakes: _* )
-         val newDraggedUnion = unionSpan( tStakes )
-         val repaintSpan = newDraggedUnion.union( lastDraggedUnion )
-         lastDraggedUnion  = newDraggedUnion
-         checkSpanRepaint( repaintSpan )
-      }
-
-      def finish( ce: AbstractCompoundEdit ) {
-         painter = oldPainter
-         // refresh is handled through stake exchange
-         val oldStakes = trailView.selectedStakes // .toList
-         val newStakes = dragTrail.getAll()
-         // remove stakes that have not changed
-         val oldStakesF = (oldStakes -- newStakes).toList
-         val newStakesF = newStakes.filterNot( st => oldStakes.contains( st ))
-         trailView.editor.foreach( ed => {
-             ed.editDeselect( ce, oldStakesF: _* )
-         })
-         trail.editor.foreach( ed => {
-             ed.editRemove( ce, oldStakesF: _* )
-             ed.editAdd( ce, newStakesF: _* )
-         })
-         trailView.editor.foreach( ed => {
-             ed.editSelect( ce, newStakesF: _* )
-         })
-      }
-
-      def cancel {
-         val repaintSpan = lastDraggedUnion.union( initialUnion )
-         painter = oldPainter
-         checkSpanRepaint( repaintSpan )
-      }
-
-      override def paint( pc: PaintContext ) {
-         val tlSpan = timelineView.timeline.span
-         val vwSpan = pc.viewSpan
-         trail.visitRange( vwSpan )( stake => {
-            if( !trailView.isSelected( stake )) paintStake( pc, stake, false )
-         })
-         dragTrail.visitRange( vwSpan )( stake => {
-            paintStake( pc, stake, true )
-         })
+               case _ => stake
+            }
+         } else if( moveStop != 0L ) {
+            stake match {
+               case rStake: ResizableStake[ _ ] => {
+                  val mStop = if( moveStop < 0 )
+                     max( -stake.span.getLength + MIN_SPAN_LEN, moveStop )
+                  else
+                     min( tlSpan.stop - stake.span.stop, moveStop )
+                  rStake.moveStop( mStop )
+               }
+               case _ => stake
+            }
+         } else {
+            stake
+         }
       }
    }
 }
 
 object AudioTrackComponent {
-   protected val colrDropRegionBg = new Color( 0x00, 0x00, 0x00, 0x7F )
-   protected val colrDropRegionFg = new Color( 0xFF, 0xFF, 0xFF, 0x7F )
+   protected val colrDropRegionBg = new Color( 0xFF, 0xFF, 0xFF, 0x7F )
+//   protected val colrDropRegionFg = new Color( 0xFF, 0xFF, 0xFF, 0x7F )
 }
 
 class AudioTrackComponent( doc: Session, audioTrack: AudioTrack, trackList: TrackList,
@@ -534,6 +547,32 @@ with SonagramPaintController {
         })
       }
 
+   // XXX eventually we could save space and let the painter
+   // do the msg matching, no?
+   private val gainToolListener = (msg: AnyRef) => msg match {
+        case TrackStakeTool.DragBegin => {
+            val union = unionSpan( trailView.selectedStakes )
+            if( !union.isEmpty ) {
+               painter = new GainPainter( union, painter )
+            }
+        }
+        case TrackGainTool.DragAdjust( gain ) => painter match {
+           case gp: GainPainter => {
+                 gp.adjustGain( gain )
+                 gp.adjusted
+           }
+           case _ =>
+        }
+        case TrackStakeTool.DragEnd( ce ) => painter match {
+           case gp: GainPainter => gp.finish( ce )
+           case _ =>
+        }
+        case TrackStakeTool.DragCancel => painter match {
+           case gp: MoveResizePainter => gp.cancel
+           case _ =>
+        }
+   }
+
    override def registerTools( tools: TrackTools ) {
       visualBoost = tools.visualBoost
       super.registerTools( tools )
@@ -564,7 +603,8 @@ with SonagramPaintController {
                                 min( insPos + fileSpan.getLength,
                                      timelineView.timeline.span.stop ))
                       if( !insSpan.isEmpty ) {
-                         val ar = new AudioRegion( insSpan, afe.name, afe, fileSpan.start )
+                         val ar = new AudioRegion( insSpan, afe.name, afe,
+                            fileSpan.start, 1.0f, None, None )
                          val ce2 = ted.editBegin( "editAddAudioRegion" )
                          ted.editAdd( ce2, ar )
                          ted.editEnd( ce2 )
@@ -598,21 +638,43 @@ with SonagramPaintController {
         })
     }
 
-   override protected def createDefaultPainter() =
-      new DefaultPainter() with AudioStakePainter
+   override protected def createDefaultPainter() = new AudioStakePainter {}
 
    override protected def createMoveResizePainter( initialUnion: Span, oldPainter: Painter ) =
       new MoveResizePainter( initialUnion, oldPainter ) with AudioStakePainter
 
-   // ---- SonagramPaintController ----
-   def imageObserver: ImageObserver = this
-   def adjustGain( amp: Float, pos: Double ) = amp * visualBoost // eventually fades here...
+   override protected def selectToolListener( t: TrackTool ): Option[ AnyRef => Unit ] =
+      t match {
+         case _ : TrackGainTool   => Some( gainToolListener )
+         case _ => super.selectToolListener( t )
+      }
 
-   protected trait AudioStakePainter extends DefaultPainter {
+   // ---- SonagramPaintController ----
+   private var paintStakeGain = 1f // XXX dirty dirty
+   def imageObserver: ImageObserver = this
+   def adjustGain( amp: Float, pos: Double ) = amp * visualBoost * paintStakeGain // eventually fades here...
+
+   protected class GainPainter( protected val initialUnion: Span,
+                                protected val oldPainter: Painter )
+   extends AudioStakePainter with TransformativePainter {
+      private var dragGain = 1f
+
+      def adjustGain( newGain: Float ) {
+         dragGain = newGain
+      }
+
+      protected def transform( stake: track.T ) = stake match {
+         // WHHHHHHHHYYYYYYYYYYYYYYYYYYYYYYYYYYY THE CAST?
+         case ar: AudioRegion => ar.copy( gain = ar.gain * dragGain ).asInstanceOf[ track.T ]
+         case _ => stake
+      }
+   }
+
+   protected trait AudioStakePainter extends DefaultPainterTrait {
 //      DefaultPainter =>
       override def paintStake( pc: PaintContext, stake: track.T, selected: Boolean ) {
          stake match {
-            case ar: AudioRegion => {
+            case ar: AudioRegion => { // man, no chance to skip this matching??
                val x = pc.virtualToScreen( ar.span.start )
                val width = ((ar.span.stop + pc.p_off) * pc.p_scale + 0.5).toInt - x
 //             val x1C = max( x, pc.clip.x - 2 )
@@ -630,6 +692,7 @@ with SonagramPaintController {
                      val dStart = ar.offset - ar.span.start
                      val startC = max( 0.0, pc.screenToVirtualD( x1C ))
                      val stopC  = pc.screenToVirtualD( x2C )
+                     paintStakeGain = ar.gain // XXX dirty muthafucka
                      sona.paint( startC + dStart, stopC + dStart, g2,
                         x1C, 15, x2C - x1C, pc.height - 16, component )
                      g2.setClip( clipOrig )

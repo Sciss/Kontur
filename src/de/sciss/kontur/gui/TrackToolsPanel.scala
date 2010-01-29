@@ -47,7 +47,8 @@ extends JPanel with TrackTools {
 
    private val tools = List( new TrackCursorTool( trackList, timelineView ),
                              new TrackMoveTool( trackList, timelineView ),
-                             new TrackResizeTool( trackList, timelineView )
+                             new TrackResizeTool( trackList, timelineView ),
+                             new TrackGainTool( trackList, timelineView )
    )
 
     private var currentToolVar: TrackTool = tools.head

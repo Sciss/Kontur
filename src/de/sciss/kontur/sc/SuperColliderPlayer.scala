@@ -34,7 +34,7 @@ import de.sciss.kontur.session.{ AudioRegion, AudioTrack, BasicDiffusion,
                                 Diffusion, Session, Stake, Timeline, Track, Transport }
 import de.sciss.io.{ Span }
 import de.sciss.util.{ Disposable }
-import de.sciss.tint.sc._
+import de.sciss.tint.sc.{ EnvSeg => S, _ }
 import SC._
 import de.sciss.tint.sc.ugen._
 import scala.math._
@@ -106,21 +106,27 @@ extends Disposable {
                  val out        = "out".kr
                  val i_bufNum   = "i_bufNum".ir
                  val i_dur      = "i_dur".ir
-//                 val i_fadeIn   = "i_fadeIn".ir
-//                 val i_fadeOut  = "i_fadeOut".ir
-//                 val amp        = "amp".kr( 1 )
-val amp = 1
-//                 val i_finTyp   = "i_finTyp".ir( 1 )
-//                 val i_foutTyp  = "i_foutTyp".ir( 1 )
+                 val i_fadeIn   = "i_fadeIn".ir
+                 val i_fadeOut  = "i_fadeOut".ir
+                 val amp        = "amp".kr( 1 )
+                 val i_finShape = "i_finTyp".ir( 1 )
+                 val i_finCurve = "i_finCurve".ir( 0 )
+                 val i_finFloor = "i_finFloor".ir( 0 )
+                 val i_foutShape= "i_foutTyp".ir( 1 )
+                 val i_foutCurve= "i_foutCurve".ir( 0 )
+                 val i_foutFloor= "i_foutFloor".ir( 0 )
 
-//                 val env = new Env( List( 0, 1, 1, 0 ),
-//				          List( i_fadeIn, i_dur - (i_fadeIn + i_fadeOut), i_fadeOut ),
-//				          List( i_finTyp, 1, i_foutTyp ))
+                 val env = new Env( i_finFloor, List(
+                    S( i_fadeIn, 1, varShape( i_finShape, i_finCurve )),
+                    S( i_dur - (i_fadeIn + i_fadeOut), 1 ),
+                    S( i_fadeOut, i_foutFloor, varShape( i_foutShape, i_foutCurve ))))
+
 //                 val envGen = EnvGen.kr( env, doneAction = freeSelf ) * amp
 val envGen = Line.kr( amp, amp, i_dur, doneAction = freeSelf )
-				Out.ar( out, DiskIn.ar( numChannels, i_bufNum ) /* * envGen */)
+				 Out.ar( out, DiskIn.ar( numChannels, i_bufNum ) * envGen )
 			 }
-             synDef.writeDefFile( "/Users/rutz/Desktop" )
+//             synDef.writeDefFile( "/Users/rutz/Desktop" )
+//Thread.sleep( 1000 )
              synDef.send( server )
          }
        }
@@ -215,7 +221,7 @@ val envGen = Line.kr( amp, amp, i_dur, doneAction = freeSelf )
                    for( inCh <- (0 until diff.numInputChannels) ) {
                       for( outCh <- (0 until diff.numOutputChannels) ) {
                           val w = matrix( inCh, outCh )
-                          outSig( outCh ) += inSig( inCh ) * w
+                          outSig( outCh ) += inSig \ inCh * w
                       }
                    }
                    Out.ar( out, outSig.toList )
@@ -253,6 +259,7 @@ val envGen = Line.kr( amp, amp, i_dur, doneAction = freeSelf )
 
           // ---- constructor ----
           {
+//             server.dumpOSC( 3 )
              timer.setInitialDelay( 0 )
              timer.setCoalesce( false )
 
@@ -344,14 +351,20 @@ if( verbose ) println( "stop" )
                           val durFrames   = Math.max( 0, stake.span.getLength - frameOffset )
                           val durSecs     = durFrames / sampleRate
 
-                          val fadeFrames  = 0f // if( frameOffset == 0 ) min( durFrames, fadeIn.numFrames ) else 0  // XXX a little bit cheesy!
-                          val fadeInSecs  = 0f // fadeFrames / s.sampleRate
-                          val fadeOutSecs = 0f // min( durFrames - fadeFrames, fadeOut.numFrames ) / s.sampleRate
-                          bndl.add( synth.newMsg( group, List( "i_bufNum" -> buffer.bufNum,
-                              "i_dur" -> durSecs.toFloat, "i_fadeIn" -> fadeInSecs,
-                              /* "i_finTyp" -> fadeIn.mode,*/ "i_fadeOut" -> fadeOutSecs,
-                              /* "i_foutMode" -> fadeOut.mode, "amp" -> gain,*/
-                              "out" -> diffusions( diff ).inBus.index )))
+                          val L = List[ Tuple2[ String, Float ]] _
+
+                          bndl.add( synth.newMsg( group, L( "i_bufNum" -> buffer.bufNum,
+                              "i_dur" -> durSecs.toFloat, "amp" -> stake.gain,
+                               "out" -> diffusions( diff ).inBus.index ) :::
+                              stake.fadeIn.map( f => L(
+                                 "i_fadeIn" -> (f.numFrames / sampleRate).toFloat, // XXX should contrain if necessary
+                                 "i_finShape" -> f.shape._1, "i_finCurve" -> f.shape._2,
+                                 "i_finFloor" -> f.floor )).getOrElse( Nil ) :::
+                              stake.fadeOut.map( f => L(
+                                 "i_fadeOut" -> (f.numFrames / sampleRate).toFloat, // XXX should contrain if necessary
+                                 "i_foutShape" -> f.shape._1, "i_foutCurve" -> f.shape._2,
+                                 "i_foutFloor" -> f.floor )).getOrElse( Nil )
+                          ))
       //                    player.nw.register( synth )
                           synths += synth
                           stakesMap += (stake -> synth)

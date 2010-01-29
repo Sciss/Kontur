@@ -209,7 +209,7 @@ with HasContextMenu {
                   af.close
                   val ce = ed.editBegin( name )
                   val afe = new AudioFileElement( model.doc.createID, path,
-                     afd.length, afd.channels )
+                     afd.length, afd.channels, afd.rate )
                   ed.editInsert( ce, audioFiles.size, afe )
                   ed.editEnd( ce )
                }

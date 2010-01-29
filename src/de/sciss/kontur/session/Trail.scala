@@ -56,6 +56,10 @@ trait Stake[ +Repr ] {
 trait ResizableStake[ +Repr ] extends Stake[ Repr ] {
    def moveStart( delta: Long ) : Repr
    def moveStop( delta: Long ) : Repr
+   // default semantics is to apply moveStart and moveStop.
+   // subclasses can override behavior if needed
+   def split( pos: Long ) : Tuple2[ Repr, Repr ] =
+      (moveStop( pos - span.stop ), moveStart( pos - span.start ))
 }
 
 trait SlidableStake[ +Repr ] extends Stake[ Repr ] {
