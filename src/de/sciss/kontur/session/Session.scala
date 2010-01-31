@@ -39,7 +39,7 @@ import scala.xml.{ Node, XML }
 
 object Session {
     def newEmpty: Session = {
-       new Session( None )
+       new Session( None, 0 )
     }
 
     val XML_START_ELEMENT = "konturSession"
@@ -48,7 +48,7 @@ object Session {
     def newFrom( path: File ) : Session = {
        val xml = XML.loadFile( path )
        if( xml.label != XML_START_ELEMENT ) throw new IOException( "Not a session file" )
-       val doc = new Session( Some( path ))
+       val doc = new Session( Some( path ), (xml \ "idCount").text.toInt )
        doc.fromXML( xml )
        doc
     }
@@ -57,7 +57,7 @@ object Session {
     case class PathChanged( oldPath: Option[ File ], newPath: Option[ File ])
 }
 
-class Session( private var pathVar: Option[ File ])
+class Session( private var pathVar: Option[ File ], private var idCount: Int )
 extends BasicDocument with Model {
 
     import Session._
@@ -65,7 +65,7 @@ extends BasicDocument with Model {
 	private var pt: Option[ ProcessingThread ] = None
 	private val undo  = new de.sciss.app.UndoManager( this )
     private var dirty = false
-    private var idCount = 0
+
 //    private var path: Option[ File ] = None
 
     val timelines   = new Timelines( this )

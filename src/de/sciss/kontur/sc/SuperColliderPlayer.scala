@@ -109,10 +109,10 @@ extends Disposable {
                  val i_fadeIn   = "i_fadeIn".ir
                  val i_fadeOut  = "i_fadeOut".ir
                  val amp        = "amp".kr( 1 )
-                 val i_finShape = "i_finTyp".ir( 1 )
+                 val i_finShape = "i_finShape".ir( 1 )
                  val i_finCurve = "i_finCurve".ir( 0 )
                  val i_finFloor = "i_finFloor".ir( 0 )
-                 val i_foutShape= "i_foutTyp".ir( 1 )
+                 val i_foutShape= "i_foutShape".ir( 1 )
                  val i_foutCurve= "i_foutCurve".ir( 0 )
                  val i_foutFloor= "i_foutFloor".ir( 0 )
 
@@ -121,7 +121,7 @@ extends Disposable {
                     S( i_dur - (i_fadeIn + i_fadeOut), 1 ),
                     S( i_fadeOut, i_foutFloor, varShape( i_foutShape, i_foutCurve ))))
 
-                 val envGen = EnvGen.kr( env, doneAction = freeSelf ) * amp
+                 val envGen = EnvGen.ar( env, doneAction = freeSelf ) * amp
 //val envGen = Line.kr( amp, amp, i_dur, doneAction = freeSelf )
 				 Out.ar( out, DiskIn.ar( numChannels, i_bufNum ) * envGen )
 			 }
@@ -361,11 +361,11 @@ players.foreach( _.stop )
                                "out" -> diffusions( diff ).inBus.index ) :::
                               stake.fadeIn.map( f => L(
                                  "i_fadeIn" -> (f.numFrames / sampleRate).toFloat, // XXX should contrain if necessary
-                                 "i_finShape" -> f.shape._1, "i_finCurve" -> f.shape._2,
+                                 "i_finShape" -> f.shape.id, "i_finCurve" -> f.shape.curvature,
                                  "i_finFloor" -> f.floor )).getOrElse( Nil ) :::
                               stake.fadeOut.map( f => L(
                                  "i_fadeOut" -> (f.numFrames / sampleRate).toFloat, // XXX should contrain if necessary
-                                 "i_foutShape" -> f.shape._1, "i_foutCurve" -> f.shape._2,
+                                 "i_foutShape" -> f.shape.id, "i_foutCurve" -> f.shape.curvature,
                                  "i_foutFloor" -> f.floor )).getOrElse( Nil )
                           ))
       //                    player.nw.register( synth )

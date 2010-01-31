@@ -29,7 +29,7 @@
 package de.sciss.kontur.session
 
 import java.io.{ IOException }
-import scala.xml.{ Node }
+import scala.xml.{ Node, Null }
 import de.sciss.io.{ Span }
 import scala.math._
 
@@ -61,9 +61,9 @@ extends RegionTrait[ AudioRegion ] with SlidableStake[ AudioRegion ] {
   <span start={span.start.toString} stop={span.stop.toString}/>
   <audioFile idref={audioFile.id.toString}/>
   <offset>{offset}</offset>
-  {if( gain != 0f ) Some( <gain>{gain}</gain> ) else None}
-  {if( fadeIn.isDefined )  Some( <fadeIn>{fadeIn.map( _.toXML )}</fadeIn> ) else None}
-  {if( fadeOut.isDefined ) Some( <fadeOut>{fadeOut.map( _.toXML )}</fadeOut> ) else None}
+  {if( gain != 0f ) <gain>{gain}</gain> else Null}
+  {fadeIn.map( f => <fadeIn>{ f.toXML }</fadeIn>) getOrElse Null}
+  {fadeOut.map( f => <fadeOut>{ f.toXML }</fadeOut>) getOrElse Null}
 </stake>
 
    def replaceGain( newGain: Float ) : AudioRegion =

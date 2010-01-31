@@ -55,18 +55,32 @@ with DynamicListening {
 
     def startListening {
       isListening = true
-      new JEnumerationWrapper( children() ).foreach( _ match {
+// some version of scalac cannot deal with Enumeration
+// that is not generified ....
+//      new JEnumerationWrapper( children() ).foreach( _ match {
+//          case d: DynamicTreeNode => d.startListening
+//          case _ =>
+//      })
+//      val enum = children(); while( enum.hasMoreElements ) enum.nextElement match {
+//         case d: DynamicTreeNode => d.startListening
+//      }
+       for( i <- 0 until getChildCount ) getChildAt( i ) match {
           case d: DynamicTreeNode => d.startListening
-          case _ =>
-      })
-    }
+       }
+   }
 
   def stopListening {
       isListening = false
-      new JEnumerationWrapper( children() ).foreach( _ match {
+//      new JEnumerationWrapper( children() ).foreach( _ match {
+//        case d: DynamicTreeNode => d.stopListening
+//        case _ =>
+//      })
+//     val enum = children(); while( enum.hasMoreElements ) enum.nextElement match {
+//        case d: DynamicTreeNode => d.stopListening
+//     }
+     for( i <- 0 until getChildCount ) getChildAt( i ) match {
         case d: DynamicTreeNode => d.stopListening
-        case _ =>
-      })
+     }
     }
 
   protected def addDyn( elem: DynamicTreeNode ) {

@@ -53,6 +53,7 @@ import de.sciss.kontur.session.{ AudioFileElement, AudioRegion, AudioTrack,
 import de.sciss.app.{ AbstractApplication, AbstractCompoundEdit,
                       DynamicAncestorAdapter,DynamicListening, GraphicsHandler }
 import de.sciss.io.{ AudioFile, Span }
+import de.sciss.tint.sc.{ curveShape, linearShape }
 
 //import Track.Tr
 
@@ -136,9 +137,9 @@ extends JComponent with TrackToolsListener with DynamicListening {
                painter = createMoveResizePainter( union, painter )
             }
         }
-        case TrackMoveTool.Move( deltaTime, deltaVertical ) => painter match {
+        case TrackMoveTool.Move( deltaTime, deltaVertical, copy ) => painter match {
            case mrp: MoveResizePainter => {
-                 mrp.adjustMove( deltaTime, deltaVertical )
+                 mrp.adjustMove( deltaTime, deltaVertical, copy )
                  mrp.adjusted
            }
            case _ =>
@@ -328,6 +329,8 @@ extends JComponent with TrackToolsListener with DynamicListening {
       protected val initialUnion: Span
       protected val oldPainter: Painter
       private var lastDraggedUnion = initialUnion
+      protected var copyTransform = false
+      protected var copyTransformChanged = false
 
       protected var dragTrail: Option[ BasicTrail[ track.T ]] = None
 
@@ -337,7 +340,12 @@ extends JComponent with TrackToolsListener with DynamicListening {
          val tStakes = trailView.selectedStakes.toList.map( transform _ )
          tTrail.add( tStakes: _* )
          val newDraggedUnion = unionSpan( tStakes )
-         val repaintSpan = newDraggedUnion.union( lastDraggedUnion )
+         val repaintSpan = if( copyTransformChanged ) {
+            copyTransformChanged = false
+            newDraggedUnion.union( lastDraggedUnion ).union( initialUnion )
+         } else {
+            newDraggedUnion.union( lastDraggedUnion )
+         }
          lastDraggedUnion  = newDraggedUnion
          checkSpanRepaint( repaintSpan )
       }
@@ -357,7 +365,7 @@ extends JComponent with TrackToolsListener with DynamicListening {
                 ed.editDeselect( ce, oldStakesF: _* )
             })
             trail.editor.foreach( ed => {
-                ed.editRemove( ce, oldStakesF: _* )
+                if( !copyTransform ) ed.editRemove( ce, oldStakesF: _* )
                 ed.editAdd( ce, newStakesF: _* )
             })
             trailView.editor.foreach( ed => {
@@ -381,7 +389,7 @@ extends JComponent with TrackToolsListener with DynamicListening {
          val tlSpan = timelineView.timeline.span
          val vwSpan = pc.viewSpan
          trail.visitRange( vwSpan )( stake => {
-            if( !trailView.isSelected( stake )) paintStake( pc, stake, false )
+            if( copyTransform || !trailView.isSelected( stake )) paintStake( pc, stake, false )
          })
          dragTrail.foreach( _.visitRange( vwSpan )( stake =>
             paintStake( pc, stake, true )
@@ -399,9 +407,13 @@ extends JComponent with TrackToolsListener with DynamicListening {
       private var moveStop       = 0L
       private var moveVertical   = 0
 
-      def adjustMove( newMove: Long, newMoveVertical: Int ) {
+      def adjustMove( newMove: Long, newMoveVertical: Int, newCopy: Boolean ) {
          move           = newMove
          moveVertical   = newMoveVertical
+         if( copyTransform != newCopy ) {
+            copyTransform        = newCopy
+            copyTransformChanged = true
+         }
       }
 
       def adjustResize( newMoveStart: Long, newMoveStop: Long ) {
@@ -704,21 +716,29 @@ with SonagramPaintController {
             val fadeInChange  = dragFdInTime  != 0L || dragFdInCurve != 0f
             val fadeOutChange = dragFdOutTime != 0L || dragFdOutCurve != 0f
             if( fadeInChange || fadeOutChange ) {
-               var fadeInSpec  = ar.fadeIn  getOrElse FadeSpec( 0L, (1, 0f) )
-               var fadeOutSpec = ar.fadeOut getOrElse FadeSpec( 0L, (1, 0f) )
+               var fadeInSpec  = ar.fadeIn  getOrElse FadeSpec( 0L, linearShape )
+               var fadeOutSpec = ar.fadeOut getOrElse FadeSpec( 0L, linearShape )
                // marika, this should go somewhere, most like AudioRegion ?
                if( fadeInChange ) {
+                  val newShape = if( dragFdInCurve != 0f ) fadeInSpec.shape match {
+                     case `linearShape` => curveShape( dragFdInCurve )
+                     case `curveShape`( curvature ) => curveShape( max( -20, min( 20, curvature + dragFdInCurve )))
+                     case x => x
+                  } else fadeInSpec.shape
                   fadeInSpec = FadeSpec(
                      max( 0L, min( ar.span.getLength - fadeOutSpec.numFrames,
-                     fadeInSpec.numFrames + dragFdInTime )), (fadeInSpec.shape._1,
-                     max( -20, min( 20, fadeInSpec.shape._2 + dragFdInCurve ))))
+                     fadeInSpec.numFrames + dragFdInTime )), newShape )
                   tStake = tStake.replaceFadeIn( Some( fadeInSpec ))
                }
                if( fadeOutChange ) {
+                  val newShape = if( dragFdOutCurve != 0f ) fadeOutSpec.shape match {
+                     case `linearShape` => curveShape( dragFdOutCurve )
+                     case `curveShape`( curvature ) => curveShape( max( -20, min( 20, curvature + dragFdOutCurve )))
+                     case x => x
+                  } else fadeOutSpec.shape
                   fadeOutSpec = FadeSpec(
                      max( 0L, min( ar.span.getLength - fadeInSpec.numFrames,
-                     fadeOutSpec.numFrames + dragFdOutTime )), (fadeOutSpec.shape._1,
-                     max( -20, min( 20, fadeOutSpec.shape._2 + dragFdOutCurve ))))
+                     fadeOutSpec.numFrames + dragFdOutTime )), newShape )
                   tStake = tStake.replaceFadeOut( Some( fadeOutSpec ))
                }
             }
@@ -731,6 +751,34 @@ with SonagramPaintController {
 
    protected trait AudioStakePainter extends DefaultPainterTrait {
 //      DefaultPainter =>
+      private def paintFade( f: FadeSpec, pc: PaintContext, y1: Float, y2: Float, x: Float, y: Float, h: Float, x0: Float ) {
+         val shpFill = new Path2D.Float()
+         val shpDraw = new Path2D.Float()
+         val px = (f.numFrames * pc.p_scale).toFloat
+         val vscale = h / -3
+//       val y1s = (1f - y1) * h + y
+         val y1s = max( -3, log10( y1 )) * vscale + y
+         shpFill.moveTo( x, y1s )
+         shpDraw.moveTo( x, y1s )
+//         if( f.shape.id != 1 ) {
+            var xs = 4; while( xs < px ) {
+//             val ys = (1 - f.shape.levelAt( xs / px, y1, y2 )) * h + y
+               val ys = max( -3, log10( f.shape.levelAt( xs / px, y1, y2 ))) * vscale + y
+               shpFill.lineTo( x + xs, ys )
+               shpDraw.lineTo( x + xs, ys )
+            xs += 3 }
+//         }
+//       val y2s = (1f - y2) * h + y
+         val y2s = max( -3, log10( y2 )) * vscale + y
+         shpFill.lineTo( x + px, y2s )
+         shpDraw.lineTo( x + px, y2s )
+         shpFill.lineTo( x0, y )
+         pc.g2.setPaint( pntFade )
+         pc.g2.fill( shpFill )
+         pc.g2.setColor( colrFade )
+         pc.g2.draw( shpDraw )
+      }
+
       override def paintStake( pc: PaintContext, stake: track.T, selected: Boolean ) {
          stake match {
             case ar: AudioRegion => { // man, no chance to skip this matching??
@@ -763,36 +811,12 @@ with SonagramPaintController {
                
                   // --- fades ---
                   ar.fadeIn.foreach( f => {
-                     val shpFill = new Path2D.Float()
-                     val shpDraw = new Path2D.Float()
-                     val px = (f.numFrames * pc.p_scale).toFloat
-//         				if( f.shape._1 == 1 ) {
-                        shpFill.moveTo( x, pc.height - 1 )
-                        shpFill.lineTo( x + px, hndlExtent )
-                        shpFill.lineTo( x, hndlExtent )
-                        shpDraw.moveTo( x, pc.height - 1 )
-                        shpDraw.lineTo( x + px, hndlExtent )
-//         				}
-                     g2.setPaint( pntFade )
-                     g2.fill( shpFill )
-                     g2.setColor( colrFade )
-                     g2.draw( shpDraw )
+                     paintFade( f, pc, f.floor, 1f, x, hndlExtent, pc.height - 1 - hndlExtent, x )
                   })
                   ar.fadeOut.foreach( f => {
-                     val shpFill = new Path2D.Float()
-                     val shpDraw = new Path2D.Float()
-         				val px = (f.numFrames * pc.p_scale).toFloat
-//         				if( f.shape._1 == 1 ) {
-                        shpFill.moveTo( x + width - 1, pc.height - 1 )
-                        shpFill.lineTo( x + width - 1 - px, hndlExtent )
-         					shpFill.lineTo( x + width - 1, hndlExtent )
-                        shpDraw.moveTo( x + width - 1, pc.height - 1 )
-                        shpDraw.lineTo( x + width - 1 - px, hndlExtent )
-//         				}
-                     g2.setPaint( pntFade )
-                     g2.fill( shpFill )
-                     g2.setColor( colrFade )
-                     g2.draw( shpDraw )
+                     val px = (f.numFrames * pc.p_scale).toFloat
+                     paintFade( f, pc, 1f, f.floor, x + width - 1 - px, hndlExtent,
+                                pc.height - 1 - hndlExtent, x + width - 1 )
                   })
 
                   g2.setClip( clipOrig )

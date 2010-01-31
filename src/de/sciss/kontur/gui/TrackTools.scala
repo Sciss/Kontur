@@ -264,7 +264,7 @@ extends TrackStakeTool {
 }
 
 object TrackMoveTool {
-    case class Move( deltaTime: Long, deltaVertical: Int )
+   case class Move( deltaTime: Long, deltaVertical: Int, copy: Boolean )
 }
 
 class TrackMoveTool( trackList: TrackList, timelineView: TimelineView )
@@ -276,7 +276,8 @@ extends BasicTrackStakeTool[ TrackMoveTool.Move ]( trackList, timelineView ) {
 
    protected def dragToParam( d: Drag ) : Move = {
        Move( d.currentPos - d.firstPos,
-             trackList.indexOf( d.currentTLE ) - trackList.indexOf( d.firstTLE ))
+             trackList.indexOf( d.currentTLE ) - trackList.indexOf( d.firstTLE ),
+             d.currentEvent.isAltDown )
    }
 }
 
@@ -338,19 +339,31 @@ extends BasicTrackStakeTool[ TrackFadeTool.Fade ]( trackList, timelineView ) {
    def defaultCursor = Cursor.getPredefinedCursor( Cursor.NW_RESIZE_CURSOR )
    val name = "Fade"
 
+   private var curvature = false
+
    protected def dragToParam( d: Drag ) : Fade = {
       val leftHand = abs( d.firstPos - d.firstStake.span.start ) <
                      abs( d.firstPos - d.firstStake.span.stop )
-      val (deltaTime, deltaCurve) = if( d.firstEvent.isAltDown ) {  // kurvendorfer
-         val dy = d.firstEvent.getY - d.currentEvent.getY
-         (0L, if( leftHand ) -dy else dy)
+      val (deltaTime, deltaCurve) = if( curvature ) {
+         val dc = (d.firstEvent.getY - d.currentEvent.getY) * 0.1f
+         (0L, if( leftHand ) -dc else dc)
       } else {
-         (if( leftHand ) d.currentPos - d.firstPos else d.firstPos - d.currentPos, 0)
+         (if( leftHand ) d.currentPos - d.firstPos else d.firstPos - d.currentPos, 0f)
       }
       if( leftHand ) Fade( deltaTime, 0L, deltaCurve, 0f )
       else Fade( 0L, deltaTime, 0f, deltaCurve )
    }
 
+   override protected def dragStarted( d: this.Drag ) : Boolean = {
+      val result = super.dragStarted( d )
+      if( result ) {
+         curvature = abs( d.currentEvent.getX - d.firstEvent.getX ) <
+                     abs( d.currentEvent.getY - d.firstEvent.getY )
+      }
+      result
+   }
+
+/*
    override protected def dragStarted( d: this.Drag ) : Boolean = {
       if( d.firstEvent.isAltDown ) {
          d.currentEvent.getY != d.firstEvent.getY
@@ -358,4 +371,5 @@ extends BasicTrackStakeTool[ TrackFadeTool.Fade ]( trackList, timelineView ) {
          d.currentEvent.getX != d.firstEvent.getX
       }
    }
+*/
 }
