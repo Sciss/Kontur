@@ -12,6 +12,6 @@ Libraries:
     ScalaCollider.jar (http://github.com/Sciss/ScalaCollider)
     MRJAdapter.jar (https://mrjadapter.dev.java.net/)
 
-Open the project in NetBeans 6.8
+Open the project in IntellJ IDEA Community Edition 9
 
-alternatively, runnning "compile_fsc.sh" should work.
+alternatively, running "compile_fsc.sh" should work.

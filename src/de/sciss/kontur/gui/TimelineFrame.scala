@@ -547,9 +547,9 @@ extends AppWindow( AbstractWindow.REGULAR ) {
                                     case rStake: ResizableStake[ _ ] => {
                                        toDeselect ::= stake
                                        toRemove ::= stake
-//                                     val splitted = stake.split( pos )
-                                       val stake1 = rStake.moveStop( pos - stake.span.stop )
-                                       val stake2 = rStake.moveStart( pos - stake.span.start )
+                                       val (stake1, stake2) = rStake.split( pos )
+//                                       val stake1 = rStake.moveStop( pos - stake.span.stop )
+//                                       val stake2 = rStake.moveStart( pos - stake.span.start )
                                        toAdd ::= stake1
                                        toAdd ::= stake2
                                        toSelect ::= stake1

@@ -77,6 +77,20 @@ extends RegionTrait[ AudioRegion ] with SlidableStake[ AudioRegion ] {
 
    def move( delta: Long ) : AudioRegion = copy( span = span.shift( delta ))
 
+   override def split( pos: Long ) : Tuple2[ AudioRegion, AudioRegion ] = {
+      val left = {
+         val d = max( -(span.getLength - 1), min( audioFile.numFrames - offset - span.getLength, pos - span.stop ))
+         if( d == 0 ) this
+         else copy( span = span.replaceStop( span.stop + d ), fadeOut = None )
+      }
+      val right = {
+         val d = max( -offset, min( span.getLength - 1, pos - span.start ))
+         if( d == 0 ) this
+         else copy( span = span.replaceStart( span.start + d ), offset = offset + d, fadeIn = None )
+      }
+      (left, right)
+   }
+
    def moveOuter( delta: Long ) : AudioRegion = {
       val d = max( -offset, min( audioFile.numFrames - offset - span.getLength, delta ))
       if( d == 0 ) this

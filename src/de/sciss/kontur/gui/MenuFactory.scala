@@ -95,7 +95,7 @@ extends BasicMenuFactory( app ) {
 							  KeyStroke.getKeyStroke( KeyEvent.VK_BACK_SLASH, MENU_SHORTCUT | InputEvent.SHIFT_MASK )))
         mgTimeline.addSeparator()
 		mgTimeline.add( new MenuItem( "splitObjects", getResourceString( "menuSplitObjects" ),
-							  KeyStroke.getKeyStroke( KeyEvent.VK_X, myCtrl )))
+							  KeyStroke.getKeyStroke( KeyEvent.VK_Y, myCtrl )))
 		add( mgTimeline, indexOf( "edit" ) + 1 )
 
   		// --- window menu ---

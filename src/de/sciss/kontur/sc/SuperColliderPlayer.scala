@@ -93,8 +93,8 @@ extends Disposable {
           case doc.timelines.ElementRemoved( idx, diff ) => removeTimeline( diff )
        }
 
-       // ---- constructor ----
-       {
+      // ---- constructor ----
+      {
          doc.timelines.foreach( tl => addTimeline( tl ))
          doc.timelines.addListener( timeListener )
          doc.diffusions.foreach( diff => addDiffusion( diff ))
@@ -103,33 +103,44 @@ extends Disposable {
          // XXX dirty dirty testin
          for( numChannels <- 1 to 2 ) {
             val synDef = SynthDef( "disk_" + numChannels ) {
-                 val out        = "out".kr
-                 val i_bufNum   = "i_bufNum".ir
-                 val i_dur      = "i_dur".ir
-                 val i_fadeIn   = "i_fadeIn".ir
-                 val i_fadeOut  = "i_fadeOut".ir
-                 val amp        = "amp".kr( 1 )
-                 val i_finShape = "i_finShape".ir( 1 )
-                 val i_finCurve = "i_finCurve".ir( 0 )
-                 val i_finFloor = "i_finFloor".ir( 0 )
-                 val i_foutShape= "i_foutShape".ir( 1 )
-                 val i_foutCurve= "i_foutCurve".ir( 0 )
-                 val i_foutFloor= "i_foutFloor".ir( 0 )
+               val out           = "out".kr
+               val i_bufNum      = "i_bufNum".ir
+               val smpDur        = SampleDur.ir
+//             val regionDurSecs = "i_frames".ir * smpDur
+               val i_frames      = "i_frames".ir
+               val i_frameOff    = "i_frameOff".ir
+//               val durSecs       = regionDurSecs - regionOffSecs
+//               val fadeInSecs    = "i_fadeIn".ir * smpDur
+//               val fadeOutSecs   = "i_fadeOut".ir * smpDur
+               val i_fadeIn      = "i_fadeIn".ir
+               val i_fadeOut     = "i_fadeOut".ir
+               val amp           = "amp".kr( 1 )
+               val i_finShape    = "i_finShape".ir( 1 )
+               val i_finCurve    = "i_finCurve".ir( 0 )
+               val i_finFloor    = "i_finFloor".ir( 0 )
+               val i_foutShape   = "i_foutShape".ir( 1 )
+               val i_foutCurve   = "i_foutCurve".ir( 0 )
+               val i_foutFloor   = "i_foutFloor".ir( 0 )
 
-                 val env = new Env( i_finFloor, List(
-                    S( i_fadeIn, 1, varShape( i_finShape, i_finCurve )),
-                    S( i_dur - (i_fadeIn + i_fadeOut), 1 ),
-                    S( i_fadeOut, i_foutFloor, varShape( i_foutShape, i_foutCurve ))))
+//               val regionTime    = Line.ar( regionOffSecs, regionDurSecs, durSecs, freeSelf )
+               val frameIndex     = Line.ar( i_frameOff, i_frames, (i_frames - i_frameOff) * smpDur, freeSelf )
 
-                 val envGen = EnvGen.ar( env, doneAction = freeSelf ) * amp
-//val envGen = Line.kr( amp, amp, i_dur, doneAction = freeSelf )
-				 Out.ar( out, DiskIn.ar( numChannels, i_bufNum ) * envGen )
-			 }
-//             synDef.writeDefFile( "/Users/rutz/Desktop" )
-//Thread.sleep( 1000 )
-             synDef.send( server )
+//               val env = new IEnv( i_finFloor, List(
+//                  S( fadeInSecs, 1, varShape( i_finShape, i_finCurve )),
+//                  S( durSecs - (fadeInSecs + fadeOutSecs), 1 ),
+//                  S( fadeOutSecs, i_foutFloor, varShape( i_foutShape, i_foutCurve ))))
+               val env = new IEnv( i_finFloor, List(
+                  S( i_fadeIn, 1, varShape( i_finShape, i_finCurve )),
+                  S( i_frames - (i_fadeIn + i_fadeOut), 1 ),
+                  S( i_fadeOut, i_foutFloor, varShape( i_foutShape, i_foutCurve ))))
+
+               val envGen = IEnvGen.ar( env, frameIndex ) * amp
+	            Out.ar( out, DiskIn.ar( numChannels, i_bufNum ) * envGen )
+			   }
+//            synDef.writeDefFile( "/Users/rutz/Desktop" )
+            synDef.send( server )
          }
-       }
+      }
 
        def dispose {
           doc.timelines.removeListener( timeListener )
@@ -332,17 +343,11 @@ players.foreach( _.stop )
               private var stakesMap = Map[ AudioRegion, Synth ]()
 
               def step( span: Span ) {
-//println( "step : " + span )
                 track.diffusion.foreach( diff => {
-//println( "---1" )
                   track.trail.visitRange( span )( stake => {
-//println( "---2 " + stake )
                     if( !stakesMap.contains( stake )) {
-//println( "---3 " + stake.audioFile.descr )
                       val numChannels = stake.audioFile.numChannels
-//println( "---4 " + descr.channels )
                         if( numChannels == diff.numInputChannels ) {
-//println( "---5" )
                           val bndl        = new MixedBundle
                           val frameOffset = Math.max( 0L, start - stake.span.start )
                           val buffer      = new Buffer( server, 32768, numChannels )
@@ -351,22 +356,24 @@ players.foreach( _.stop )
                                                                   (stake.offset + frameOffset).toInt )) // XXX toInt
                           val defName     = "disk_" + numChannels
                           val synth       = new Synth( defName, server )
-                          val durFrames   = Math.max( 0, stake.span.getLength - frameOffset )
-                          val durSecs     = durFrames / sampleRate
+//                        val durFrames   = Math.max( 0, stake.span.getLength - frameOffset )
+//                        val durSecs     = durFrames / sampleRate
 
                           val L = List[ Tuple2[ String, Float ]] _
 
                           bndl.add( synth.newMsg( group, L( "i_bufNum" -> buffer.bufNum,
-                              "i_dur" -> durSecs.toFloat, "amp" -> stake.gain,
-                               "out" -> diffusions( diff ).inBus.index ) :::
-                              stake.fadeIn.map( f => L(
-                                 "i_fadeIn" -> (f.numFrames / sampleRate).toFloat, // XXX should contrain if necessary
-                                 "i_finShape" -> f.shape.id, "i_finCurve" -> f.shape.curvature,
-                                 "i_finFloor" -> f.floor )).getOrElse( Nil ) :::
-                              stake.fadeOut.map( f => L(
-                                 "i_fadeOut" -> (f.numFrames / sampleRate).toFloat, // XXX should contrain if necessary
-                                 "i_foutShape" -> f.shape.id, "i_foutCurve" -> f.shape.curvature,
-                                 "i_foutFloor" -> f.floor )).getOrElse( Nil )
+                             "i_frames" -> stake.span.getLength.toFloat,
+                             "i_frameOff" -> frameOffset.toFloat,
+                             "amp" -> stake.gain,
+                             "out" -> diffusions( diff ).inBus.index ) :::
+                             stake.fadeIn.map( f => L(
+                                "i_fadeIn" -> f.numFrames.toFloat, // XXX should contrain if necessary
+                                "i_finShape" -> f.shape.id, "i_finCurve" -> f.shape.curvature,
+                                "i_finFloor" -> f.floor )).getOrElse( Nil ) :::
+                             stake.fadeOut.map( f => L(
+                                "i_fadeOut" -> f.numFrames.toFloat, // XXX should contrain if necessary
+                                "i_foutShape" -> f.shape.id, "i_foutCurve" -> f.shape.curvature,
+                                "i_foutFloor" -> f.floor )).getOrElse( Nil )
                           ))
       //                    player.nw.register( synth )
                           synths += synth
