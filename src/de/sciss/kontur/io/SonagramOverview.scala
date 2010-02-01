@@ -279,6 +279,7 @@ if( verbose ) println( "fftSize = " + fftSize + "; numKernels = " + numKernels +
 
       var windowsRead   = 0L
       val imgW          = imgSpec.dim.width
+      val iOffStart     = (numVFull - 1) * imgW
       val l10           = log10
       val c             = IntensityColorScheme.colors
 
@@ -319,7 +320,7 @@ if( verbose ) println( "fftSize = " + fftSize + "; numKernels = " + numKernels +
                   val fBuf = sonaImg.fileBuf( ch )
                   fOff = 0
                   x = xReset; while( x < chunkLen ) {
-                     iOff = x
+                     iOff = iOffStart + x
                      v = 0; while( v < numVFull ) {
                         sum = fBuf( fOff )
                         i = 0; while( i < vDecim ) {
@@ -329,7 +330,7 @@ if( verbose ) println( "fftSize = " + fftSize + "; numKernels = " + numKernels +
                         val amp = ctrl.adjustGain( sum / vDecim, (iOff + xOff) / scaleW )
                         iBuf( iOff ) = c( max( 0, min( 1072,
                            ((l10.calc( max( 1.0e-9f, amp )) + pixOff) * pixScale).toInt )))
-                        v += 1; iOff += imgW
+                        v += 1; iOff -= imgW
                      }
 /*
                      if( hasVRemain ) {

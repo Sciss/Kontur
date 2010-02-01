@@ -30,6 +30,7 @@ package de.sciss.kontur.gui
 
 import java.awt.{ Color, Graphics, Graphics2D, Rectangle }
 import java.awt.event.{ ActionEvent, ActionListener }
+import java.awt.geom.{ Rectangle2D }
 import javax.swing.{ BoxLayout, JComponent, JViewport, Timer }
 import javax.swing.event.{ ChangeEvent, ChangeListener }
 import scala.math._
@@ -37,7 +38,7 @@ import scala.math._
 import de.sciss.gui.{ ComponentHost, TopPainter }
 import de.sciss.io.{ Span }
 import de.sciss.kontur.session.{ Marker, SessionElementSeq, Stake, Timeline,
-                                Track, Trail }
+                                Track, Trail, Transport }
 
 //import Track.Tr
 
@@ -48,151 +49,104 @@ import de.sciss.kontur.session.{ Marker, SessionElementSeq, Stake, Timeline,
 //object TimelinePanel {
 //}
 
+object TimelinePanel {
+   private val colrSelection			= new Color( 0x00, 0x00, 0xFF, 0x4F ) // GraphicsUtil.colrSelection;
+   private val colrPosition			= new Color( 0xFF, 0x00, 0x00, 0x7F )
+   private val colrSelection2			= new Color( 0x00, 0x00, 0x00, 0x40 )  // selected timeline span over unselected trns
+   private val colrPlayHead         = new Color( 0x00, 0xD0, 0x00, 0xC0 )
+}
+
 class TimelinePanel( /* val tracksView: TracksView,*/ val timelineView: TimelineView )
 extends JComponent // ComponentHost
 with TopPaintable {
-	private val colrSelection			= new Color( 0x00, 0x00, 0xFF, 0x4F ); // GraphicsUtil.colrSelection;
-	private val colrPosition			= new Color( 0xFF, 0x00, 0x00, 0x7F );
-	private val colrSelection2			= new Color( 0x00, 0x00, 0x00, 0x40 );  // selected timeline span over unselected trns
+   import TimelinePanel._
+   
 	private var vpRecentRect			= new Rectangle()
 	private var vpPosition				= -1
-	private val vpPositionRect          = new Rectangle()
+	private val vpPositionRect       = new Rectangle()
 	private var vpSelections: List[ ViewportSelection ] = Nil
-	private val vpSelectionRect			= new Rectangle()
+	private val vpSelectionRect	   = new Rectangle()
 	private var vpUpdateRect			= new Rectangle()
-	private var vpScale                  = 1f
+	private var vpScale              = 1f
 
-	private var timelineVis             = timelineView.span
-	private var timelineSel             = timelineView.selection.span
-	protected var timelinePos           = timelineView.cursor.position
-	protected var timelineRate          = timelineView.timeline.rate
-//    private val tracks = tracksView.tracks
+	private var timelineVis          = timelineView.span
+	private var timelineSel          = timelineView.selection.span
+	private var timelinePos          = timelineView.cursor.position
+	private var timelineRate         = timelineView.timeline.rate
 
-//	private final Timer							playTimer;
+   private val transport            = timelineView.timeline.transport
 
-	// !!! for some crazy reason, these need to be volatile because otherwise
-	// the playTimer's actionPerformed body might use a cached value !!!
-	// how can this happen when javax.swing.Timer is playing on the event thread?!
-//	protected double							playRate				= 1.0;
-//	protected long								playStartPos			= 0;
-//	protected long								playStartTime;
-//	protected boolean							isPlaying				= false;
+	private var playRate				   = 1.0
+	private var isPlaying				= false
+   private val playHeadRect         = new Rectangle( 0, 0, 3, 0 ) // 2D.Float()
 
-//	val timelineAxis = new TimelineAxis( timelineView, Some( this ))
-//	val markerAxis = new MarkerAxis( timelineView, this )
+   private val playTimer = new Timer( 33, new ActionListener {
+      def actionPerformed( e: ActionEvent ) {
+	      // the swing timer doesn't have a cancel method,
+			// hence events already scheduled will be delivered
+			// even if stop is called between firing and delivery(?)
+			if( isPlaying ) {
+   			transport.foreach( t => updatePlayHead( t.currentPos, true ))
+         }
+      }
+   })
+
 	private var markerTrail: Option[ Trail[ Marker ]] = None
 
 	protected val markVisible = true
 
-	private var trackListVar: TrackList = new DummyTrackList
-    private var viewPortVar: Option[ JViewport ] = None
+   private var trackListVar: TrackList = new DummyTrackList
+   private var viewPortVar: Option[ JViewport ] = None
 
-    private val timelineListener = (msg: AnyRef) => msg match {
+   private val transportListener = (msg: AnyRef) => msg match {
+      case Transport.Play( pos, rate ) => play( pos, rate )
+      case Transport.Stop( pos ) => stop
+   }
+
+   private val timelineListener = (msg: AnyRef) => msg match {
       case TimelineCursor.PositionChanged( _, newPos ) => {
-//println( "POSITION CHANGED " + oldPos + " -> " + newPos )
 		timelinePos = newPos
 		updatePositionAndRepaint
       }
       case TimelineView.SpanChanged( _, newSpan ) => {
         if( timelineVis != newSpan ) {
-/*
-          if( viewPortVar.isDefined ) {
-             if( timelineVis.getLength != newSpan.getLength ) {
-                 calcPreferredSize
-             }
-             calcViewPortRect
-          }
-          timelineVis	= newSpan
-*/
           updateTransformsAndRepaint( false )
         }
       }
       case TimelineSelection.SpanChanged( oldSpan, newSpan ) => {
    		timelineSel	= newSpan
-		updateSelectionAndRepaint
-		if( oldSpan.isEmpty != newSpan.isEmpty ) {
-//			updateEditEnabled( !newSpan.isEmpty )
-		}
+		   updateSelectionAndRepaint
+		   if( oldSpan.isEmpty != newSpan.isEmpty ) {
+//			   updateEditEnabled( !newSpan.isEmpty )
+   		}
       }
-//      case Timeline.SpanChanged( _, newSpan ) if( viewPortVar.isDefined ) => calcPreferredSize
       case Timeline.RateChanged( _, newRate ) => {
-		timelineRate = newRate
-//		playTimer.setDelay( Math.min( (int) (1000 / (vpScale * timelineRate * Math.abs( playRate ))), 33 ));
+		   timelineRate = newRate
+         if( isPlaying ) updatePlayHeadRefreshRate
       }
     }
 
     private val trackListListener = (msg: AnyRef) => msg match {
       case TrackList.ElementAdded( idx, elem ) => updateSelectionAndRepaint
       case TrackList.ElementRemoved( idx, elem ) => updateSelectionAndRepaint
-      case TrackList.SelectionChanged( _ @ _* ) => {
-//println( "....gugu" )
-          updateSelectionAndRepaint
-      }
+      case TrackList.SelectionChanged( _ @ _* ) => updateSelectionAndRepaint
     }
-
-//    private val markerListener = (msg: AnyRef) => msg match {
-//      case Trail.Changed( span ) => repaintMarkers( span )
-//    }
 
    // ---- constructor ----
 	{
 //		addTopPainter( this )
 		setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ))
 
-//		add( timelineAxis )
-//		add( markerAxis )
-/*
-		playTimer = new Timer( 33, new ActionListener() {
-			public void actionPerformed( ActionEvent e )
-			{
-				// the swing timer doesn't have a cancel method,
-				// hence events already scheduled will be delivered
-				// even if stop is called between firing and delivery(?)
-				if( !isPlaying ) return;
-
-				timelinePos = (long) ((System.currentTimeMillis() - playStartTime) * timelineRate * playRate / 1000 + playStartPos);
-				updatePositionAndRepaint();
-			}
-		});
-*/
 		// ---------- Listeners ----------
 
 		timelineView.addListener( timelineListener )
-//        tracksView.addListener( tracksViewListener )
-/*
-		markAxis.addListener( new MarkerAxis.Listener() {
-			public void markerDragStarted( MarkerAxis.Event e )
-			{
-				addCatchBypass();
-			}
-
-			public void markerDragStopped( MarkerAxis.Event e )
-			{
-				removeCatchBypass();
-			}
-
-			public void markerDragAdjusted( MarkerAxis.Event e )
-			{
-				repaintMarkers( e.getModificatioSpan() );
-			}
-		});
-      */
+      transport.foreach( _.addListener( transportListener ))
 	}
 
     def viewPort = viewPortVar
     def viewPort_=( newPort: Option[ JViewport ]) {
-//        viewPortVar.foreach( _.removeChangeListener( viewPortListener ))
         viewPortVar = newPort
-//        viewPortVar.foreach( _.addChangeListener( viewPortListener ))
     }
-
-/*
-    def tracksViewListener( tracks: SessionElementSeq[ Track ])( msg: AnyRef ) : Unit = msg match {
-      case tracks.ElementAdded( idx, elem ) => updateSelectionAndRepaint
-      case tracks.ElementRemoved( idx, elem ) => updateSelectionAndRepaint
-      case TracksView.SelectionChanged( _ ) => updateSelectionAndRepaint
-    }
-*/
 
     def trackList = trackListVar
     def trackList_=( newTL: TrackList ) {
@@ -218,6 +172,10 @@ with TopPaintable {
 		}
 	}
 
+   private def updatePlayHeadRefreshRate {
+      playTimer.setDelay( max( (1000 / (vpScale * timelineRate * abs( playRate ))).toInt, 33 ))
+   }
+
     private val normalRect = new Rectangle
     private def normalBounds: Rectangle = {
         normalRect.x      = 0
@@ -241,20 +199,20 @@ with TopPaintable {
     protected def viewRectChanged( r: Rectangle ) {}
 
 //	override def paintComponent( g: Graphics ) {}
-	override def paintChildren( g: Graphics ) {
-//        super.paintComponent( g )
-        super.paintChildren( g )
+   override def paintChildren( g: Graphics ) {
+//    super.paintComponent( g )
+      super.paintChildren( g )
         
-        val g2 = g.asInstanceOf[ Graphics2D ]
-//        val r = if( viewPort.isEmpty ) normalBounds else portBounds
-        val r = normalBounds
+      val g2 = g.asInstanceOf[ Graphics2D ]
+//    val r = if( viewPort.isEmpty ) normalBounds else portBounds
+      val r = normalBounds
 
-        if( vpRecentRect != r ) {
-            if( vpRecentRect.height != r.height ) updateSelection
+      if( vpRecentRect != r ) {
+         if( vpRecentRect.height != r.height ) updateSelection
 			recalcTransforms( r )
 		}
 
-        vpSelections.foreach( vps => {
+      vpSelections.foreach( vps => {
 			g2.setColor( vps.color )
 			g2.fillRect( vpSelectionRect.x, vps.bounds.y - vpRecentRect.y, vpSelectionRect.width, vps.bounds.height )
 		})
@@ -266,44 +224,41 @@ with TopPaintable {
 		g2.setColor( colrPosition )
 		g2.drawLine( vpPosition, 0, vpPosition, vpRecentRect.height )
 
-        paintOnTop( g2 )
+      if( isPlaying ) {
+         g2.setColor( colrPlayHead )
+//       g2.fill( playHeadRect )
+         g2.fillRect( playHeadRect.x, playHeadRect.y, playHeadRect.width, playHeadRect.height )
+      }
+
+      paintOnTop( g2 )
 	}
 
+	private def play( startPos: Long, rate: Double ) {
+		playRate		   = rate
+      updatePlayHeadRefreshRate
+		isPlaying		= true
+		playTimer.restart()
+      updatePlayHead( startPos, false )
+	}
 /*
-	public void play( long startPos, double rate )
-	{
-		playStartPos	= startPos; // timelinePos;
-		//System.out.println( "play : " + playStartPos );
-		playRate		= rate;
-		playStartTime	= System.currentTimeMillis();
-		playTimer.setDelay( Math.min( (int) (1000 / (vpScale * timelineRate * Math.abs( playRate ))), 33 ));
-		isPlaying		= true;
-		playTimer.restart();
-	}
+	def setPlayRate( startPos: Long, rate: Double ) {
+		if( !isPlaying ) return
 
-	public void setPlayRate( long startPos, double rate )
-	{
-		if( !isPlaying ) return;
-
-		playStartPos	= startPos; // timelinePos;
-		playRate		= rate;
-		playStartTime	= System.currentTimeMillis();
-		playTimer.setDelay( Math.min( (int) (1000 / (vpScale * timelineRate * Math.abs( playRate ))), 33 ));
-	}
-
-	public void stop()
-	{
-		isPlaying = false;
-		playTimer.stop();
-	}
+		playRate	   	= rate
+      updatePlayHeadRefreshRate
+   }
 */
-	/* override */ def dispose {
-		timelineView.removeListener( timelineListener )
-//        tracksView.removeListener( tracksViewListener )
-        trackList = new DummyTrackList
-//		markerTrack = None
-//		this.stop
+	private def stop {
+		isPlaying = false
+		playTimer.stop()
+      clearPlayHead
+	}
 
+	/* override */ def dispose {
+      transport.foreach( _.removeListener( transportListener ))
+		timelineView.removeListener( timelineListener )
+      trackList = new DummyTrackList
+		stop
 //		super.dispose
 	}
 
@@ -313,8 +268,8 @@ with TopPaintable {
         val span = timelineView.timeline.span // whole line, _not_ view
 
 		if( !span.isEmpty ) {
-			vpScale = (vpRecentRect.width.toDouble / max( 1, span.getLength )).toFloat
-//			playTimer.setDelay( Math.min( (int) (1000 / (vpScale * timelineRate * Math.abs( playRate ))), 33 ));
+			vpScale        = (vpRecentRect.width.toDouble / max( 1, span.getLength )).toFloat
+         if( isPlaying ) updatePlayHeadRefreshRate
 			vpPosition		= ((timelinePos - span.start) * vpScale + 0.5f).toInt
 			vpPositionRect.setBounds( vpPosition, 0, 1, vpRecentRect.height )
 			if( !timelineSel.isEmpty ) {
@@ -331,6 +286,38 @@ with TopPaintable {
 			vpSelectionRect.setBounds( 0, 0, 0, 0 )
 		}
 	}
+
+   private def clearPlayHead {
+      vpUpdateRect.x       = playHeadRect.x
+      vpUpdateRect.width   = 5
+      repaint( vpUpdateRect )
+   }
+
+   private def updatePlayHead( pos: Long, oldShown: Boolean ) {
+      val x          = (pos * vpScale + 0.5).toInt - 1
+      val oldX       = playHeadRect.x
+
+      playHeadRect.x       = x
+      playHeadRect.y       = vpUpdateRect.y
+      playHeadRect.height  = vpUpdateRect.height
+
+      if( oldShown ) {
+         if( abs( x - oldX ) > 50 ) { // XXX 50 arbitrary
+            vpUpdateRect.setBounds( oldX - 1, vpUpdateRect.y, 4, vpUpdateRect.height )
+            repaint( vpUpdateRect )
+            vpUpdateRect.setBounds( x - 1, vpUpdateRect.y, 4, vpUpdateRect.height )
+            repaint( vpUpdateRect )
+         } else {
+            val minX = min( x, oldX )
+            val maxX = max( x, oldX )
+            vpUpdateRect.setBounds( minX - 1, vpUpdateRect.y, (maxX - minX) + 4, vpUpdateRect.height )
+            repaint( vpUpdateRect )
+         }
+      } else {
+         vpUpdateRect.setBounds( x - 1, vpUpdateRect.y, 4, vpUpdateRect.height )
+         repaint( vpUpdateRect )
+      }
+   }
 
 	protected def updatePositionAndRepaint {
 		val pEmpty = (vpPositionRect.x + vpPositionRect.width < 0) || (vpPositionRect.x > vpRecentRect.width)

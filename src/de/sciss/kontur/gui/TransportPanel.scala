@@ -29,27 +29,53 @@
 package de.sciss.kontur.gui
 
 import java.awt.{ Color, Component, Dimension, Font, GradientPaint, Graphics, Graphics2D, Insets, LinearGradientPaint, RenderingHints }
-import java.awt.event.{ ActionEvent, KeyEvent }
+import java.awt.event.{ ActionEvent, ActionListener, KeyEvent }
 import java.awt.geom.{ RoundRectangle2D }
+import java.util.{ Locale }
 import javax.swing.{ AbstractAction, AbstractButton, BorderFactory, Box, BoxLayout, ImageIcon,
-                    JButton, JComponent, JLabel, JPanel, JToggleButton, KeyStroke, SwingConstants }
+                    JButton, JComponent, JLabel, JPanel, JToggleButton, KeyStroke, SwingConstants, Timer }
 import javax.swing.border.{ Border }
 import de.sciss.app.{ DynamicAncestorAdapter, DynamicListening }
+import de.sciss.gui.{ TimeFormat }
 import de.sciss.kontur.session.{ Timeline, Transport }
+
+// temporary hack to get osc synced video
+import de.sciss.scalaosc.{ OSCMessage, OSCTransmitter }
 
 class TransportPanel( tlv: TimelineView )
 extends SegmentedButtonPanel with DynamicListening {
    import Transport._
 
-   private val transport = tlv.timeline.transport
-   private val clz     = classOf[ TransportPanel ]
-   private val butStop = new JButton( new ImageIcon( clz.getResource( "transp_stop_20.png" )))
-   private val butPlay = new JButton( new ImageIcon( clz.getResource( "transp_play_20.png" )))
+   private val transport= tlv.timeline.transport
+   private val clz      = classOf[ TransportPanel ]
+   private val butStop  = new JButton( new ImageIcon( clz.getResource( "transp_stop_20.png" )))
+   private val butPlay  = new JButton( new ImageIcon( clz.getResource( "transp_play_20.png" )))
+   private val lbTime   = new TimeLabel
+   private var isPlaying= false
+
+   // temporary hack to get osc synced video
+   private lazy val osc  = {
+      val t = OSCTransmitter.apply( 'udp )
+      t.target = new java.net.InetSocketAddress( "127.0.0.1", 57120 )
+      t.connect
+      t
+   }
+   private var oscEngaged  = false
+   private val oscID       = tlv.timeline.id.toInt 
 
    private val transportListener = (msg: AnyRef) => msg match {
       case Play( pos, rate ) => trnspChanged( true )
       case Stop( pos ) => trnspChanged( false )
    }
+
+   private val timelineViewListener = (msg: AnyRef) => msg match {
+      case TimelineCursor.PositionChanged( _, _ ) => if( !isPlaying ) updateTimeLabel( true )
+      case Timeline.RateChanged( _, _ ) => updateTimeLabel( true )
+   }
+
+   private val playTimer = new Timer( 27, new ActionListener {
+      def actionPerformed( e: ActionEvent ) : Unit = updateTimeLabel( false )
+   })
 
    // ---- constructor ----
    {
@@ -78,27 +104,56 @@ extends SegmentedButtonPanel with DynamicListening {
       imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_SPACE, 0 ), "playstop" )
       amap.put( "playstop", new AbstractAction {
          def actionPerformed( e: ActionEvent ) {
-            transport.foreach( t => {
-               if( t.isPlaying ) {
-                  butStop.doClick() // ( 200 )
-               } else {
-                  butPlay.doClick() // ( 200 )
-               }
-            })
+            if( isPlaying ) {
+               butStop.doClick() // ( 200 )
+            } else {
+               butPlay.doClick() // ( 200 )
+            }
          }
       })
 
-      add( new TimeLabel, 0 )
+      add( lbTime, 0 )
       add( Box.createHorizontalStrut( 8 ), 1 )
+
+      // --- osc ---
+      val ggOSC = new JToggleButton( "OSC" )
+      ggOSC.setFocusable( false )
+      ggOSC.putClientProperty( "JComponent.sizeVariant", "mini" )
+      ggOSC.putClientProperty( "JButton.buttonType", "square" )
+      ggOSC.addActionListener( new ActionListener {
+         def actionPerformed( e: ActionEvent ) {
+            oscEngaged = ggOSC.isSelected
+         }
+      })
+      add( Box.createHorizontalStrut( 8 ), 1 )
+      add( ggOSC )
 
       new DynamicAncestorAdapter( this ).addTo( this )
    }
 
-   private def trnspChanged( isPlaying: Boolean ) {
-      butStop.setEnabled( isPlaying )
-      butStop.setSelected( !isPlaying )
-      butPlay.setEnabled( !isPlaying )
-      butPlay.setSelected( isPlaying )
+   private def trnspChanged( newIsPlaying: Boolean ) {
+//      if( newIsPlaying != isPlaying ) {
+         isPlaying = newIsPlaying
+         butStop.setEnabled( isPlaying )
+         butStop.setSelected( !isPlaying )
+         butPlay.setEnabled( !isPlaying )
+         butPlay.setSelected( isPlaying )
+//      }
+      updateTimeLabel( false )
+      if( isPlaying ) {
+         playTimer.restart()
+      } else {
+         playTimer.stop()
+      }
+
+      if( oscEngaged ) osc.send( OSCMessage( "/kontur", "transport", oscID, if( isPlaying ) "play" else "stop" ))
+   }
+
+   private def updateTimeLabel( sendOSC: Boolean ) {
+      val pos  = if( isPlaying ) transport.map( _.currentPos ) getOrElse 0L else tlv.cursor.position
+      val secs = pos / tlv.timeline.rate
+      lbTime.setSeconds( secs )
+      if( sendOSC && oscEngaged ) osc.send( OSCMessage( "/kontur", "transport", oscID, "pos", secs ))
    }
 
   def startListening {
@@ -106,12 +161,16 @@ extends SegmentedButtonPanel with DynamicListening {
         t.addListener( transportListener )
         trnspChanged( t.isPlaying )
      })
+     tlv.addListener( timelineViewListener )
   }
 
   def stopListening {
+     playTimer.stop()
+     tlv.removeListener( timelineViewListener )
      transport.foreach( t => {
         t.removeListener( transportListener )
      })
+//     isPlaying = false
   }
 
    private class ActionPlay extends AbstractAction {
@@ -126,19 +185,17 @@ extends SegmentedButtonPanel with DynamicListening {
       }
    }
 
-   private class TimeLabel extends JLabel( "00:00:00.000", SwingConstants.CENTER )
-//   with Border
-   {
-
+   private class TimeLabel extends JLabel( "00:00:00.000", SwingConstants.CENTER ) {
       private var recentH = -1
       private var recentW = -1
       private var grad: LinearGradientPaint = null
       private val shape1 = new RoundRectangle2D.Float()
-      private val shape2 = new RoundRectangle2D.Float()
-      private val shape3 = new RoundRectangle2D.Float()
-      private val colrBd1 = new Color( 0x00, 0x00, 0x00, 0x60 )
-      private val colrBd2 = new Color( 0x00, 0x00, 0x00, 0x30 )
+//      private val shape2 = new RoundRectangle2D.Float()
+//      private val shape3 = new RoundRectangle2D.Float()
+      private val colrBd1 = new Color( 0x00, 0x00, 0x00, 0x40 )
+//      private val colrBd2 = new Color( 0x00, 0x00, 0x00, 0x40 )
       private val colrBd3 = new Color( 0xFF, 0xFF, 0xFF, 0xC0 )
+      private val frmt = new TimeFormat( 0, null, null, 3, Locale.US )
 
       // ---- constructor ----
       setFont( new Font( "Lucida Grande", Font.BOLD, 13 ))
@@ -160,46 +217,51 @@ extends SegmentedButtonPanel with DynamicListening {
          val atOrig = g2.getTransform()
          val clipOrig = g2.getClip()
          g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON )
-         g2.setColor( colrBd3 )
-         g2.draw( shape3 )
          g2.setPaint( grad )
+//         g2.translate( 0, 1 )
          g2.fill( shape1 )
+         g2.translate( 0, -1 )
          g2.setColor( colrBd1 )
-         g2.clipRect( 0, 0, w, h - 2 )
-         g2.draw( shape2 )
-         g2.setColor( colrBd2 )
-         g2.translate( 0f, 0.2f )
-         g2.drawLine( 5, 0, w - 6, 0 )
+         g2.draw( shape1 )
+         g2.translate( 0, 0.2f )
+         g2.clipRect( 0, 0, w, 3 )
+         g2.draw( shape1 )
+         g2.setClip( clipOrig )
+         g2.translate( 0, 1 )
+         g2.setColor( colrBd3 )
+         g2.clipRect( 0, h - 5, w, 5 )
+         g2.draw( shape1 )
          g2.setTransform( atOrig )
          g2.setClip( clipOrig )
          super.paintComponent( g )
       }
 
       private def recalcShape {
-         shape1.setRoundRect( 0.5f, 0.5f, recentW - 2f, recentH - 3.5f, 7f, 7f )
-         shape2.setRoundRect( 0.2f, 0.2f, recentW - 1.4f, recentH - 1.4f, 7f, 7f )
-         shape3.setRoundRect( 0.2f, 1.2f, recentW - 1.4f, recentH - 2.4f, 7f, 7f )
+         shape1.setRoundRect( 0.2f, 1.2f, recentW - 1.4f, recentH - 2f, 8f, 8f )
+//         shape1.setRoundRect( 0.5f, 0.5f, recentW - 2f, recentH - 2.5f, 8f, 8f )
+//         shape3.setRoundRect( 0.2f, 1.2f, recentW - 1.4f, recentH - 2.4f, 8f, 8f )
+      }
+
+      def setSeconds( secs: Double ) {
+         setText( frmt.formatTime( secs ))
       }
 
       private def recalcGrad {
          val m6 = (recentH - 6).toFloat
          val mid = (m6 / 2).toInt
-         grad = new LinearGradientPaint( 0, 2, 0, recentH - 6, Array( 0f, mid / m6, (mid + 1) / m6, (m6 - 2) / m6, 1f ),
+//         grad = new LinearGradientPaint( 0, 2, 0, recentH - 6,
+//            Array( 0f, mid / m6, (mid + 1) / m6, (m6 - 2) / m6, 1f ),
+//            Array( new Color( 0xEC, 0xF2, 0xE0 ),
+//                   new Color( 0xE5, 0xEC, 0xD4 ),
+//                   new Color( 0xDE, 0xE5, 0xC6 ),
+//                   new Color( 0xF6, 0xFC, 0xDF ),
+//                   new Color( 0xF2, 0xF6, 0xDF )))
+         grad = new LinearGradientPaint( 0, 2, 0, recentH - 6,
+            Array( 0f, mid / m6, (mid + 1) / m6, 1f ),
             Array( new Color( 0xEC, 0xF2, 0xE0 ),
                    new Color( 0xE5, 0xEC, 0xD4 ),
                    new Color( 0xDE, 0xE5, 0xC6 ),
-                   new Color( 0xF6, 0xFC, 0xDF ),
                    new Color( 0xF2, 0xF6, 0xDF )))
       }
-
-/*
-      def paintBorder( c: Component, g: Graphics, x: Int, y: Int, width: Int, height: Int ) {
-      }
-
-      def isBorderOpaque() = false
-
-      private val borderInsets = new Insets( 5, 16, 7, 16 )
-      def getBorderInsets( c: Component ) = borderInsets
-   */
    }
 }
