@@ -47,8 +47,8 @@ object TimelineFrame {
   protected val KEY_TRACKSIZE	= "tracksize"
 }
 
-class TimelineFrame( doc: Session, tl: Timeline )
-extends AppWindow( AbstractWindow.REGULAR ) {
+class TimelineFrame( protected val doc: Session, tl: Timeline )
+extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
 //  	private var writeProtected	= false
 //	private var wpHaveWarned	= false
@@ -131,8 +131,6 @@ extends AppWindow( AbstractWindow.REGULAR ) {
     	// ---- menus and actions ----
 		val mr = app.getMenuBarRoot
 
-		mr.putMimic( "edit.undo", this, doc.getUndoManager.getUndoAction )
-		mr.putMimic( "edit.redo", this, doc.getUndoManager.getRedoAction )
 		mr.putMimic( "edit.cut", this, new ActionCut() )
 		mr.putMimic( "edit.copy", this, new ActionCopy() )
 		mr.putMimic( "edit.paste", this, new ActionPaste() )
@@ -147,7 +145,7 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 
       makeUnifiedLook
       init()
-  	  updateTitle
+//  	  updateTitle
 //      documentUpdate
 
       initBounds	// be sure this is after documentUpdate!
@@ -161,20 +159,16 @@ extends AppWindow( AbstractWindow.REGULAR ) {
   //	protected def documentUpdate {
   //    // nada
   //  }
+   
+   protected def elementName = Some( tl.name )
 
-	/**
-	 *  Recreates the main frame's title bar
-	 *  after a sessions name changed (clear/load/save as session)
-	 */
-	def updateTitle {
-		setTitle( "Timeline : " + tl.name + " (" + doc.displayName + ")")
-	}
+   protected def windowClosing { dispose }
 
 	private def initBounds {
 		val cp	= getClassPrefs()
 		val bwh	= getWindowHandler()
 		val sr	= bwh.getWindowSpace()
-        val dt	= /* AppWindow.*/ stringToDimension( cp.get( TimelineFrame.KEY_TRACKSIZE, null ))
+      val dt	= /* AppWindow.*/ stringToDimension( cp.get( TimelineFrame.KEY_TRACKSIZE, null ))
 		val d	= if( dt == null ) new Dimension() else dt
 		val hf	= 1f // Math.sqrt( Math.max( 1, waveView.getNumChannels() )).toFloat
 		var w	= d.width

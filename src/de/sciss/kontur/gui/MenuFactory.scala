@@ -119,7 +119,7 @@ extends BasicMenuFactory( app ) {
 //			try {
 				val doc = Session.newEmpty // ( afd );
 				app.getDocumentHandler().addDocument( this, doc )
-				new SessionFrame( doc )
+				new SessionTreeFrame( doc )
 				doc
 //			}
 //			catch( IOException e1 ) {	// should never happen
@@ -248,7 +248,7 @@ extends BasicMenuFactory( app ) {
 				val doc = Session.newFrom( path )
 				addRecent( path )
 				app.getDocumentHandler().addDocument( this, doc )
-				new SessionFrame( doc )
+				new SessionTreeFrame( doc )
 			}
 			catch { case e1: IOException =>
 				BasicWindowHandler.showErrorDialog( null, e1, getValue( Action.NAME ).toString() )

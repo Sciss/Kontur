@@ -362,14 +362,24 @@ extends BasicTrackStakeTool[ TrackFadeTool.Fade ]( trackList, timelineView ) {
       }
       result
    }
+}
 
-/*
-   override protected def dragStarted( d: this.Drag ) : Boolean = {
-      if( d.firstEvent.isAltDown ) {
-         d.currentEvent.getY != d.firstEvent.getY
-      } else {
-         d.currentEvent.getX != d.firstEvent.getX
-      }
+object TrackSlideTool {
+   case class Slide( deltaOuter: Long, deltaInner: Long )
+}
+
+class TrackSlideTool( trackList: TrackList, timelineView: TimelineView )
+extends BasicTrackStakeTool[ TrackSlideTool.Slide ]( trackList, timelineView ) {
+   import TrackSlideTool._
+
+   def defaultCursor = Cursor.getPredefinedCursor( Cursor.E_RESIZE_CURSOR )
+   val name = "Slide"
+
+   protected def dragToParam( d: Drag ) : Slide = {
+      val amt = d.currentPos - d.firstPos
+      if( d.firstEvent.isAltDown )
+         Slide( 0L, -amt )
+      else
+         Slide( amt, 0L )
    }
-*/
 }

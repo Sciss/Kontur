@@ -28,209 +28,298 @@
 
 package de.sciss.kontur.gui
 
-import de.sciss.app.{ AbstractApplication, AbstractWindow, DynamicAncestorAdapter }
-import de.sciss.common.{ BasicApplication, BasicWindowHandler, ShowWindowAction }
-import de.sciss.gui.{ GUIUtil, MenuAction }
-import de.sciss.util.{ Flag }
-import de.sciss.kontur.session.{ Session }
-import java.awt.{ BorderLayout, FileDialog, Frame }
-import java.awt.event.{ ActionEvent, MouseAdapter, MouseEvent }
+import java.awt.{ FileDialog, Frame }
+import java.awt.event.{ ActionEvent, KeyEvent }
 import java.io.{ File, IOException }
-import javax.swing.{ Action, DropMode, JScrollPane, JTree, ScrollPaneConstants }
-import javax.swing.tree.{ TreeNode }
+import javax.swing.{ AbstractAction, Action, JComponent, JOptionPane, KeyStroke, WindowConstants }
+import de.sciss.app.{ AbstractWindow }
+import de.sciss.common.{ BasicMenuFactory, BasicWindowHandler, ShowWindowAction }
+import de.sciss.gui.{ MenuAction }
+import de.sciss.kontur.session.{ Session }
+import de.sciss.util.{ Flag }
 
-class SessionFrame( doc: Session )
-extends AppWindow( AbstractWindow.REGULAR ) {
+/**
+ * @author  Hanns Holger Rutz
+ * @version 0.10, 01-Feb-10
+ */
+trait SessionFrame {
+   frame: AppWindow =>
 
-  	private var writeProtected	= false
-	private var wpHaveWarned	= false
-    private val actionShowWindow= new ShowWindowAction( this )
+   private var writeProtected	= false
+   private var wpHaveWarned	= false
 
-    private val actionClose     = new ActionClose()
-    private val actionSave      = new ActionSave()
-    private val actionSaveAs	= new ActionSaveAs( false )
+   private val actionShowWindow= new ShowWindowAction( this )
+   protected val actionClose  = new ActionClose()
+   private val actionSave     = new ActionSave()
+   private val actionSaveAs	= new ActionSaveAs( false )
 
-    // ---- constructor ----
-    {
-		// ---- menus and actions ----
-		val mr = app.getMenuBarRoot
-		mr.putMimic( "file.close", this, actionClose )
-		mr.putMimic( "file.save", this, actionSave )
-		mr.putMimic( "file.saveAs", this, actionSaveAs )
+   private val winListener = new AbstractWindow.Adapter() {
+        override def windowClosing( e: AbstractWindow.Event ) {
+            frame.windowClosing
+        }
 
-      val cp = getContentPane
-      val sessionTreeModel = new SessionTreeModel( doc )
-      val ggTree = new JTree( sessionTreeModel )
-      ggTree.setDropMode( DropMode.INSERT )
-      ggTree.setRootVisible( true )
-      ggTree.setShowsRootHandles( true )
-      val ggScroll = new JScrollPane( ggTree, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
-		                         	   ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER )
-
-      ggTree.addMouseListener( new MouseAdapter() {
-       override def mousePressed( e: MouseEvent ) {
-          val selRow  = ggTree.getRowForLocation( e.getX(), e.getY() )
-          if( selRow == -1 ) return
-          val selPath = ggTree.getPathForLocation( e.getX(), e.getY() )
-          val node = selPath.getLastPathComponent()
-
-          if( e.isPopupTrigger ) popup( node, e )
-          else if( e.getClickCount == 2 ) doubleClick( node, e )
-       }
-       
-        private def popup( node: AnyRef, e: MouseEvent ): Unit = node match {
-           case hcm: HasContextMenu => {
-               hcm.createContextMenu.foreach( root => {
-                   val pop = root.createPopup( SessionFrame.this )
-                   pop.show( e.getComponent(), e.getX(), e.getY() )
-               })
-           }
-             case _ =>
-         }
-
-        private def doubleClick( node: AnyRef, e: MouseEvent ): Unit = node match {
-           case hdca: HasDoubleClickAction => hdca.doubleClickAction
-             case _ =>
-         }
-      })
-      new TreeDragSource( ggTree )
-
-      cp.add( ggScroll, BorderLayout.CENTER )
-      app.getMenuFactory().addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
-
-      addDynamicListening( sessionTreeModel )
-
-      val winListener = new AbstractWindow.Adapter() {
-          override def windowClosing( e: AbstractWindow.Event ) {
-              actionClose.perform
-          }
-
-          override def windowActivated( e: AbstractWindow.Event ) {
-              // need to check 'disposed' to avoid runtime exception in doc handler if document was just closed
-//              if( !disposed ) {
-                  app.getDocumentHandler().setActiveDocument( SessionFrame.this, doc )
-                  app.getWindowHandler().asInstanceOf[ BasicWindowHandler ].setMenuBarBorrower( SessionFrame.this )
-//              }
-          }
-      }
-      addListener( winListener )
-
-      init()
-  	  updateTitle
-      doc.addListener( _ match {
-          case Session.DirtyChanged( _ ) => updateTitle
-          case Session.PathChanged( _, _ ) => updateTitle
-      })
-
-//      initBounds	// be sure this is after documentUpdate!
-
-	  setVisible( true )
-	  toFront()
+        override def windowActivated( e: AbstractWindow.Event ) {
+            // need to check 'disposed' to avoid runtime exception in doc handler if document was just closed
+            if( !disposed ) {
+                app.getDocumentHandler().setActiveDocument( frame, doc )
+                app.getWindowHandler().asInstanceOf[ BasicWindowHandler ].setMenuBarBorrower( frame )
+            }
+        }
     }
 
-    override protected def autoUpdatePrefs = true
-	override protected def alwaysPackSize = false
+   private val docListener = (msg: AnyRef) => msg match {
+      case Session.DirtyChanged( _ ) => updateTitle
+      case Session.PathChanged( _, _ ) => updateTitle
+   }
+
+   private var disposed   = false  // compiler problem, we cannot name it disposed
+   
+   // ---- constructor ----
+   {
+      // ---- menus and actions ----
+      val mr = app.getMenuBarRoot
+      mr.putMimic( "file.close",  this, actionClose )
+      mr.putMimic( "file.save",   this, actionSave )
+      mr.putMimic( "file.saveAs", this, actionSaveAs )
+
+      mr.putMimic( "edit.undo", this, doc.getUndoManager.getUndoAction )
+      mr.putMimic( "edit.redo", this, doc.getUndoManager.getRedoAction )
+      
+      updateTitle
+      doc.addListener( docListener )
+
+      app.getMenuFactory().addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
+      setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE )
+      addListener( winListener )
+   }
+
+   protected def doc: Session
+
+   protected def elementName: Option[ String ]
+
+   protected def windowClosing: Unit
 
 	/**
 	 *  Recreates the main frame's title bar
 	 *  after a sessions name changed (clear/load/save as session)
 	 */
-	def updateTitle {
-		writeProtected	= false
+   protected def updateTitle {
+      writeProtected	= doc.path.map( !_.canWrite ) getOrElse false
 
-//		actionRevealFile.setFile( afds.length == 0 ? null : afds[ 0 ].file );
+      val name = doc.displayName
+      setTitle( (if( !internalFrames ) app.getName() else "") +
+                (if( doc.isDirty() ) " - \u2022" else " - ") + name + (elementName.map( e => " - " + e ) getOrElse "") )
 
-		val name = doc.displayName
-//			try {
-//				for( int i = 0; i < afds.length; i++ ) {
-//					f = afds[ i ].file;
-//					if( f == null ) continue;
-//					writeProtected |= !f.canWrite() || ((f.getParentFile() != null) && !f.getParentFile().canWrite());
-//				}
-//			} catch( SecurityException e ) { /* ignored */ }
-
-//		if( writeProtected ) {
-//			val icn = GUIUtil.getNoWriteIcon()
-//			if( lbWriteProtected.getIcon() != icn ) {
-//				lbWriteProtected.setIcon( icn )
-//
-//		} else if( lbWriteProtected.getIcon() != null ) {
-//			lbWriteProtected.setIcon( null );
-//		}
-
-		setTitle( (if( !internalFrames ) app.getName() else "") +
-                   (if( doc.isDirty() ) " - \u2022" else " - ") + name )
-
-        actionShowWindow.putValue( Action.NAME, name )
-//		actionSave.setEnabled( !writeProtected && doc.isDirty() )
+      actionShowWindow.putValue( Action.NAME, name )
+		actionSave.setEnabled( !writeProtected && doc.isDirty() )
 		setDirty( doc.isDirty() )
         setWindowFile( doc.path getOrElse null )
 
 //		final AudioFileInfoPalette infoBox = (AudioFileInfoPalette) app.getComponent( Main.COMP_AUDIOINFO )
 //		if( infoBox != null ) infoBox.updateDocumentName( doc )
 
-//		if( writeProtected && !wpHaveWarned && doc.isDirty() ) {
-//			final JOptionPane op = new JOptionPane( getResourceString( "warnWriteProtected" ), JOptionPane.WARNING_MESSAGE )
-//			BasicWindowHandler.showDialog( op, getWindow(), getResourceString( "msgDlgWarn" ))
-//			wpHaveWarned = true
-//		}
-	}
-
-	private class ActionClose extends MenuAction {
-		def actionPerformed( e: ActionEvent ): Unit = perform
-
-        def perform {
-            doc.closeDocument( false, new Flag( false )) // XXX confirm unsaved
+		if( writeProtected && !wpHaveWarned && doc.isDirty() ) {
+			val op = new JOptionPane( getResourceString( "warnWriteProtected" ), JOptionPane.WARNING_MESSAGE )
+			BasicWindowHandler.showDialog( op, getWindow(), getResourceString( "msgDlgWarn" ))
+			wpHaveWarned = true
 		}
 	}
 
-	// action for the Save-Session menu item
-	private class ActionSave
-	extends MenuAction {
-		/**
-		 *  Saves a Session. If the file
-		 *  wasn't saved before, a file chooser
-		 *  is shown before.
-		 */
-		def actionPerformed( e: ActionEvent ) {
-          val name = getValue( Action.NAME ).toString
-           (doc.path orElse actionSaveAs.query( name )).foreach( f =>
-              perform( name, f, false, false ))
-		}
+   protected def documentClosed {
+      disposed = true	// important to avoid "too late window messages" to be processed; fucking swing doesn't kill them despite listener being removed
+      removeListener( winListener )
+      doc.removeListener( docListener )
+      actionShowWindow.dispose
+      app.getDocumentHandler.removeDocument( this, doc )	// XXX
+      dispose
+   }
 
-		protected[gui] def perform( name: String, file: File, asCopy: Boolean, openAfterSave: Boolean ) {
-            try {
-               doc.save( file )
-//                wpHaveWarned = false
+   private def closeDocument( force: Boolean, wasClosed: Flag ) {
+//      doc.getTransport().stop();
+      if( !force ) {
+         val name = getResourceString( "menuClose" )
+//         if( !confirmCancel( name )) {
+//            wasClosed.set( false );
+//            return null;
+//         }
+         val saved = confirmUnsaved( name, wasClosed )
+//         if( pt != null ) {
+//            pt.addListener( new ProcessingThread.Listener() {
+//               public void processStarted( ProcessingThread.Event e ) { /* ignored */ }
+//               public void processStopped( ProcessingThread.Event e )
+//               {
+//                  if( e.isDone() ) {
+//                     documentClosed();
+//                  }
+//               }
+//            });
+//            return pt;
+//         }
+      }
+println( "wasClosed : " + wasClosed.isSet )
+      if( wasClosed.isSet ) {
+         documentClosed
+      }
+//      return null;
+   }
 
-                if( !asCopy ) {
-                    app.getMenuFactory().addRecent( file )
-                }
-                if( openAfterSave ) {
-                    app.getMenuFactory().openDocument( file )
-                }
+
+   /*
+    *  Checks if there are unsaved changes to
+    *  the session. If so, displays a confirmation
+    *  dialog. Invokes Save/Save As depending
+    *  on user selection. IF the doc was not dirty,
+    *	or if &quot;Cancel&quot; or
+    *	&quot;Don't save&quot; was chosen, the
+    *	method returns <code>null</code> and the
+    *	<code>confirmed</code> flag reflects whether
+    *	the document should be closed. If a saving
+    *	process should be started, that process is
+    *	returned. Note that the <code>ProcessingThread</code>
+    *	in this case has not yet been started, as to
+    *	allow interested objects to install a listener
+    *	first. So it's their job to call the <code>start</code>
+    *	method!
+    *
+    *  @param  actionName		name of the action that
+    *							threatens the session
+    *	@param	confirmed		a flag that will be set to <code>true</code> if
+    *							the doc is allowed to be closed
+    *							(doc was not dirty or user chose &quot;Don't save&quot;),
+    *							otherwise <code>false</code> (save process
+    *							initiated or user chose &quot;Cancel&quot;).
+    *  @return				true is file was saved
+    *
+    *	@see	de.sciss.eisenkraut.util.ProcessingThread#start
+    */
+   private def confirmUnsaved( actionName: String, confirmed: Flag ) : Boolean = {
+      if( !doc.isDirty() ) {
+         confirmed.set( true )
+         return false
+      }
+
+      val options = Array[ AnyRef ]( getResourceString( "buttonSave" ),
+                           getResourceString( "buttonCancel" ),
+                           getResourceString( "buttonDontSave" ))
+      val dont = new Flag( false )
+
+      val name = doc.displayName
+
+      val op = new JOptionPane( name + " :\n" + getResourceString( "optionDlgUnsaved" ),
+                            JOptionPane.WARNING_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION, null,
+                            options, options( 1 ))
+      val d = op.createDialog( getWindow(), actionName )
+      val rp = d.getRootPane()
+      if( rp != null ) {
+         rp.getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW ).put(
+           KeyStroke.getKeyStroke( KeyEvent.VK_D, BasicMenuFactory.MENU_SHORTCUT ), "dont" )
+         rp.getActionMap().put( "dont", new AbstractAction {
+            def actionPerformed( e: ActionEvent ) {
+               dont.set(  true )
+               d.dispose()
             }
-            catch { case e1: IOException =>
-				BasicWindowHandler.showErrorDialog( getWindow(), e1, name )
+         })
+      }
+      BasicWindowHandler.showDialog( d )
+      val choice = if( dont.isSet() ) {
+         2
+      } else {
+         val value = op.getValue()
+         if( (value == null) || (value == options( 1 ))) {
+            1
+         } else if( value == options( 0 )) {
+            0
+         } else if( value == options( 2 )) {
+            2
+         } else {
+            -1	// throws assertion error in switch block
+         }
+      }
+
+      choice match {
+      case JOptionPane.CLOSED_OPTION | 1 => {
+         confirmed.set( false )
+         false
+      }
+      case 2 => {	// don't save
+         confirmed.set( true )
+         false
+      }
+      case 0 => {
+         confirmed.set( false )
+         val path = if( doc.path.isEmpty || writeProtected ) {
+            actionSaveAs.query( actionSave.getValue( Action.NAME ).toString() )
+         } else {
+            doc.path
+         }
+         path.map( p => {
+            actionSave.perform( actionSave.getValue( Action.NAME ).toString(), p, false, false )
+         }) getOrElse false
+      }
+      case _ => {
+         assert( false )
+         false
+      }}
+   }
+
+   protected class ActionClose extends MenuAction {
+      def actionPerformed( e: ActionEvent ): Unit = perform
+
+      def perform {
+         closeDocument( false, new Flag( false ))
+      }
+   }
+
+   // action for the Save-Session menu item
+   private class ActionSave
+   extends MenuAction {
+      /**
+       *  Saves a Session. If the file
+       *  wasn't saved before, a file chooser
+       *  is shown before.
+       */
+      def actionPerformed( e: ActionEvent ) {
+         val name = getValue( Action.NAME ).toString
+         (doc.path orElse actionSaveAs.query( name )).foreach( f =>
+            perform( name, f, false, false ))
+      }
+
+      protected[gui] def perform( name: String, file: File, asCopy: Boolean, openAfterSave: Boolean ) : Boolean = {
+         try {
+            doc.save( file )
+            wpHaveWarned = false
+
+            if( !asCopy ) {
+               app.getMenuFactory.addRecent( file )
+               doc.path = Some( file )
+               doc.getUndoManager.discardAllEdits
             }
-		}
-	}
+            if( openAfterSave ) {
+               app.getMenuFactory.openDocument( file )
+            }
+            true
+         }
+         catch { case e1: IOException =>
+            BasicWindowHandler.showErrorDialog( getWindow(), e1, name )
+            false
+         }
+      }
+   }
 
-	// action for the Save-Session-As menu item
-	private class ActionSaveAs( asCopy: Boolean )
-	extends MenuAction
-	{
-		private val openAfterSave = new Flag( false )
+   // action for the Save-Session-As menu item
+   private class ActionSaveAs( asCopy: Boolean )
+   extends MenuAction {
+      private val openAfterSave = new Flag( false )
 
-		/*
-		 *  Query a file name from the user and save the Session
-		 */
-		def actionPerformed( e: ActionEvent ) {
-            val name = getValue( Action.NAME ).toString
-            query( name ).foreach( f => {
-				actionSave.perform( name, f, asCopy, openAfterSave.isSet )
-            })
-		}
+      /*
+       *  Query a file name from the user and save the Session
+       */
+      def actionPerformed( e: ActionEvent ) {
+         val name = getValue( Action.NAME ).toString
+         query( name ).foreach( f => {
+            actionSave.perform( name, f, asCopy, openAfterSave.isSet )
+         })
+      }
 
 		/**
 		 *  Open a file chooser so the user
@@ -244,8 +333,6 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 		 */
 		protected[gui] def query( name: String ) : Option[ File ] = {
           val dlg = new FileDialog( null.asInstanceOf[ Frame ], name, FileDialog.SAVE )
-//          dlg.setFilenameFilter( this )
-//          dlg.show
           BasicWindowHandler.showDialog( dlg )
           val dirName   = dlg.getDirectory
           val fileName  = dlg.getFile

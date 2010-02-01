@@ -151,6 +151,13 @@ extends JComponent with TrackToolsListener with DynamicListening {
            }
            case _ =>
         }
+        case TrackSlideTool.Slide( deltaOuter, deltaInner ) => painter match {
+           case mrp: MoveResizePainter => {
+                 mrp.adjustSlide( deltaOuter, deltaInner )
+                 mrp.adjusted
+           }
+           case _ =>
+        }
         case TrackStakeTool.DragEnd( ce ) => painter match {
            case mrp: MoveResizePainter => mrp.finish( ce )
            case _ =>
@@ -200,6 +207,7 @@ extends JComponent with TrackToolsListener with DynamicListening {
       t match {
          case _ : TrackMoveTool   => Some( moveResizeToolListener )
          case _ : TrackResizeTool => Some( moveResizeToolListener )
+         case _ : TrackSlideTool  => Some( moveResizeToolListener )
          case _ => None
       }
    
@@ -419,6 +427,11 @@ extends JComponent with TrackToolsListener with DynamicListening {
       def adjustResize( newMoveStart: Long, newMoveStop: Long ) {
          moveStart   = newMoveStart
          moveStop    = newMoveStop
+      }
+
+      def adjustSlide( newMoveOuter: Long, newMoveInner: Long ) {
+         moveOuter   = newMoveOuter
+         moveInner   = newMoveInner
       }
 
       protected def transform( stake: track.T ) : track.T = {

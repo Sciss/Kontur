@@ -1,6 +1,6 @@
 ~movieView = BosqueMovieView.new;
 ~movieView.makeGUI;
-~movieView.path = "/Users/rutz/Desktop/Interface3/Calig/1c.mov";
+//~movieView.path = "/Users/rutz/Desktop/Interface3/Calig/1c.mov";
 //~movieView.synced = true;
 // (
 ~moviePos = 0;
@@ -12,3 +12,7 @@
 	);
 }).add;
 // )
+
+// for section 3
+~movieView.offset = -13.0;
+~movieView.path = "/Users/rutz/Desktop/Interface3/Calig/3c.mov";

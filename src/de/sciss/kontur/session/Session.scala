@@ -62,11 +62,11 @@ extends BasicDocument with Model {
 
     import Session._
 
-	private var pt: Option[ ProcessingThread ] = None
-	private val undo  = new de.sciss.app.UndoManager( this )
+	 private var pt: Option[ ProcessingThread ] = None
+	 private val undo  = new de.sciss.app.UndoManager( this )
     private var dirty = false
 
-//    private var path: Option[ File ] = None
+//  private var path: Option[ File ] = None
 
     val timelines   = new Timelines( this )
     val audioFiles  = new AudioFileSeq( this )
@@ -156,10 +156,10 @@ extends BasicDocument with Model {
       
 	def isDirty() : Boolean = dirty
 
-    def setDirty( dirty: Boolean ) = {
-		if( !this.dirty == dirty ) {
-			this.dirty = dirty
-//			updateTitle()
+    def setDirty( newDirty: Boolean ) = {
+		if( dirty != newDirty ) {
+			dirty = newDirty
+         dispatch( DirtyChanged( newDirty ))
 		}
 	}
 
