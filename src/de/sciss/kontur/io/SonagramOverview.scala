@@ -1,6 +1,29 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *  SonagramOverview.scala
+ *  (Kontur)
+ *
+ *  Copyright (c) 2004-2010 Hanns Holger Rutz. All rights reserved.
+ *
+ *	This software is free software; you can redistribute it and/or
+ *	modify it under the terms of the GNU General Public License
+ *	as published by the Free Software Foundation; either
+ *	version 2, june 1991 of the License, or (at your option) any later version.
+ *
+ *	This software is distributed in the hope that it will be useful,
+ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ *	General Public License for more details.
+ *
+ *	You should have received a copy of the GNU General Public
+ *	License (gpl.txt) along with this software; if not, write to the Free Software
+ *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ *
+ *	For further information, please contact Hanns Holger Rutz at
+ *	contact@sciss.de
+ *
+ *
+ *  Changelog:
  */
 
 package de.sciss.kontur.io
@@ -8,19 +31,140 @@ package de.sciss.kontur.io
 import java.awt.{ Dimension, Graphics2D }
 import java.awt.image.{ BufferedImage, DataBufferInt, ImageObserver }
 import java.beans.{ PropertyChangeEvent, PropertyChangeListener }
-import java.io.{ File, IOException }
+import java.io.{ ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream, File, IOException }
 import java.util.{ Arrays }
 import javax.swing.{ SwingWorker }
 import scala.collection.immutable.{ Queue, Vector }
 import scala.collection.mutable.{ ListBuffer }
 import scala.math._
-import de.sciss.dsp.{ ConstQ, FastLog }
-import de.sciss.io.{ AudioFile, AudioFileDescr, IOUtil, Span }
+import de.sciss.app.{ AbstractApplication }
+import de.sciss.io.{ AudioFile, AudioFileDescr, AudioFileCacheInfo, CacheManager, IOUtil, Span }
 import de.sciss.kontur.gui.{ IntensityColorScheme }
+import de.sciss.kontur.util.{ PrefsUtil }
+import de.sciss.dsp.{ ConstQ, FastLog }
+
+object SonagramSpec {
+   def decode( dis: DataInputStream ) : Option[ SonagramSpec ] = {
+      try {
+         val sampleRate    = dis.readDouble()
+         val minFreq       = dis.readFloat()
+         val maxFreq       = dis.readFloat()
+         val bandsPerOct   = dis.readInt()
+         val maxTimeRes    = dis.readFloat()
+         val maxFFTSize    = dis.readInt()
+         val stepSize      = dis.readInt()
+         Some( SonagramSpec( sampleRate, minFreq, maxFreq, bandsPerOct, maxTimeRes, maxFFTSize, stepSize ))
+      }
+      catch { case _ => None }
+   }
+}
 
 case class SonagramSpec( sampleRate: Double, minFreq: Float, maxFreq: Float,
-                         bandsPerOct: Int, maxTimeRes: Float, maxFFTSize: Int ) {
+                         bandsPerOct: Int, maxTimeRes: Float, maxFFTSize: Int, stepSize: Int ) {
 
+   val numKernels = ConstQ.getNumKernels( bandsPerOct, maxFreq, minFreq )
+
+   def encode( dos: DataOutputStream ) {
+      dos.writeDouble( sampleRate )
+      dos.writeFloat( minFreq )
+      dos.writeFloat( maxFreq )
+      dos.writeInt( bandsPerOct )
+      dos.writeFloat( maxTimeRes )
+      dos.writeInt( maxFFTSize )
+      dos.writeInt( stepSize )
+   }
+}
+
+class SonagramDecimSpec( val offset: Long, val numWindows: Long, val decimFactor: Int, val totalDecim: Int ) {
+   var windowsReady = 0L
+}
+
+object SonagramFileSpec {
+   private val COOKIE   = 0x53000000  // 'Ttm ', 'S' version 0
+
+   def decode( blob: Array[ Byte ]) : Option[ SonagramFileSpec ] = {
+      val bais    = new ByteArrayInputStream( blob )
+      val dis     = new DataInputStream( bais )
+      val result  = decode( dis )
+      bais.close
+      result
+   }
+
+   def decode( dis: DataInputStream ) : Option[ SonagramFileSpec ] = {
+      try {
+         val cookie = dis.readInt()
+         if( cookie != COOKIE ) return None
+         SonagramSpec.decode( dis ).map( sona => {
+            val lastModified  = dis.readLong()
+            val audioPath     = new File( dis.readUTF() )
+            val numFrames     = dis.readLong()
+            val numChannels   = dis.readInt()
+            val sampleRate    = dis.readDouble()
+            val numDecim      = dis.readShort()
+            val decim         = (0 until numDecim).map( i => dis.readShort().toInt ).toList
+            SonagramFileSpec( sona, lastModified, audioPath, numFrames, numChannels, sampleRate, decim )
+         }) orElse None
+      }
+      catch { case _ => None }
+   }
+}
+
+case class SonagramFileSpec( sona: SonagramSpec, lastModified: Long, audioPath: File,
+                             numFrames: Long, numChannels: Int, sampleRate: Double, decim: List[ Int ]) {
+
+   import SonagramFileSpec._
+
+   val decimSpecs = {
+      var totalDecim    = sona.stepSize
+      var numWindows    = (numFrames + totalDecim - 1) / totalDecim
+      var offset        = 0L
+
+      if( decim.tail.exists( _ % 2 != 0 )) println( "WARNING: only even decim factors supported ATM" )
+
+      decim.map( decimFactor => {
+         totalDecim       *= decimFactor
+         numWindows        = (numWindows + decimFactor - 1) / decimFactor
+         val decimSpec     = new SonagramDecimSpec( offset, numWindows, decimFactor, totalDecim )
+         offset           += numWindows * sona.numKernels
+         decimSpec
+      })
+   }
+
+   def makeAllAvailable {
+      decimSpecs.foreach( d => d.windowsReady = d.numWindows )
+   }
+
+   def expectedDecimNumFrames =
+      decimSpecs.last.offset + decimSpecs.last.numWindows * sona.numKernels
+  
+   def getBestDecim( idealDecim: Float ) : SonagramDecimSpec = {
+      var best = decimSpecs.head
+      var i = 0; while( (i < decimSpecs.size) && (decimSpecs( i ).totalDecim < idealDecim) ) {
+         best = decimSpecs( i )
+         i += 1
+      }
+      best
+   }
+
+   def encode: Array[ Byte ] = {
+      val baos = new ByteArrayOutputStream()
+      val dos  = new DataOutputStream( baos )
+      encode( dos )
+      baos.close
+      baos.toByteArray
+   }
+
+   def encode( dos: DataOutputStream ) {
+      dos.writeInt( COOKIE )
+      sona.encode( dos )
+      dos.writeLong( lastModified )
+      dos.writeUTF( audioPath.getCanonicalPath() )
+      dos.writeLong( numFrames )
+      dos.writeInt( numChannels )
+      dos.writeDouble( sampleRate )
+      dos.writeShort( decim.size )
+      decim.foreach( d => dos.writeShort( d ))
+   }
 }
 
 trait SonagramPaintController {
@@ -29,21 +173,76 @@ trait SonagramPaintController {
 }
 
 object SonagramOverview {
-   var verbose = false
+   var verbose = true
+   private val APPCODE  = "Ttm "
 
-   private var constQCache   = Map[ SonagramSpec, ConstQCache ]()
-   private var imageCache    = Map[ Dimension, ImageCache ]()
-   private var fileBufCache  = Map[ SonagramImageSpec, FileBufCache ]()
-   private val sync  = new AnyRef
+   private var constQCache    = Map[ SonagramSpec, ConstQCache ]()
+   private var imageCache     = Map[ Dimension, ImageCache ]()
+   private var fileBufCache   = Map[ SonagramImageSpec, FileBufCache ]()
+   private val sync           = new AnyRef
+   private lazy val fileCache = {
+      val app = AbstractApplication.getApplication 
+      new PrefCacheManager(
+         app.getUserPrefs.node( PrefsUtil.NODE_IO ).node( PrefsUtil.NODE_SONACACHE ),
+         true, new File( System.getProperty( "java.io.tmpdir" ), app.getName ), 10240 ) // XXX 10 GB
+   }
 
    @throws( classOf[ IOException ])
-   def fromPath( path: File, cacheFolders: Seq[ File ]) : SonagramOverview = {
+   def fromPath( path: File ) : SonagramOverview = {
       sync.synchronized {
-         val cachePath  = IOUtil.setFileSuffix(
-            new File( cacheFolders.head, path.getName ), "sona" )
-         // XXX first try, forget cache reuse! So create a fresh file each time:
-         val cachePath2 = IOUtil.nonExistentFileVariant( cachePath, -1, null, null )
-         new SonagramOverview( path, cachePath2 )
+         val af            = AudioFile.openAsRead( path )
+         val afDescr       = af.getDescr
+         af.close // render loop will re-open it if necessary...
+         val sampleRate    = afDescr.rate
+         val stepSize      = max( 64, (sampleRate * 0.0116 + 0.5).toInt ) // 11.6ms spacing
+         val sonaSpec      = SonagramSpec( sampleRate, 32, min( 16384, sampleRate / 2 ).toFloat, 24,
+                                (stepSize / sampleRate * 1000).toFloat, 4096, stepSize )
+         val decim         = List( 1, 6, 6, 6, 6 )
+         val fileSpec      = new SonagramFileSpec( sonaSpec, afDescr.file.lastModified, afDescr.file,
+                             afDescr.length, afDescr.channels, sampleRate, decim )
+         val cachePath     = fileCache.createCacheFileName( path )
+
+         // try to retrieve existing overview file from cache
+         val decimAFO      = if( cachePath.isFile ) {
+            try {
+               val cacheAF    = AudioFile.openAsRead( cachePath )
+               try {
+                  cacheAF.readAppCode()
+                  val cacheDescr = cacheAF.getDescr
+                  val blob       = cacheDescr.getProperty( AudioFileDescr.KEY_APPCODE ).asInstanceOf[ Array[ Byte ]]
+                  if( (cacheDescr.appCode == APPCODE) && (blob != null) && (SonagramFileSpec.decode( blob ) == Some( fileSpec ))
+                      && (cacheDescr.length == fileSpec.expectedDecimNumFrames) ) {
+                     af.cleanUp // do not need it anymore for reading
+                     fileSpec.makeAllAvailable
+                     Some( cacheAF )
+                  } else {
+                     cacheAF.cleanUp
+                     None
+                  }
+               }
+               catch { case e: IOException => { cacheAF.cleanUp; None }}
+            }
+            catch { case e: IOException => { None }}
+         } else None
+
+         // on failure, create new cache file
+         val decimAF = decimAFO getOrElse {
+            val d             = new AudioFileDescr()
+            d.file            = cachePath
+            d.`type`          = AudioFileDescr.TYPE_AIFF
+            d.channels        = afDescr.channels
+            d.rate            = afDescr.rate
+            d.bitsPerSample   = 32  // XXX really?
+            d.sampleFormat    = AudioFileDescr.FORMAT_FLOAT
+            d.appCode         = APPCODE
+            d.setProperty( AudioFileDescr.KEY_APPCODE, fileSpec.encode )
+            AudioFile.openAsWrite( d ) // XXX eventually should use shared buffer!!
+         }
+
+         val so = new SonagramOverview( fileSpec, decimAF )
+         // render overview if necessary
+         if( decimAFO.isEmpty ) queue( so )
+         so
       }
    }
 
@@ -199,7 +398,10 @@ if( verbose ) println( "WorkingSonagram got in : " + e.getPropertyName + " / " +
    private class WorkingSonagram( val sona: SonagramOverview )
    extends SwingWorker[ Unit, Unit ] {
       override protected def doInBackground() : Unit = {
-         sona.render( this )
+         try {
+            sona.render( this )
+         }
+         catch { case e => e.printStackTrace }
       }
    }
 
@@ -209,61 +411,31 @@ if( verbose ) println( "WorkingSonagram got in : " + e.getPropertyName + " / " +
 }
 
 class SonagramOverview @throws( classOf[ IOException ]) private (
-   audioPath: File, cachePath: File ) {
+   fileSpec: SonagramFileSpec, decimAF: AudioFile ) {
 
    import SonagramOverview._
 
-   // if this fails, just let the exception go, no other
-   // resources have been allocated yet
    private val sync              = new AnyRef
-   private val masterFile        = AudioFile.openAsRead( audioPath )
-   private val masterDescr       = masterFile.getDescr
-   private val numChannels       = masterDescr.channels
-   // at the moment, let us just use a moderate fixed spec
-   private val fftStepSize       = max( 64, (masterDescr.rate * 0.0116 + 0.5).toInt ) // 11.6ms spacing
-   private val spec              = SonagramSpec( masterDescr.rate, 32, 16384, 24,
-                                (fftStepSize / masterDescr.rate * 1000).toFloat, 4096 )
-   private var constQReleased    = false
-   private val constQ            = allocateConstQ( spec )
-   private val numKernels        = constQ.getNumKernels
+   private val numChannels       = fileSpec.numChannels
+   private val numKernels        = fileSpec.sona.numKernels
    private val imgSpec           = SonagramImageSpec( numChannels, new Dimension( 128, numKernels ))
    private val sonaImg           = allocateSonaImage( imgSpec )
-//   private val imgDim            = new Dimension( 128, numKernels )
-//   private val bufImg            = allocateImage( imgDim )
    private val imgData           = sonaImg.img.getRaster.getDataBuffer.asInstanceOf[ DataBufferInt ].getData()
-	private val fftSize        	= constQ.getFFTSize
-//   private val numSteps          = (masterDescr.length + fftStepSize - 1) / fftStepSize
-//   private val numDecim          = 3
-//   private val decimFactor       = 8   // e.g. 6 seconds per pixel max coarse resolution
 
-   // for all prospective IOExceptions, guarantee cleanup
-//   private val sonaFiles         = try { createFiles( 8, 8, 8 )
-//   private val sonaFiles         = try { createFiles( 5, 5, 5, 5 )
-   private val sonaFiles         = try { createFiles( 6, 6, 6, 6 )
-   } catch { case e1: IOException => { dispose; throw e1 }}
-
-   // ---- constructor ----
-   {
-if( verbose ) println( "fftSize = " + fftSize + "; numKernels = " + numKernels + "; fftStepSize = " + fftStepSize )
-      queue( this )
-   }
-
-
-   private def getBestDecim( idealDecim: Float ) : SonagramFile = {
-      var best = sonaFiles.head
-      var i = 0; while( (i < sonaFiles.size) && (sonaFiles( i ).totalDecim < idealDecim) ) {
-         best = sonaFiles( i )
-         i += 1
+   // caller must have sync
+   private def seekWindow( decim: SonagramDecimSpec, idx: Long ) {
+      val framePos = idx * numKernels + decim.offset
+      if( /* (decim.windowsReady > 0L) && */ (decimAF.getFramePosition != framePos) ) {
+         decimAF.seekFrame( framePos )
       }
-      best
    }
 
-   val rnd = new java.util.Random()
+//   val rnd = new java.util.Random()
    def paint( spanStart: Double, spanStop: Double, g2: Graphics2D, tx: Int,
               ty: Int, width: Int, height: Int,
               ctrl: SonagramPaintController ) {
       val idealDecim    = ((spanStop - spanStart) / width).toFloat
-      val in            = getBestDecim( idealDecim )
+      val in            = fileSpec.getBestDecim( idealDecim )
 //      val scaleW        = idealDecim / in.totalDecim
       val scaleW        = in.totalDecim / idealDecim
       val vDecim        = max( 1, (numChannels * numKernels) / height )
@@ -296,14 +468,14 @@ if( verbose ) println( "fftSize = " + fftSize + "; numKernels = " + numKernels +
          var x = 0; var v = 0; var i = 0; var sum = 0f
          var xReset = 0
          var firstPass = true
-         in.synchronized {
+         sync.synchronized {
             if( in.windowsReady <= start ) return  // or draw busy-area
-            in.seekWindow( start )
+            seekWindow( in, start )
             val numWindows = min( in.windowsReady, stop ) - start
             while( windowsRead < numWindows ) {
                val chunkLen2 = min( imgW - xReset, numWindows - windowsRead ).toInt
                val chunkLen = chunkLen2 + xReset
-               in.af.readFrames( sonaImg.fileBuf, 0, chunkLen2 * numKernels )
+               decimAF.readFrames( sonaImg.fileBuf, 0, chunkLen2 * numKernels )
                windowsRead += chunkLen2
                if( firstPass ) {
                   firstPass = false
@@ -360,45 +532,49 @@ if( verbose ) println( "fftSize = " + fftSize + "; numKernels = " + numKernels +
    }
 
    protected def render( ws: WorkingSonagram ) {
+      val constQ = allocateConstQ( fileSpec.sona )
+      val fftSize = constQ.getFFTSize
+      val t1 = System.currentTimeMillis
       try {
-val t1 = System.currentTimeMillis
-         primaryRender( ws, masterFile, sonaFiles.head )
-         releaseCQ() // we do not need it anymore
-val t2 = System.currentTimeMillis
-         sonaFiles.sliding( 2, 1 ).foreach( pair => {
-            if( ws.isCancelled ) return
-            secondaryRender( ws, pair.head, pair.last )
-         })
-val t3 = System.currentTimeMillis
-println( "primary : secondary ratio = " + (t2 - t1).toDouble / (t3 - t1) )
+         val af = AudioFile.openAsRead( fileSpec.audioPath )
+         try {
+            primaryRender( ws, constQ, af )
+         }
+         finally {
+            af.cleanUp
+         }
       }
       finally {
-         masterFile.cleanUp
+         releaseConstQ( fileSpec.sona )
       }
+      val t2 = System.currentTimeMillis
+      fileSpec.decimSpecs.sliding( 2, 1 ).foreach( pair => {
+         if( ws.isCancelled ) return
+//         if( verbose ) println( "start " + pair.head.totalDecim )
+         secondaryRender( ws, pair.head, pair.last )
+//         if( verbose ) println( "finished " + pair.head.totalDecim )
+      })
+      decimAF.flush()
+      val t3 = System.currentTimeMillis
+      if( verbose ) println( "primary : secondary ratio = " + (t2 - t1).toDouble / (t3 - t2) )
    }
 
-   private def primaryRender( ws: WorkingSonagram, in: AudioFile, out: SonagramFile ) {
-      // first ensure total file size to catch disk-full problem early
-//      val primaryNumFrames = out.numWindows * numKernels
-//      out.af.setFrameNum( primaryNumFrames )
-//      if( ws.isCancelled ) return
-
-//println( "primary len = " + primaryNumFrames + "; secondary len = " + secondaryNumFrames )
-
-//      val inBuf  = new Array[ Array[ Float ]]( numChannels, fftSize )
-//      val outBuf = new Array[ Array[ Float ]]( numChannels, numKernels )
-      val inBuf  = Array.ofDim[ Float ]( numChannels, fftSize )
-      val outBuf = Array.ofDim[ Float ]( numChannels, numKernels )
+   private def primaryRender( ws: WorkingSonagram, constQ: ConstQ, in: AudioFile ) {
+      val fftSize       = constQ.getFFTSize
+      val stepSize      = fileSpec.sona.stepSize
+      val inBuf         = Array.ofDim[ Float ]( numChannels, fftSize )
+      val outBuf        = Array.ofDim[ Float ]( numChannels, numKernels )
 
       var inOff         = fftSize / 2
       var inLen         = fftSize - inOff
-      val overLen       = fftSize - fftStepSize
-      val numFrames     = masterDescr.length
+      val overLen       = fftSize - stepSize
+      val numFrames     = fileSpec.numFrames
       var framesRead    = 0L
+      val out           = fileSpec.decimSpecs.head
 
       { var step = 0; while( step < out.numWindows && !ws.isCancelled ) {
          val chunkLen = min( inLen, numFrames - framesRead ).toInt
-         masterFile.readFrames( inBuf, inOff, chunkLen )
+         in.readFrames( inBuf, inOff, chunkLen )
          framesRead += chunkLen
          if( chunkLen < inLen ) {
             { var ch = 0; while( ch < numChannels ) {
@@ -410,28 +586,29 @@ println( "primary : secondary ratio = " + (t2 - t1).toDouble / (t3 - t1) )
             constQ.transform( inBuf( ch ), 0, fftSize, outBuf( ch ), 0 )
          ch += 1 }}
 
-         out.synchronized {
-            out.seekWindow( out.windowsReady )
-            out.af.writeFrames( outBuf, 0, numKernels )
+         sync.synchronized {
+            seekWindow( out, out.windowsReady )
+            decimAF.writeFrames( outBuf, 0, numKernels )
             out.windowsReady += 1
          }
 
          { var ch = 0; while( ch < numChannels ) {
             val convBuf = inBuf( ch )
-            System.arraycopy( convBuf, fftStepSize, convBuf, 0, overLen )
+            System.arraycopy( convBuf, stepSize, convBuf, 0, overLen )
          ch += 1 }}
 
          if( step == 0 ) { // stupid one instance case
             inOff = overLen
-            inLen = fftStepSize
+            inLen = stepSize
          }
       step += 1 }}
    }
-   
-   private def secondaryRender( ws: WorkingSonagram, in: SonagramFile, out: SonagramFile ) {
+
+   // XXX THIS NEEDS BIGGER BUFSIZE BECAUSE NOW WE SEEK IN THE SAME FILE
+   // FOR INPUT AND OUTPUT!!!
+   private def secondaryRender( ws: WorkingSonagram, in: SonagramDecimSpec, out: SonagramDecimSpec ) {
       val dec           = out.decimFactor
       val bufSize       = dec * numKernels
-//    val buf           = new Array[ Array[ Float ]]( numChannels, bufSize )
       val buf           = Array.ofDim[ Float ]( numChannels, bufSize )
       // since dec is supposed to be even, this
       // lands on the beginning of a kernel:
@@ -441,14 +618,14 @@ println( "primary : secondary ratio = " + (t2 - t1).toDouble / (t3 - t1) )
 
       { var step = 0; while( step < out.numWindows && !ws.isCancelled ) {
          val chunkLen = min( inLen, (in.numWindows - windowsRead) * numKernels ).toInt
-         in.synchronized {
-            in.seekWindow( windowsRead )
-            in.af.readFrames( buf, inOff, chunkLen )
+         sync.synchronized {
+            seekWindow( in, windowsRead )
+            decimAF.readFrames( buf, inOff, chunkLen )
          }
          windowsRead += chunkLen / numKernels
          if( chunkLen < inLen ) {
             { var ch = 0; while( ch < numChannels ) {
-               Arrays.fill( buf( ch ), inOff + chunkLen, fftSize, 0f )
+               Arrays.fill( buf( ch ), inOff + chunkLen, bufSize, 0f )
             ch += 1 }}
          }
          { var ch = 0; while( ch < numChannels ) {
@@ -462,9 +639,9 @@ println( "primary : secondary ratio = " + (t2 - t1).toDouble / (t3 - t1) )
             i += 1 }
          ch += 1 }}
 
-         out.synchronized {
-            out.seekWindow( out.windowsReady )
-            out.af.writeFrames( buf, 0, numKernels )
+         sync.synchronized {
+            seekWindow( out, out.windowsReady )
+            decimAF.writeFrames( buf, 0, numKernels )
             out.windowsReady += 1
          }
 
@@ -475,68 +652,12 @@ println( "primary : secondary ratio = " + (t2 - t1).toDouble / (t3 - t1) )
       step += 1 }}
    }
 
-   private def releaseCQ() {
-      sync.synchronized {
-         if( !constQReleased ) {
-            releaseConstQ( spec )
-            constQReleased = true
-         }
-      }
-   }
-
    private var disposed = false
    def dispose {
       if( !disposed ) {
          disposed = true
-         releaseCQ()
          releaseSonaImage( imgSpec )
-         masterFile.cleanUp
-         sonaFiles.foreach( _.af.cleanUp )  // XXX delete
-      }
-   }
-
-   @throws( classOf[ IOException ])
-   private def createFiles( decimFactors: Int* ): Vector[ SonagramFile ] = {
-      var files         = Vector[ SonagramFile ]()
-      var currentPath   = cachePath
-      var totalDecim    = fftStepSize
-      var numWindows    = (masterDescr.length + fftStepSize - 1) / fftStepSize
-
-if( decimFactors.exists( _ % 2 != 0 )) println( "WARNING: only even decim factors supported ATM" )
-      
-      try {
-         (1 :: decimFactors.toList).foreach( decimFactor => {
-            val d             = new AudioFileDescr()
-            d.file            = currentPath
-            d.`type`          = AudioFileDescr.TYPE_AIFF
-            d.channels        = numChannels
-            totalDecim       *= decimFactor
-            d.rate            = masterDescr.rate * numKernels / totalDecim // XXX correct?
-            d.bitsPerSample   = 32  // XXX really?
-            d.sampleFormat    = AudioFileDescr.FORMAT_FLOAT
-            val af            = AudioFile.openAsWrite( d ) // XXX eventually should use shared buffer!!
-            numWindows        = (numWindows + decimFactor - 1) / decimFactor
-            files = files.appendBack( new SonagramFile( af, numWindows, decimFactor, totalDecim ))
-            currentPath       = IOUtil.nonExistentFileVariant( cachePath, -1, "_dec", null )
-         })
-         files
-      } catch { case e1: IOException => {
-         files.foreach( _.af.cleanUp ) // XXX and delete?
-         throw e1
-      }}
-   }
-
-   // note: totalDecim starts not from 1 but fftStepSize, so
-   // denotes the actual scale of each window (pixel-column) to original rate
-   private class SonagramFile( val af: AudioFile, val numWindows: Long, val decimFactor: Int, val totalDecim: Int ) {
-      var windowsReady = 0L
-
-      // caller must have sync
-      def seekWindow( idx: Long ) {
-         val framePos = idx * numKernels
-         if( af.getFramePosition != framePos ) {
-            af.seekFrame( framePos )
-         }
+         decimAF.cleanUp()  // XXX delete?
       }
    }
 }

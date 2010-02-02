@@ -36,6 +36,7 @@ import de.sciss.common.{ BasicWindowHandler, BasicPathField }
 import de.sciss.util.{ Param, ParamSpace }
 import de.sciss.kontur.{ Main }
 import de.sciss.kontur.util.{ PrefsUtil }
+import de.sciss.kontur.io.{ PrefCacheManager }
 import PrefsUtil._
 import java.awt.{ BorderLayout, Color, Dimension, SystemColor }
 import java.awt.event.{ ActionEvent, ActionListener }
@@ -221,7 +222,7 @@ class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
       val txSonaCacheFolder   = getResourceString( "prefsSonaCacheFolder" )
       val lbSonaCacheFolder   = new JLabel( txSonaCacheFolder )
       val ggSonaCacheFolder   = new PrefPathField( PathField.TYPE_FOLDER, txSonaCacheFolder )
-      ggSonaCacheFolder.setPreferences( prefs, KEY_SONACACHEFOLDER )
+      ggSonaCacheFolder.setPreferences( prefs.node( NODE_SONACACHE ), PrefCacheManager.KEY_FOLDER )
 
       layout.setHorizontalGroup( layout.createSequentialGroup()
          .addComponent( lbSonaCacheFolder )

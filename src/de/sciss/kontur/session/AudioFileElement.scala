@@ -82,12 +82,10 @@ extends SessionElement {
   }
 */
 
-   // XXX it would be good to keep
+   // XXX it would be good to keep this separated in gui package
    lazy val sona : Option[ SonagramOverview ] = {
       try {
-         val prefs       = AbstractApplication.getApplication().getUserPrefs().node( PrefsUtil.NODE_IO )
-         val cacheFolder = new File( prefs.get( PrefsUtil.KEY_SONACACHEFOLDER, "/tmp" ))
-         Some( SonagramOverview.fromPath( path, List( cacheFolder )))
+         Some( SonagramOverview.fromPath( path ))
       }
       catch { case e1: IOException => None }
    }

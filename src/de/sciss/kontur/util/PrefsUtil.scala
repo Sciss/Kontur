@@ -52,11 +52,11 @@ object PrefsUtil {
 	val KEY_LOOKANDFEEL = "lookandfeel"   
 
 	/**
-	 *  Child node of I/O prefs
+	 *  Child node of root prefs
 	 */
 	val NODE_IO = "io"
 
-	val KEY_SONACACHEFOLDER = "sonacachefolder"
+	val NODE_SONACACHE = "sonacache" // child of I/O
 
 	/**
 	 *  Child node of audio prefs
