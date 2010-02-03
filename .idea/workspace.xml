@@ -2,10 +2,11 @@
 <project version="4">
   <component name="ChangeListManager" verified="true">
     <list default="true" readonly="true" id="6aaf78f3-2cd3-461b-a3b3-ab35f5d5ed52" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/gui/EditRenameAction.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/resources/KonturStrings.properties" afterPath="$PROJECT_DIR$/resources/KonturStrings.properties" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/SessionTreeModel.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/gui/SessionTreeModel.scala" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.txt" afterPath="$PROJECT_DIR$/README.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/MenuFactory.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/gui/MenuFactory.scala" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/gui/ScalaInterpreterFrame.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Kontur.app/Contents/Info.plist" afterPath="$PROJECT_DIR$/Kontur.app/Contents/Info.plist" />
     </list>
     <ignored path="Kontur.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -150,10 +151,46 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="EditRenameAction.scala" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="EditRenameAction.scala" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/EditRenameAction.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="20" column="33" selection-start="705" selection-end="705" vertical-scroll-proportion="0.42437923">
+            <state line="20" column="33" selection-start="705" selection-end="705" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ScalaInterpreterFrame.scala" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/ScalaInterpreterFrame.scala">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="56" column="6" selection-start="1948" selection-end="1948" vertical-scroll-proportion="0.6433409">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Diffusion.scala" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/Diffusion.scala">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="70" column="6" selection-start="2312" selection-end="2312" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="MenuFactory.scala" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/MenuFactory.scala">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="82" column="103" selection-start="3073" selection-end="3073" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="KonturStrings.properties" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/resources/KonturStrings.properties">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="9" column="23" selection-start="166" selection-end="189" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -162,52 +199,7 @@
       <file leaf-file-name="TimelineFrame.scala" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelineFrame.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="237" column="0" selection-start="10441" selection-end="10681" vertical-scroll-proportion="-7.6538463">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Option.class" pinned="false" current="false" current-in-tab="false">
-        <entry file="jar://$PROJECT_DIR$/../scala-2.8.0-snapshot/lib/scala-library.jar!/scala/Option.class">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Some.class" pinned="false" current="false" current-in-tab="false">
-        <entry file="jar://$PROJECT_DIR$/../scala-2.8.0-snapshot/lib/scala-library.jar!/scala/Some.class">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="AudioFile.class" pinned="false" current="false" current-in-tab="false">
-        <entry file="jar://$PROJECT_DIR$/libraries/ScissLib.jar!/de/sciss/io/AudioFile.class">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="27" column="40" selection-start="1115" selection-end="1115" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="AudioFileDescr.class" pinned="false" current="false" current-in-tab="false">
-        <entry file="jar://$PROJECT_DIR$/libraries/ScissLib.jar!/de/sciss/io/AudioFileDescr.class">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="46" column="16" selection-start="2125" selection-end="2125" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="BasicTrail.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/BasicTrail.scala">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="60" column="0" selection-start="2104" selection-end="2104" vertical-scroll-proportion="0.0">
+            <state line="157" column="0" selection-start="7622" selection-end="7828" vertical-scroll-proportion="-8.538462">
               <folding />
             </state>
           </provider>
@@ -223,12 +215,9 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/TransportPanel.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/session/Session.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/TrackTools.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/TrackToolsPanel.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/TrackComponent.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/MenuFactory.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/SessionTreeFrame.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelineFrame.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/SessionFrame.scala" />
@@ -239,6 +228,9 @@
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/io/SonagramOverview.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/SessionTreeModel.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/EditRenameAction.scala" />
+        <option value="$PROJECT_DIR$/resources/KonturStrings.properties" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/MenuFactory.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/ScalaInterpreterFrame.scala" />
       </list>
     </option>
   </component>
@@ -397,19 +389,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="sciss" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="kontur" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="edit" />
+              <option name="myItemId" value="resources" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -636,7 +616,7 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24925373" sideWeight="0.6621622" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32837838" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32837838" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -677,62 +657,6 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/trees/RTree.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="113" column="0" selection-start="3188" selection-end="3188" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/BasicTrail.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="60" column="0" selection-start="2104" selection-end="2104" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelinePanel.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="238" column="29" selection-start="966" selection-end="16020" vertical-scroll-proportion="0.5641026">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/TrackComponent.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="678" column="0" selection-start="25524" selection-end="25524" vertical-scroll-proportion="0.33333334">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$PROJECT_DIR$/libraries/ScissLib.jar!/de/sciss/io/AudioFileDescr.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="46" column="16" selection-start="2125" selection-end="2125" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$PROJECT_DIR$/libraries/ScissLib.jar!/de/sciss/io/AudioFile.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="27" column="40" selection-start="1115" selection-end="1115" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$PROJECT_DIR$/../scala-2.8.0-snapshot/lib/scala-library.jar!/scala/Option.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$PROJECT_DIR$/../scala-2.8.0-snapshot/lib/scala-library.jar!/scala/Some.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/AudioFileElement.scala">
       <provider selected="true" editor-type-id="text-editor">
         <state line="87" column="21" selection-start="2883" selection-end="2883" vertical-scroll-proportion="1.7948718">
@@ -768,13 +692,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelineFrame.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="237" column="0" selection-start="10441" selection-end="10681" vertical-scroll-proportion="-7.6538463">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/SessionTreeModel.scala">
       <provider selected="true" editor-type-id="text-editor">
         <state line="355" column="20" selection-start="11854" selection-end="11854" vertical-scroll-proportion="-6.5">
@@ -784,7 +701,70 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/EditRenameAction.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="20" column="33" selection-start="705" selection-end="705" vertical-scroll-proportion="0.42437923">
+        <state line="20" column="33" selection-start="705" selection-end="705" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/../scala-2.8.0-snapshot/lib/scala-library.jar!/scala/Option.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/../scala-2.8.0-snapshot/lib/scala-library.jar!/scala/Some.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/libraries/ScissLib.jar!/de/sciss/io/AudioFile.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="27" column="40" selection-start="1115" selection-end="1115" vertical-scroll-proportion="0.29205608">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/libraries/ScissLib.jar!/de/sciss/io/AudioFileDescr.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="46" column="16" selection-start="2125" selection-end="2125" vertical-scroll-proportion="0.29205608">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelineFrame.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="157" column="0" selection-start="7622" selection-end="7828" vertical-scroll-proportion="-8.538462">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/KonturStrings.properties">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="9" column="23" selection-start="166" selection-end="189" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/MenuFactory.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="82" column="103" selection-start="3073" selection-end="3073" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/Diffusion.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="70" column="6" selection-start="2312" selection-end="2312" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/ScalaInterpreterFrame.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="56" column="6" selection-start="1948" selection-end="1948" vertical-scroll-proportion="0.6433409">
           <folding />
         </state>
       </provider>
