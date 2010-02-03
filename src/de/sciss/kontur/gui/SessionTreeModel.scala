@@ -34,7 +34,7 @@ import de.sciss.gui.{ MenuItem }
 import de.sciss.io.{ AudioFile, AudioFileDescr }
 import de.sciss.kontur.{ Main }
 import de.sciss.kontur.session.{ AudioFileElement, AudioTrack, BasicDiffusion,
-                                BasicTimeline, Diffusion, Session, SessionElement,
+                                BasicTimeline, Diffusion, Renameable, Session, SessionElement,
                                 SessionElementSeq, Stake, Timeline, Track }
 import java.awt.{ Component, FileDialog, Frame }
 import java.awt.datatransfer.{ DataFlavor, Transferable }
@@ -292,13 +292,27 @@ extends DynamicTreeNode( model, elem, canExpand ) {
 }
 
 class TimelineTreeIndex( model: SessionTreeModel, tl: Timeline )
-extends SessionElementTreeNode( model, tl, true ) {
+extends SessionElementTreeNode( model, tl, true )
+with HasContextMenu {
 
-  private val tracks = new TracksTreeIndex( model, tl )
+   private val tracks = new TracksTreeIndex( model, tl )
 
-  // ---- constructor ----
-  addDyn( new TimelineTreeLeaf( model, tl ))
-  addDyn( tracks )
+   // ---- constructor ----
+   addDyn( new TimelineTreeLeaf( model, tl ))
+   addDyn( tracks )
+
+   def createContextMenu() : Option[ PopupRoot ] = {
+      tl.editor.map( ed => {
+         tl match {
+            case r: Renameable => {
+               val root = new PopupRoot()
+               root.add( new MenuItem( "rename", new EditRenameAction( r, ed )))
+               Some( root )
+            }
+            case _ => None
+         }
+      }) getOrElse None
+   }
 }
 
 class TimelineTreeLeaf( model: SessionTreeModel, tl: Timeline )
@@ -338,7 +352,20 @@ with HasContextMenu {
 }
 
 class TrackTreeLeaf( model: SessionTreeModel, t: Track )
-extends SessionElementTreeNode( model, t, false ) {
+extends SessionElementTreeNode( model, t, false )
+with HasContextMenu {
+   def createContextMenu() : Option[ PopupRoot ] = {
+      t.editor.map( ed => {
+         t match {
+            case r: Renameable => {
+               val root = new PopupRoot()
+               root.add( new MenuItem( "rename", new EditRenameAction( r, ed )))
+               Some( root )
+            }
+            case _ => None
+         }
+      }) getOrElse None
+   }
 }
 
 class AudioFileTreeLeaf( model: SessionTreeModel, afe: AudioFileElement )

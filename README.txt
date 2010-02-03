@@ -15,3 +15,13 @@ Libraries:
 Open the project in IntellJ IDEA Community Edition 9
 
 alternatively, running "compile_fsc.sh" should work.
+
+MAC OS X APP BUNDLE
+
+do something like this:
+
+$ mkdir Kontur.app/Contents/Resources/Java
+for each library:
+$ ln -s library/... Kontur.app/Contents/Resources/Java/...
+$ ./makejar.sh
+$ ln -s Kontur.jar Kontur.app/Contents/Resources/Java/Kontur.jar
