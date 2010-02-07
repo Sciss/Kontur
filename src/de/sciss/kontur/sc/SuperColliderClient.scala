@@ -50,7 +50,7 @@ class SuperColliderClient extends Model {
     private val app         = AbstractApplication.getApplication()
     private val audioPrefs  = app.getUserPrefs.node( PrefsUtil.NODE_AUDIO )
     private val so          = new ServerOptions
-	private var serverVar: Option[ Server ] = None
+	 private var serverVar: Option[ Server ] = None
     private var serverIsReady = false
     private var shouldReboot = false
     private var dumpMode = OSCChannel.DUMP_OFF
@@ -93,6 +93,8 @@ class SuperColliderClient extends Model {
         	def documentFocussed( e: DocumentEvent ) {}
         })
     }
+
+   def getPlayer( doc: Session ) : Option[ SuperColliderPlayer ] = players.get( doc )
 
    def dumpOSC( mode: Int ) {
       if( mode != dumpMode ) {

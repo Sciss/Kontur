@@ -39,6 +39,7 @@ import SC._
 import de.sciss.tint.sc.ugen._
 import de.sciss.scalaosc.{ OSCMessage }
 import scala.math._
+import SynthContext._
 
 //import Track.Tr
 
@@ -79,7 +80,9 @@ extends Disposable {
        online = None
     }
 
-    private class Online( context: SynthContext ) {
+    def context: Option[ SynthContext ] = online.map( _.context )
+
+    class Online( val context: SynthContext ) {
        online =>
 
        val group      = Group.head( context.server.defaultGroup )
@@ -88,7 +91,9 @@ extends Disposable {
        var diffusions = Map[ Diffusion, DiffusionSynth ]()
 
        private val diffListener = (msg: AnyRef) => msg match {
-          case doc.diffusions.ElementAdded( idx, diff )   => context.perform { addDiffusion( diff )}
+          case doc.diffusions.ElementAdded( idx, diff ) => {
+             context.perform { inGroup( panGroup ) { addDiffusion( diff )}}
+          }
           case doc.diffusions.ElementRemoved( idx, diff ) => context.perform { removeDiffusion( diff )}
        }
 
@@ -102,7 +107,7 @@ extends Disposable {
          context.perform {
             doc.timelines.foreach( tl => addTimeline( tl ))
             doc.timelines.addListener( timeListener )
-            context.inGroup( panGroup ) {
+            inGroup( panGroup ) {
                doc.diffusions.foreach( diff => addDiffusion( diff ))
                doc.diffusions.addListener( diffListener )
             }
@@ -110,7 +115,8 @@ extends Disposable {
 
          // XXX dirty dirty testin
          for( numChannels <- 1 to 2 ) {
-            val synDef = SynthDef( "disk_" + numChannels ) {
+            for( monoMix <- (if( numChannels > 1 ) List( false, true ) else List( false ))) {
+            val synDef = SynthDef( "disk_" + numChannels + (if( monoMix ) "M" else "") ) {
                val out           = "out".kr
                val i_bufNum      = "i_bufNum".ir
                val smpDur        = SampleDur.ir
@@ -143,11 +149,12 @@ extends Disposable {
                   S( i_fadeOut, i_foutFloor, varShape( i_foutShape, i_foutCurve ))))
 
                val envGen = IEnvGen.ar( env, frameIndex ) * amp
-	            Out.ar( out, DiskIn.ar( numChannels, i_bufNum ) * envGen )
+               val sig = DiskIn.ar( numChannels, i_bufNum ) 
+	            Out.ar( out, (if( monoMix ) Mix( sig ) else sig) * envGen )
 			   }
 //            synDef.writeDefFile( "/Users/rutz/Desktop" )
             synDef.send( context.server )
-         }
+         }}
       }
 
       // ---- SynthContext ----
@@ -312,15 +319,17 @@ players.foreach( _.stop )
                 track.diffusion.foreach( diff => {
                   track.trail.visitRange( span )( stake => {
                     if( !stakesMap.contains( stake )) {
-                      val numChannels = stake.audioFile.numChannels
-                        if( numChannels == diff.numInputChannels ) {
+                       val numChannels = stake.audioFile.numChannels
+                       val equalChans  = numChannels == diff.numInputChannels
+                       val monoMix     = !equalChans && (diff.numInputChannels == 1) 
+                        if( equalChans || monoMix ) {
                           val bndl        = new MixedBundle
                           val frameOffset = Math.max( 0L, start - stake.span.start )
                           val buffer      = new Buffer( context.server, 32768, numChannels )
                           bndl.addPrepare( buffer.allocMsg )
                           bndl.addPrepare( buffer.cueSoundFileMsg( stake.audioFile.path.getAbsolutePath,
                                                                   (stake.offset + frameOffset).toInt )) // XXX toInt
-                          val defName     = "disk_" + numChannels
+                          val defName     = "disk_" + numChannels + (if( monoMix ) "M" else "")
                           val synth       = new Synth( defName, context.server )
 //                        val durFrames   = Math.max( 0, stake.span.getLength - frameOffset )
 //                        val durSecs     = durFrames / sampleRate

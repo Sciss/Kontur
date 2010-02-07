@@ -29,7 +29,7 @@
 package de.sciss.kontur.gui
 
 import de.sciss.app.{ AbstractApplication, AbstractWindow, PreferenceEntrySync }
-import de.sciss.gui.{ ComboBoxEditorBorder, CoverGrowBox, PathField,
+import de.sciss.gui.{ ComboBoxEditorBorder, CoverGrowBox, PathField => PathF,
                      PrefCheckBox, PrefComboBox, PrefPathField, PrefParamField,
                      StringItem, TreeExpanderButton }
 import de.sciss.common.{ BasicWindowHandler, BasicPathField }
@@ -221,7 +221,7 @@ class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
 
       val txSonaCacheFolder   = getResourceString( "prefsSonaCacheFolder" )
       val lbSonaCacheFolder   = new JLabel( txSonaCacheFolder )
-      val ggSonaCacheFolder   = new PrefPathField( PathField.TYPE_FOLDER, txSonaCacheFolder )
+      val ggSonaCacheFolder   = new PrefPathField( PathF.TYPE_FOLDER, txSonaCacheFolder )
       ggSonaCacheFolder.setPreferences( prefs.node( NODE_SONACACHE ), PrefCacheManager.KEY_FOLDER )
 
       layout.setHorizontalGroup( layout.createSequentialGroup()
@@ -244,7 +244,7 @@ val bg = panel.getBackground
 
         val resApp  = getResourceString( "prefsSuperColliderApp" )
         val lbApp   = new JLabel( resApp )
-        val ggApp   = new BasicPathField( PathField.TYPE_INPUTFILE, resApp )
+        val ggApp   = new BasicPathField( PathF.TYPE_INPUTFILE, resApp )
         ggApp.setPreferences( prefs, KEY_SUPERCOLLIDERAPP )
 ggApp.setBackground( bg )
 

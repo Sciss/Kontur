@@ -11,6 +11,7 @@ Libraries:
     ScalaOSC.jar (http://github.com/Sciss/ScalaOSC)
     ScalaCollider.jar (http://github.com/Sciss/ScalaCollider)
     MRJAdapter.jar (https://mrjadapter.dev.java.net/)
+    jsyntaxpane-0.9.5-b29.jar (http://code.google.com/p/jsyntaxpane/)
 
 Open the project in IntellJ IDEA Community Edition 9
 

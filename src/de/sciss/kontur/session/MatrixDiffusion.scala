@@ -52,12 +52,11 @@ object MatrixDiffusion extends DiffusionFactory {
 }
 
 // columns correspond to outputs, rows to inputs
-class MatrixDiffusion( val id: Long, doc: Session )
-extends Diffusion with DiffusionEditor with Renameable {
+class MatrixDiffusion( id: Long, doc: Session )
+extends BasicDiffusion( id, doc ) {
     import Diffusion._
     import MatrixDiffusion._
 
-    protected var nameVar = "Diffusion"
     private var numInputChannelsVar  = 1
     private var numOutputChannelsVar = 1
     private var matrixVar = Matrix2D.fill( 1, 1, 1f )
@@ -133,9 +132,6 @@ extends Diffusion with DiffusionEditor with Renameable {
         changes.foreach( msg => dispatch( msg ))
     }
 
-    def undoManager: UndoManager = doc.getUndoManager
-
-    def editor: Option[ DiffusionEditor ] = Some( this )
     // ---- DiffusionEditor ----
     def editSetNumInputChannels( ce: AbstractCompoundEdit, newNum: Int ) {
         val edit = new SimpleEdit( "editSetNumInputChannels" ) {
@@ -160,15 +156,6 @@ extends Diffusion with DiffusionEditor with Renameable {
            lazy val oldMatrix = matrix
            def apply { oldMatrix; matrix = newMatrix }
            def unapply { matrix = oldMatrix }
-        }
-        ce.addPerform( edit )
-    }
-
-    def editRename( ce: AbstractCompoundEdit, newName: String ) {
-        val edit = new SimpleEdit( "editRenameDiffusion" ) {
-           lazy val oldName = name
-           def apply { oldName; name = newName }
-           def unapply { name = oldName }
         }
         ce.addPerform( edit )
     }

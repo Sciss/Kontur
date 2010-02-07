@@ -80,7 +80,8 @@ extends BasicMenuFactory( app ) {
 		val mgFile      = get( "file" ).asInstanceOf[ MenuGroup ]
 		val smgFileNew  = new MenuGroup( "new", getResourceString( "menuNew" ))
 		smgFileNew.add( new MenuItem( "empty", actionNewEmpty ))
-      smgFileNew.add( new MenuItem( "interpreter", new ActionScalaInterpreter( "menuNewScalaInterpreter" )))
+      smgFileNew.add( new MenuItem( "interpreter",
+         new ActionScalaInterpreter( getResourceString( "menuNewScalaInterpreter" ))))
 		mgFile.add( smgFileNew, 0 )
 
   		// --- timeline menu ---

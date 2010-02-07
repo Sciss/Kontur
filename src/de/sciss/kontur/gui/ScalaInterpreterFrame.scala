@@ -7,60 +7,104 @@
 package de.sciss.kontur.gui;
 
 import java.awt.{ BorderLayout }
-import java.awt.event.{ ActionEvent, KeyEvent }
-import java.io.{ BufferedReader, BufferedWriter, InputStreamReader,
-                 OutputStreamWriter, PipedInputStream, PipedOutputStream, PrintStream, PrintWriter }
-import javax.swing.{ AbstractAction, JComponent, JSplitPane, JTextArea, KeyStroke }
+import java.awt.event.{ ActionEvent, InputEvent, KeyEvent }
+import java.io.{ BufferedReader, File, InputStreamReader,
+                 PipedInputStream, PipedOutputStream, PrintStream, PrintWriter }
+import javax.swing.{ AbstractAction, JComponent, JEditorPane, JScrollPane, KeyStroke }
 import de.sciss.app.{ AbstractWindow }
 import de.sciss.common.{ BasicMenuFactory }
+import de.sciss.kontur.{ Main }
+import de.sciss.kontur.sc.{ SuperColliderClient, SuperColliderPlayer, SynthContext }
+import de.sciss.kontur.session.{ Session }
 import de.sciss.gui.{ LogTextArea }
+import de.sciss.tint.sc.{ Server }
 
-import scala.tools.nsc.{ InterpreterLoop, Settings }
+import jsyntaxpane.{ DefaultSyntaxKit }
+import scala.tools.nsc.{ Interpreter, InterpreterResults => IR, Settings }
 
 class ScalaInterpreterFrame
 extends AppWindow( AbstractWindow.REGULAR ) {
+
+   val settings = {
+      val set = new Settings()
+      set.classpath.value += File.pathSeparator + System.getProperty( "java.class.path" )
+      set
+   }
+
+   val interpreter = {
+      val in = new Interpreter( settings /*, out*/ ) {
+         override protected def parentClassLoader = classOf[ ScalaInterpreterFrame ].getClassLoader
+      }
+      in.setContextClassLoader()
+
+      // useful bindings
+      in.bind( "app",  classOf[ Main ].getName, app )
+      in.bind( "doc",  classOf[ Session ].getName, app.getDocumentHandler.getActiveDocument )
+      val doc = app.getDocumentHandler.getActiveDocument.asInstanceOf[ Session ]
+      val sc  = SuperColliderClient.instance
+      in.bind( "sc",   classOf[ SuperColliderClient ].getName, sc )
+      val play = (if( doc != null ) sc.getPlayer( doc ) else None) orNull;
+      in.bind( "play", classOf[ SuperColliderPlayer ].getName, play )
+      val con = (if( play != null ) play.context else None) orNull;
+      in.bind( "con", classOf[ SynthContext ].getName, con )
+      val s = sc.server orNull; // if( con != null ) con.server else null
+      in.bind( "s", classOf[ Server ].getName, s )
+      
+      in
+   }
 
    // ---- constructor ----
    {
       val cp = getContentPane
 
-      val ggSplit = new JSplitPane( JSplitPane.VERTICAL_SPLIT )
-      val ggInput = new JTextArea( 6, 40 )
-      val ggOutput = new LogTextArea()
-      ggSplit.setTopComponent( ggInput )
-      ggSplit.setBottomComponent( ggOutput )
-      cp.add( ggSplit, BorderLayout.CENTER )
+//      val ggSplit = new JSplitPane( JSplitPane.VERTICAL_SPLIT )
+//      val ggInput = new JTextArea( 6, 40 )
+//      val ggOutput = new LogTextArea()
+//      ggSplit.setTopComponent( ggInput )
+//      ggSplit.setBottomComponent( ggOutput )
+//      cp.add( ggSplit, BorderLayout.CENTER )
 
-      val w    = new PrintWriter( ggOutput.getLogStream )
-      val pipe = new PipedOutputStream()
-      val r    = new BufferedReader( new InputStreamReader( new PipedInputStream( pipe )))
-      val ps   = new PrintStream( pipe )
+//      val w    = new PrintWriter( ggOutput.getLogStream )
+//      val pipe = new PipedOutputStream()
+//      val r    = new BufferedReader( new InputStreamReader( new PipedInputStream( pipe )))
+//      val ps   = new PrintStream( pipe )
 
-      val imap = ggInput.getInputMap( JComponent.WHEN_FOCUSED )
-      val amap = ggInput.getActionMap()
+      DefaultSyntaxKit.initKit()
+      val ggEditor = new JEditorPane()
+      val ggScroll = new JScrollPane( ggEditor )
+
+      ggEditor.setContentType( "text/scala" )
+      ggEditor.setText( "// type scala code here.\n// select text and cmd+e to execute\n" )
+
+      val imap = ggEditor.getInputMap( JComponent.WHEN_FOCUSED )
+      val amap = ggEditor.getActionMap()
       imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_E, BasicMenuFactory.MENU_SHORTCUT ), "exec" )
       amap.put( "exec", new AbstractAction {
          def actionPerformed( e: ActionEvent ) {
-            val txt = ggInput.getSelectedText()
-            if( txt != null ) {
-println( "DANG!" )
-               ps.print( txt )
-               ps.flush()
-            }
+            val txt = ggEditor.getSelectedText
+            if( txt != null ) interpret( txt )
          }
       })
 
-      val repl       = new InterpreterLoop( r, w )
-      val settings   = new Settings()
-// Makes system hang:
-//      settings.classpath.value = System.getProperty( "java.class.path" )
+      cp.add( ggScroll, BorderLayout.CENTER )
 
       init()
       setVisible( true )
       toFront()
-
-      repl.main( settings )
    }
 
-//   override protected def alwaysPackSize() = false
+   override protected def autoUpdatePrefs = true
+   override protected def alwaysPackSize  = false
+
+   def interpret( code: String ) {
+      val result = interpreter.interpret( code )
+      match {
+//       case IR.Error       => None
+//       case IR.Success     => Some(code)
+         case IR.Incomplete  => {
+            println( "! Code incomplete !" )
+         }
+         case _ =>
+      }
+    }
 }

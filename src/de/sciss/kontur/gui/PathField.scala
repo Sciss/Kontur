@@ -29,24 +29,24 @@
 package de.sciss.kontur.gui
 
 import java.beans.{ PropertyChangeEvent, PropertyChangeListener }
-import de.sciss.util.{ DefaultUnitTranslator, ParamSpace }
+import de.sciss.common.{ BasicPathField }
 
-class ParamField( ut: ParamSpace.Translator )
-extends de.sciss.gui.PrefParamField( ut ) {
-    def this() = this( new DefaultUnitTranslator() )
-
+class PathField( typ: Int, title: String )
+extends BasicPathField( typ, title ) {
     addPropertyChangeListener( "JComponent.sizeVariant", new PropertyChangeListener {
         def propertyChange( pce: PropertyChangeEvent ) {
-            ggNumber.putClientProperty( pce.getPropertyName(), pce.getNewValue() )
+           ggPath.putClientProperty( pce.getPropertyName(), pce.getNewValue() )
+           if( ggFormat != null ) ggFormat.putClientProperty( pce.getPropertyName(), pce.getNewValue() )
         }
     })
 
     override def getBaseline( width: Int, height: Int ) =
-       ggNumber.getBaseline( width, height ) + ggNumber.getY
+       ggPath.getBaseline( width, height ) + ggPath.getY
 
     def setEditable( b: Boolean ) {
-      ggNumber.setEditable( b )
+       ggPath.setEditable( b )
+       ggChoose.setEnabled( b )
     }
 
-    def isEditable = ggNumber.isEditable
+    def isEditable = ggPath.isEditable
 }

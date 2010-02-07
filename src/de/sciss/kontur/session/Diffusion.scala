@@ -62,6 +62,7 @@ object DiffusionFactory {
    // ---- constructor ----
    // XXX eventually this needs to be decentralized
    registered += MatrixDiffusion.factoryName -> MatrixDiffusion
+   registered += ConvolutionDiffusion.factoryName -> ConvolutionDiffusion
 }
 
 trait DiffusionFactory {
@@ -91,4 +92,25 @@ extends BasicSessionElementSeq[ Diffusion ]( doc, "Diffusions" ) {
            null
         }
      }).filter( _ != null )
+}
+
+abstract class BasicDiffusion( val id: Long, doc: Session )
+extends Diffusion with DiffusionEditor with Renameable {
+    import Diffusion._
+
+    protected var nameVar = "Diffusion"
+
+    def undoManager: UndoManager = doc.getUndoManager
+
+    def editor: Option[ DiffusionEditor ] = Some( this )
+    // ---- DiffusionEditor ----
+
+    def editRename( ce: AbstractCompoundEdit, newName: String ) {
+        val edit = new SimpleEdit( "editRenameDiffusion" ) {
+           lazy val oldName = name
+           def apply { oldName; name = newName }
+           def unapply { name = oldName }
+        }
+        ce.addPerform( edit )
+    }
 }
