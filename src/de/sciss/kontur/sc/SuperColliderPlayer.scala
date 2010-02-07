@@ -30,13 +30,14 @@ package de.sciss.kontur.sc
 
 import java.awt.event.{ ActionEvent, ActionListener }
 import scala.collection.mutable.{ ArrayBuffer }
-import de.sciss.kontur.session.{ AudioRegion, AudioTrack, BasicDiffusion,
-                                Diffusion, Session, Stake, Timeline, Track, Transport }
+import de.sciss.kontur.session.{ AudioRegion, AudioTrack, Diffusion, MatrixDiffusion,
+                                 Session, Stake, Timeline, Track, Transport }
 import de.sciss.io.{ Span }
 import de.sciss.util.{ Disposable }
-import de.sciss.tint.sc.{ EnvSeg => S, _ }
+import de.sciss.tint.sc.{ Async, EnvSeg => S, _ }
 import SC._
 import de.sciss.tint.sc.ugen._
+import de.sciss.scalaosc.{ OSCMessage }
 import scala.math._
 
 //import Track.Tr
@@ -62,7 +63,8 @@ extends Disposable {
 
     private def serverRunning {
       client.server.foreach( s => {
-         online = Some( new Online( s ))
+         val context = new SynthContext( s )
+         online = Some( new Online( context ))
       })
     }
 
@@ -77,15 +79,17 @@ extends Disposable {
        online = None
     }
 
-    private class Online( val server: Server ) {
-       val group      = Group.head( server.defaultGroup )
+    private class Online( context: SynthContext ) {
+       online =>
+
+       val group      = Group.head( context.server.defaultGroup )
        val panGroup   = Group.after( group )
        var timelines  = Map[ Timeline, OnlineTimeline ]()
-       var diffusions = Map[ Diffusion, OnlineDiffusion ]()
+       var diffusions = Map[ Diffusion, DiffusionSynth ]()
 
        private val diffListener = (msg: AnyRef) => msg match {
-          case doc.diffusions.ElementAdded( idx, diff ) => addDiffusion( diff )
-          case doc.diffusions.ElementRemoved( idx, diff ) => removeDiffusion( diff )
+          case doc.diffusions.ElementAdded( idx, diff )   => context.perform { addDiffusion( diff )}
+          case doc.diffusions.ElementRemoved( idx, diff ) => context.perform { removeDiffusion( diff )}
        }
 
        private val timeListener = (msg: AnyRef) => msg match {
@@ -95,10 +99,14 @@ extends Disposable {
 
       // ---- constructor ----
       {
-         doc.timelines.foreach( tl => addTimeline( tl ))
-         doc.timelines.addListener( timeListener )
-         doc.diffusions.foreach( diff => addDiffusion( diff ))
-         doc.diffusions.addListener( diffListener )
+         context.perform {
+            doc.timelines.foreach( tl => addTimeline( tl ))
+            doc.timelines.addListener( timeListener )
+            context.inGroup( panGroup ) {
+               doc.diffusions.foreach( diff => addDiffusion( diff ))
+               doc.diffusions.addListener( diffListener )
+            }
+         }
 
          // XXX dirty dirty testin
          for( numChannels <- 1 to 2 ) {
@@ -138,24 +146,44 @@ extends Disposable {
 	            Out.ar( out, DiskIn.ar( numChannels, i_bufNum ) * envGen )
 			   }
 //            synDef.writeDefFile( "/Users/rutz/Desktop" )
-            synDef.send( server )
+            synDef.send( context.server )
          }
       }
 
-       def dispose {
-          doc.timelines.removeListener( timeListener )
-          doc.diffusions.removeListener( diffListener )
-          timelines.keysIterator.foreach( tl => removeTimeline( tl ))
-          diffusions.keysIterator.foreach( diff => removeDiffusion( diff ))
-          group.free; panGroup.free
-       }
+      // ---- SynthContext ----
+      def invalidate( obj: AnyRef ) {}
+//      def send( msg: OSCMessage ) {
+//         val b = bndl getOrElse {
+//            val newBundle = new MixedBundle
+//            bndl = Some( newBundle )
+//            newBundle
+//         }
+//         msg match {
+//            case async: Async => b.addPrepare( msg )
+//            case _ => b.add( msg )
+//         }
+//      }
+//
+//      def flush {
+//
+//      }
+
+      def dispose {
+         context.perform {
+            doc.timelines.removeListener( timeListener )
+            doc.diffusions.removeListener( diffListener )
+            timelines.keysIterator.foreach( tl => removeTimeline( tl ))
+            diffusions.keysIterator.foreach( diff => removeDiffusion( diff ))
+         }
+         group.free; panGroup.free
+      }
 
        private def addDiffusion( diff: Diffusion ) {
-          try {
-             diffusions += diff -> new OnlineDiffusion( diff )
-          } catch { case e1: AllocatorExhaustedException => {
-             e1.printStackTrace()
-          }}
+          DiffusionSynthFactory.get( diff ).foreach( dsf => {
+             val ds = dsf.create
+             ds.play
+             diffusions += diff -> ds
+          })
        }
 
        private def removeDiffusion( diff: Diffusion ) {
@@ -174,72 +202,10 @@ extends Disposable {
           otl.dispose
        }
 
-       private def diffusionChanged( diff: Diffusion ) {
-          removeDiffusion( diff )
-          addDiffusion( diff )
-       }
-
-       class OnlineDiffusion( val diff: Diffusion ) {
-          val inBus   = Bus.audio( server, diff.numInputChannels )
-          val outBus  = try {
-            Bus.audio( server, diff.numOutputChannels )
-          } catch { case e1: AllocatorExhaustedException => {
-            inBus.free
-            throw e1
-          }}
-          private var synth: Option[ Synth ] = None
-          private var synDefCount = 1
-
-          private val diffusionListener = (msg: AnyRef) => msg match {
-              case Diffusion.NumInputChannelsChanged( _, _ )  => diffusionChanged( diff )
-              case Diffusion.NumOutputChannelsChanged( _, _ ) => diffusionChanged( diff )
-              case BasicDiffusion.MatrixChanged( _, _ ) => newSynth
-          }
-
-          // ---- constructor ----
-          {
-              diff.addListener( diffusionListener )
-              newSynth
-          }
-
-          def dispose {
-             // XXX async, might not yet have been created
-             synth.foreach( _.free ); synth = None
-             inBus.free; outBus.free
-             diff.removeListener( diffusionListener )
-          }
-
-          private def newSynth {
-              synth.foreach( _.free ); synth = None
-              diff match {
-                case bdiff: BasicDiffusion => newSynth( bdiff )
-                case _=> {
-                    println( "ERROR: Unknown diffusion type (" + diff + "). Muted" )
-                }
-              }
-          }
-
-          private def newSynth( bdiff: BasicDiffusion ) {
-               val defName = "diff_" + diff.numInputChannels + "x" +
-                 diff.numOutputChannels + "_id" + diff.id + "_" + synDefCount
-               synDefCount += 1
-               val matrix = bdiff.matrix
-               val synDef = SynthDef( defName ) {
-                   val in         = "in".ir
-                   val out        = "out".ir
-                   val inSig      = In.ar( in, diff.numInputChannels )
-                   var outSig: Array[ GE ] = Array.fill( diff.numOutputChannels )( 0 )
-                   for( inCh <- (0 until diff.numInputChannels) ) {
-                      for( outCh <- (0 until diff.numOutputChannels) ) {
-                          val w = matrix( inCh, outCh )
-                          outSig( outCh ) += inSig \ inCh * w
-                      }
-                   }
-                   Out.ar( out, outSig.toList )
-               }
-               synth = Some( synDef.play( panGroup, List( "in" -> inBus.index ))) // XXX out bus
-          }
-       }
+//       private def diffusionChanged( diff: Diffusion ) {
+//          removeDiffusion( diff )
+//          addDiffusion( diff )
+//       }
 
        class OnlineTimeline( val tl: Timeline ) extends ActionListener {
           val verbose = false
@@ -250,7 +216,7 @@ extends Disposable {
           // transport
           private val bufferLatency 	= 0.2
           private val transportDelta 	= 0.1
-          private val sampleRate        = server.counts.sampleRate
+          private val sampleRate        = context.server.counts.sampleRate
           private val latencyFrames     = (bufferLatency * sampleRate).toInt
           private val deltaFrames       = (transportDelta * sampleRate).toInt
           private var start             = 0L
@@ -350,12 +316,12 @@ players.foreach( _.stop )
                         if( numChannels == diff.numInputChannels ) {
                           val bndl        = new MixedBundle
                           val frameOffset = Math.max( 0L, start - stake.span.start )
-                          val buffer      = new Buffer( server, 32768, numChannels )
+                          val buffer      = new Buffer( context.server, 32768, numChannels )
                           bndl.addPrepare( buffer.allocMsg )
                           bndl.addPrepare( buffer.cueSoundFileMsg( stake.audioFile.path.getAbsolutePath,
                                                                   (stake.offset + frameOffset).toInt )) // XXX toInt
                           val defName     = "disk_" + numChannels
-                          val synth       = new Synth( defName, server )
+                          val synth       = new Synth( defName, context.server )
 //                        val durFrames   = Math.max( 0, stake.span.getLength - frameOffset )
 //                        val durSecs     = durFrames / sampleRate
 
@@ -386,7 +352,7 @@ players.foreach( _.stop )
                                 synths -= synth
                           }
                           val bndlTime = Math.max( 0.0, (stake.span.start - start) / sampleRate ) + bufferLatency
-                          bndl.send( server, bndlTime )
+                          bndl.send( context.server, bndlTime )
                         }
                     }
                   })

@@ -30,17 +30,16 @@ package de.sciss.kontur.gui
 
 import de.sciss.app.{ AbstractApplication, DynamicListening }
 import de.sciss.common.{ BasicWindowHandler }
-import de.sciss.gui.{ MenuItem }
+import de.sciss.gui.{ MenuGroup, MenuItem }
 import de.sciss.io.{ AudioFile, AudioFileDescr }
 import de.sciss.kontur.{ Main }
-import de.sciss.kontur.session.{ AudioFileElement, AudioTrack, BasicDiffusion,
-                                BasicTimeline, Diffusion, Renameable, Session, SessionElement,
-                                SessionElementSeq, Stake, Timeline, Track }
+import de.sciss.kontur.session.{ AudioFileElement, AudioTrack, BasicTimeline, Diffusion, DiffusionFactory,
+   Renameable, Session, SessionElement, SessionElementSeq, Stake, Timeline, Track }
 import java.awt.{ Component, FileDialog, Frame }
 import java.awt.datatransfer.{ DataFlavor, Transferable }
 import java.awt.event.{ ActionEvent }
 import java.io.{ File, FilenameFilter, IOException }
-import javax.swing.{ AbstractAction, Action }
+import javax.swing.{ AbstractAction, Action, JOptionPane }
 import javax.swing.tree.{ DefaultMutableTreeNode, DefaultTreeModel, MutableTreeNode,
                          TreeModel, TreeNode }
 import scala.collection.JavaConversions.{ JEnumerationWrapper }
@@ -266,20 +265,34 @@ class DiffusionsTreeIndex( model: SessionTreeModel, diffusions: SessionElementSe
 extends SessionElementSeqTreeNode( model, diffusions )
 with HasContextMenu {
 
-    def createContextMenu() : Option[ PopupRoot ] = {
-     val root = new PopupRoot()
-     val miAddNew = new MenuItem( "new", new AbstractAction( "Add Diffusion" ) {
-        def actionPerformed( a: ActionEvent ) {
-           diffusions.editor.foreach( ed => {
-               val ce = ed.editBegin( getValue( Action.NAME ).toString )
-               val diff = new BasicDiffusion( model.doc.createID, model.doc )
-               ed.editInsert( ce, diffusions.size, diff )
-               ed.editEnd( ce )
-           })
-        }
-     })
-     root.add( miAddNew )
-     Some( root )
+   def createContextMenu() : Option[ PopupRoot ] = {
+      val root = new PopupRoot()
+      val strNew = "New" // XXX getResourceString
+      val mgAdd = new MenuGroup( "new", strNew )
+      diffusions.editor.foreach( ed => {
+         DiffusionGUIFactory.registered.foreach( entry => {
+            val (name, gf) = entry
+            val fullName = strNew + " " + gf.factory.humanReadableName 
+            val miAddNew = new MenuItem( name, new AbstractAction( gf.factory.humanReadableName ) {
+               def actionPerformed( a: ActionEvent ) {
+                  val panel = gf.createPanel( model.doc )
+                  val op = new JOptionPane( panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )
+                  val result = BasicWindowHandler.showDialog( op, null, fullName )
+                  if( result == JOptionPane.OK_OPTION ) {
+                     val diffO = gf.fromPanel( panel )
+                     diffO.foreach( diff => {
+                        val ce = ed.editBegin( fullName )
+                        ed.editInsert( ce, diffusions.size, diff )
+                        ed.editEnd( ce )
+                     })
+                  }
+               }
+            })
+            mgAdd.add( miAddNew )
+         })
+      })
+      root.add( mgAdd )
+      Some( root )
    }
 
   protected def wrap( elem: Diffusion ): DynamicTreeNode =
@@ -381,11 +394,13 @@ class DiffusionTreeLeaf( model: SessionTreeModel, diff: Diffusion )
 extends SessionElementTreeNode( model, diff, false )
 with HasDoubleClickAction with CanBeDragSource {
     def doubleClickAction {
+/*
         val page      = DiffusionObserverPage.instance
         val observer  = AbstractApplication.getApplication()
           .getComponent( Main.COMP_OBSERVER ).asInstanceOf[ ObserverFrame ]
         page.setObjects( diff )
         observer.selectPage( page.id )
+*/
    }
 
    def transferDataFlavors = List( Diffusion.flavor )
