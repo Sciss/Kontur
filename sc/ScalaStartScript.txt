@@ -1,0 +1,5 @@
+import scala.math._
+import de.sciss.tint.sc._
+import de.sciss.tint.sc.ugen._
+import de.sciss.tint.sc.SC._
+sc.boot

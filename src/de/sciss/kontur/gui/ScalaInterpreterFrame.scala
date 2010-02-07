@@ -6,7 +6,7 @@
  */
 package de.sciss.kontur.gui;
 
-import java.awt.{ BorderLayout }
+import java.awt.{ BorderLayout, Font }
 import java.awt.event.{ ActionEvent, InputEvent, KeyEvent }
 import java.io.{ BufferedReader, File, InputStreamReader,
                  PipedInputStream, PipedOutputStream, PrintStream, PrintWriter }
@@ -19,7 +19,7 @@ import de.sciss.kontur.session.{ Session }
 import de.sciss.gui.{ LogTextArea }
 import de.sciss.tint.sc.{ Server }
 
-import jsyntaxpane.{ DefaultSyntaxKit }
+import jsyntaxpane.{ DefaultSyntaxKit, SyntaxDocument }
 import scala.tools.nsc.{ Interpreter, InterpreterResults => IR, Settings }
 
 class ScalaInterpreterFrame
@@ -43,9 +43,9 @@ extends AppWindow( AbstractWindow.REGULAR ) {
       val doc = app.getDocumentHandler.getActiveDocument.asInstanceOf[ Session ]
       val sc  = SuperColliderClient.instance
       in.bind( "sc",   classOf[ SuperColliderClient ].getName, sc )
-      val play = (if( doc != null ) sc.getPlayer( doc ) else None) orNull;
-      in.bind( "play", classOf[ SuperColliderPlayer ].getName, play )
-      val con = (if( play != null ) play.context else None) orNull;
+      val scp = (if( doc != null ) sc.getPlayer( doc ) else None) orNull;
+      in.bind( "scp", classOf[ SuperColliderPlayer ].getName, scp )
+      val con = (if( scp != null ) scp.context else None) orNull;
       in.bind( "con", classOf[ SynthContext ].getName, con )
       val s = sc.server orNull; // if( con != null ) con.server else null
       in.bind( "s", classOf[ Server ].getName, s )
@@ -55,6 +55,7 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 
    // ---- constructor ----
    {
+      setTitle( getResourceString( "frameScalaInterpreter" ))
       val cp = getContentPane
 
 //      val ggSplit = new JSplitPane( JSplitPane.VERTICAL_SPLIT )
@@ -70,18 +71,23 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 //      val ps   = new PrintStream( pipe )
 
       DefaultSyntaxKit.initKit()
+//      DefaultSyntaxKit.DEFAULT_FONT = new Font( "Menlo", Font.PLAIN, 10 )
+
       val ggEditor = new JEditorPane()
       val ggScroll = new JScrollPane( ggEditor )
 
       ggEditor.setContentType( "text/scala" )
-      ggEditor.setText( "// type scala code here.\n// select text and cmd+e to execute\n" )
+      ggEditor.setText( "// type scala code here.\n// cmd+e executes selected text\n// or current line.\n" )
+      ggEditor.setFont( new Font( "Menlo", Font.PLAIN, 12 ))
+      val doc = ggEditor.getDocument().asInstanceOf[ SyntaxDocument ]
 
       val imap = ggEditor.getInputMap( JComponent.WHEN_FOCUSED )
       val amap = ggEditor.getActionMap()
       imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_E, BasicMenuFactory.MENU_SHORTCUT ), "exec" )
       amap.put( "exec", new AbstractAction {
          def actionPerformed( e: ActionEvent ) {
-            val txt = ggEditor.getSelectedText
+            var txt = ggEditor.getSelectedText
+            if( txt == null ) txt = doc.getLineAt( ggEditor.getCaretPosition )
             if( txt != null ) interpret( txt )
          }
       })
