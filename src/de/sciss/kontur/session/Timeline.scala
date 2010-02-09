@@ -33,6 +33,7 @@ import scala.xml.{ Node }
 import de.sciss.app.{ AbstractCompoundEdit }
 import de.sciss.io.{ Span }
 import de.sciss.kontur.edit.{ Editor, SimpleEdit }
+import de.sciss.kontur.util.{ SerializerContext }
 
 object Timeline {
   case class SpanChanged( oldSpan: Span, newSpan: Span )
@@ -57,19 +58,17 @@ trait TimelineEditor extends Editor {
 object BasicTimeline {
     val XML_NODE = "timeline"
     
-    def fromXML( doc: Session, node: Node ) : BasicTimeline = {
-       val id       = (node \ "@id").text.toInt
-       val tracksID = (node \ "tracks" \ "@id").text.toInt
-       val tl       = new BasicTimeline( id, doc, tracksID )
-       tl.fromXML( node )
+    def fromXML( c: SerializerContext, doc: Session, node: Node ) : BasicTimeline = {
+       val tl = new BasicTimeline( doc )
+       c.id( tl, node )
+       tl.fromXML( c, node )
        tl
     }
 
-    def newEmpty( doc: Session ) =
-        new BasicTimeline( doc.createID, doc, doc.createID )
+    def newEmpty( doc: Session ) = new BasicTimeline( doc )
 }
 
-class BasicTimeline( val id: Long, doc: Session, tracksID: Long )
+class BasicTimeline( doc: Session )
 extends Timeline with Renameable with TimelineEditor {
   import Timeline._
 
@@ -83,22 +82,22 @@ extends Timeline with Renameable with TimelineEditor {
 
   def transport: Option[ Transport ] = Some( transportVar )
   
-  val tracks = new Tracks( tracksID, doc, this )
+  val tracks = new Tracks( doc, this )
 //  val audioTrail  = new AudioTrail
 
-  def toXML = <timeline id={id.toString}>
+  def toXML( c: SerializerContext ) = <timeline id={c.id( this ).toString}>
   <name>{name}</name>
   <span start={spanVar.start.toString} stop={spanVar.stop.toString}/>
   <rate>{rate}</rate>
-  {tracks.toXML}
+  {tracks.toXML( c )}
 </timeline>
 
-  def fromXML( node: Node ) {
+  def fromXML( c: SerializerContext, node: Node ) {
       nameVar   = (node \ "name").text
       val spanN = node \ "span"
       spanVar   = new Span( (spanN \ "@start").text.toLong, (spanN \ "@stop").text.toLong )
       rateVar   = (node \ "rate").text.toDouble
-      tracks.fromXML( node )
+      tracks.fromXML( c, node )
   }
 
   def span: Span = spanVar
@@ -150,17 +149,16 @@ extends Timeline with Renameable with TimelineEditor {
 
 class Timelines( doc: Session )
 extends BasicSessionElementSeq[ Timeline ]( doc, "Timelines" ) {
-  val id = -1L
-  def toXML =
+  def toXML( c: SerializerContext ) =
     <timelines>
-       {innerToXML}
+       {innerToXML( c )}
     </timelines>
 
-  def fromXML( parent: Node ) {
+  def fromXML( c: SerializerContext, parent: Node ) {
      val innerXML = SessionElement.getSingleXML( parent, "timelines" )
-     innerFromXML( innerXML )
+     innerFromXML( c, innerXML )
   }
 
-  protected def elementsFromXML( node: Node ) : Seq[ Timeline ] =
-     (node \ BasicTimeline.XML_NODE).map( n => BasicTimeline.fromXML( doc, n ))
+  protected def elementsFromXML( c: SerializerContext, node: Node ) : Seq[ Timeline ] =
+     (node \ BasicTimeline.XML_NODE).map( n => BasicTimeline.fromXML( c, doc, n ))
 }

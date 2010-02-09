@@ -34,18 +34,18 @@ import de.sciss.io.{ AudioFile, AudioFileDescr }
 
 import de.sciss.app.{ AbstractApplication }
 import de.sciss.kontur.io.{ SonagramOverview }
-import de.sciss.kontur.util.{ PrefsUtil }
+import de.sciss.kontur.util.{ SerializerContext }
 
 object AudioFileElement {
     val XML_NODE = "audioFile"
 
-   def fromXML( doc: Session, node: Node ) : AudioFileElement = {
-      val id            = (node \ "@id").text.toInt
+   def fromXML( c: SerializerContext, doc: Session, node: Node ) : AudioFileElement = {
       val path          = new File( (node \ "path").text )
       val numFrames     = (node \ "numFrames").text.toLong
       val numChannels   = (node \ "numChannels").text.toInt
       val sampleRate    = (node \ "sampleRate").text.toDouble
-      val afe           = new AudioFileElement( id, path, numFrames, numChannels, sampleRate )
+      val afe           = new AudioFileElement( path, numFrames, numChannels, sampleRate )
+      c.id( afe, node )
 //    afe.fromXML( node )
       afe
    }
@@ -55,16 +55,16 @@ object AudioFileElement {
       val af      = AudioFile.openAsRead( path )
       val descr   = af.getDescr
       af.close
-      new AudioFileElement( doc.createID, path, descr.length, descr.channels, descr.rate )
+      new AudioFileElement( path, descr.length, descr.channels, descr.rate )
    }
 }
 
-class AudioFileElement( val id: Long, val path: File, val numFrames: Long,
+class AudioFileElement( val path: File, val numFrames: Long,
                         val numChannels: Int, val sampleRate: Double )
 extends SessionElement {
   def name: String = path.getName
 
-  def toXML = <audioFile id={id.toString}>
+  def toXML( c: SerializerContext ) = <audioFile id={c.id( this ).toString}>
   <path>{path.getAbsolutePath}</path>
   <numFrames>{numFrames}</numFrames>
   <numChannels>{numChannels}</numChannels>
@@ -92,18 +92,16 @@ extends SessionElement {
 }
 
 class AudioFileSeq( doc: Session )
-extends BasicSessionElementSeq[ AudioFileElement ]( doc, "Audio Files" ) {
-    val id = -1L
-    
-    def toXML = <audioFiles>
-  {innerToXML}
+extends BasicSessionElementSeq[ AudioFileElement ]( doc, "Audio Files" ) {    
+    def toXML( c: SerializerContext ) = <audioFiles>
+  {innerToXML( c )}
 </audioFiles>
 
-  def fromXML( parent: Node ) {
+  def fromXML( c: SerializerContext, parent: Node ) {
      val innerXML = SessionElement.getSingleXML( parent, "audioFiles" )
-     innerFromXML( innerXML )
+     innerFromXML( c, innerXML )
   }
 
-  protected def elementsFromXML( node: Node ) : Seq[ AudioFileElement ] =
-     (node \ AudioFileElement.XML_NODE).map( n => AudioFileElement.fromXML( doc, n ))
+  protected def elementsFromXML( c: SerializerContext, node: Node ) : Seq[ AudioFileElement ] =
+     (node \ AudioFileElement.XML_NODE).map( n => AudioFileElement.fromXML( c, doc, n ))
 }

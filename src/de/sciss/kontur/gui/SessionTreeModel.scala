@@ -221,7 +221,7 @@ with HasContextMenu {
                   val afd = af.getDescr()
                   af.close
                   val ce = ed.editBegin( name )
-                  val afe = new AudioFileElement( model.doc.createID, path,
+                  val afe = new AudioFileElement( path,
                      afd.length, afd.channels, afd.rate )
                   ed.editInsert( ce, audioFiles.size, afe )
                   ed.editEnd( ce )
@@ -347,7 +347,7 @@ with HasContextMenu {
                 def actionPerformed( a: ActionEvent ) {
                     tl.tracks.editor.foreach( ed => {
                       val ce = ed.editBegin( getValue( Action.NAME ).toString )
-                      val t = new AudioTrack( model.doc.createID, model.doc, btl )
+                      val t = new AudioTrack( model.doc, btl )
 //                      tl.tracks += t
                       ed.editInsert( ce, tl.tracks.size, t )
                       ed.editEnd( ce )

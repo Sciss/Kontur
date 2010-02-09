@@ -33,11 +33,12 @@ import scala.xml.{ Node, Null }
 import de.sciss.app.{ AbstractCompoundEdit }
 import de.sciss.io.{ AudioFile }
 import de.sciss.kontur.edit.{ SimpleEdit }
+import de.sciss.kontur.util.{ SerializerContext }
 
 object ConvolutionDiffusion extends DiffusionFactory {
-   def fromXML( doc: Session, node: Node ) : ConvolutionDiffusion = {
-      val id       = (node \ "@id").text.toInt
-      val diff     = new ConvolutionDiffusion( id, doc )
+   def fromXML( c: SerializerContext, doc: Session, node: Node ) : ConvolutionDiffusion = {
+      val diff = new ConvolutionDiffusion( doc )
+      c.id( diff, node )
       diff.fromXML( node )
       diff
    }
@@ -49,8 +50,8 @@ object ConvolutionDiffusion extends DiffusionFactory {
    case class GainChanged( oldGain: Float, newGain: Float )
 }
 
-class ConvolutionDiffusion( id: Long, doc: Session )
-extends BasicDiffusion( id, doc ) {
+class ConvolutionDiffusion( doc: Session )
+extends BasicDiffusion( doc ) {
    import Diffusion._ 
    import ConvolutionDiffusion._
 
@@ -103,8 +104,8 @@ extends BasicDiffusion( id, doc ) {
 
    def factoryName         = ConvolutionDiffusion.factoryName
 
-   def toXML =
-      <diffusion id={id.toString} class={factoryName}>
+   def toXML( c: SerializerContext ) =
+      <diffusion id={c.id( this ).toString} class={factoryName}>
          <name>{name}</name>
          {path.map( p => <path>{p.getCanonicalPath}</path>) getOrElse Null}
          <gain>{gain}</gain>

@@ -46,7 +46,7 @@ object ConvolutionDiffusionGUI extends DiffusionGUIFactory {
 
    def createPanel( doc: Session ) = {
       val gui = new ConvolutionDiffusionGUI( true )
-      gui.setObjects( new ConvolutionDiffusion( doc.createID, doc ))
+      gui.setObjects( new ConvolutionDiffusion( doc ))
       gui
    }
 

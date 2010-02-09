@@ -31,18 +31,17 @@ package de.sciss.kontur.session
 import java.io.{ IOException }
 import scala.xml.{ Node, Null }
 import de.sciss.io.{ Span }
+import de.sciss.kontur.util.{ SerializerContext }
 import scala.math._
 
 object AudioRegion {
    val XML_NODE = "stake"
 
-    def fromXML( doc: Session, node: Node ) : AudioRegion = {
+    def fromXML( c: SerializerContext, doc: Session, node: Node ) : AudioRegion = {
         val name   = (node \ "name").text
         val spanN  = node \ "span"
         val span   = new Span( (spanN \ "@start").text.toLong, (spanN \ "@stop").text.toLong )
-        val afID   = (node \ "audioFile" \ "@idref").text.toLong
-        val af     = doc.audioFiles.getByID( afID ) getOrElse {
-            throw new IOException( "Session corrupt. Referencing an invalid audio file #" + afID )}
+        val af     = c.byID[ AudioFileElement ]( node \ "audioFile" )
         val offset = (node \ "offset").text.toLong
         val gain   = (node \ "gain").headOption.map( _.text.toFloat ) getOrElse 1f
         val fadeIn = (node \ "fadeIn"  \ "fade").headOption.map( n => FadeSpec.fromXML( n ))
@@ -56,10 +55,10 @@ case class AudioRegion( span: Span, name: String, audioFile: AudioFileElement,
                         offset: Long, gain: Float, fadeIn: Option[ FadeSpec ],
                         fadeOut: Option[ FadeSpec ])
 extends RegionTrait[ AudioRegion ] with SlidableStake[ AudioRegion ] {
-  def toXML = <stake>
+  def toXML( c: SerializerContext ) = <stake>
   <name>{name}</name>
   <span start={span.start.toString} stop={span.stop.toString}/>
-  <audioFile idref={audioFile.id.toString}/>
+  <audioFile idref={c.id( audioFile ).toString}/>
   <offset>{offset}</offset>
   {if( gain != 0f ) <gain>{gain}</gain> else Null}
   {fadeIn.map( f => <fadeIn>{ f.toXML }</fadeIn>) getOrElse Null}
@@ -125,12 +124,12 @@ extends RegionTrait[ AudioRegion ] with SlidableStake[ AudioRegion ] {
 }
 
 class AudioTrail( doc: Session ) extends BasicTrail[ AudioRegion ]( doc ) {
-  def toXML = <trail>
-  {getAll().map(_.toXML)}
+  def toXML( c: SerializerContext ) = <trail>
+  {getAll().map( _.toXML( c ))}
 </trail>
 
-   def fromXML( parent: Node ) {
+   def fromXML( c: SerializerContext, parent: Node ) {
       val node = SessionElement.getSingleXML( parent, "trail" )
-      add( (node \ AudioRegion.XML_NODE).map( n => AudioRegion.fromXML( doc, n )): _* )
+      add( (node \ AudioRegion.XML_NODE).map( n => AudioRegion.fromXML( c, doc, n )): _* )
    }
 }

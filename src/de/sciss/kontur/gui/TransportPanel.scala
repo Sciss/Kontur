@@ -55,13 +55,13 @@ extends SegmentedButtonPanel with DynamicListening {
 
    // temporary hack to get osc synced video
    private lazy val osc  = {
-      val t = OSCTransmitter.apply( 'udp )
+      val t = OSCTransmitter( 'udp )
       t.target = new java.net.InetSocketAddress( "127.0.0.1", 57120 )
       t.connect
       t
    }
    private var oscEngaged  = false
-   private val oscID       = tlv.timeline.id.toInt 
+   private val oscID       = 0 // tlv.timeline.id.toInt 
 
    private val transportListener = (msg: AnyRef) => msg match {
       case Play( pos, rate ) => trnspChanged( true )

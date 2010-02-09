@@ -48,7 +48,7 @@ object MatrixDiffusionGUI extends DiffusionGUIFactory {
 
    def createPanel( doc: Session ) = {
       val gui = new MatrixDiffusionGUI( true )
-      gui.setObjects( new MatrixDiffusion( doc.createID, doc ))
+      gui.setObjects( new MatrixDiffusion( doc ))
       gui
    }
 

@@ -33,7 +33,7 @@ import javax.swing.undo.{ UndoManager }
 import scala.xml.{ Node }
 import de.sciss.app.{ AbstractCompoundEdit }
 import de.sciss.kontur.edit.{ Editor, SimpleEdit }
-import de.sciss.kontur.util.{ Matrix2D }
+import de.sciss.kontur.util.{ SerializerContext }
 
 object Diffusion {
   case class NumInputChannelsChanged( oldNum: Int, newNum: Int )
@@ -66,7 +66,7 @@ object DiffusionFactory {
 }
 
 trait DiffusionFactory {
-   def fromXML( doc: Session, node: Node ) : Diffusion
+   def fromXML( c: SerializerContext, doc: Session, node: Node ) : Diffusion
    def factoryName: String
    def humanReadableName: String
 //   def guiFactory: Option[ DiffusionGUIFactory ]
@@ -74,27 +74,26 @@ trait DiffusionFactory {
 
 class Diffusions( doc: Session )
 extends BasicSessionElementSeq[ Diffusion ]( doc, "Diffusions" ) {
-  val id = -1L
-  def toXML = <diffusions>
-  {innerToXML}
+  def toXML( c: SerializerContext ) = <diffusions>
+  {innerToXML( c )}
 </diffusions>
 
-  def fromXML( parent: Node ) {
+  def fromXML( c: SerializerContext, parent: Node ) {
      val innerXML = SessionElement.getSingleXML( parent, "diffusions" )
-     innerFromXML( innerXML )
+     innerFromXML( c, innerXML )
   }
 
-  protected def elementsFromXML( node: Node ) : Seq[ Diffusion ] =
+  protected def elementsFromXML( c: SerializerContext, node: Node ) : Seq[ Diffusion ] =
      (node \ "diffusion").map( n => {
         val clazz = (n \ "@class").text 
-        DiffusionFactory.registered.get( clazz ).map( _.fromXML( doc, n )) getOrElse {
+        DiffusionFactory.registered.get( clazz ).map( _.fromXML( c, doc, n )) getOrElse {
            println( "ERROR: Omitting diffusion '" + (n \ "name").text + "' due to unknown class '" + clazz + "'" )
            null
         }
      }).filter( _ != null )
 }
 
-abstract class BasicDiffusion( val id: Long, doc: Session )
+abstract class BasicDiffusion( doc: Session )
 extends Diffusion with DiffusionEditor with Renameable {
     import Diffusion._
 

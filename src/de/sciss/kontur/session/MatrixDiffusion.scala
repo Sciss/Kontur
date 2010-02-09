@@ -29,16 +29,14 @@
 package de.sciss.kontur.session
 
 import scala.xml.{ Node }
-import javax.swing.undo.{ UndoManager }
 import de.sciss.app.{ AbstractCompoundEdit }
-import de.sciss.kontur.edit.{ Editor, SimpleEdit }
-import de.sciss.kontur.gui.{ MatrixDiffusionGUI }
-import de.sciss.kontur.util.{ Matrix2D }
+import de.sciss.kontur.edit.{ SimpleEdit }
+import de.sciss.kontur.util.{ Matrix2D, SerializerContext }
 
 object MatrixDiffusion extends DiffusionFactory {
-   def fromXML( doc: Session, node: Node ) : MatrixDiffusion = {
-      val id       = (node \ "@id").text.toInt
-      val diff     = new MatrixDiffusion( id, doc )
+   def fromXML( c: SerializerContext, doc: Session, node: Node ) : MatrixDiffusion = {
+      val diff = new MatrixDiffusion( doc )
+      c.id( diff, node )
       diff.fromXML( node )
       diff
    }
@@ -52,8 +50,8 @@ object MatrixDiffusion extends DiffusionFactory {
 }
 
 // columns correspond to outputs, rows to inputs
-class MatrixDiffusion( id: Long, doc: Session )
-extends BasicDiffusion( id, doc ) {
+class MatrixDiffusion( doc: Session )
+extends BasicDiffusion( doc ) {
     import Diffusion._
     import MatrixDiffusion._
 
@@ -63,8 +61,8 @@ extends BasicDiffusion( id, doc ) {
 
     def factoryName = MatrixDiffusion.factoryName
 
-    def toXML =
-       <diffusion id={id.toString} class={factoryName}>
+    def toXML( c: SerializerContext )  =
+       <diffusion id={c.id( this ).toString} class={factoryName}>
           <name>{name}</name>
           <numInputChannels>{numInputChannels}</numInputChannels>
           <numOutputChannels>{numOutputChannels}</numOutputChannels>

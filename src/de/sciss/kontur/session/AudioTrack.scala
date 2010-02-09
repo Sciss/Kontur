@@ -33,21 +33,22 @@ import javax.swing.undo.{ UndoManager }
 import scala.xml.{ Node }
 import de.sciss.app.{ AbstractCompoundEdit }
 import de.sciss.kontur.edit.{ Editor, SimpleEdit }
+import de.sciss.kontur.util.{ SerializerContext }
 
 object AudioTrack {
    val XML_NODE = "audioTrack"
 
-   def fromXML( node: Node, doc: Session, tl: BasicTimeline ) : AudioTrack = {
-       val id    = (node \ "@id").text.toInt
-       val at    = new AudioTrack( id, doc, tl )
-       at.fromXML( node )
-       at
+   def fromXML( c: SerializerContext, node: Node, doc: Session, tl: BasicTimeline ) : AudioTrack = {
+      val at    = new AudioTrack( doc, tl )
+      c.id( at, node )
+      at.fromXML( c, node )
+      at
    }
 
    case class DiffusionChanged( oldDiff: Option[ Diffusion ], newDiff: Option[ Diffusion ])
 }
 
-class AudioTrack( val id: Long, doc: Session, tl: BasicTimeline )
+class AudioTrack( doc: Session, tl: BasicTimeline )
 extends Track with TrackEditor // [ AudioRegion ]
 with Renameable {
   import AudioTrack._
@@ -69,22 +70,19 @@ with Renameable {
      }
   }
 
-  def toXML =
-    <audioTrack id={id.toString}>
+  def toXML( c: SerializerContext ) =
+    <audioTrack id={c.id( this ).toString}>
       <name>{name}</name>
-      {diffusion.map( diff => <diffusion idref={diff.id.toString}/>) getOrElse scala.xml.Null}
-      {trail.toXML}
+      {diffusion.map( diff => <diffusion idref={c.id( diff ).toString}/>) getOrElse scala.xml.Null}
+      {trail.toXML( c )}
     </audioTrack>
 
-  def fromXML( node: Node ) {
+  def fromXML( c: SerializerContext, node: Node ) {
       nameVar = (node \ "name").text
       (node \ "diffusion").foreach( diffN => {
-//println( "KUUKA" )
-          val diffID = (diffN \ "@idref").text.toInt
-          diffusionVar = Some( doc.diffusions.getByID( diffID ) getOrElse {
-            throw new IOException( "Session corrupt. Referencing an invalid diffusion #" + diffID )})
+          diffusionVar = Some( c.byID[ Diffusion ]( diffN ))
       })
-      trail.fromXML( node )
+      trail.fromXML( c, node )
   }
 
   def editor: Option[ TrackEditor ] = Some( this )

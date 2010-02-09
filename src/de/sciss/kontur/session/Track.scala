@@ -31,6 +31,7 @@ package de.sciss.kontur.session
 import java.io.{ IOException }
 import scala.xml.{ Node }
 import de.sciss.kontur.edit.{ Editor }
+import de.sciss.kontur.util.{ SerializerContext }
 
 //trait Track[ T <: Stake ] extends SessionElement {
 //  def trail: Trail[ T ]
@@ -53,21 +54,21 @@ trait TrackEditor extends Editor {
   
 }
 
-class Tracks( val id: Long, doc: Session, tl: BasicTimeline )
+class Tracks( doc: Session, tl: BasicTimeline )
 extends BasicSessionElementSeq[ Track ]( doc, "Tracks" ) {
 
-    def toXML = <tracks id={id.toString}>
-  {innerToXML}
+    def toXML( c: SerializerContext ) = <tracks id={c.id( this ).toString}>
+  {innerToXML( c )}
 </tracks>
 
-  def fromXML( parent: Node ) {
+  def fromXML( c: SerializerContext, parent: Node ) {
      val innerXML = SessionElement.getSingleXML( parent, "tracks" )
-     innerFromXML( innerXML )
+     innerFromXML( c, innerXML )
   }
 
-  protected def elementsFromXML( node: Node ) : Seq[ Track ] =
+  protected def elementsFromXML( c: SerializerContext, node: Node ) : Seq[ Track ] =
     node.child.filter( _.label != "#PCDATA" ).map( ch => ch.label match {
-    case AudioTrack.XML_NODE => AudioTrack.fromXML( ch, doc, tl )
+    case AudioTrack.XML_NODE => AudioTrack.fromXML( c, ch, doc, tl )
     case lb => throw new IOException( "Unknown track type '" + lb + "'" )
   })
 }

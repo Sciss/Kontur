@@ -2,21 +2,23 @@
 <project version="4">
   <component name="ChangeListManager" verified="true">
     <list default="true" readonly="true" id="6aaf78f3-2cd3-461b-a3b3-ab35f5d5ed52" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderPlayer.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderPlayer.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/MatrixDiffusion.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/session/MatrixDiffusion.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/Track.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/session/Track.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/SessionTreeModel.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/gui/SessionTreeModel.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/ConvolutionDiffusion.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/session/ConvolutionDiffusion.scala" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/util/SerializerContext.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/AudioFileElement.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/session/AudioFileElement.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/Diffusion.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/session/Diffusion.scala" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/session/ConvolutionDiffusion.scala" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Kontur.app/Contents/Info.plist" afterPath="$PROJECT_DIR$/Kontur.app/Contents/Info.plist" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/resources/KonturStrings.properties" afterPath="$PROJECT_DIR$/resources/KonturStrings.properties" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/Session.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/session/Session.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/ConvolutionDiffusionGUI.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/gui/ConvolutionDiffusionGUI.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/SessionElement.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/session/SessionElement.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/SessionElementSeq.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/session/SessionElementSeq.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/Timeline.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/session/Timeline.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/MatrixDiffusionGUI.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/gui/MatrixDiffusionGUI.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TransportPanel.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TransportPanel.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/ConvolutionDiffusionSynth.scala" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderClient.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderClient.scala" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.txt" afterPath="$PROJECT_DIR$/README.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/MatrixDiffusionSynth.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/MatrixDiffusionSynth.scala" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/ScalaInterpreterFrame.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/gui/ScalaInterpreterFrame.scala" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/DiffusionSynth.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/DiffusionSynth.scala" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Kontur.iml" afterPath="$PROJECT_DIR$/Kontur.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/AudioTrail.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/session/AudioTrail.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/AudioTrack.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/session/AudioTrack.scala" />
     </list>
     <ignored path=".idea/workspace.xml" />
     <ignored path="Kontur.iws" />
@@ -123,8 +125,8 @@
       <property name="field_breakpoints_groupByClasses" value="true" />
       <property name="method_breakpoints_groupByClasses" value="true" />
       <property name="exception_breakpoints_viewId" value="TABLE" />
-      <property name="field_breakpoints_viewId" value="TABLE" />
       <property name="exception_breakpoints_groupByClasses" value="true" />
+      <property name="field_breakpoints_viewId" value="TABLE" />
       <property name="method_breakpoints_groupByMethods" value="false" />
     </ui_properties>
   </component>
@@ -134,64 +136,46 @@
   <component name="FileColors" enabled="true" enabledForTabs="true" />
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="Diffusion.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/Diffusion.scala">
+      <file leaf-file-name="AudioTrack.scala" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/AudioTrack.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="4" column="67" selection-start="107" selection-end="107" vertical-scroll-proportion="0.0">
+            <state line="82" column="60" selection-start="2663" selection-end="2663" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="SynthContext.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala">
+      <file leaf-file-name="SerializerContext.scala" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/util/SerializerContext.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="172" column="34" selection-start="4940" selection-end="4940" vertical-scroll-proportion="0.0">
+            <state line="32" column="70" selection-start="948" selection-end="948" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ScalaInterpreterFrame.scala" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/ScalaInterpreterFrame.scala">
+      <file leaf-file-name="Session.scala" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/Session.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="79" column="105" selection-start="3131" selection-end="3131" vertical-scroll-proportion="0.50790066">
+            <state line="53" column="61" selection-start="1848" selection-end="1848" vertical-scroll-proportion="0.8766234">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="MenuFactory.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/MenuFactory.scala">
+      <file leaf-file-name="AudioFileElement.scala" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/AudioFileElement.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="83" column="9" selection-start="3030" selection-end="3030" vertical-scroll-proportion="-10.269231">
+            <state line="76" column="25" selection-start="2612" selection-end="2612" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="SuperColliderClient.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderClient.scala">
+      <file leaf-file-name="AudioTrail.scala" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/AudioTrail.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="116" column="56" selection-start="3573" selection-end="3575" vertical-scroll-proportion="-12.269231">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="SuperColliderPlayer.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderPlayer.scala">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="324" column="49" selection-start="11895" selection-end="11895" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ConvolutionDiffusionSynth.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/ConvolutionDiffusionSynth.scala">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="68" column="36" selection-start="2441" selection-end="2457" vertical-scroll-proportion="0.0">
+            <state line="43" column="69" selection-start="1531" selection-end="1531" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -207,22 +191,22 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/ParamField.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/PathField.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/ConvolutionDiffusionGUI.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/TransportPanel.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/session/MatrixDiffusion.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/MatrixDiffusionSynth.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/session/ConvolutionDiffusion.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/DiffusionGUIFactory.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/DiffusionSynth.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/PrefsFrame.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderClient.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/MenuFactory.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/ConvolutionDiffusionSynth.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderPlayer.scala" />
-        <option value="$PROJECT_DIR$/resources/KonturStrings.properties" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/ScalaInterpreterFrame.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/session/SessionElementSeq.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/session/Track.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/session/Diffusion.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/session/Timeline.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/session/AudioFileElement.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/session/SessionElement.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/MatrixDiffusionGUI.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/ConvolutionDiffusionGUI.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/SessionTreeModel.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/session/AudioTrack.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/session/AudioTrail.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/util/SerializerContext.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/session/Session.scala" />
       </list>
     </option>
   </component>
@@ -262,7 +246,6 @@
     </navigator>
     <panes>
       <pane id="Favorites" />
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -309,6 +292,80 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="sciss" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="kontur" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Kontur" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Kontur" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="sciss" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="kontur" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="util" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Kontur" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Kontur" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="sciss" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="kontur" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="session" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Kontur" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Kontur" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
               <option name="myItemId" value="resources" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
@@ -316,6 +373,7 @@
         </subPane>
       </pane>
       <pane id="PackagesPane" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -331,9 +389,9 @@
     <property name="GoToClass.toSaveIncludeLibraries" value="false" />
     <property name="MemberChooser.showClasses" value="true" />
     <property name="GoToClass.includeLibraries" value="false" />
-    <property name="dynamic.classpath" value="false" />
-    <property name="options.searchVisible" value="true" />
     <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="options.searchVisible" value="true" />
+    <property name="dynamic.classpath" value="false" />
   </component>
   <component name="RunManager" selected="Application.Kontur">
     <configuration default="true" type="Remote" factoryName="Remote">
@@ -519,25 +577,25 @@
     <supportedVersion>125</supportedVersion>
   </component>
   <component name="ToolWindowManager">
-    <frame x="3" y="22" width="1389" height="860" extended-state="0" />
+    <frame x="0" y="22" width="1389" height="860" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32972974" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3310811" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24925373" sideWeight="0.22297297" order="1" side_tool="true" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24925373" sideWeight="0.37297297" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24925373" sideWeight="0.42972973" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24925373" sideWeight="0.27972972" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32837838" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32972974" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
     </layout>
@@ -575,114 +633,114 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/ConvolutionDiffusion.scala">
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/BasicTrail.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="118" column="58" selection-start="4222" selection-end="4222" vertical-scroll-proportion="3.9954853">
+        <state line="41" column="6" selection-start="1357" selection-end="1357" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/DiffusionGUIFactory.scala">
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/SessionElementSeq.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="1" column="23" selection-start="26" selection-end="26" vertical-scroll-proportion="0.032467533">
+        <state line="79" column="52" selection-start="2646" selection-end="2646" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/ConvolutionDiffusionGUI.scala">
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/MatrixDiffusion.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="157" column="114" selection-start="5787" selection-end="5787" vertical-scroll-proportion="5.2684565">
+        <state line="52" column="6" selection-start="1710" selection-end="1710" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/DiffusionSynth.scala">
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/Track.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="1" column="4" selection-start="7" selection-end="7" vertical-scroll-proportion="0.032467533">
+        <state line="56" column="6" selection-start="1491" selection-end="1491" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/Diffusion.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="4" column="67" selection-start="107" selection-end="107" vertical-scroll-proportion="0.0">
+        <state line="74" column="6" selection-start="2539" selection-end="2539" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/SessionTreeFrame.scala">
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/SessionTreeModel.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="102" column="0" selection-start="3639" selection-end="3737" vertical-scroll-proportion="0.63656884">
+        <state line="349" column="46" selection-start="11964" selection-end="11964" vertical-scroll-proportion="0.31602708">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/SessionFrame.scala">
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/ConvolutionDiffusionGUI.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="44" column="6" selection-start="1518" selection-end="1518" vertical-scroll-proportion="-0.82476634">
+        <state line="48" column="50" selection-start="1898" selection-end="1898" vertical-scroll-proportion="0.3317757">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/PrefsFrame.scala">
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/MatrixDiffusionGUI.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="246" column="47" selection-start="9470" selection-end="9470" vertical-scroll-proportion="0.3310962">
+        <state line="50" column="42" selection-start="2098" selection-end="2098" vertical-scroll-proportion="0.33182845">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/MenuFactory.scala">
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/SessionElement.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="83" column="9" selection-start="3030" selection-end="3030" vertical-scroll-proportion="-10.269231">
+        <state line="52" column="0" selection-start="1665" selection-end="1665" vertical-scroll-proportion="0.84415585">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/ConvolutionDiffusionSynth.scala">
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/Timeline.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="68" column="36" selection-start="2441" selection-end="2457" vertical-scroll-proportion="0.0">
+        <state line="149" column="6" selection-start="4302" selection-end="4302" vertical-scroll-proportion="0.31651375">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderClient.scala">
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/ConvolutionDiffusion.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="116" column="56" selection-start="3573" selection-end="3575" vertical-scroll-proportion="-12.269231">
+        <state line="52" column="6" selection-start="1755" selection-end="1755" vertical-scroll-proportion="0.3181818">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala">
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/AudioTrack.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="172" column="34" selection-start="4940" selection-end="4940" vertical-scroll-proportion="0.0">
+        <state line="82" column="60" selection-start="2663" selection-end="2663" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderPlayer.scala">
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/AudioTrail.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="324" column="49" selection-start="11895" selection-end="11895" vertical-scroll-proportion="0.0">
+        <state line="43" column="69" selection-start="1531" selection-end="1531" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/resources/KonturStrings.properties">
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/AudioFileElement.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="86" column="6" selection-start="2278" selection-end="2278" vertical-scroll-proportion="0.28037384">
+        <state line="76" column="25" selection-start="2612" selection-end="2612" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/MainFrame.scala">
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/util/SerializerContext.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="53" column="19" selection-start="1783" selection-end="1839" vertical-scroll-proportion="0.738149">
+        <state line="32" column="70" selection-start="948" selection-end="948" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/ScalaInterpreterFrame.scala">
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/Session.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="79" column="105" selection-start="3131" selection-end="3131" vertical-scroll-proportion="0.50790066">
+        <state line="53" column="61" selection-start="1848" selection-end="1848" vertical-scroll-proportion="0.8766234">
           <folding />
         </state>
       </provider>

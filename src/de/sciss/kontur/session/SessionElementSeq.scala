@@ -34,6 +34,7 @@ import scala.collection.mutable.{ ArrayBuffer }
 import scala.xml.{ Node }
 import de.sciss.app.{ AbstractCompoundEdit }
 import de.sciss.kontur.edit.{ Editor, SimpleEdit }
+import de.sciss.kontur.util.{ SerializerContext }
 
 trait SessionElementSeq[ T <: SessionElement ]
 extends SessionElement {
@@ -49,7 +50,7 @@ extends SessionElement {
   def size: Int
 
   // XXX this could be more performative (e.g. using a separate Map)
-  def getByID( id: Long ) : Option[ T ] = find( _.id == id )
+//  def getByID( id: Long ) : Option[ T ] = find( _.id == id )
 
   def editor: Option[ SessionElementSeqEditor[ T ]]
 
@@ -71,18 +72,18 @@ with SessionElementSeqEditor[ T ] {
 
   def undoManager: UndoManager = doc.getUndoManager
 
-  protected def innerToXML = <coll>
-  {coll.map(_.toXML)}
+  protected def innerToXML( context: SerializerContext ) = <coll>
+  {coll.map( _.toXML( context ))}
 </coll>
 
   @throws( classOf[ IOException ])
-  protected def innerFromXML( node: Node ) {
+  protected def innerFromXML( c: SerializerContext, node: Node ) {
      val collXML = SessionElement.getSingleXML( node, "coll" )
-     coll ++= elementsFromXML( collXML )
+     coll ++= elementsFromXML( c, collXML )
   }
 
   @throws( classOf[ IOException ])
-  protected def elementsFromXML( node: Node ) : Seq[ T ]
+  protected def elementsFromXML( c: SerializerContext, node: Node ) : Seq[ T ]
 
   private val forward = (msg: AnyRef) => dispatch( msg )
 

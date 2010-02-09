@@ -32,15 +32,13 @@ import de.sciss.app.{ AbstractApplication }
 import de.sciss.common.{ BasicDocument, ProcessingThread }
 import de.sciss.io.{ IOUtil }
 import de.sciss.util.{ Flag }
-import de.sciss.kontur.util.{ Model }
+import de.sciss.kontur.util.{ BasicSerializerContext, Model, SerializerContext }
 import java.awt.{ EventQueue }
 import java.io.{ File, IOException }
 import scala.xml.{ Node, XML }
 
 object Session {
-    def newEmpty: Session = {
-       new Session( None, 0 )
-    }
+    def newEmpty = new Session( None )
 
     val XML_START_ELEMENT = "konturSession"
 
@@ -48,8 +46,12 @@ object Session {
     def newFrom( path: File ) : Session = {
        val xml = XML.loadFile( path )
        if( xml.label != XML_START_ELEMENT ) throw new IOException( "Not a session file" )
-       val doc = new Session( Some( path ), (xml \ "idCount").text.toInt )
-       doc.fromXML( xml )
+       val doc = new Session( Some( path ))
+       val c = new BasicSerializerContext
+       try {
+         doc.fromXML( c, xml )
+       }
+       catch { case e: Exception => throw new IOException( e )}
        doc
     }
    
@@ -57,7 +59,7 @@ object Session {
     case class PathChanged( oldPath: Option[ File ], newPath: Option[ File ])
 }
 
-class Session( private var pathVar: Option[ File ], private var idCount: Int )
+class Session( private var pathVar: Option[ File ] )
 extends BasicDocument with Model {
 
     import Session._
@@ -72,31 +74,31 @@ extends BasicDocument with Model {
     val audioFiles  = new AudioFileSeq( this )
     val diffusions  = new Diffusions( this )
 
-    def createID : Long = {
-      val res = idCount
-      idCount += 1
-      res
-    }
+//    def createID : Long = {
+//      val res = idCount
+//      idCount += 1
+//      res
+//    }
 
     // note: the order is crucial
     // in order to resolve dependancies when loading
-    def toXML = <konturSession>
-  <idCount>{idCount}</idCount>
-    {audioFiles.toXML}
-    {diffusions.toXML}
-    {timelines.toXML}
+    def toXML( c: SerializerContext ) = <konturSession>
+    {audioFiles.toXML( c )}
+    {diffusions.toXML( c )}
+    {timelines.toXML( c )}
 </konturSession>
 
     @throws( classOf[ IOException ])
-    def fromXML( elem: Node ) {
-       audioFiles.fromXML( elem )
-       diffusions.fromXML( elem )
-       timelines.fromXML( elem )
+    def fromXML( c: SerializerContext, elem: Node ) {
+       audioFiles.fromXML( c, elem )
+       diffusions.fromXML( c, elem )
+       timelines.fromXML( c, elem )
     }
 
     @throws( classOf[ IOException ])
     def save( f: File ) {
-      XML.save( f.getAbsolutePath, toXML, "UTF-8", true, null )
+       val c = new BasicSerializerContext
+       XML.save( f.getAbsolutePath, toXML( c ), "UTF-8", true, null )
     }
 
 	/**
