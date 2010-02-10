@@ -51,7 +51,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
       val cp = getContentPane
       val sessionTreeModel = new SessionTreeModel( doc )
       val ggTree = new JTree( sessionTreeModel )
-      ggTree.setDropMode( DropMode.INSERT )
+      ggTree.setDropMode( DropMode.ON_OR_INSERT )
       ggTree.setRootVisible( true )
       ggTree.setShowsRootHandles( true )
       val ggScroll = new JScrollPane( ggTree, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
@@ -84,6 +84,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
          }
       })
       new TreeDragSource( ggTree )
+      new TreeDropTarget( ggTree )
 
       cp.add( ggScroll, BorderLayout.CENTER )
 //      app.getMenuFactory().addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!

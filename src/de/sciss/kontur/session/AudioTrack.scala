@@ -70,12 +70,14 @@ with Renameable {
      }
   }
 
-  def toXML( c: SerializerContext ) =
-    <audioTrack id={c.id( this ).toString}>
+   def toXML( c: SerializerContext ) = if( c.exists( this ))
+      <audioTrack idref={c.id( this ).toString}/>
+   else
+      <audioTrack id={c.id( this ).toString}>
       <name>{name}</name>
       {diffusion.map( diff => <diffusion idref={c.id( diff ).toString}/>) getOrElse scala.xml.Null}
       {trail.toXML( c )}
-    </audioTrack>
+      </audioTrack>
 
   def fromXML( c: SerializerContext, node: Node ) {
       nameVar = (node \ "name").text

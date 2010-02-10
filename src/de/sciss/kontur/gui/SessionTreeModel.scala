@@ -34,9 +34,10 @@ import de.sciss.gui.{ MenuGroup, MenuItem }
 import de.sciss.io.{ AudioFile, AudioFileDescr }
 import de.sciss.kontur.{ Main }
 import de.sciss.kontur.session.{ AudioFileElement, AudioTrack, BasicTimeline, Diffusion, DiffusionFactory,
-   Renameable, Session, SessionElement, SessionElementSeq, Stake, Timeline, Track }
+   Renameable, Session, SessionElement, SessionElementSeq, Stake, Timeline, Track, TrackEditor }
 import java.awt.{ Component, FileDialog, Frame }
 import java.awt.datatransfer.{ DataFlavor, Transferable }
+import java.awt.dnd.{ DnDConstants }
 import java.awt.event.{ ActionEvent }
 import java.io.{ File, FilenameFilter, IOException }
 import javax.swing.{ AbstractAction, Action, JOptionPane }
@@ -206,7 +207,7 @@ with HasContextMenu {
 
 class AudioFilesTreeIndex( model: SessionTreeModel, audioFiles: SessionElementSeq[ AudioFileElement ])
 extends SessionElementSeqTreeNode( model, audioFiles )
-with HasContextMenu {
+with HasContextMenu with CanBeDropTarget {
 
     def createContextMenu() : Option[ PopupRoot ] = {
      val root = new PopupRoot()
@@ -259,11 +260,34 @@ with HasContextMenu {
 
   protected def wrap( elem: AudioFileElement ): DynamicTreeNode =
     new AudioFileTreeLeaf( model, elem ) // with UniqueCount
+
+   // ---- CanBeDropTarget ----
+    def pickImport( flavors: List[ DataFlavor ], actions: Int ) : Option[ Tuple2[ DataFlavor, Int ]] = {
+       flavors.find( _ == AudioFileElement.flavor ).map( f => {
+          val action  = actions & DnDConstants.ACTION_COPY
+          (f, action)
+       })
+    }
+
+    def importData( data: AnyRef, flavor: DataFlavor, action: Int ) : Boolean = data match {
+       case afe: AudioFileElement => {
+          audioFiles.editor.map( ed => {
+             val success = !audioFiles.contains( afe )
+             if( success ) {
+                val ce = ed.editBegin( "addAudioFile" )
+                ed.editInsert( ce, audioFiles.size, afe )
+                ed.editEnd( ce )
+             }
+             success
+          }) getOrElse false
+       }
+       case _ => false
+    }
 }
 
 class DiffusionsTreeIndex( model: SessionTreeModel, diffusions: SessionElementSeq[ Diffusion ])
 extends SessionElementSeqTreeNode( model, diffusions )
-with HasContextMenu {
+with HasContextMenu with CanBeDropTarget {
 
    def createContextMenu() : Option[ PopupRoot ] = {
       val root = new PopupRoot()
@@ -294,9 +318,32 @@ with HasContextMenu {
       root.add( mgAdd )
       Some( root )
    }
+   
+   protected def wrap( elem: Diffusion ): DynamicTreeNode =
+      new DiffusionTreeLeaf( model, elem ) // with UniqueCount
 
-  protected def wrap( elem: Diffusion ): DynamicTreeNode =
-    new DiffusionTreeLeaf( model, elem ) // with UniqueCount
+   // ---- CanBeDropTarget ----
+    def pickImport( flavors: List[ DataFlavor ], actions: Int ) : Option[ Tuple2[ DataFlavor, Int ]] = {
+       flavors.find( _ == Diffusion.flavor ).map( f => {
+          val action  = actions & DnDConstants.ACTION_COPY
+          (f, action)
+       })
+    }
+
+    def importData( data: AnyRef, flavor: DataFlavor, action: Int ) : Boolean = data match {
+       case d: Diffusion => {
+          diffusions.editor.map( ed => {
+             val success = !diffusions.contains( d )
+             if( success ) {
+                val ce = ed.editBegin( "addDiffusion" )
+                ed.editInsert( ce, diffusions.size, d )
+                ed.editEnd( ce )
+             }
+             success
+          }) getOrElse false
+       }
+       case _ => false
+    }
 }
 
 class SessionElementTreeNode( model: SessionTreeModel, elem: SessionElement, canExpand: Boolean )
@@ -339,34 +386,59 @@ with HasDoubleClickAction {
 
 class TracksTreeIndex( model: SessionTreeModel, tl: Timeline )
 extends SessionElementSeqTreeNode( model, tl.tracks )
-with HasContextMenu {
-    def createContextMenu() : Option[ PopupRoot ] = tl match {
-        case btl: BasicTimeline => {
-            val root = new PopupRoot()
-            val miAddNewAudio = new MenuItem( "new", new AbstractAction( "New Audio Track" ) {
-                def actionPerformed( a: ActionEvent ) {
-                    tl.tracks.editor.foreach( ed => {
-                      val ce = ed.editBegin( getValue( Action.NAME ).toString )
-                      val t = new AudioTrack( model.doc, btl )
-//                      tl.tracks += t
-                      ed.editInsert( ce, tl.tracks.size, t )
-                      ed.editEnd( ce )
-                    })
-                }
-            })
-            root.add( miAddNewAudio )
-            Some( root )
-        }
-        case _ => None
-    }
+with HasContextMenu with CanBeDropTarget {
+   def createContextMenu() : Option[ PopupRoot ] = tl match {
+      case btl: BasicTimeline => {
+         val root = new PopupRoot()
+         val miAddNewAudio = new MenuItem( "new", new AbstractAction( "New Audio Track" ) {
+            def actionPerformed( a: ActionEvent ) {
+               tl.tracks.editor.foreach( ed => {
+                  val ce = ed.editBegin( getValue( Action.NAME ).toString )
+                  val t = new AudioTrack( model.doc, btl )
+                  ed.editInsert( ce, tl.tracks.size, t )
+                  ed.editEnd( ce )
+               })
+            }
+         })
+         root.add( miAddNewAudio )
+         Some( root )
+      }
+      case _ => None
+   }
 
-  protected def wrap( elem: Track ): DynamicTreeNode =
-    new TrackTreeLeaf( model, elem )
+   protected def wrap( elem: Track ): DynamicTreeNode =
+      new TrackTreeLeaf( model, elem )
+
+   // ---- CanBeDropTarget ----
+   def pickImport( flavors: List[ DataFlavor ], actions: Int ) : Option[ Tuple2[ DataFlavor, Int ]] = {
+      flavors.find( _ == Track.flavor ).map( f => {
+         val action  = actions & DnDConstants.ACTION_COPY_OR_MOVE
+         (f, action)
+      })
+   }
+
+   def importData( data: AnyRef, flavor: DataFlavor, action: Int ) : Boolean = data match {
+      case t: Track => {
+         tl.tracks.editor.map( ed => {
+            val success = !tl.tracks.contains( t )
+            if( success ) {
+// XXX
+//               if( !model.doc.diffusions.contains( t.diffusion )) ...
+//               if( !model.doc.audioFiles.contains( t.trail.audiofiles....)) ...
+               val ce = ed.editBegin( "addTrack" )
+               ed.editInsert( ce, tl.tracks.size, t )
+               ed.editEnd( ce )
+            }
+            success
+         }) getOrElse false
+      }
+      case _ => false
+   }
 }
 
 class TrackTreeLeaf( model: SessionTreeModel, t: Track )
 extends SessionElementTreeNode( model, t, false )
-with HasContextMenu {
+with HasContextMenu with CanBeDragSource {
    def createContextMenu() : Option[ PopupRoot ] = {
       t.editor.map( ed => {
          t match {
@@ -379,15 +451,28 @@ with HasContextMenu {
          }
       }) getOrElse None
    }
+
+   // ---- CanBeDragSource ----
+   
+   def transferDataFlavors = List( Track.flavor )
+   def transferData( flavor: DataFlavor ) : AnyRef = flavor match {
+      case Track.flavor => t
+   }
 }
 
 class AudioFileTreeLeaf( model: SessionTreeModel, afe: AudioFileElement )
 extends SessionElementTreeNode( model, afe, false )
-with HasDoubleClickAction {
+with HasDoubleClickAction with CanBeDragSource {
     def doubleClickAction {
       println( "DANG" )
    }
-//  override def toString() = "View"
+
+   // ---- CanBeDragSource ----
+
+   def transferDataFlavors = List( AudioFileElement.flavor )
+   def transferData( flavor: DataFlavor ) : AnyRef = flavor match {
+      case AudioFileElement.flavor => afe
+   }
 }
 
 class DiffusionTreeLeaf( model: SessionTreeModel, diff: Diffusion )
@@ -402,6 +487,8 @@ with HasDoubleClickAction with CanBeDragSource {
         observer.selectPage( page.id )
 */
    }
+
+   // ---- CanBeDragSource ----
 
    def transferDataFlavors = List( Diffusion.flavor )
    def transferData( flavor: DataFlavor ) : AnyRef = flavor match {

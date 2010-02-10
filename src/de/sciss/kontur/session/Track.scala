@@ -28,26 +28,20 @@
 
 package de.sciss.kontur.session
 
+import java.awt.datatransfer.{ DataFlavor }
 import java.io.{ IOException }
 import scala.xml.{ Node }
 import de.sciss.kontur.edit.{ Editor }
 import de.sciss.kontur.util.{ SerializerContext }
 
-//trait Track[ T <: Stake ] extends SessionElement {
-//  def trail: Trail[ T ]
-//}
-
-//object Track {
-//  private type T
-//  type Tr = Track[ T <: Stake[ T ]]
-//}
-
-// import Track.Tr
+object Track {
+   val flavor = new DataFlavor( classOf[ Track ], "Track" )
+}
 
 trait Track extends SessionElement {
-  type T <: Stake[ T ]
-  def trail: Trail[ T ]
-  def editor: Option[ TrackEditor ]
+   type T <: Stake[ T ]
+   def trail: Trail[ T ]
+   def editor: Option[ TrackEditor ]
 }
 
 trait TrackEditor extends Editor {
@@ -57,18 +51,23 @@ trait TrackEditor extends Editor {
 class Tracks( doc: Session, tl: BasicTimeline )
 extends BasicSessionElementSeq[ Track ]( doc, "Tracks" ) {
 
-    def toXML( c: SerializerContext ) = <tracks id={c.id( this ).toString}>
-  {innerToXML( c )}
-</tracks>
+   def toXML( c: SerializerContext ) =
+      <tracks id={c.id( this ).toString}>
+      {innerToXML( c )}
+      </tracks>
 
-  def fromXML( c: SerializerContext, parent: Node ) {
-     val innerXML = SessionElement.getSingleXML( parent, "tracks" )
-     innerFromXML( c, innerXML )
-  }
+   def fromXML( c: SerializerContext, parent: Node ) {
+      val innerXML = SessionElement.getSingleXML( parent, "tracks" )
+      innerFromXML( c, innerXML )
+   }
 
-  protected def elementsFromXML( c: SerializerContext, node: Node ) : Seq[ Track ] =
-    node.child.filter( _.label != "#PCDATA" ).map( ch => ch.label match {
-    case AudioTrack.XML_NODE => AudioTrack.fromXML( c, ch, doc, tl )
-    case lb => throw new IOException( "Unknown track type '" + lb + "'" )
-  })
+   protected def elementsFromXML( c: SerializerContext, node: Node ) : Seq[ Track ] =
+      node.child.filter( _.label != "#PCDATA" ).map( ch => {
+         (ch \ "@idref").headOption.map( attr => {
+            c.byID[ Track ]( attr.text.toLong )
+         }).getOrElse( ch.label match {
+            case AudioTrack.XML_NODE => AudioTrack.fromXML( c, ch, doc, tl )
+            case lb => throw new IOException( "Unknown track type '" + lb + "'" )
+         })
+      })
 }

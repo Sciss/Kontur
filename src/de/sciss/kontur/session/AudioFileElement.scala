@@ -28,6 +28,7 @@
 
 package de.sciss.kontur.session
 
+import java.awt.datatransfer.{ DataFlavor }
 import java.io.{ File, IOException }
 import scala.xml.{ Node }
 import de.sciss.io.{ AudioFile, AudioFileDescr }
@@ -57,10 +58,12 @@ object AudioFileElement {
       af.close
       new AudioFileElement( path, descr.length, descr.channels, descr.rate )
    }
+
+   val flavor = new DataFlavor( classOf[ AudioFileElement ], "AudioFileElement" )
 }
 
-class AudioFileElement( val path: File, val numFrames: Long,
-                        val numChannels: Int, val sampleRate: Double )
+case class AudioFileElement( path: File, numFrames: Long,
+                             numChannels: Int, sampleRate: Double )
 extends SessionElement {
   def name: String = path.getName
 

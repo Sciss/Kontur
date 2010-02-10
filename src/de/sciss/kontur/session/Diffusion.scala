@@ -36,9 +36,9 @@ import de.sciss.kontur.edit.{ Editor, SimpleEdit }
 import de.sciss.kontur.util.{ SerializerContext }
 
 object Diffusion {
-  case class NumInputChannelsChanged( oldNum: Int, newNum: Int )
-  case class NumOutputChannelsChanged( oldNum: Int, newNum: Int )
-  val flavor = new DataFlavor( classOf[ Diffusion ], "Diffusion" )
+   case class NumInputChannelsChanged( oldNum: Int, newNum: Int )
+   case class NumOutputChannelsChanged( oldNum: Int, newNum: Int )
+   val flavor = new DataFlavor( classOf[ Diffusion ], "Diffusion" )
 }
 
 trait Diffusion extends SessionElement {

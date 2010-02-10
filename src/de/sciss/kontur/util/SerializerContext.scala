@@ -6,6 +6,7 @@ trait SerializerContext {
    def id( obj: AnyRef ) : Long
    def id( obj: AnyRef, ident: Long ) : Unit
    def getByID[ T ]( ident: Long ) : Option[ T ]
+   def exists( obj: AnyRef ) : Boolean
 
    def id( obj: AnyRef, node: NodeSeq ) {
       val ident = (node \ "@id").text.toLong
@@ -25,6 +26,8 @@ class BasicSerializerContext extends SerializerContext {
    private var mapObjToID = Map[ AnyRef, Long ]()
    private var mapIDToObj = Map[ Long, AnyRef ]()
    private var idCount = 0L
+
+   def exists( obj: AnyRef ) = mapObjToID.contains( obj )
 
    private def createID : Long = {
       val res = idCount

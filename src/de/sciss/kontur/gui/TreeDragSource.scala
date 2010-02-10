@@ -39,15 +39,15 @@ trait CanBeDragSource extends Transferable {
    def transferDataFlavors: List[ DataFlavor ]
    def transferData( flavor: DataFlavor ) : AnyRef
 
-  def isDataFlavorSupported( flavor: DataFlavor ) : Boolean =
-     transferDataFlavors.contains( flavor )
+   def isDataFlavorSupported( flavor: DataFlavor ) : Boolean =
+      transferDataFlavors.contains( flavor )
 
-  def getTransferDataFlavors() : Array[ DataFlavor ] =
-    transferDataFlavors.toArray
+   def getTransferDataFlavors() : Array[ DataFlavor ] =
+     transferDataFlavors.toArray
 
-  def getTransferData( flavor: DataFlavor ) : AnyRef = try {
-     transferData( flavor )
-  } catch { case e1: MatchError => throw new UnsupportedFlavorException( flavor )}
+   def getTransferData( flavor: DataFlavor ) : AnyRef = try {
+         transferData( flavor )
+      } catch { case e1: MatchError => throw new UnsupportedFlavorException( flavor )}
 }
 
 class TreeDragSource( tree: JTree, actions: Int = ACTION_COPY_OR_MOVE | ACTION_LINK )
