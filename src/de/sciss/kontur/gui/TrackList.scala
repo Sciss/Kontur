@@ -51,7 +51,7 @@ trait TrackListEditor extends Editor {
 trait TrackListElement {
     def track: Track
     def renderer: TrackRenderer
-    def trailView: TrailView[ _ ]
+    def trailView: TrailView[ _ <: Stake[ _ ]]
     def selected: Boolean
 }
 
@@ -61,29 +61,32 @@ trait TrackList extends Model {
 	def numElements: Int
 	def getElementAt( idx: Int ) : TrackListElement
 	def getElement( t: Track ) : Option[ TrackListElement ]
-    def editor : Option[ TrackListEditor ]
+   def editor : Option[ TrackListEditor ]
 
-    // support these common methods
-    def foreach[ U ]( f: TrackListElement => U ) : Unit =
-        toList.foreach( f )
+   // support these common methods
+   def foreach[ U ]( f: TrackListElement => U ) : Unit =
+      toList.foreach( f )
 
-    def filter( p: (TrackListElement) => Boolean ): List[ TrackListElement ] =
-        toList.filter( p )
+   def filter( p: (TrackListElement) => Boolean ): List[ TrackListElement ] =
+      toList.filter( p )
 
-    def find( p: (TrackListElement) => Boolean ): Option[ TrackListElement ] =
-        toList.find( p )
+   def find( p: (TrackListElement) => Boolean ): Option[ TrackListElement ] =
+      toList.find( p )
 
-    def toList: List[ TrackListElement ] = {
-        val buf = new ListBuffer[ TrackListElement ]()
-        var i = 0
-        while( i < numElements ) {
-            buf += getElementAt( i )
-            i += 1
-        }
-        buf.toList
-    }
+   def foldLeft[B]( z: B )( op: (B, TrackListElement) => B ) : B =
+      toList.foldLeft( z )( op )
 
-    def indexOf( e: TrackListElement ) = toList.indexOf( e )
+   def toList: List[ TrackListElement ] = {
+      val buf = new ListBuffer[ TrackListElement ]()
+      var i = 0
+      while( i < numElements ) {
+         buf += getElementAt( i )
+         i += 1
+      }
+      buf.toList
+   }
+
+   def indexOf( e: TrackListElement ) = toList.indexOf( e )
 }
 
 class DummyTrackList extends TrackList {
@@ -101,7 +104,7 @@ class DummyTrackList extends TrackList {
 //}
 
 class BasicTrackListElement( val track: Track, val renderer: TrackRenderer,
-                             val trailView: TrailView[ _ ])
+                             val trailView: TrailView[ _ <: Stake[ _ ]])
 extends TrackListElement {
     var selected = false
 }
@@ -154,48 +157,51 @@ extends TrackList with TrackListEditor {
 
    override def toList: List[ TrackListElement ] = elements.toList
 
-  protected def createTrailView( t: Track ) : TrailView[ _ ] =
-     new BasicTrailView( doc, t.trail )
+   override def foldLeft[B]( z: B )( op: (B, TrackListElement) => B ) : B =
+      elements.foldLeft( z )( op )
 
-  protected def createRenderer( t: Track ) : TrackRenderer = t match {
+   protected def createTrailView( t: Track ) : TrailView[ _ <: Stake[ _ ]] =
+      new BasicTrailView( doc, t.trail )
+
+   protected def createRenderer( t: Track ) : TrackRenderer = t match {
       case at: AudioTrack => new AudioTrackRenderer( doc, at, this, timelineView )
       case _ => new DefaultTrackRenderer( doc, t, this, timelineView )
-  }
+   }
 
-  protected def createElement( t: Track, renderer: TrackRenderer,
-                               trailView: TrailView[ _ ]) : TrackListElement =
+   protected def createElement( t: Track, renderer: TrackRenderer,
+                                trailView: TrailView[ _ <: Stake[ _ ]]) : TrackListElement =
       new BasicTrackListElement( t, renderer, trailView )
 
-  private def addTrack( t: Track, force: Boolean ) {
-     if( mapElem.contains( t )) return
-     if( force || everAdded.contains( t )) {
-        val trailView = createTrailView( t ) // must be before renderer!
-        val renderer  = createRenderer( t )
-        val elem      = createElement( t, renderer, trailView )
-        mapElem += t -> elem
-        everAdded += t
-        val idx = elements.size // XXX
-        elements.insert( idx, elem )
-        dispatch( ElementAdded( idx, elem )) // XXX could redispatch SESeq stuff
-     }
-  }
+   private def addTrack( t: Track, force: Boolean ) {
+      if( mapElem.contains( t )) return
+      if( force || everAdded.contains( t )) {
+         val trailView = createTrailView( t ) // must be before renderer!
+         val renderer  = createRenderer( t )
+         val elem      = createElement( t, renderer, trailView )
+         mapElem += t -> elem
+         everAdded += t
+         val idx = elements.size // XXX
+         elements.insert( idx, elem )
+         dispatch( ElementAdded( idx, elem )) // XXX could redispatch SESeq stuff
+      }
+   }
 
-  private def removeTrack( t: Track ) {
-     if( following || everAdded.contains( t )) {
+   private def removeTrack( t: Track ) {
+      if( following || everAdded.contains( t )) {
+         println( "REMOVE TRACK : NOT YET IMPLEMENTED" )
+      }
+   }
 
-     }
-  }
+   def dispose {
+      tracks.removeListener( tracksListener )
+      everAdded = Set[ Track ]()
+      mapElem   = Map[ Track, TrackListElement ]()
+   }
 
-  def dispose {
-    tracks.removeListener( tracksListener )
-    everAdded = Set[ Track ]()
-    mapElem   = Map[ Track, TrackListElement ]()
-  }
+   def select( e: TrackListElement* ) : Unit = setSelection( e, true )
+   def deselect( e: TrackListElement* ) : Unit = setSelection( e, false )
 
-  def select( e: TrackListElement* ) : Unit = setSelection( e, true )
-  def deselect( e: TrackListElement* ) : Unit = setSelection( e, false )
-
-  private def setSelection( e: Seq[ TrackListElement ], state: Boolean ) {
+   private def setSelection( e: Seq[ TrackListElement ], state: Boolean ) {
       val ef = e.filterNot( elem => elem.selected == state )
       if( !ef.isEmpty ) {
         val change = SelectionChanged( ef: _* )
@@ -205,11 +211,11 @@ extends TrackList with TrackListEditor {
         })
         dispatch( change )
       }
-  }
+   }
 
-  // ---- TrackList trait ----
+   // ---- TrackList trait ----
 	def getBounds( e: TrackListElement ) : Rectangle =
-        e.renderer.trackComponent.getBounds()
+      e.renderer.trackComponent.getBounds()
 
 	def numElements: Int = elements.size
 	def getElementAt( idx: Int ) : TrackListElement = elements( idx )
@@ -218,25 +224,25 @@ extends TrackList with TrackListEditor {
     def editor: Option[ TrackListEditor ] = Some( this )
    // ---- TrackListEditor trait ----
 
-  def undoManager: UndoManager = doc.getUndoManager
+   def undoManager: UndoManager = doc.getUndoManager
 
- def editSelect( ce: AbstractCompoundEdit, e: TrackListElement* ) : Unit =
-    editSetSelection( ce, e, true )
+   def editSelect( ce: AbstractCompoundEdit, e: TrackListElement* ) : Unit =
+      editSetSelection( ce, e, true )
 
- def editDeselect( ce: AbstractCompoundEdit, e: TrackListElement* ) : Unit =
-    editSetSelection( ce, e, false )
+   def editDeselect( ce: AbstractCompoundEdit, e: TrackListElement* ) : Unit =
+      editSetSelection( ce, e, false )
 
-  private def editSetSelection( ce: AbstractCompoundEdit,
+   private def editSetSelection( ce: AbstractCompoundEdit,
                                  e: Seq[ TrackListElement ], state: Boolean ) {
-    val ef = e.filterNot( _.selected == state )
-    if( !ef.isEmpty ) {
-        val edit = new SimpleEdit( "editTrackSelection", false ) {
+      val ef = e.filterNot( _.selected == state )
+      if( !ef.isEmpty ) {
+         val edit = new SimpleEdit( "editTrackSelection", false ) {
             def apply { setSelection( ef, state )}
             def unapply { setSelection( ef, !state )}
-        }
-        ce.addPerform( edit )
-    }
-  }
+         }
+         ce.addPerform( edit )
+      }
+   }
 }
 
 /*

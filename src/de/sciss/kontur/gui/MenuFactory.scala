@@ -30,7 +30,7 @@ package de.sciss.kontur.gui
 
 import de.sciss.app.{ AbstractApplication, AbstractWindow }
 import de.sciss.common.{ BasicApplication, BasicMenuFactory, BasicWindowHandler }
-import de.sciss.gui.{ MenuAction, MenuGroup, MenuItem }
+import de.sciss.gui.{ BooleanPrefsMenuAction, MenuAction, MenuCheckItem, MenuGroup, MenuItem }
 import de.sciss.kontur.{ Main }
 import de.sciss.kontur.util.{ PrefsUtil }
 import de.sciss.kontur.session.{ Session }
@@ -44,17 +44,15 @@ import org.xml.sax.helpers.{ DefaultHandler }
 
 class MenuFactory( app: BasicApplication )
 extends BasicMenuFactory( app ) {
-  import BasicMenuFactory._
+   import BasicMenuFactory._
 
    // ---- actions ----
    private val actionOpen = new ActionOpen( getResourceString( "menuOpen" ),
-										    KeyStroke.getKeyStroke( KeyEvent.VK_O,
-                                            MENU_SHORTCUT ))
-	private val actionNewEmpty = new ActionNewEmpty( getResourceString( "menuNewEmpty" ),
-											KeyStroke.getKeyStroke( KeyEvent.VK_N,
-                                            MENU_SHORTCUT ))
+										    KeyStroke.getKeyStroke( KeyEvent.VK_O, MENU_SHORTCUT ))
+   private val actionNewEmpty = new ActionNewEmpty( getResourceString( "menuNewEmpty" ),
+											 KeyStroke.getKeyStroke( KeyEvent.VK_N, MENU_SHORTCUT ))
 
-    def openDocument( f: File ) {
+   def openDocument( f: File ) {
 		actionOpen.perform( f )
 	}
 
@@ -70,10 +68,10 @@ extends BasicMenuFactory( app ) {
 
 	protected def getOpenAction() : Action = actionOpen
 
-  	protected def addMenuItems() {
-		// Ctrl on Mac / Ctrl+Alt on PC
-		val myCtrl = if( MENU_SHORTCUT == InputEvent.CTRL_MASK ) InputEvent.CTRL_MASK | InputEvent.ALT_MASK
-        else InputEvent.CTRL_MASK
+   protected def addMenuItems() {
+	   // Ctrl on Mac / Ctrl+Alt on PC
+      val myCtrl = if( MENU_SHORTCUT == InputEvent.CTRL_MASK ) InputEvent.CTRL_MASK | InputEvent.ALT_MASK
+         else InputEvent.CTRL_MASK
 
 		// --- file menu ---
 
@@ -95,17 +93,32 @@ extends BasicMenuFactory( app ) {
 							  KeyStroke.getKeyStroke( KeyEvent.VK_BACK_SLASH, MENU_SHORTCUT )))
 		mgTimeline.add( new MenuItem( "removeSpan", getResourceString( "menuRemoveSpan" ),
 							  KeyStroke.getKeyStroke( KeyEvent.VK_BACK_SLASH, MENU_SHORTCUT | InputEvent.SHIFT_MASK )))
-        mgTimeline.addSeparator()
+      mgTimeline.addSeparator()
 		mgTimeline.add( new MenuItem( "splitObjects", getResourceString( "menuSplitObjects" ),
 							  KeyStroke.getKeyStroke( KeyEvent.VK_Y, myCtrl )))
 		add( mgTimeline, indexOf( "edit" ) + 1 )
+
+      // --- actions menu ---
+      val mgActions  = new MenuGroup( "actions", getResourceString( "menuActions" ))
+      mgActions.add( new MenuItem( "showInEisK", getResourceString( "menuShowInEisK" )))
+      add( mgActions, indexOf( "timeline" ) + 1 )
+
+      // --- operation menu ---
+      val prefs = app.getUserPrefs()
+      val mgOperation = new MenuGroup( "operation", getResourceString( "menuOperation" ))
+      val actionLinkObjTimelineSel = new BooleanPrefsMenuAction( getResourceString( "menuInsertionFollowsPlay" ), null )
+      val miLinkObjTimelineSel = new MenuCheckItem( "insertionFollowsPlay", actionLinkObjTimelineSel )
+      actionLinkObjTimelineSel.setCheckItem( miLinkObjTimelineSel )
+      actionLinkObjTimelineSel.setPreferences( prefs, PrefsUtil.KEY_LINKOBJTIMELINESEL )
+      mgOperation.add( miLinkObjTimelineSel )
+      add( mgOperation, indexOf( "actions" ) + 1 )
 
   		// --- window menu ---
 		val mgWindow  = get( "window" ).asInstanceOf[ MenuGroup ]
   		mgWindow.add( new MenuItem( "observer", new ActionObserver( getResourceString( "paletteObserver" ), KeyStroke.getKeyStroke( KeyEvent.VK_NUMPAD3, MENU_SHORTCUT ))), 3 )
   }
 
-  // ---- internal classes ----
+   // ---- internal classes ----
 	// action for the New-Empty Document menu item
 	protected class ActionNewEmpty( text: String, shortcut: KeyStroke )
 	extends MenuAction( text, shortcut )
@@ -151,7 +164,7 @@ extends BasicMenuFactory( app ) {
 			queryFile().foreach( f => perform( f ))
 		}
 
-        private def queryFile() : Option[ File ] = {
+      private def queryFile() : Option[ File ] = {
 			val w = app.getComponent( Main.COMP_MAIN ).asInstanceOf[ AbstractWindow ]
 			val frame	= w.getWindow() match {
                case f: Frame => f
@@ -161,11 +174,11 @@ extends BasicMenuFactory( app ) {
 
 			val fDlg = new FileDialog( frame, getResourceString( "fileDlgOpenSession" ), FileDialog.LOAD )
 			fDlg.setDirectory( prefs.get( PrefsUtil.KEY_FILEOPENDIR, System.getProperty( "user.home" )))
-            val accept = try {
-              Some( new Acceptor )
-            }
-            catch { case _ => None }
-            accept.foreach( a => fDlg.setFilenameFilter( a ))
+         val accept = try {
+            Some( new Acceptor )
+         }
+         catch { case _ => None }
+         accept.foreach( a => fDlg.setFilenameFilter( a ))
 			fDlg.setVisible( true )
             accept.foreach( _.dispose )
 			val strDir	= fDlg.getDirectory()
@@ -179,61 +192,61 @@ extends BasicMenuFactory( app ) {
 			Some( new File( strDir, strFile ))
 		}
 
-        private class Acceptor extends DefaultHandler with FilenameFilter {
-            val factory = SAXParserFactory.newInstance()
-            val parser  = factory.newSAXParser()
+      private class Acceptor extends DefaultHandler with FilenameFilter {
+         val factory = SAXParserFactory.newInstance()
+         val parser  = factory.newSAXParser()
 
-            def accept( dir: File, name: String ) : Boolean = {
-               val file = new File( dir, name )
-               if( !file.isFile || !file.canRead ) return false
+         def accept( dir: File, name: String ) : Boolean = {
+            val file = new File( dir, name )
+            if( !file.isFile || !file.canRead ) return false
+            try {
+               var reader = new FileReader( file )
                try {
-                 var reader = new FileReader( file )
-                 try {
-                    // note that the parsing is hell slow for some reason.
-                    // therefore we do a quick magic cookie check first
-                    val cookie = new Array[ Char ]( 5 )
-                    reader.read( cookie )
-                    if( new String( cookie ) != "<?xml" ) return false
-                    // sucky FileReader does not support reset
-//                    reader.reset()
-                    reader.close()
-                    reader = new FileReader( file )
-                    val is = new InputSource( reader )
-                    parser.reset()
-                    parser.parse( is, this )
-                    false
-                 }
-                 catch {
-                    case e: SessionFoundException => true
-                    case _ => false
-                 }
-                 finally {
-                    try { reader.close() } catch { case e => }
-                 }
+                  // note that the parsing is hell slow for some reason.
+                  // therefore we do a quick magic cookie check first
+                  val cookie = new Array[ Char ]( 5 )
+                  reader.read( cookie )
+                  if( new String( cookie ) != "<?xml" ) return false
+                  // sucky FileReader does not support reset
+//                reader.reset()
+                  reader.close()
+                  reader = new FileReader( file )
+                  val is = new InputSource( reader )
+                  parser.reset()
+                  parser.parse( is, this )
+                  false
                }
-              catch { case e1: IOException => false }
+               catch {
+                  case e: SessionFoundException => true
+                  case _ => false
+               }
+               finally {
+                  try { reader.close() } catch { case e => }
+               }
             }
+            catch { case e1: IOException => false }
+         }
 
-            @throws( classOf[ SAXException ])
-            override def startElement( uri: String, localName: String,
-              qName: String, attributes: Attributes ) {
+         @throws( classOf[ SAXException ])
+         override def startElement( uri: String, localName: String,
+            qName: String, attributes: Attributes ) {
 
-                // eventually we will have a version check here
-                // (using attributes) and
-                // could then throw more detailed information
-                throw (if( qName == Session.XML_START_ELEMENT ) new SessionFoundException
-                else new SessionNotFoundException)
-            }
+            // eventually we will have a version check here
+            // (using attributes) and
+            // could then throw more detailed information
+            throw (if( qName == Session.XML_START_ELEMENT ) new SessionFoundException
+            else new SessionNotFoundException)
+         }
 
-            def dispose {
-              // nothing actually
-            }
+         def dispose {
+            // nothing actually
+         }
 
-            private class SessionFoundException extends SAXException
-            private class SessionNotFoundException extends SAXException
-        }
+         private class SessionFoundException extends SAXException
+         private class SessionNotFoundException extends SAXException
+     }
 
-        /**
+     /**
      	 *  Loads a new document file.
 		 *  a <code>ProcessingThread</code>
 		 *  started which loads the new session.
@@ -269,10 +282,10 @@ extends BasicMenuFactory( app ) {
 	private class ActionObserver( text: String, shortcut: KeyStroke )
 	extends MenuAction( text, shortcut ) {
 		def actionPerformed( e: ActionEvent ) {
-            val f = app.getComponent( Main.COMP_OBSERVER ) match {
-                case fr: ObserverFrame => fr
-                case _ => new ObserverFrame()
-            }
+         val f = app.getComponent( Main.COMP_OBSERVER ) match {
+            case fr: ObserverFrame => fr
+            case _ => new ObserverFrame()
+         }
 			f.setVisible( true )
 			f.toFront()
 		}

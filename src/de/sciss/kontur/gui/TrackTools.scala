@@ -34,9 +34,10 @@ import javax.swing.{ AbstractAction, AbstractButton, BoxLayout, ImageIcon,
                      JButton, JPanel, JToggleButton, SwingUtilities }
 import javax.swing.event.{ MouseInputAdapter }
 import scala.math._
-import de.sciss.app.{ AbstractCompoundEdit }
+import de.sciss.app.{ AbstractApplication, AbstractCompoundEdit }
+import de.sciss.io.{ Span }
 import de.sciss.kontur.session.{ Stake, Track, Trail }
-import de.sciss.kontur.util.{ Model }
+import de.sciss.kontur.util.{ Model, PrefsUtil }
 import de.sciss.dsp.{ MathUtil }
 
 object TrackTools {
@@ -85,62 +86,97 @@ object TrackStakeTool {
 }
 
 trait TrackStakeTool extends TrackTool {
-    tool =>
+   tool =>
 
-    import TrackStakeTool._
+   import TrackStakeTool._
 
-    protected def trackList: TrackList
-    protected def timelineView: TimelineView
-    
-    def handleSelect( e: MouseEvent, tle: TrackListElement, pos: Long, stakeO: Option[ Stake[ _ ]]) {
-        val track = tle.track // "stable"
-        val tvCast = tle.trailView.asInstanceOf[ TrailView[ track.T ]]
-        val stakeOCast = stakeO.asInstanceOf[ Option[ track.T ]]
-        tvCast.editor.foreach( ed => {
-            if( e.isShiftDown ) {
-                stakeOCast.foreach( stake => {
-                    val ce = ed.editBegin( "editSelectStakes" )
-                    if( tvCast.isSelected( stake )) {
-                        ed.editDeselect( ce, stake )
-                    } else {
-                        ed.editSelect( ce, stake )
-                    }
-                    ed.editEnd( ce )
-                })
-            } else {
-                if( stakeOCast.map( stake => !tvCast.isSelected( stake )) getOrElse true ) {
-                    val ce = ed.editBegin( "editSelectStakes" )
-                    trackList.foreach( tle2 => {
-                        val track2 = tle2.track // "stable"
-                        val tvCast2 = tle2.trailView.asInstanceOf[ TrailView[ track2.T ]]
-                        tvCast2.editor.foreach( ed2 => {
-                            ed2.editDeselect( ce, ed2.view.selectedStakes.toList: _* )
-                        })
-                    })
-                    stakeOCast.foreach( stake => {
-                        ed.editSelect( ce, stake )
-                    })
-                    ed.editEnd( ce )
-                }
+   protected def trackList: TrackList
+   protected def timelineView: TimelineView
+
+//   private def spanMinus( recalc: Boolean, union: Span, single: Span ) : Boolean = {
+//      if( recalc || ((single.start > union.start) && (single.stop < union.stop)) ) {
+//         recalc
+//      } else {
+//         true
+//      }
+//   }
+//
+//   private def spanPlus( recalc: Boolean, union: Span, single: Span ) : Span = {
+//      if( recalc || single.isEmpty ) {
+//         union
+//      } else {
+//         union.union( single )
+//      }
+//   }
+
+   def handleSelect( e: MouseEvent, tle: TrackListElement, pos: Long, stakeO: Option[ Stake[ _ ]]) {
+      val track      = tle.track // "stable"
+      val tvCast     = tle.trailView.asInstanceOf[ TrailView[ track.T ]]
+      val stakeOCast = stakeO.asInstanceOf[ Option[ track.T ]]
+
+      tvCast.editor.foreach( ed => {
+         if( e.isShiftDown ) {
+            stakeOCast.foreach( stake => {
+               val ce = ed.editBegin( "editSelectStakes" )
+               if( tvCast.isSelected( stake )) {
+                  ed.editDeselect( ce, stake )
+//                  if( linked ) newSelRecalc = spanMinus( newSelRecalc, newSel, stake.span )
+               } else {
+                  ed.editSelect( ce, stake )
+//                  if( linked ) newSel = spanPlus( newSelRecalc, newSel, stake.span )
+               }
+               ed.editEnd( ce )
+            })
+         } else {
+            if( stakeOCast.map( stake => !tvCast.isSelected( stake )) getOrElse true ) {
+               val ce = ed.editBegin( "editSelectStakes" )
+               trackList.foreach( tle2 => {
+                  val track2 = tle2.track // "stable"
+                  val tvCast2 = tle2.trailView.asInstanceOf[ TrailView[ track2.T ]]
+                  tvCast2.editor.foreach( ed2 => {
+                     ed2.editDeselect( ce, ed2.view.selectedStakes.toList: _* )
+//                     if( linked && !newSelRecalc ) {
+//                        newSelRecalc = spanMinus( newSelRecalc, newSel, stake.span )
+//                     }
+                  })
+               })
+               stakeOCast.foreach( stake => {
+                  ed.editSelect( ce, stake )
+               })
+               ed.editEnd( ce )
             }
-        })
+         }
+      })
 
-        // now go on if stake is selected
-        stakeOCast.foreach( stake => if( tvCast.isSelected( stake ))
-            new Drag( e, tle, pos, stake )
-        )
-    }
+      // handle linked timeline selection
+      if( AbstractApplication.getApplication.getUserPrefs.getBoolean( PrefsUtil.KEY_LINKOBJTIMELINESEL, false )) {
+         val oldSel     = timelineView.selection.span
+         var newSel     = trackList.foldLeft( new Span() )( (union, elem) =>
+            elem.trailView.selectedStakes.foldLeft( union )( (union, stake) =>
+               if( union.isEmpty ) stake.span else union.union( stake.span )))
+         if( newSel != oldSel ) {
+            timelineView.editor.foreach( ed => {
+               val ce = ed.editBegin( "select" )
+               ed.editSelect( ce, newSel )
+               ed.editEnd( ce )
+            })
+         }
+      }
+      
+      // now go on if stake is selected
+      stakeOCast.foreach( stake => if( tvCast.isSelected( stake )) new Drag( e, tle, pos, stake ))
+   }
 
-    protected def dragStarted( d: Drag ) : Boolean
-    protected def dragBegin( d: Drag )
-    protected def dragAdjust( d: Drag )
+   protected def dragStarted( d: Drag ) : Boolean
+   protected def dragBegin( d: Drag )
+   protected def dragAdjust( d: Drag )
 
-    protected def screenToVirtual( e: MouseEvent ) : Long = {
-        val tlSpan   = timelineView.timeline.span
-        val p_off    = -tlSpan.start
-        val p_scale  = e.getComponent.getWidth.toDouble / tlSpan.getLength
-        (e.getX.toLong / p_scale - p_off + 0.5).toLong
-    }
+   protected def screenToVirtual( e: MouseEvent ) : Long = {
+      val tlSpan   = timelineView.timeline.span
+      val p_off    = -tlSpan.start
+      val p_scale  = e.getComponent.getWidth.toDouble / tlSpan.getLength
+      (e.getX.toLong / p_scale - p_off + 0.5).toLong
+   }
 
    protected def dragEnd( d: this.Drag ) {
       // XXX it becomes a little arbitrary which editor

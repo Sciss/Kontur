@@ -33,6 +33,7 @@ import de.sciss.common.{ BasicApplication, BasicMenuFactory, ShowWindowAction,
                         BasicWindowHandler}
 import de.sciss.gui.{ GUIUtil, MenuAction, MenuGroup, MenuItem, SpringPanel}
 import de.sciss.io.{ Span }
+import de.sciss.kontur.io.{ EisenkrautClient }
 import de.sciss.kontur.session.{ AudioRegion, AudioTrack, Session, Stake,
                                  ResizableStake, Timeline }
 import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }
@@ -50,23 +51,23 @@ object TimelineFrame {
 class TimelineFrame( protected val doc: Session, tl: Timeline )
 extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
-//  	private var writeProtected	= false
+// private var writeProtected	= false
 //	private var wpHaveWarned	= false
-//    private val actionShowWindow= new ShowWindowAction( this )
-    private val timelineView  = new BasicTimelineView( doc, tl )
-//    private val trackList     = new BasicTrackList( doc, timelineView )
-    private val timelinePanel = new TimelinePanel( timelineView )
-//    private val trailView     = new javax.swing.JLabel( "Trail" )
-//    private val trailsView     = new BasicTrailsView( doc, tl.tracks )
-    private val tracksPanel    = new TracksPanel( doc, timelinePanel )
-    private val trackTools     = new TrackToolsPanel( tracksPanel, timelineView )
+// private val actionShowWindow= new ShowWindowAction( this )
+   private val timelineView  = new BasicTimelineView( doc, tl )
+// private val trackList     = new BasicTrackList( doc, timelineView )
+   private val timelinePanel = new TimelinePanel( timelineView )
+// private val trailView     = new javax.swing.JLabel( "Trail" )
+// private val trailsView     = new BasicTrailsView( doc, tl.tracks )
+   private val tracksPanel    = new TracksPanel( doc, timelinePanel )
+   private val trackTools     = new TrackToolsPanel( tracksPanel, timelineView )
 
-    // ---- constructor ----
-    {
+   // ---- constructor ----
+   {
       tracksPanel.registerTools( trackTools )
       timelinePanel.viewPort    = Some( tracksPanel.getViewport )
 
-//      app.getMenuFactory().addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
+//    app.getMenuFactory().addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
       val cp = getContentPane
       cp.add( tracksPanel, BorderLayout.CENTER )
       val topBox = Box.createHorizontalBox()
@@ -75,7 +76,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
       topBox.add( new TransportPanel( timelineView ))
       cp.add( topBox, BorderLayout.NORTH )
 
-//      tracksPanel.tracks = Some( tl.tracks )
+//    tracksPanel.tracks = Some( tl.tracks )
 
     	// ---- actions ----
 		val imap		= getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW )
@@ -125,7 +126,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 //		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_TAB, InputEvent.ALT_MASK + InputEvent.SHIFT_MASK ), "extprevreg" )
 //		amap.put( "extprevreg", new ActionSelectRegion( EXTEND_PREV_REGION ))
 
-//    	imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_M, BasicMenuFactory.MENU_SHORTCUT ), "debuggen" )
+//    imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_M, BasicMenuFactory.MENU_SHORTCUT ), "debuggen" )
 //		amap.put( "debuggen", new ActionDebugGenerator )
 
     	// ---- menus and actions ----
@@ -142,6 +143,8 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 //		mr.putMimic( "timeline.clearSpan", this, new ActionClearSpan )
 //		mr.putMimic( "timeline.removeSpan", this, new ActionRemoveSpan )
 		mr.putMimic( "timeline.splitObjects", this, new ActionSplitObjects )
+
+      mr.putMimic( "actions.showInEisK", this, new ActionShowInEisK )
 
       makeUnifiedLook
       init()
@@ -563,4 +566,22 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
             })
     	}
     }
+
+   private class ActionShowInEisK extends MenuAction {
+      def actionPerformed( e: ActionEvent ) : Unit = perform
+
+      def perform {
+         tracksPanel.find( _.trailView.selectedStakes.headOption match {
+            case Some( ar: AudioRegion ) => {
+               val delta      = ar.offset - ar.span.start
+               val cursor     = Some( timelineView.cursor.position + delta )
+               val selection  = if( timelineView.selection.span.isEmpty ) None else
+                  Some( timelineView.selection.span.shift( delta ))
+               EisenkrautClient.instance.openAudioFile( ar.audioFile.path, cursor, selection )
+               true
+            }
+            case _ => false
+         })
+      }
+   }
 }

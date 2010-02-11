@@ -28,6 +28,9 @@
 
 package de.sciss.kontur.util
 
+/**
+ *    @version 0.11, 10-Feb-10
+ */
 object PrefsUtil {
 	/**
 	 *  Value: String representing the path of
@@ -49,7 +52,9 @@ object PrefsUtil {
 	 *  loaded. Has default value: yes!<br>
 	 *  Node: root
 	 */
-	val KEY_LOOKANDFEEL = "lookandfeel"   
+	val KEY_LOOKANDFEEL = "lookandfeel"
+
+   val KEY_LINKOBJTIMELINESEL = "linkobjtimelinesel"
 
 	/**
 	 *  Child node of root prefs
@@ -57,6 +62,9 @@ object PrefsUtil {
 	val NODE_IO = "io"
 
 	val NODE_SONACACHE = "sonacache" // child of I/O
+
+   val KEY_EISKOSCPORT     = "eiskoscport"
+   val KEY_EISKOSCPROTOCOL = "eiskoscprotocol"
 
 	/**
 	 *  Child node of audio prefs
