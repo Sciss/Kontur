@@ -33,14 +33,14 @@ import de.sciss.common.{ BasicWindowHandler }
 import de.sciss.gui.{ MenuGroup, MenuItem }
 import de.sciss.io.{ AudioFile, AudioFileDescr }
 import de.sciss.kontur.{ Main }
-import de.sciss.kontur.session.{ AudioFileElement, AudioTrack, BasicTimeline, Diffusion, DiffusionFactory,
+import de.sciss.kontur.session.{ AudioFileElement, AudioFileSeq, AudioTrack, BasicTimeline, Diffusion, DiffusionFactory,
    Renameable, Session, SessionElement, SessionElementSeq, Stake, Timeline, Track, TrackEditor }
-import java.awt.{ Component, FileDialog, Frame }
+import java.awt.{ BorderLayout, Component, FileDialog, Frame }
 import java.awt.datatransfer.{ DataFlavor, Transferable }
 import java.awt.dnd.{ DnDConstants }
 import java.awt.event.{ ActionEvent }
 import java.io.{ File, FilenameFilter, IOException }
-import javax.swing.{ AbstractAction, Action, JOptionPane }
+import javax.swing.{ AbstractAction, Action, DefaultListSelectionModel, JLabel, JList, JPanel, JOptionPane, JScrollPane }
 import javax.swing.tree.{ DefaultMutableTreeNode, DefaultTreeModel, MutableTreeNode,
                          TreeModel, TreeNode }
 import scala.collection.JavaConversions.{ JEnumerationWrapper }
@@ -205,61 +205,94 @@ with HasContextMenu {
     new TimelineTreeIndex( model, elem ) // with UniqueCount
 }
 
-class AudioFilesTreeIndex( model: SessionTreeModel, audioFiles: SessionElementSeq[ AudioFileElement ])
+class AudioFilesTreeIndex( model: SessionTreeModel, audioFiles: AudioFileSeq )
 extends SessionElementSeqTreeNode( model, audioFiles )
 with HasContextMenu with CanBeDropTarget {
 
-    def createContextMenu() : Option[ PopupRoot ] = {
-     val root = new PopupRoot()
-     val miAddNew = new MenuItem( "new", new AbstractAction( "Add Audio File" )
+   def createContextMenu() : Option[ PopupRoot ] = {
+      val root = new PopupRoot()
+      val miAddNew = new MenuItem( "new", new AbstractAction( "Add Audio File..." )
                                  with FilenameFilter {
-        def actionPerformed( a: ActionEvent ) {
-           audioFiles.editor.foreach( ed => {
-             getPath.foreach( path => {
-               val name = getValue( Action.NAME ).toString
-               try {
-                  val af = AudioFile.openAsRead( path )
-                  val afd = af.getDescr()
-                  af.close
-                  val ce = ed.editBegin( name )
-                  val afe = new AudioFileElement( path,
-                     afd.length, afd.channels, afd.rate )
-                  ed.editInsert( ce, audioFiles.size, afe )
-                  ed.editEnd( ce )
-               }
-               catch { case e1: IOException => BasicWindowHandler.showErrorDialog( null, e1, name )}
-             })
-           })
-        }
+         def actionPerformed( a: ActionEvent ) {
+            audioFiles.editor.foreach( ed => {
+               getPath.foreach( path => {
+                  val name = getValue( Action.NAME ).toString
+                  try {
+                     val af = AudioFile.openAsRead( path )
+                     val afd = af.getDescr()
+                     af.close
+                     val ce = ed.editBegin( name )
+                     val afe = new AudioFileElement( path, afd.length, afd.channels, afd.rate )
+                     ed.editInsert( ce, audioFiles.size, afe )
+                     ed.editEnd( ce )
+                  }
+                  catch { case e1: IOException => BasicWindowHandler.showErrorDialog( null, e1, name )}
+               })
+            })
+         }
 
-        private def getPath: Option[ File ] = {
-          val dlg = new FileDialog( null.asInstanceOf[ Frame ], getValue( Action.NAME ).toString )
-          dlg.setFilenameFilter( this )
+         private def getPath: Option[ File ] = {
+            val dlg = new FileDialog( null.asInstanceOf[ Frame ], getValue( Action.NAME ).toString )
+            dlg.setFilenameFilter( this )
 //          dlg.show
-          BasicWindowHandler.showDialog( dlg )
-          val dirName   = dlg.getDirectory
-          val fileName  = dlg.getFile
-          if( dirName != null && fileName != null ) {
-            Some( new File( dirName, fileName ))
-          } else {
-            None
-          }
-        }
+            BasicWindowHandler.showDialog( dlg )
+            val dirName   = dlg.getDirectory
+            val fileName  = dlg.getFile
+            if( dirName != null && fileName != null ) {
+               Some( new File( dirName, fileName ))
+            } else {
+               None
+            }
+         }
 
-        def accept( dir: File, name: String ) : Boolean = {
-          val f = new File( dir, name )
-          try {
-            AudioFile.retrieveType( f ) != AudioFileDescr.TYPE_UNKNOWN
-          }
-          catch { case e1: IOException => false }
-        }
-     })
-     root.add( miAddNew )
-     Some( root )
+         def accept( dir: File, name: String ) : Boolean = {
+            val f = new File( dir, name )
+            try {
+               AudioFile.retrieveType( f ) != AudioFileDescr.TYPE_UNKNOWN
+            }
+            catch { case e1: IOException => false }
+         }
+      })
+      root.add( miAddNew )
+
+      audioFiles match {
+         case afs: AudioFileSeq => {
+            val name = "Remove Unused Files"
+            val miRemoveUnused = new MenuItem( "removeUnused", new AbstractAction( name + "..." ) {
+                def actionPerformed( a: ActionEvent ) {
+                   val unused = audioFiles.unused
+                   if( unused.isEmpty ) {
+                      val op = new JOptionPane( "There are currently no unused files.", JOptionPane.INFORMATION_MESSAGE )
+                      BasicWindowHandler.showDialog( op, null, name )
+                   } else {
+                      val pane = new JPanel( new BorderLayout( 4, 4 ))
+                      pane.add( new JLabel( "The following files will be removed:" ), BorderLayout.NORTH )
+                      val list = new JList( unused.map( _.path.getName ).toArray[ java.lang.Object ])
+                      list.setSelectionModel( new DefaultListSelectionModel {
+                         override def addSelectionInterval( index0: Int, index1: Int ) {}
+                         override def setSelectionInterval( index0: Int, index1: Int ) {}
+                      })
+                      pane.add( new JScrollPane( list ), BorderLayout.CENTER )
+                      val op = new JOptionPane( pane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )
+                      val result = BasicWindowHandler.showDialog( op, null, name )
+                      if( result == JOptionPane.OK_OPTION ) {
+                         val ce = afs.editBegin( name )
+                         unused.foreach( afe => afs.editRemove( ce, afe ))
+                         afs.editEnd( ce )
+                      }
+                   }
+                }
+            })
+            root.add( miRemoveUnused )
+         }
+         case _ =>
+      }
+
+      Some( root )
    }
 
   protected def wrap( elem: AudioFileElement ): DynamicTreeNode =
-    new AudioFileTreeLeaf( model, elem ) // with UniqueCount
+    new AudioFileTreeLeaf( model, audioFiles, elem ) // with UniqueCount
 
    // ---- CanBeDropTarget ----
     def pickImport( flavors: List[ DataFlavor ], actions: Int ) : Option[ Tuple2[ DataFlavor, Int ]] = {
@@ -460,11 +493,76 @@ with HasContextMenu with CanBeDragSource {
    }
 }
 
-class AudioFileTreeLeaf( model: SessionTreeModel, afe: AudioFileElement )
+class AudioFileTreeLeaf( model: SessionTreeModel, coll: SessionElementSeq[ AudioFileElement ], afe: AudioFileElement )
 extends SessionElementTreeNode( model, afe, false )
-with HasDoubleClickAction with CanBeDragSource {
+with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
     def doubleClickAction {
       println( "DANG" )
+   }
+
+   def createContextMenu() : Option[ PopupRoot ] = {
+      val root = new PopupRoot()
+      coll match {
+         case afs: AudioFileSeq => {
+            val name = "Replace With Other File"
+            val miReplace = new MenuItem( "replace", new AbstractAction( name + "..." ) with FilenameFilter {
+               def actionPerformed( a: ActionEvent ) {
+                  getPath.foreach( path => {
+                     try {
+                        val newFile = AudioFileElement.fromPath( model.doc, path )
+                        var warnings: List[ String ] = Nil
+                        if( newFile.numChannels != afe.numChannels ) {
+                           warnings ::= ("• Channel mismatch: New file has " + newFile.numChannels + " / old file has " + afe.numChannels)
+                        }
+                        if( newFile.numFrames != afe.numFrames ) {
+                           warnings ::= ("• Frames mismatch: New file has " + newFile.numFrames + " / old file has " + afe.numFrames)
+                        }
+                        val goAhead = if( warnings.nonEmpty ) {
+                           val op = new JOptionPane( "There are discrepancies between\n\"" + afe.path.getPath +
+                              "\" (old file) and\n\"" + newFile.path.getPath + "\" (new file):\n\n" +
+                              warnings.mkString( "\n" ) +
+                              "\n\nDo you still want to replace it?", JOptionPane.WARNING_MESSAGE, JOptionPane.YES_NO_OPTION )
+                           val result = BasicWindowHandler.showDialog( op, null, name )
+                           result == JOptionPane.YES_OPTION
+                        } else true
+
+                        if( goAhead ) {
+                           val ce = afs.editBegin( name )
+                           afs.editReplace( ce, afe, newFile )
+                           afs.editEnd( ce )
+                        }
+                     }
+                     catch { case e: IOException => BasicWindowHandler.showErrorDialog( null, e, name )}
+                  })
+               }
+
+               private def getPath: Option[ File ] = {
+                  val dlg = new FileDialog( null.asInstanceOf[ Frame ], getValue( Action.NAME ).toString )
+                  dlg.setFilenameFilter( this )
+                  BasicWindowHandler.showDialog( dlg )
+                  val dirName   = dlg.getDirectory
+                  val fileName  = dlg.getFile
+                  if( dirName != null && fileName != null ) {
+                     Some( new File( dirName, fileName ))
+                  } else {
+                     None
+                  }
+               }
+
+               def accept( dir: File, name: String ) : Boolean = {
+                  val f = new File( dir, name )
+                  try {
+                     AudioFile.retrieveType( f ) != AudioFileDescr.TYPE_UNKNOWN
+                  }
+                  catch { case e1: IOException => false }
+               }
+            })
+            root.add( miReplace )
+         }
+
+         case _ =>
+      }
+      Some( root )
    }
 
    // ---- CanBeDragSource ----

@@ -30,7 +30,10 @@ package de.sciss.kontur.session
 
 import de.sciss.io.{ Span }
 
-trait RegionTrait[ +Repr ] extends ResizableStake[ Repr ] { val name: String }
+trait RegionTrait[ +Repr ] extends ResizableStake[ Repr ] {
+   val name: String
+   def rename( newName: String ) : Repr 
+}
 
 case class Region( span: Span, name: String ) extends RegionTrait[ Region ] {
    def move( delta: Long ): Region = copy( span = span.shift( delta ))
@@ -40,4 +43,6 @@ case class Region( span: Span, name: String ) extends RegionTrait[ Region ] {
 
    def moveStop( delta: Long ) : Region  =
        copy( span = span.replaceStop( span.stop + delta ))
+
+   def rename( newName: String ) : Region = copy( name = newName )
 }

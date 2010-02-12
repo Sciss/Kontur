@@ -74,7 +74,19 @@ extends RegionTrait[ AudioRegion ] with SlidableStake[ AudioRegion ] {
    def replaceFadeOut( newFadeOut: Option[ FadeSpec ]) : AudioRegion =
       copy( fadeOut = newFadeOut )
 
+   def replaceAudioFile( newFile: AudioFileElement ) : AudioRegion = {
+      if( newFile.numFrames >= span.getLength + offset ) {
+         copy( audioFile = newFile )
+      } else {
+         val newOffset = min( offset, newFile.numFrames - 1 )
+         val newStop   = span.start + min( newFile.numFrames - newOffset, span.getLength )
+         copy( audioFile = newFile, span = new Span( span.start, newStop ), offset = newOffset )
+      }
+   }
+
    def move( delta: Long ) : AudioRegion = copy( span = span.shift( delta ))
+
+   def rename( newName: String ) : AudioRegion = copy( name = newName )
 
    override def split( pos: Long ) : Tuple2[ AudioRegion, AudioRegion ] = {
       val left = {

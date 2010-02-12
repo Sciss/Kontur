@@ -31,6 +31,7 @@ package de.sciss.kontur.session
 import java.awt.datatransfer.{ DataFlavor }
 import java.io.{ IOException }
 import scala.xml.{ Node }
+import de.sciss.io.{ Span }
 import de.sciss.kontur.edit.{ Editor }
 import de.sciss.kontur.util.{ SerializerContext }
 
@@ -70,4 +71,14 @@ extends BasicSessionElementSeq[ Track ]( doc, "Tracks" ) {
             case lb => throw new IOException( "Unknown track type '" + lb + "'" )
          })
       })
+
+   def getStakes( span: Span, overlap: Boolean = true )( filter: (Stake[ _ ]) => Boolean ) : List[ Stake[ _ ]] = {
+      var result: List[ Stake[ _ ]] = Nil
+      foreach( t => {
+         t.trail.visitRange( span )( stake => {
+            if( (overlap || span.contains( stake.span )) && filter( stake )) result ::= stake
+         })
+      })
+      result
+   }
 }

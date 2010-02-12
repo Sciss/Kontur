@@ -52,8 +52,8 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
       val sessionTreeModel = new SessionTreeModel( doc )
       val ggTree = new JTree( sessionTreeModel )
       ggTree.setDropMode( DropMode.ON_OR_INSERT )
-      ggTree.setRootVisible( true )
-      ggTree.setShowsRootHandles( true )
+      ggTree.setRootVisible( false )
+//    ggTree.setShowsRootHandles( true )
       val ggScroll = new JScrollPane( ggTree, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
 		                         	   ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER )
 

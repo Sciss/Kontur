@@ -106,7 +106,7 @@ extends BasicMenuFactory( app ) {
       // --- operation menu ---
       val prefs = app.getUserPrefs()
       val mgOperation = new MenuGroup( "operation", getResourceString( "menuOperation" ))
-      val actionLinkObjTimelineSel = new BooleanPrefsMenuAction( getResourceString( "menuInsertionFollowsPlay" ), null )
+      val actionLinkObjTimelineSel = new BooleanPrefsMenuAction( getResourceString( "menuLinkObjTimelineSel" ), null )
       val miLinkObjTimelineSel = new MenuCheckItem( "insertionFollowsPlay", actionLinkObjTimelineSel )
       actionLinkObjTimelineSel.setCheckItem( miLinkObjTimelineSel )
       actionLinkObjTimelineSel.setPreferences( prefs, PrefsUtil.KEY_LINKOBJTIMELINESEL )

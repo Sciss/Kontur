@@ -31,6 +31,7 @@ package de.sciss.kontur.session
 import java.awt.datatransfer.{ DataFlavor }
 import java.io.{ File, IOException }
 import scala.xml.{ Node }
+import de.sciss.app.{ AbstractCompoundEdit }
 import de.sciss.io.{ AudioFile, AudioFileDescr }
 
 import de.sciss.app.{ AbstractApplication }
@@ -100,11 +101,77 @@ extends BasicSessionElementSeq[ AudioFileElement ]( doc, "Audio Files" ) {
   {innerToXML( c )}
 </audioFiles>
 
-  def fromXML( c: SerializerContext, parent: Node ) {
-     val innerXML = SessionElement.getSingleXML( parent, "audioFiles" )
-     innerFromXML( c, innerXML )
-  }
+   def fromXML( c: SerializerContext, parent: Node ) {
+      val innerXML = SessionElement.getSingleXML( parent, "audioFiles" )
+      innerFromXML( c, innerXML )
+   }
 
-  protected def elementsFromXML( c: SerializerContext, node: Node ) : Seq[ AudioFileElement ] =
-     (node \ AudioFileElement.XML_NODE).map( n => AudioFileElement.fromXML( c, doc, n ))
+   protected def elementsFromXML( c: SerializerContext, node: Node ) : Seq[ AudioFileElement ] =
+      (node \ AudioFileElement.XML_NODE).map( n => AudioFileElement.fromXML( c, doc, n ))
+
+   /**
+    *  Smart edit checking all usage of that file,
+    *  and moving around stakes accordingly.
+    */
+   def editReplace( ce: AbstractCompoundEdit, oldFile: AudioFileElement, newFile: AudioFileElement ) {
+      var trails = Set[ Trail[ _ ]]()
+      doc.timelines.foreach( tl => {
+         tl.tracks.foreach( t => {
+            val trail = t.trail
+            if( !trails.contains( trail )) {
+               trails += trail
+               trail match {
+                  case at: AudioTrail => {
+                     val stakes = at.getAll()
+                     var toRemove = Set[ AudioRegion ]()
+                     var toAdd    = Set[ AudioRegion ]()
+                     stakes.foreach( stake => {
+                        if( stake.audioFile == oldFile ) {
+                           toRemove += stake
+                           toAdd    += stake.replaceAudioFile( newFile )
+                        }
+                     })
+                     if( toRemove.nonEmpty ) {
+                        at.editRemove( ce, toRemove.toList: _* )
+                        at.editAdd( ce, toAdd.toList: _* )
+                     }
+                  }
+                  case _ =>
+               }
+            }
+         })
+      })
+      editRemove( ce, oldFile )
+      editInsert( ce, indexOf( oldFile ), newFile )
+   }
+
+   /**
+    *  Smart detection across tracks
+    */
+   def unused: List[ AudioFileElement ] = {
+      var trails  = Set[ Trail[ _ ]]()
+      var fileSet = toList.toSet
+      if( fileSet.isEmpty ) return Nil
+      doc.timelines.foreach( tl => {
+         tl.tracks.foreach( t => {
+            val trail = t.trail
+            if( !trails.contains( trail )) {
+               trails += trail
+               trail match {
+                  case at: AudioTrail => {
+                     val stakes = at.getAll()
+                     stakes.foreach( stake => {
+                        if( fileSet.contains( stake.audioFile )) {
+                           fileSet -= stake.audioFile
+                           if( fileSet.isEmpty ) return Nil
+                        }
+                     })
+                  }
+                  case _ =>
+               }
+            }
+         })
+      })
+      fileSet.toList
+   }
 }
