@@ -52,6 +52,7 @@ import de.sciss.kontur.session.{ AudioFileElement, AudioRegion, AudioTrack,
                                 Track, Trail }
 import de.sciss.app.{ AbstractApplication, AbstractCompoundEdit,
                       DynamicAncestorAdapter,DynamicListening, GraphicsHandler }
+import de.sciss.dsp.{ MathUtil }
 import de.sciss.io.{ AudioFile, Span }
 import de.sciss.tint.sc.{ curveShape, linearShape }
 
@@ -587,33 +588,50 @@ with SonagramPaintController {
 
    // XXX eventually we could save space and let the painter
    // do the msg matching, no?
-   private val gainFadeToolListener = (msg: AnyRef) => msg match {
+   private val gainToolListener = (msg: AnyRef) => msg match {
       case TrackStakeTool.DragBegin => {
          val union = unionSpan( trailView.selectedStakes )
          if( !union.isEmpty ) {
-            painter = new GainFadePainter( union, painter )
+            painter = new GainPainter( union, painter )
          }
       }
       case TrackGainTool.Gain( factor ) => painter match {
-         case gfp: GainFadePainter => {
-            gfp.adjustGain( factor )
-            gfp.adjusted
-         }
-         case _ =>
-      }
-      case TrackFadeTool.Fade( inDelta, outDelta, inCurve, outCurve ) => painter match {
-         case gfp: GainFadePainter => {
-            gfp.adjustFade( inDelta, outDelta, inCurve, outCurve )
-            gfp.adjusted
+         case gp: GainPainter => {
+            gp.adjustGain( factor )
+            gp.adjusted
          }
          case _ =>
       }
       case TrackStakeTool.DragEnd( ce ) => painter match {
-         case grp: GainFadePainter => grp.finish( ce )
+         case gp: GainPainter => gp.finish( ce )
          case _ =>
       }
       case TrackStakeTool.DragCancel => painter match {
-         case grp: MoveResizePainter => grp.cancel
+         case gp: GainPainter => gp.cancel
+         case _ =>
+      }
+   }
+
+   private val fadeToolListener = (msg: AnyRef) => msg match {
+      case TrackStakeTool.DragBegin => {
+         val union = unionSpan( trailView.selectedStakes )
+         if( !union.isEmpty ) {
+            painter = new FadePainter( union, painter )
+         }
+      }
+      case TrackFadeTool.Fade( inDelta, outDelta, inCurve, outCurve ) => painter match {
+         case fp: FadePainter => {
+            fp.adjustFade( inDelta, outDelta, inCurve, outCurve )
+            fp.adjusted
+         }
+         case _ =>
+      }
+      case TrackStakeTool.DragEnd( ce ) => painter match {
+         case fp: FadePainter => fp.finish( ce )
+         case _ =>
+      }
+      case TrackStakeTool.DragCancel => painter match {
+         case fp: FadePainter => fp.cancel
          case _ =>
       }
    }
@@ -683,15 +701,17 @@ with SonagramPaintController {
         })
     }
 
-   override protected def createDefaultPainter() = new AudioStakePainter {}
+   override protected def createDefaultPainter() = new DefaultAudioStakePainter
 
    override protected def createMoveResizePainter( initialUnion: Span, oldPainter: Painter ) =
-      new MoveResizePainter( initialUnion, oldPainter ) with AudioStakePainter
+      new MoveResizePainter( initialUnion, oldPainter ) with AudioStakePainter {
+         def stakeInfo( ar: AudioRegion ) : Option[ String ] = None
+      }
 
    override protected def selectToolListener( t: TrackTool ): Option[ AnyRef => Unit ] =
       t match {
-         case _ : TrackGainTool   => Some( gainFadeToolListener )
-         case _ : TrackFadeTool   => Some( gainFadeToolListener )
+         case _ : TrackGainTool   => Some( gainToolListener )
+         case _ : TrackFadeTool   => Some( fadeToolListener )
          case _ => super.selectToolListener( t )
       }
 
@@ -700,18 +720,38 @@ with SonagramPaintController {
    def imageObserver: ImageObserver = this
    def adjustGain( amp: Float, pos: Double ) = amp * visualBoost * paintStakeGain // eventually fades here...
 
-   protected class GainFadePainter( protected val initialUnion: Span,
-                                protected val oldPainter: Painter )
+   protected class GainPainter( protected val initialUnion: Span, protected val oldPainter: Painter )
    extends AudioStakePainter with TransformativePainter {
       private var dragGain       = 1f
-      private var dragFdInTime   = 0L  // actually delta
-      private var dragFdInCurve  = 0f  // actually delta
-      private var dragFdOutTime  = 0L  // actually delta
-      private var dragFdOutCurve = 0f  // actually delta
 
       def adjustGain( newGain: Float ) {
          dragGain = newGain
       }
+
+      protected def transform( stake: track.T ) = stake match {
+          case ar: AudioRegion => {
+             val tStake: AudioRegion = if( dragGain != 1f ) {
+                ar.replaceGain( ar.gain * dragGain )
+             } else ar
+              // WHHHHHHHHYYYYYYYYYYYYYYYYYYYYYYYYYYY THE CAST?
+             tStake.asInstanceOf[ track.T ]
+          }
+          case _ => stake
+       }
+
+      protected def stakeInfo( stake: AudioRegion ) : Option[ String ] = {
+         val db = MathUtil.linearToDB( stake.gain * dragGain )
+         val cb = (abs( db ) * 10 + 0.5).toInt
+         Some( (if( db > 0 ) "+" else if( db < 0) "-" else "") + (cb/10) + "." + (cb%10) + " dB" )
+      }
+   }
+
+   protected class FadePainter( protected val initialUnion: Span, protected val oldPainter: Painter )
+   extends AudioStakePainter with TransformativePainter {
+      private var dragFdInTime   = 0L  // actually delta
+      private var dragFdInCurve  = 0f  // actually delta
+      private var dragFdOutTime  = 0L  // actually delta
+      private var dragFdOutCurve = 0f  // actually delta
 
       def adjustFade( newInTime: Long, newOutTime: Long, newInCurve: Float, newOutCurve: Float ) {
          dragFdInTime   = newInTime
@@ -720,12 +760,11 @@ with SonagramPaintController {
          dragFdOutCurve = newOutCurve
       }
 
+      protected def stakeInfo( stake: AudioRegion ) : Option[ String ] = None
+
       protected def transform( stake: track.T ) = stake match {
          case ar: AudioRegion => {
             var tStake: AudioRegion = ar
-            if( dragGain != 1f ) {
-               tStake = tStake.replaceGain( ar.gain * dragGain )
-            }
             val fadeInChange  = dragFdInTime  != 0L || dragFdInCurve != 0f
             val fadeOutChange = dragFdOutTime != 0L || dragFdOutCurve != 0f
             if( fadeInChange || fadeOutChange ) {
@@ -762,6 +801,10 @@ with SonagramPaintController {
       }
    }
 
+   protected class DefaultAudioStakePainter extends AudioStakePainter {
+      protected def stakeInfo( stake: AudioRegion ) : Option[ String ] = None
+   }
+
    protected trait AudioStakePainter extends DefaultPainterTrait {
 //      DefaultPainter =>
       private def paintFade( f: FadeSpec, pc: PaintContext, y1: Float, y2: Float, x: Float, y: Float, h: Float, x0: Float ) {
@@ -791,6 +834,8 @@ with SonagramPaintController {
          pc.g2.setColor( colrFade )
          pc.g2.draw( shpDraw )
       }
+
+      protected def stakeInfo( stake: AudioRegion ) : Option[ String ]
 
       override def paintStake( pc: PaintContext, stake: track.T, selected: Boolean ) {
          stake match {
@@ -838,6 +883,10 @@ with SonagramPaintController {
                   g2.clipRect( x + 2, 2, width - 4, pc.height - 4 )
                   g2.setColor( Color.white )
                   g2.drawString( ar.name, x + 4, hndlBaseline )
+                  stakeInfo( ar ).foreach( info => {
+                     g2.setColor( Color.yellow )
+                     g2.drawString( info, x + 4, hndlBaseline + hndlExtent )
+                  })
                   g2.setClip( clipOrig )
                }
             }

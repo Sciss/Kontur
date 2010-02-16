@@ -144,6 +144,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 //		mr.putMimic( "timeline.removeSpan", this, new ActionRemoveSpan )
 		mr.putMimic( "timeline.splitObjects", this, new ActionSplitObjects )
       mr.putMimic( "timeline.selFollowingObj", this, new ActionSelectFollowingObjects )
+      mr.putMimic( "timeline.alignObjStartToPos", this, new ActionAlignObjectsStartToTimelinePosition )
 
       mr.putMimic( "actions.showInEisK", this, new ActionShowInEisK )
 
@@ -210,6 +211,43 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 //			}
 //		});
 	}
+
+   // welcome back to generics hell....
+   protected def transformSelectedStakes( name: String, func: Stake[ _ ] => Option[ List[ _ ]]) {
+      timelineView.timeline.editor.foreach( ed => {
+         val ce = ed.editBegin( name )
+         tracksPanel.foreach( elem => {
+            val track = elem.track // "stable"
+            val tvCast = elem.trailView.asInstanceOf[ TrailView[ track.T ]]
+            tvCast.editor.foreach( ed2 => {
+               val selectedStakes = ed2.view.selectedStakes
+               val trail = tvCast.trail
+               trail.editor.foreach( ted => {
+                  var toDeselect: List[ track.T ] = Nil // = trail.emptyList
+                  var toRemove   = trail.emptyList
+                  var toAdd      = trail.emptyList
+                  var toSelect   = trail.emptyList
+
+                  selectedStakes.foreach( stake => {
+                     func( stake ).foreach( list => {
+                        val castList = list.asInstanceOf[ List[ track.T ]]
+                        toDeselect ::= stake
+                        toRemove   ::= stake
+                        toAdd     :::= castList
+                        toSelect  :::= castList
+                     })
+                  })
+
+                  if( toDeselect.nonEmpty )  ed2.editDeselect( ce, toDeselect: _* )
+                  if( toRemove.nonEmpty )    ted.editRemove( ce, toRemove: _* )
+                  if( toAdd.nonEmpty )       ted.editAdd( ce, toAdd: _* )
+                  if( toSelect.nonEmpty )    ed2.editSelect( ce, toSelect: _* )
+               })
+            })
+         })
+         ed.editEnd( ce )
+      })
+    }
 
    private class ActionInsertSpan extends MenuAction {
       private var value: Option[ Param ] = None
@@ -524,46 +562,12 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
     	def perform {
         	val pos	= timelineView.cursor.position
-         timelineView.timeline.editor.foreach( ed => {
-            val ce = ed.editBegin( getValue( Action.NAME ).toString )
-            val span = new Span( pos, pos ) // XXX should verify that we don't hit stakes at their margins?
-            tracksPanel.foreach( elem => {
-               val track = elem.track // "stable"
-               val tvCast = elem.trailView.asInstanceOf[ TrailView[ track.T ]]
-               tvCast.editor.foreach( ed2 => {
-                  val selectedStakes = ed2.view.selectedStakes
-                  val trail = tvCast.trail
-                  trail.editor.foreach( ted => {
-//                   ted.editClearSpan( ce, span )( stake => tv.isSelected( span ))
-//                   var toDeselect = trail.emptyList
-                     var toDeselect: List[ track.T ] = Nil // = trail.emptyList
-                     var toRemove   = trail.emptyList
-                     var toAdd      = trail.emptyList
-                     var toSelect   = trail.emptyList
-                     trail.visitRange( span )( stake =>
-                        if( tvCast.isSelected( stake )) stake match {
-                           case rStake: ResizableStake[ _ ] => {
-                              toDeselect ::= stake
-                              toRemove ::= stake
-                              val (stake1, stake2) = rStake.split( pos )
-//                            val stake1 = rStake.moveStop( pos - stake.span.stop )
-//                            val stake2 = rStake.moveStart( pos - stake.span.start )
-                              toAdd ::= stake1
-                              toAdd ::= stake2
-                              toSelect ::= stake1
-                              toSelect ::= stake2
-                           }
-                           case _ =>
-                        }
-                     )
-                     ed2.editDeselect( ce, toDeselect: _* )
-                     ted.editRemove( ce, toRemove: _* )
-                     ted.editAdd( ce, toAdd: _* )
-                     ed2.editSelect( ce, toSelect: _* )
-                  })
-               })
-            })
-            ed.editEnd( ce )
+         transformSelectedStakes( getValue( Action.NAME ).toString, stake => stake match {
+            case rStake: ResizableStake[ _ ] if( stake.span.contains( pos )) => {
+               val (stake1, stake2) = rStake.split( pos )
+               Some( List( stake1, stake2 ))
+            }
+            case _ => None
          })
     	}
    }
@@ -590,6 +594,20 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
                }
             })
             ed.editEnd( ce )
+         })
+      }
+   }
+
+   private class ActionAlignObjectsStartToTimelinePosition extends MenuAction {
+      def actionPerformed( e: ActionEvent ) : Unit = perform
+
+      def perform {
+         val pos	= timelineView.cursor.position
+         transformSelectedStakes( getValue( Action.NAME ).toString, stake => stake match {
+            case rStake: ResizableStake[ _ ] if( stake.span.start != pos ) => {
+               Some( List( rStake.move( pos - rStake.span.start )))
+            }
+            case _ => None
          })
       }
    }

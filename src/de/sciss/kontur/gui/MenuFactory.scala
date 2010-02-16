@@ -96,6 +96,7 @@ extends BasicMenuFactory( app ) {
       mgTimeline.addSeparator()
       mgTimeline.add( new MenuItem( "selFollowingObj", getResourceString( "menuSelFollowingObj" ),
                        KeyStroke.getKeyStroke( KeyEvent.VK_F, myCtrl )))
+      mgTimeline.add( new MenuItem( "alignObjStartToPos", getResourceString( "menuAlignObjStartToPos" ), null ))
 		mgTimeline.add( new MenuItem( "splitObjects", getResourceString( "menuSplitObjects" ),
 							  KeyStroke.getKeyStroke( KeyEvent.VK_Y, myCtrl )))
 		add( mgTimeline, indexOf( "edit" ) + 1 )
