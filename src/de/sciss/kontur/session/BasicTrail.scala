@@ -70,9 +70,9 @@ with TrailEditor[ T ] {
       })
     }
 
-    def getRange( span: Span, byStart: Boolean = true ) : List[ T ] = {
+    def getRange( span: Span, byStart: Boolean = true, overlap: Boolean = true ) : List[ T ] = {
        val res = new ListBuffer[ T ]()
-       visitRange( span, byStart )( stake => res += stake )
+       visitRange( span, byStart )( stake => { if( overlap || span.contains( stake.span )) res += stake })
        res.toList
     }
 

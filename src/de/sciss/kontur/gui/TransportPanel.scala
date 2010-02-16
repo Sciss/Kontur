@@ -29,14 +29,18 @@
 package de.sciss.kontur.gui
 
 import java.awt.{ Color, Component, Dimension, Font, GradientPaint, Graphics, Graphics2D, Insets, LinearGradientPaint, RenderingHints }
-import java.awt.event.{ ActionEvent, ActionListener, KeyEvent }
+import java.awt.event.{ ActionEvent, ActionListener, KeyEvent, MouseAdapter, MouseEvent }
 import java.awt.geom.{ RoundRectangle2D }
 import java.util.{ Locale }
 import javax.swing.{ AbstractAction, AbstractButton, BorderFactory, Box, BoxLayout, ImageIcon,
-                    JButton, JComponent, JLabel, JPanel, JToggleButton, KeyStroke, SwingConstants, Timer }
+                    JButton, JComponent, JLabel, JOptionPane, JPanel, JToggleButton, KeyStroke, SwingConstants, Timer }
 import javax.swing.border.{ Border }
-import de.sciss.app.{ DynamicAncestorAdapter, DynamicListening }
-import de.sciss.gui.{ TimeFormat }
+import scala.math._
+import de.sciss.app.{ AbstractApplication, DynamicAncestorAdapter, DynamicListening }
+import de.sciss.common.{ BasicWindowHandler }
+import de.sciss.gui.{ GUIUtil, TimeFormat }
+import de.sciss.io.{ Span }
+import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }
 import de.sciss.kontur.session.{ Timeline, Transport }
 
 // temporary hack to get osc synced video
@@ -80,9 +84,9 @@ extends SegmentedButtonPanel with DynamicListening {
    // ---- constructor ----
    {
       val icnBeg  = new ImageIcon( clz.getResource( "transp_beg_20.png" ))
-//      val icnStop =
+//    val icnStop =
       val icnStopA= new ImageIcon( clz.getResource( "transp_stopa_20.png" ))
-//      val icnPlay =
+//    val icnPlay =
       val icnPlayA= new ImageIcon( clz.getResource( "transp_playa_20.png" ))
       val icnEnd  = new ImageIcon( clz.getResource( "transp_end_20.png" ))
 
@@ -112,6 +116,12 @@ extends SegmentedButtonPanel with DynamicListening {
          }
       })
 
+      lbTime.addMouseListener( new MouseAdapter {
+         override def mouseClicked( e: MouseEvent ) {
+            if( e.getClickCount == 2 ) showGoToTimeDialog
+         }
+      })
+
       add( lbTime, 0 )
       add( Box.createHorizontalStrut( 8 ), 1 )
 
@@ -129,6 +139,44 @@ extends SegmentedButtonPanel with DynamicListening {
       add( ggOSC )
 
       new DynamicAncestorAdapter( this ).addTo( this )
+   }
+
+   private var spaceGoToTime: Option[ ParamSpace ] = None
+   private var valueGoToTime: Option[ Param ] = None
+
+   private def showGoToTimeDialog {
+      val timeTrans  = new DefaultUnitTranslator()
+      val ggTime     = new ParamField( timeTrans )
+      ggTime.addSpace( ParamSpace.spcTimeHHMMSS )
+      ggTime.addSpace( ParamSpace.spcTimeSmps )
+      ggTime.addSpace( ParamSpace.spcTimeMillis )
+      ggTime.addSpace( ParamSpace.spcTimePercentF )
+      GUIUtil.setInitialDialogFocus( ggTime )
+
+      val tl = tlv.timeline
+      timeTrans.setLengthAndRate( tl.span.getLength, tl.rate )
+
+      ggTime.setValue( valueGoToTime getOrElse new Param( 0.0, ParamSpace.TIME | ParamSpace.SECS ))
+      spaceGoToTime.foreach( sp => ggTime.setSpace( sp ))
+
+      val op = new JOptionPane( ggTime, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )
+      val app = AbstractApplication.getApplication
+      val result = BasicWindowHandler.showDialog( op, null, app.getResourceString( "inputDlgGoToTime" ))
+
+      if( result == JOptionPane.OK_OPTION ) {
+         val v          = ggTime.getValue
+         valueGoToTime	= Some( v )
+         spaceGoToTime	= Some( ggTime.getSpace )
+         val pos = max( tl.span.start, min( tl.span.stop, timeTrans.translate( v, ParamSpace.spcTimeSmps ).`val`.toLong ))
+         tlv.editor.foreach( ed => {
+            val ce = ed.editBegin( "pos" )
+            ed.editPosition( ce, pos )
+            ed.editEnd( ce )
+         })
+//      } else {
+//         valueGoToTime = None
+//         spaceGoToTime = None
+      }
    }
 
    private def trnspChanged( newIsPlaying: Boolean ) {

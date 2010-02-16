@@ -76,24 +76,24 @@ trait Trail[ T <: Stake[ T ]]
 extends Disposable with Model {
 //    type St = T
 
-    def emptyList: List[ T ] = Nil
+   def emptyList: List[ T ] = Nil
 
-//    def visitRange( visitor: TrailVisitor[T], span: Span, byStart: Boolean = true )( f: (T) => Unit )
-    def visitRange( span: Span, byStart: Boolean = true )( f: (T) => Unit )
-//    def visitAll( visitor: TrailVisitor[T], byStart: Boolean = true )
-    def visitAll( byStart: Boolean = true )( f: (T) => Unit )
-    def getRange( span: Span, byStart: Boolean = true ) : List[ T ]
-    def getAll( byStart: Boolean = true ) : List[ T ]
-//    def span: Span
+// def visitRange( visitor: TrailVisitor[T], span: Span, byStart: Boolean = true )( f: (T) => Unit )
+   def visitRange( span: Span, byStart: Boolean = true )( f: (T) => Unit )
+// def visitAll( visitor: TrailVisitor[T], byStart: Boolean = true )
+   def visitAll( byStart: Boolean = true )( f: (T) => Unit )
+   def getRange( span: Span, byStart: Boolean = true, overlap: Boolean = true ) : List[ T ]
+   def getAll( byStart: Boolean = true ) : List[ T ]
+// def span: Span
 	def get( idx: Int, byStart: Boolean = true ) : T
 	def indexOf( stake: T, byStart: Boolean = true ) : Int
 	def indexOfPos( pos: Long, byStart: Boolean = true ) : Int
 //	public boolean contains( Stake stake );
-    def editor: Option[ TrailEditor[ T ]]
-//    def newEmpty: Trail[ T ]
+   def editor: Option[ TrailEditor[ T ]]
+// def newEmpty: Trail[ T ]
 
-    case class StakesAdded( span: Span, stakes: T* )
-    case class StakesRemoved( span: Span, stakes: T* )
+   case class StakesAdded( span: Span, stakes: T* )
+   case class StakesRemoved( span: Span, stakes: T* )
 }
 
 trait TrailEditor[ T <: Stake[ T ]]

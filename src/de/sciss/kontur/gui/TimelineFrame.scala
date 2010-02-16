@@ -143,6 +143,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 //		mr.putMimic( "timeline.clearSpan", this, new ActionClearSpan )
 //		mr.putMimic( "timeline.removeSpan", this, new ActionRemoveSpan )
 		mr.putMimic( "timeline.splitObjects", this, new ActionSplitObjects )
+      mr.putMimic( "timeline.selFollowingObj", this, new ActionSelectFollowingObjects )
 
       mr.putMimic( "actions.showInEisK", this, new ActionShowInEisK )
 
@@ -210,7 +211,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 //		});
 	}
 
-    private class ActionInsertSpan extends MenuAction {
+   private class ActionInsertSpan extends MenuAction {
       private var value: Option[ Param ] = None
       private var space: Option[ ParamSpace ] = None
 
@@ -228,64 +229,64 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 			msgPane.makeCompactGrid()
 			GUIUtil.setInitialDialogFocus( ggDuration )
 
-            val tl = timelineView.timeline
+         val tl = timelineView.timeline
 			timeTrans.setLengthAndRate( tl.span.getLength, tl.rate )
 
-            ggDuration.setValue( value getOrElse new Param( 60.0, ParamSpace.TIME | ParamSpace.SECS ))
+         ggDuration.setValue( value getOrElse new Param( 60.0, ParamSpace.TIME | ParamSpace.SECS ))
 			space.foreach( sp => ggDuration.setSpace( sp ))
 
 			val op = new JOptionPane( msgPane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )
 			val result = BasicWindowHandler.showDialog( op, getWindow, getValue( Action.NAME ).toString )
 
 			if( result == JOptionPane.OK_OPTION ) {
-                val v = ggDuration.getValue
-				value			= Some( v )
-				space			= Some( ggDuration.getSpace )
+            val v = ggDuration.getValue
+				value	= Some( v )
+				space	= Some( ggDuration.getSpace )
 				val durationSmps = timeTrans.translate( v, ParamSpace.spcTimeSmps ).`val`
 				if( durationSmps > 0.0 ) {
-//					final ProcessingThread proc;
+//		         final ProcessingThread proc;
 
-//					proc =
-                    val pos = timelineView.cursor.position
-                      initiate( new Span( pos, pos + durationSmps.toLong ))
-//					if( proc != null ) start( proc );
+//		   	   proc =
+               val pos = timelineView.cursor.position
+               initiate( new Span( pos, pos + durationSmps.toLong ))
+//				   if( proc != null ) start( proc );
 				}
 			} else {
-               value = None
-               space = None
-            }
+            value = None
+            space = None
+         }
 		}
 
-       private def editName : String = {
+      private def editName : String = {
          val name = getValue( Action.NAME ).toString
          if( name.endsWith( "..." )) name.substring( 0, name.length - 3 ) else name
-       }
+      }
 
-		def initiate( span: Span ) {
+      def initiate( span: Span ) {
 			if( /* !checkProcess() ||*/ span.isEmpty ) return
 
     		val tl = timelineView.timeline
 
 			if( (span.start < tl.span.start) || (span.start > tl.span.stop) ) throw new IllegalArgumentException( span.toString )
 
-        tl.editor.foreach( ed => {
-          val ce = ed.editBegin( editName )
-          try {
-            ed.editSpan( ce, tl.span.replaceStop( tl.span.stop + span.getLength ))
-            timelineView.editor.foreach( ved => {
-              if( timelineView.span.isEmpty ) {
-        		ved.editScroll( ce, span )
-              }
-              ved.editSelect( ce, span )
-            })
-            ed.editEnd( ce )
-          }
-          catch {
-            case e => { ed.editCancel( ce ); throw e }
-          }
-		})
-     }
-  }
+         tl.editor.foreach( ed => {
+            val ce = ed.editBegin( editName )
+            try {
+               ed.editSpan( ce, tl.span.replaceStop( tl.span.stop + span.getLength ))
+               timelineView.editor.foreach( ved => {
+                  if( timelineView.span.isEmpty ) {
+        		         ved.editScroll( ce, span )
+                  }
+                  ved.editSelect( ce, span )
+               })
+               ed.editEnd( ce )
+            }
+            catch {
+               case e => { ed.editCancel( ce ); throw e }
+            }
+         })
+      }
+   }
 
 	/**
 	 *  Increase or decrease the width
@@ -523,49 +524,75 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
     	def perform {
         	val pos	= timelineView.cursor.position
-            timelineView.timeline.editor.foreach( ed => {
-                val ce = ed.editBegin( getValue( Action.NAME ).toString )
-                val span = new Span( pos, pos ) // XXX should verify that we don't hit stakes at their margins?
-                tracksPanel.foreach( elem => {
-                      val track = elem.track // "stable"
-                       val tvCast = elem.trailView.asInstanceOf[ TrailView[ track.T ]]
-                       tvCast.editor.foreach( ed2 => {
-                           val selectedStakes = ed2.view.selectedStakes
-                           val trail = tvCast.trail
-                           trail.editor.foreach( ted => {
-//                            ted.editClearSpan( ce, span )( stake => tv.isSelected( span ))
-//                            var toDeselect = trail.emptyList
-                              var toDeselect: List[ track.T ] = Nil // = trail.emptyList
-                              var toRemove   = trail.emptyList
-                              var toAdd      = trail.emptyList
-                              var toSelect   = trail.emptyList
-                              trail.visitRange( span )( stake =>
-                                 if( tvCast.isSelected( stake )) stake match {
-                                    case rStake: ResizableStake[ _ ] => {
-                                       toDeselect ::= stake
-                                       toRemove ::= stake
-                                       val (stake1, stake2) = rStake.split( pos )
-//                                       val stake1 = rStake.moveStop( pos - stake.span.stop )
-//                                       val stake2 = rStake.moveStart( pos - stake.span.start )
-                                       toAdd ::= stake1
-                                       toAdd ::= stake2
-                                       toSelect ::= stake1
-                                       toSelect ::= stake2
-                                    }
-                                    case _ =>
-                                 }
-                              )
-                              ed2.editDeselect( ce, toDeselect: _* )
-                              ted.editRemove( ce, toRemove: _* )
-                              ted.editAdd( ce, toAdd: _* )
-                              ed2.editSelect( ce, toSelect: _* )
-                           })
-                   })
-                })
-                ed.editEnd( ce )
+         timelineView.timeline.editor.foreach( ed => {
+            val ce = ed.editBegin( getValue( Action.NAME ).toString )
+            val span = new Span( pos, pos ) // XXX should verify that we don't hit stakes at their margins?
+            tracksPanel.foreach( elem => {
+               val track = elem.track // "stable"
+               val tvCast = elem.trailView.asInstanceOf[ TrailView[ track.T ]]
+               tvCast.editor.foreach( ed2 => {
+                  val selectedStakes = ed2.view.selectedStakes
+                  val trail = tvCast.trail
+                  trail.editor.foreach( ted => {
+//                   ted.editClearSpan( ce, span )( stake => tv.isSelected( span ))
+//                   var toDeselect = trail.emptyList
+                     var toDeselect: List[ track.T ] = Nil // = trail.emptyList
+                     var toRemove   = trail.emptyList
+                     var toAdd      = trail.emptyList
+                     var toSelect   = trail.emptyList
+                     trail.visitRange( span )( stake =>
+                        if( tvCast.isSelected( stake )) stake match {
+                           case rStake: ResizableStake[ _ ] => {
+                              toDeselect ::= stake
+                              toRemove ::= stake
+                              val (stake1, stake2) = rStake.split( pos )
+//                            val stake1 = rStake.moveStop( pos - stake.span.stop )
+//                            val stake2 = rStake.moveStart( pos - stake.span.start )
+                              toAdd ::= stake1
+                              toAdd ::= stake2
+                              toSelect ::= stake1
+                              toSelect ::= stake2
+                           }
+                           case _ =>
+                        }
+                     )
+                     ed2.editDeselect( ce, toDeselect: _* )
+                     ted.editRemove( ce, toRemove: _* )
+                     ted.editAdd( ce, toAdd: _* )
+                     ed2.editSelect( ce, toSelect: _* )
+                  })
+               })
             })
+            ed.editEnd( ce )
+         })
     	}
-    }
+   }
+
+   private class ActionSelectFollowingObjects
+   extends MenuAction {
+      def actionPerformed( e: ActionEvent ) : Unit = perform
+
+      def perform {
+         val pos	= timelineView.cursor.position
+         val stop = timelineView.timeline.span.getLength
+         val span = new Span( pos, stop )
+         timelineView.timeline.editor.foreach( ed => {
+            val ce = ed.editBegin( getValue( Action.NAME ).toString )
+            tracksPanel.foreach( elem => {
+               val track = elem.track // "stable"
+               if( elem.selected ) {
+                  val tvCast = elem.trailView.asInstanceOf[ TrailView[ track.T ]]
+                  tvCast.editor.foreach( ed2 => {
+                     val trail      = tvCast.trail
+                     var toSelect   = trail.getRange( span, true, false )
+                     ed2.editSelect( ce, toSelect: _* )
+                  })
+               }
+            })
+            ed.editEnd( ce )
+         })
+      }
+   }
 
    private class ActionShowInEisK extends MenuAction {
       def actionPerformed( e: ActionEvent ) : Unit = perform

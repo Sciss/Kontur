@@ -30,12 +30,15 @@ package de.sciss.kontur.gui
 
 import java.awt.{ Cursor, Insets }
 import java.awt.event.{ ActionEvent, KeyEvent, KeyListener, MouseEvent }
-import javax.swing.{ AbstractAction, AbstractButton, BoxLayout, ImageIcon,
-                     JButton, JPanel, JToggleButton, SwingUtilities }
+import javax.swing.{ AbstractAction, AbstractButton, Box, BoxLayout, ImageIcon,
+                     JButton, JLabel, JOptionPane, JPanel, JToggleButton, SwingUtilities }
 import javax.swing.event.{ MouseInputAdapter }
 import scala.math._
 import de.sciss.app.{ AbstractApplication, AbstractCompoundEdit }
+import de.sciss.common.{ BasicWindowHandler }
+import de.sciss.gui.{ GUIUtil }
 import de.sciss.io.{ Span }
+import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }
 import de.sciss.kontur.session.{ Stake, Track, Trail }
 import de.sciss.kontur.util.{ Model, PrefsUtil }
 import de.sciss.dsp.{ MathUtil }
@@ -164,12 +167,19 @@ trait TrackStakeTool extends TrackTool {
       }
       
       // now go on if stake is selected
-      stakeOCast.foreach( stake => if( tvCast.isSelected( stake )) new Drag( e, tle, pos, stake ))
+      stakeOCast.foreach( stake => if( tvCast.isSelected( stake )) {
+         if( e.getClickCount == 2 ) {
+            handleDoubleClick
+         } else {
+            new Drag( e, tle, pos, stake )
+         }
+      })
    }
 
    protected def dragStarted( d: Drag ) : Boolean
-   protected def dragBegin( d: Drag )
-   protected def dragAdjust( d: Drag )
+   protected def dragBegin( d: Drag ) : Unit
+   protected def dragAdjust( d: Drag ) : Unit
+   protected def handleDoubleClick : Unit
 
    protected def screenToVirtual( e: MouseEvent ) : Long = {
       val tlSpan   = timelineView.timeline.span
@@ -269,14 +279,14 @@ trait TrackStakeTool extends TrackTool {
     }
 }
 
-abstract class BasicTrackStakeTool[ Param <: AnyRef ](
+abstract class BasicTrackStakeTool[ P <: AnyRef ](
    protected val trackList: TrackList, protected val timelineView: TimelineView )
 extends TrackStakeTool {
    import TrackStakeTool._
 
-   protected var currentParamVar: Option[ Param ] = None
+   protected var currentParamVar: Option[ P ] = None
 
-   protected def dragToParam( d: Drag ) : Param
+   protected def dragToParam( d: Drag ) : P
    
    protected def dragStarted( d: this.Drag ) : Boolean =
       d.currentEvent.getPoint().distanceSq( d.firstEvent.getPoint() ) > 16
@@ -297,6 +307,27 @@ extends TrackStakeTool {
           }
       })
    }
+
+   protected def dialog: Option[ P ]
+
+   protected def handleDoubleClick {
+      dialog.foreach( p => {
+         timelineView.timeline.editor.foreach( ed => {
+println( "GOT " + p )
+            val ce = ed.editBegin( name )
+            dispatch( DragBegin )
+            dispatch( p )
+            dispatch( DragEnd( ce ))
+            ed.editEnd( ce )
+         })
+      })
+   }
+
+   protected def showDialog( message: AnyRef ) : Boolean = {
+      val op = new JOptionPane( message, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )
+      val result = BasicWindowHandler.showDialog( op, null, name )
+      result == JOptionPane.OK_OPTION
+   }
 }
 
 object TrackMoveTool {
@@ -315,6 +346,28 @@ extends BasicTrackStakeTool[ TrackMoveTool.Move ]( trackList, timelineView ) {
              trackList.indexOf( d.currentTLE ) - trackList.indexOf( d.firstTLE ),
              d.currentEvent.isAltDown )
    }
+
+   protected def dialog: Option[ Move ] = {
+      val box        = Box.createHorizontalBox
+      val timeTrans  = new DefaultUnitTranslator()
+      val ggTime     = new ParamField( timeTrans )
+      val spcTimeHHMMSSD	= new ParamSpace( Double.NegativeInfinity, Double.PositiveInfinity, 0.0, 1, 3, 0.0,
+                                             ParamSpace.TIME | ParamSpace.SECS | ParamSpace.HHMMSS | ParamSpace.OFF )
+      ggTime.addSpace( spcTimeHHMMSSD )
+      ggTime.addSpace( ParamSpace.spcTimeSmpsD )
+      ggTime.addSpace( ParamSpace.spcTimeMillisD )
+      GUIUtil.setInitialDialogFocus( ggTime )
+      box.add( new JLabel( "Move by:" ))
+      box.add( Box.createHorizontalStrut( 8 ))
+      box.add( ggTime )
+
+      val tl = timelineView.timeline
+      timeTrans.setLengthAndRate( tl.span.getLength, tl.rate )
+      if( showDialog( box )) {
+         val delta = timeTrans.translate( ggTime.getValue, ParamSpace.spcTimeSmpsD ).`val`.toLong
+         Some( Move( delta, 0, false ))
+      } else None
+   }
 }
 
 object TrackResizeTool {
@@ -327,6 +380,8 @@ extends BasicTrackStakeTool[ TrackResizeTool.Resize ]( trackList, timelineView )
 
    def defaultCursor = Cursor.getPredefinedCursor( Cursor.W_RESIZE_CURSOR )
    val name = "Resize"
+
+   protected def dialog: Option[ Resize ] = None // not yet supported
 
    protected def dragToParam( d: Drag ) : Resize = {
       val (deltaStart, deltaStop ) =
@@ -352,6 +407,8 @@ extends BasicTrackStakeTool[ TrackGainTool.Gain ]( trackList, timelineView ) {
    def defaultCursor = Cursor.getPredefinedCursor( Cursor.N_RESIZE_CURSOR )
    val name = "Gain"
 
+   protected def dialog: Option[ Gain ] = None // not yet supported
+
    override protected def dragStarted( d: this.Drag ) : Boolean =
       d.currentEvent.getY != d.firstEvent.getY
 
@@ -376,6 +433,8 @@ extends BasicTrackStakeTool[ TrackFadeTool.Fade ]( trackList, timelineView ) {
    val name = "Fade"
 
    private var curvature = false
+
+   protected def dialog: Option[ Fade ] = None // not yet supported
 
    protected def dragToParam( d: Drag ) : Fade = {
       val leftHand = abs( d.firstPos - d.firstStake.span.start ) <
@@ -410,6 +469,8 @@ extends BasicTrackStakeTool[ TrackSlideTool.Slide ]( trackList, timelineView ) {
 
    def defaultCursor = Cursor.getPredefinedCursor( Cursor.E_RESIZE_CURSOR )
    val name = "Slide"
+
+   protected def dialog: Option[ Slide ] = None // not yet supported
 
    protected def dragToParam( d: Drag ) : Slide = {
       val amt = d.currentPos - d.firstPos
