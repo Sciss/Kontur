@@ -318,7 +318,7 @@ players.foreach( _.stop )
               def step( span: Span ) {
                 track.diffusion.foreach( diff => {
                   track.trail.visitRange( span )( stake => {
-                    if( !stakesMap.contains( stake )) {
+                    if( !stake.muted && !stakesMap.contains( stake )) {
                        val numChannels = stake.audioFile.numChannels
                        val equalChans  = numChannels == diff.numInputChannels
                        val monoMix     = !equalChans && (diff.numInputChannels == 1) 

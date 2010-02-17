@@ -29,7 +29,7 @@
 
 package de.sciss.kontur.gui
 
-import java.awt.{ Color, Dimension, Graphics, Graphics2D, Point, Rectangle,
+import java.awt.{ AlphaComposite, Color, Dimension, Graphics, Graphics2D, Point, Rectangle,
                  RenderingHints, TexturePaint }
 import java.awt.datatransfer.{ DataFlavor, Transferable }
 import java.awt.dnd.{ DnDConstants, DropTarget, DropTargetAdapter,
@@ -504,6 +504,8 @@ object AudioTrackComponent {
    }
    private val hndlExtent        = 15
    private val hndlBaseline      = 12
+//   private val cmpMuted          = AlphaComposite.getInstance( AlphaComposite.SRC_OVER, 0.5f )
+   private val colrBgMuted      = new Color( 0xFF, 0xFF, 0xFF, 0x60 )
 }
 
 class AudioTrackComponent( doc: Session, audioTrack: AudioTrack, trackList: TrackList,
@@ -612,6 +614,15 @@ with SonagramPaintController {
       }
    }
 
+   private val muteToolListener: AnyRef => Unit = (msg: AnyRef) => msg match {
+      case TrackMuteTool.Mute( ce, muted ) => {
+         val union = unionSpan( trailView.selectedStakes )
+         if( !union.isEmpty ) {
+            new MutePainter( union, painter, ce, muted )
+         }
+      }
+   }
+
    private val fadeToolListener = (msg: AnyRef) => msg match {
       case TrackStakeTool.DragBegin => {
          val union = unionSpan( trailView.selectedStakes )
@@ -666,8 +677,7 @@ with SonagramPaintController {
                                 min( insPos + fileSpan.getLength,
                                      timelineView.timeline.span.stop ))
                       if( !insSpan.isEmpty ) {
-                         val ar = new AudioRegion( insSpan, afe.name, afe,
-                            fileSpan.start, 1.0f, None, None )
+                         val ar = new AudioRegion( insSpan, afe.name, afe, fileSpan.start )
                          val ce2 = ted.editBegin( "editAddAudioRegion" )
                          ted.editAdd( ce2, ar )
                          ted.editEnd( ce2 )
@@ -704,14 +714,13 @@ with SonagramPaintController {
    override protected def createDefaultPainter() = new DefaultAudioStakePainter
 
    override protected def createMoveResizePainter( initialUnion: Span, oldPainter: Painter ) =
-      new MoveResizePainter( initialUnion, oldPainter ) with AudioStakePainter {
-         def stakeInfo( ar: AudioRegion ) : Option[ String ] = None
-      }
+      new MoveResizePainter( initialUnion, oldPainter ) with AudioStakePainter
 
    override protected def selectToolListener( t: TrackTool ): Option[ AnyRef => Unit ] =
       t match {
          case _ : TrackGainTool   => Some( gainToolListener )
          case _ : TrackFadeTool   => Some( fadeToolListener )
+         case _ : TrackMuteTool   => Some( muteToolListener )
          case _ => super.selectToolListener( t )
       }
 
@@ -719,6 +728,25 @@ with SonagramPaintController {
    private var paintStakeGain = 1f // XXX dirty dirty
    def imageObserver: ImageObserver = this
    def adjustGain( amp: Float, pos: Double ) = amp * visualBoost * paintStakeGain // eventually fades here...
+
+   protected class MutePainter( protected val initialUnion: Span, protected val oldPainter: Painter,
+                                ce: AbstractCompoundEdit, dragMute: Boolean )
+   extends AudioStakePainter with TransformativePainter {
+
+      // ---- constructor ----
+      {
+         adjusted
+         finish( ce )
+      }
+
+      protected def transform( stake: track.T ) = stake match {
+         case ar: AudioRegion => {
+            val tStake = ar.mute( dragMute )
+            tStake.asInstanceOf[ track.T ]
+         }
+         case _ => stake
+      }
+   }
 
    protected class GainPainter( protected val initialUnion: Span, protected val oldPainter: Painter )
    extends AudioStakePainter with TransformativePainter {
@@ -729,18 +757,15 @@ with SonagramPaintController {
       }
 
       protected def transform( stake: track.T ) = stake match {
-          case ar: AudioRegion => {
-             val tStake: AudioRegion = if( dragGain != 1f ) {
-                ar.replaceGain( ar.gain * dragGain )
-             } else ar
-              // WHHHHHHHHYYYYYYYYYYYYYYYYYYYYYYYYYYY THE CAST?
-             tStake.asInstanceOf[ track.T ]
-          }
-          case _ => stake
-       }
+         case ar: AudioRegion if( dragGain != 1f ) => {
+            val tStake = ar.replaceGain( ar.gain * dragGain )
+            tStake.asInstanceOf[ track.T ]
+         }
+         case _ => stake
+      }
 
-      protected def stakeInfo( stake: AudioRegion ) : Option[ String ] = {
-         val db = MathUtil.linearToDB( stake.gain * dragGain )
+      override protected def stakeInfo( stake: AudioRegion ) : Option[ String ] = {
+         val db = MathUtil.linearToDB( stake.gain ) // * dragGain
          val cb = (abs( db ) * 10 + 0.5).toInt
          Some( (if( db > 0 ) "+" else if( db < 0) "-" else "") + (cb/10) + "." + (cb%10) + " dB" )
       }
@@ -759,8 +784,6 @@ with SonagramPaintController {
          dragFdInCurve  = newInCurve
          dragFdOutCurve = newOutCurve
       }
-
-      protected def stakeInfo( stake: AudioRegion ) : Option[ String ] = None
 
       protected def transform( stake: track.T ) = stake match {
          case ar: AudioRegion => {
@@ -801,9 +824,7 @@ with SonagramPaintController {
       }
    }
 
-   protected class DefaultAudioStakePainter extends AudioStakePainter {
-      protected def stakeInfo( stake: AudioRegion ) : Option[ String ] = None
-   }
+   protected class DefaultAudioStakePainter extends AudioStakePainter
 
    protected trait AudioStakePainter extends DefaultPainterTrait {
 //      DefaultPainter =>
@@ -835,7 +856,7 @@ with SonagramPaintController {
          pc.g2.draw( shpDraw )
       }
 
-      protected def stakeInfo( stake: AudioRegion ) : Option[ String ]
+      protected def stakeInfo( stake: AudioRegion ) : Option[ String ] = None
 
       override def paintStake( pc: PaintContext, stake: track.T, selected: Boolean ) {
          stake match {
@@ -848,6 +869,8 @@ with SonagramPaintController {
                val x2C = min( x + width, pc.clip.x + pc.clip.width + 3 )
                if( x1C < x2C ) { // skip this if we are not overlapping with clip
                   val g2 = pc.g2
+//                  val cmpOrig = g2.getComposite
+//                  if( ar.muted ) g2.setComposite( cmpMuted )
                   g2.setColor( if( selected ) colrBgSel else colrBg )
                   g2.fillRoundRect( x, 0, width, pc.height, 5, 5 )
 
@@ -882,12 +905,18 @@ with SonagramPaintController {
                   // --- label ---
                   g2.clipRect( x + 2, 2, width - 4, pc.height - 4 )
                   g2.setColor( Color.white )
-                  g2.drawString( ar.name, x + 4, hndlBaseline )
+                  // possible unicodes: 2327 23DB 24DC 25C7 2715 29BB
+                  g2.drawString( if( ar.muted ) "\u23DB " + ar.name else ar.name, x + 4, hndlBaseline )
                   stakeInfo( ar ).foreach( info => {
                      g2.setColor( Color.yellow )
                      g2.drawString( info, x + 4, hndlBaseline + hndlExtent )
                   })
                   g2.setClip( clipOrig )
+//                  g2.setComposite( cmpOrig )
+                  if( ar.muted ) {
+                     g2.setColor( colrBgMuted )
+                     g2.fillRoundRect( x, 0, width, pc.height, 5, 5 )
+                  }
                }
             }
             case _ => super.paintStake( pc, stake, selected )

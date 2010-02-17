@@ -37,33 +37,35 @@ import scala.math._
 object AudioRegion {
    val XML_NODE = "stake"
 
-    def fromXML( c: SerializerContext, doc: Session, node: Node ) : AudioRegion = {
-        val name   = (node \ "name").text
-        val spanN  = node \ "span"
-        val span   = new Span( (spanN \ "@start").text.toLong, (spanN \ "@stop").text.toLong )
-        val af     = c.byID[ AudioFileElement ]( node \ "audioFile" )
-        val offset = (node \ "offset").text.toLong
-        val gain   = (node \ "gain").headOption.map( _.text.toFloat ) getOrElse 1f
-        val fadeIn = (node \ "fadeIn"  \ "fade").headOption.map( n => FadeSpec.fromXML( n ))
-        val fadeOut= (node \ "fadeOut" \ "fade").headOption.map( n => FadeSpec.fromXML( n ))
+   def fromXML( c: SerializerContext, doc: Session, node: Node ) : AudioRegion = {
+      val name    = (node \ "name").text
+      val spanN   = node \ "span"
+      val span    = new Span( (spanN \ "@start").text.toLong, (spanN \ "@stop").text.toLong )
+      val af      = c.byID[ AudioFileElement ]( node \ "audioFile" )
+      val offset  = (node \ "offset").text.toLong
+      val gain    = (node \ "gain").headOption.map( _.text.toFloat ) getOrElse 1f
+      val fadeIn  = (node \ "fadeIn"  \ "fade").headOption.map( n => FadeSpec.fromXML( n ))
+      val fadeOut = (node \ "fadeOut" \ "fade").headOption.map( n => FadeSpec.fromXML( n ))
+      val muted   = (node \ "muted").nonEmpty
 
-        new AudioRegion( span, name, af, offset, gain, fadeIn, fadeOut )
-    }
+      new AudioRegion( span, name, af, offset, gain, fadeIn, fadeOut, muted )
+   }
 }
 
 case class AudioRegion( span: Span, name: String, audioFile: AudioFileElement,
-                        offset: Long, gain: Float, fadeIn: Option[ FadeSpec ],
-                        fadeOut: Option[ FadeSpec ])
-extends RegionTrait[ AudioRegion ] with SlidableStake[ AudioRegion ] {
-  def toXML( c: SerializerContext ) = <stake>
-  <name>{name}</name>
-  <span start={span.start.toString} stop={span.stop.toString}/>
-  <audioFile idref={c.id( audioFile ).toString}/>
-  <offset>{offset}</offset>
-  {if( gain != 0f ) <gain>{gain}</gain> else Null}
-  {fadeIn.map( f => <fadeIn>{ f.toXML }</fadeIn>) getOrElse Null}
-  {fadeOut.map( f => <fadeOut>{ f.toXML }</fadeOut>) getOrElse Null}
-</stake>
+                        offset: Long = 0L, gain: Float = 1f, fadeIn: Option[ FadeSpec ] = None,
+                        fadeOut: Option[ FadeSpec ] = None, muted: Boolean = false )
+extends RegionTrait[ AudioRegion ] with SlidableStake[ AudioRegion ] with MuteableStake[ AudioRegion ] {
+   def toXML( c: SerializerContext ) = <stake>
+      <name>{name}</name>
+      <span start={span.start.toString} stop={span.stop.toString}/>
+      <audioFile idref={c.id( audioFile ).toString}/>
+      <offset>{offset}</offset>
+      {if( gain != 0f ) <gain>{gain}</gain> else Null}
+      {fadeIn.map( f => <fadeIn>{ f.toXML }</fadeIn>) getOrElse Null}
+      {fadeOut.map( f => <fadeOut>{ f.toXML }</fadeOut>) getOrElse Null}
+      {if( muted ) <muted/> else Null}
+   </stake>
 
    def replaceGain( newGain: Float ) : AudioRegion =
       copy( gain = newGain )
@@ -87,6 +89,8 @@ extends RegionTrait[ AudioRegion ] with SlidableStake[ AudioRegion ] {
    def move( delta: Long ) : AudioRegion = copy( span = span.shift( delta ))
 
    def rename( newName: String ) : AudioRegion = copy( name = newName )
+
+   def mute( newMuted: Boolean ) : AudioRegion = copy( muted = newMuted )
 
    override def split( pos: Long ) : Tuple2[ AudioRegion, AudioRegion ] = {
       val left = {

@@ -50,7 +50,8 @@ extends JPanel with TrackTools {
                              new TrackResizeTool( trackList, timelineView ),
                              new TrackGainTool( trackList, timelineView ),
                              new TrackFadeTool( trackList, timelineView ),
-                             new TrackSlideTool( trackList, timelineView )
+                             new TrackSlideTool( trackList, timelineView ),
+                             new TrackMuteTool( trackList, timelineView )
    )
 
     private var currentToolVar: TrackTool = tools.head

@@ -67,6 +67,11 @@ trait SlidableStake[ +Repr ] extends Stake[ Repr ] {
    def moveInner( delta: Long ) : Repr
 }
 
+trait MuteableStake[ +Repr ] extends Stake[ Repr ] {
+   val muted: Boolean
+   def mute( newMuted: Boolean ) : Repr
+}
+
 //object Trail {
 //  case class StakesAdded( span: Span, stakes: Stake* )
 //  case class StakesRemoved( span: Span, stakes: Stake* )
