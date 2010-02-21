@@ -70,8 +70,10 @@ extends Disposable {
     }
 
     private def serverOffline {
-       // XXX stop all transports
-       online = None
+       online.foreach( ol => {
+          ol.dispose
+          online = None
+       })
     }
 
     def dispose {
