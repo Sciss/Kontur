@@ -28,19 +28,19 @@
 
 package de.sciss.kontur.gui
 
-import de.sciss.app.{ AbstractApplication, AbstractWindow }
-import de.sciss.common.{ BasicApplication, BasicMenuFactory, ShowWindowAction,
-                        BasicWindowHandler}
-import de.sciss.gui.{ GUIUtil, MenuAction, MenuGroup, MenuItem, SpringPanel}
-import de.sciss.io.{ Span }
+import de.sciss.app.{ AbstractWindow }
+import de.sciss.common.{ BasicMenuFactory, BasicWindowHandler}
+import de.sciss.gui.{ GUIUtil, MenuAction, PathField => PathF, SpringPanel }
+import de.sciss.io.{ AudioFileDescr, AudioFileFormatPane, IOUtil, Span }
 import de.sciss.kontur.io.{ EisenkrautClient }
-import de.sciss.kontur.session.{ AudioRegion, AudioTrack, Session, Stake,
-                                 ResizableStake, Timeline }
+import de.sciss.kontur.session.{ AudioRegion, Session, Stake,
+                                 ResizableStake, Timeline, Track }
 import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }
 import java.awt.event.{ ActionEvent, InputEvent, KeyEvent }
 import java.awt.{ BorderLayout, Dimension, Point, Rectangle }
-import java.util.{ StringTokenizer }
-import javax.swing.{ AbstractAction, Action, Box, JComponent, JOptionPane, KeyStroke }
+import java.io.{ File }
+import javax.swing.{ AbstractAction, Action, Box, ButtonGroup, JButton, JComponent, JLabel, JOptionPane, JRadioButton,
+                     KeyStroke }
 import scala.math._
 
 object TimelineFrame {
@@ -131,6 +131,8 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
     	// ---- menus and actions ----
 		val mr = app.getMenuBarRoot
+
+      mr.putMimic( "file.bounce", this, new ActionBounce() )
 
 		mr.putMimic( "edit.cut", this, new ActionCut() )
 		mr.putMimic( "edit.copy", this, new ActionCopy() )
@@ -627,6 +629,92 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
             }
             case _ => false
          })
+      }
+   }
+
+   private class ActionBounce extends MenuAction {
+      def actionPerformed( e: ActionEvent ) {
+         query.foreach( tup => {
+            val( tls, span, afd ) = tup
+            perform( tls, span, afd )
+         })
+      }
+
+      def perform( tracks: List[ Track ], span: Span, descr: AudioFileDescr ) {
+         println( "--- PERFORM" )
+      }
+
+      def query: Option[ Tuple3[ List[ Track ], Span, AudioFileDescr ]] = {
+         val trackElems    = tracksPanel.toList
+         val numTracks     = trackElems.size
+         val selTrackElems = trackElems.filter( _.selected )
+         val span          = timelineView.timeline.span
+         val selSpan       = timelineView.selection.span
+         val selAllowed    = selTrackElems.nonEmpty && !selSpan.isEmpty
+
+//         val okOption      = new JButton( getResourceString( "buttonOK" ))
+//         val cancelOption  = new JButton( getResourceString( "Cancel" ))
+//         val options       = Array( cancelOption, okOption )
+
+         val name          = getValue( Action.NAME ).toString
+         val pane          = Box.createVerticalBox
+         val ggAll         = new JRadioButton( getResourceString( "bounceDlgAll" ))
+         val ggSel         = new JRadioButton( getResourceString( "bounceDlgSel" ))
+         val bg            = new ButtonGroup()
+         bg.add( ggAll )
+         bg.add( ggSel )
+         bg.setSelected( ggAll.getModel, true )
+         val ggPath        = new PathField( PathF.TYPE_OUTPUTFILE, name )
+         val affp          = new AudioFileFormatPane( AudioFileFormatPane.FORMAT | AudioFileFormatPane.ENCODING |
+            AudioFileFormatPane.GAIN_NORMALIZE )
+         val descr         = new AudioFileDescr
+         affp.toDescr( descr )
+         val path0         = doc.path getOrElse {
+            val home       = new File( System.getProperty( "user.home" ))
+            val desktop    = new File( home, "Desktop" )
+            new File( if( desktop.isDirectory ) desktop else home, getResourceString( "labelUntitled" ))
+         }
+         ggPath.setPath( IOUtil.setFileSuffix( path0, AudioFileDescr.getFormatSuffix( descr.`type` )))
+         affp.automaticFileSuffix( ggPath )
+         pane.add( ggPath )
+         pane.add( affp )
+         pane.add( ggAll )
+         pane.add( ggSel )
+         if( !selAllowed ) {
+            ggSel.setEnabled( false )
+            val p2 = Box.createHorizontalBox
+            p2.add( Box.createHorizontalStrut( 24 ))
+            p2.add( new JLabel( getResourceString( "bounceDlgNoSel" )))
+            pane.add( p2 )
+         }
+
+         val op = new JOptionPane( pane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )
+         val result = BasicWindowHandler.showDialog( op, getWindow, name )
+         if( result != JOptionPane.OK_OPTION ) return None
+
+         val path       = ggPath.getPath
+         if( path.exists ) {
+            val opCancel      = getResourceString( "buttonCancel" )
+            val opOverwrite   = getResourceString( "buttonOverwrite" )
+            val options       = Array[ AnyRef ]( opOverwrite, opCancel )
+            val op2           = new JOptionPane( getResourceString( "warnFileExists" ) + ":\n" + path.toString + "\n" +
+               getResourceString( "warnOverwriteFile" ), JOptionPane.WARNING_MESSAGE, JOptionPane.OK_CANCEL_OPTION,
+               null, options )
+            op2.setInitialSelectionValue( opCancel )
+            val result2 = BasicWindowHandler.showDialog( op2, getWindow, name )
+            if( op2.getValue != opOverwrite ) return None
+         }
+
+         val all        = bg.isSelected( ggAll.getModel )
+//         val descr      = new AudioFileDescr
+         affp.toDescr( descr )
+         descr.rate     = timelineView.timeline.rate
+         descr.file     = path
+         val tracks     = (if( all ) trackElems else selTrackElems).map( _.track )
+// let the perform code calculate and set the channel number!
+//         descr.channels = tracks partialMap { case at: AudioTrack if( at.diffusion.isDefined ) => at.diffusion.get.numOutputChannels }
+
+         Some( (tracks, if( all ) span else selSpan, descr) )
       }
    }
 }

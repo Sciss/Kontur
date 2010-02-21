@@ -32,28 +32,48 @@ import scala.collection.immutable.{ Queue }
 import scala.collection.mutable.{ ListBuffer }
 import java.io.{ File }
 import java.net.{ SocketAddress }
-import de.sciss.tint.sc.{ Buffer, Bus, GE, Group, OSCResponderNode, OSCSyncMessage, OSCSyncedMessage, SC, Server, Synth,
-   SynthDef }
+import de.sciss.tint.sc._
 import SC._
 import de.sciss.scalaosc.{ OSCMessage }
 import de.sciss.kontur.util.{ Model }
 
-trait AsyncModel {
+trait AsyncAction {
+   def asyncDone : Unit
+}
+
+//object FUCK {
+//   private var count = 0
+//   def next = {
+//      val result = count
+//      count += 1
+//      result
+//   }
+//}
+
+trait AsyncModel extends AsyncAction {
    private var collWhenOnline  = Queue[ () => Unit ]()
    private var collWhenOffline = Queue[ () => Unit ]()
    private var isOnlineVar = false
    private var wasOnline = false
 
+   def asyncDone { isOnline = true }
+
+//lazy val gaga = FUCK.next
+//   println( "id = " + gaga + "; ASYNC created" )
+
    def isOnline: Boolean = isOnlineVar
    def isOnline_=( newState: Boolean ) {
+//println( "id = " + gaga + "; isOnline_( " + newState+ " ) ; old was " + isOnlineVar )
       if( newState != isOnlineVar ) {
          isOnlineVar = newState
          if( newState ) {
+//println( "...collWhenOnline.size = " + collWhenOnline.size )
             wasOnline = true
             val cpy = collWhenOnline
             collWhenOnline = Queue[ () => Unit ]()
             cpy.foreach( _.apply )
          } else {
+//println( "...collWhenOffline.size = " + collWhenOffline.size )
             val cpy = collWhenOffline
             collWhenOffline = Queue[ () => Unit ]()
             cpy.foreach( _.apply )
@@ -91,43 +111,97 @@ extends AsyncModel {
    }
 }
 
-class RichSynth( val synth: Synth )
-extends AsyncModel {
-   synth.onEnd { isOnline = false }
+trait RichNode extends AsyncModel {
+   def node: Node
 
-   def free {
-      SynthContext.current.free( this )
-   }
-}
-
-trait RichBuffer
-extends AsyncModel {
-   def bufNum : Int
-   def numChannels : Int
-   def read( path: File, fileStartFrame: Int = 0, numFrames: Int = -1, bufStartFrame: Int = 0,
-          leaveOpen: Boolean = false ) : RichBuffer
-   def free : Unit
-
-   override def whenOffline( thunk: => Unit ) {
-      throw new IllegalStateException( "OPERATION NOT YET SUPPORTED" )
-   }
-}
-
-class RichSingleBuffer( val buffer: Buffer )
-extends RichBuffer {
-   def bufNum = buffer.bufNum
-   def numChannels = buffer.numChannels
-   
-   def read( path: File, fileStartFrame: Int = 0, numFrames: Int = -1, bufStartFrame: Int = 0,
-             leaveOpen: Boolean = false ) : RichBuffer = {
-      SynthContext.current.addAsync(
-         buffer.readMsg( path.getCanonicalPath, fileStartFrame, numFrames, bufStartFrame, leaveOpen ))
-      this
-   }
+   node.onGo  { /* println( "id = " + gaga + " HUHU. ONLINE " + node.id );*/  isOnline = true }
+   node.onEnd { /* println( "id = " + gaga + " HUHU. OFFLINE " + node.id );*/ isOnline = false }
+//   println( "id = " + gaga + "; RICHNODE created" )
 
    def free {
       val context = SynthContext.current
       whenOnline {
+         context.add( node.freeMsg )
+      }
+   }
+}
+
+class RichSynth( val synth: Synth )
+extends RichNode {
+   def node = synth
+}
+
+class RichGroup( val group: Group )
+extends RichNode {
+   def node = group
+}
+
+trait RichBuffer
+extends AsyncAction {
+   protected var wasOpened = false
+   private var collWhenReady = Queue[ () => Unit ]()
+   
+   def index : Int
+   def numChannels : Int
+
+   def free : Unit
+
+   def whenReady( thunk: => Unit ) {
+      val fun = () => thunk
+//      if( isOnline ) {
+//         thunk
+//      } else {
+         collWhenReady = collWhenReady.enqueue( fun )
+//      }
+   }
+
+   def asyncDone {
+      val cpy = collWhenReady
+      collWhenReady = Queue[ () => Unit ]()
+      cpy.foreach( _.apply )
+   }
+
+   def read( path: File, fileStartFrame: Long = 0L, numFrames: Int = -1, bufStartFrame: Int = 0,
+             leaveOpen: Boolean = false ) : RichBuffer = {
+      val offsetI = castOffsetToInt( fileStartFrame )
+      protRead( path.getAbsolutePath, offsetI, numFrames, bufStartFrame, leaveOpen )
+      wasOpened = leaveOpen
+      this
+   }
+
+   protected def protRead( path: String, offsetI: Int, numFrames: Int, bufStartFrame: Int, leaveOpen: Boolean ) : Unit
+
+//   override def whenOffline( thunk: => Unit ) {
+//      throw new IllegalStateException( "OPERATION NOT YET SUPPORTED" )
+//   }
+
+   protected def castOffsetToInt( off: Long ) : Int =
+      if( off <= 0xFFFFFFFFL ) {
+         off.toInt
+      } else {
+         println( "WARNING: Buffer.read: file offset exceeds 32bit" )
+         0xFFFFFFFF
+      }
+}
+
+class RichSingleBuffer( val buffer: Buffer )
+extends RichBuffer {
+   def index = buffer.bufNum
+   def numChannels = buffer.numChannels
+   
+   protected def protRead( path: String, offsetI: Int, numFrames: Int, bufStartFrame: Int,
+                           leaveOpen: Boolean ) {
+      SynthContext.current.addAsync(
+         buffer.readMsg( path, offsetI, numFrames, bufStartFrame, leaveOpen ), this )
+   }
+
+   def free {
+      val context = SynthContext.current
+      whenReady {
+         if( wasOpened ) {
+            context.addAsync( buffer.closeMsg )
+            wasOpened = false
+         }
          context.addAsync( buffer.freeMsg )
       }
    }
@@ -135,25 +209,29 @@ extends RichBuffer {
 
 class RichMultiBuffer( val buffers: Seq[ Buffer ])
 extends RichBuffer {
-   def bufNum: Int = buffers.head.bufNum
+   def index: Int = buffers.head.bufNum
    val numChannels = buffers.size
-   def read( path: File, fileStartFrame: Int = 0, numFrames: Int = -1, bufStartFrame: Int = 0,
-             leaveOpen: Boolean = false ) : RichBuffer = {
 
+   protected def protRead( path: String, offsetI: Int, numFrames: Int, bufStartFrame: Int, leaveOpen: Boolean ) {
       val context = SynthContext.current
       var ch = 0; buffers.foreach( buf => {
-         context.addAsync(
-            buf.readChannelMsg( path.getCanonicalPath, fileStartFrame, numFrames, bufStartFrame, leaveOpen, List( ch )))
+         val msg = buf.readChannelMsg( path, offsetI, numFrames, bufStartFrame, leaveOpen, List( ch ))
+         if( ch == 0 ) {
+            context.addAsync( msg, this ) // make sure asyncDone is called only once!
+         } else {
+            context.addAsync( msg )
+         }
       ch += 1 })
-      this
    }
 
    def free {
       val context = SynthContext.current
-      whenOnline {
+      whenReady {
          buffers.foreach( buf => {
+            if( wasOpened ) context.addAsync( buf.closeMsg )
             context.addAsync( buf.freeMsg )
          })
+         wasOpened = false
       }
    }
 }
@@ -169,7 +247,7 @@ class RichBus( val bus: Bus ) {
 object SynthContext {
    private[sc] var current: SynthContext = null
 
-   def inGroup( g: Group)( thunk: => Unit ) {
+   def inGroup( g: RichGroup )( thunk: => Unit ) {
       current.inGroup( g )( thunk )
    }
 
@@ -179,11 +257,30 @@ object SynthContext {
    def audioBus( numChannels: Int ) : RichBus =
       current.audioBus( numChannels )
 
+   def group() : RichGroup =
+      current.group
+
+   def groupAfter( n: RichNode ) : RichGroup =
+      current.groupAfter( n )
+
    def emptyBuffer( numFrames: Int, numChannels: Int = 1 ) : RichBuffer =
       current.emptyBuffer( numFrames, numChannels )
 
    def emptyMultiBuffer( numFrames: Int, numChannels: Int ) : RichBuffer =
       current.emptyMultiBuffer( numFrames, numChannels )
+
+   def cue( obj: { def numChannels: Int; def path: File }, fileStartFrame: Long = 0L, bufSize: Int = 32768 ) : RichBuffer =
+      current.cue( obj, fileStartFrame, bufSize )
+
+   def realtime : Boolean = current.realtime
+
+   def sampleRate : Double = current.sampleRate
+
+   def timebase : Double = current.timebase
+   def timebase_=( newVal: Double ) : Unit = current.timebase_=( newVal )
+
+   def delayed( delay: Double )( thunk: => Unit ) : Unit =
+      current.delayed( delay )( thunk )
 
    def invalidate( obj: AnyRef ) {
       current.dispatch( Invalidation( obj ))
@@ -192,15 +289,27 @@ object SynthContext {
    case class Invalidation( obj: AnyRef )
 }
 
-class SynthContext( val server: Server ) extends Model {
+class SynthContext( val server: Server, val realtime: Boolean ) extends Model {
    private var defMap      = Map[ List[ Any ], RichSynthDef ]()
    private var syncWait    = Map[ Int, Bundle ]()
    private var uniqueID    = 0
    private var bundleCount = 0
    private var bundle: Bundle = null
-   private var currentTarget: Group = server.defaultGroup
+   private var currentTarget: RichGroup = new RichGroup( server.defaultGroup ) // XXX make online
 
    private val resp        = new OSCResponderNode( server, "/synced", syncedAction )
+
+   private var startTime   = System.currentTimeMillis    // XXX eventually we need logical time!
+
+   def timebase : Double = {
+      val currentTime = System.currentTimeMillis
+      (currentTime - startTime).toDouble / 1000
+   }
+
+   def timebase_=( newVal: Double ) {
+      val currentTime = System.currentTimeMillis
+      startTime = currentTime + (newVal * 1000 + 0.5).toLong
+   }
 
    def syncedAction( msg: OSCMessage, addr: SocketAddress, when: Long ) = msg match {
       case sm: OSCSyncedMessage => syncWait.get( sm.id ).foreach( bundle => {
@@ -220,22 +329,53 @@ class SynthContext( val server: Server ) extends Model {
       resp.remove
    }
 
-   private def initBundle {
-      bundle = new Bundle( bundleCount )
+   private def initBundle( time: Double = -1 ) {
+      bundle = new Bundle( bundleCount, time )
       bundleCount += 1
    }
 
    def perform( thunk: => Unit ) {
-      val saved = SynthContext.current
-      initBundle
+      perform( thunk, -1 )
+   }
+
+   def delayed( delay: Double )( thunk: => Unit ) {
+      perform( thunk, delay )
+   }
+   
+   private def perform( thunk: => Unit, time: Double ) {
+      val savedContext  = SynthContext.current
+      val savedBundle   = bundle
       try {
+         initBundle()
          SynthContext.current = this
          thunk
+         sendBundle
       }
       finally {
-         SynthContext.current = saved
-         bundle.send( server )
+         SynthContext.current = savedContext
+         bundle = savedBundle
       }
+   }
+
+   private def sendBundle {
+      bundle.send( server )
+      bundle = null
+   }
+
+   def sampleRate : Double = server.counts.sampleRate
+
+   def group() : RichGroup = {
+      val group = new Group( server )
+      val rg    = new RichGroup( group )
+      bundle.add( group.newMsg( currentTarget.group, addToHead ))
+      rg
+   }
+
+   def groupAfter( n: RichNode ) : RichGroup = {
+      val group = new Group( server )
+      val rg    = new RichGroup( group )
+      bundle.add( group.newMsg( n.node, addAfter ))  // XXX should check g.online!
+      rg
    }
 
    def audioBus( numChannels: Int ) =
@@ -246,6 +386,14 @@ class SynthContext( val server: Server ) extends Model {
       val rb   = new RichSingleBuffer( buf )
       bundle.addAsync( buf.allocMsg )
       bundle.addAsync( buf.zeroMsg )
+      rb
+   }
+
+   def cue( obj: { def numChannels: Int; def path: File }, fileStartFrame: Long, bufSize: Int ) : RichBuffer = {
+      val buf  = new Buffer( server, bufSize, obj.numChannels )
+      val rb   = new RichSingleBuffer( buf )
+      bundle.addAsync( buf.allocMsg )
+      rb.read( obj.path, fileStartFrame, leaveOpen = true )
       rb
    }
 
@@ -260,7 +408,7 @@ class SynthContext( val server: Server ) extends Model {
       rb
    }
 
-   def inGroup( g: Group)( thunk: => Unit ) {
+   def inGroup( g: RichGroup )( thunk: => Unit ) {
       val saved = currentTarget
       try {
          currentTarget = g
@@ -298,27 +446,32 @@ class SynthContext( val server: Server ) extends Model {
       val rs    = new RichSynth( synth )
       val tgt   = currentTarget  // freeze
       rsd.whenOnline {
-         bundle.add( synth.newMsg( tgt, args ))
+         bundle.add( synth.newMsg( tgt.node, args ))
       }
       rs
-   }
-
-   def free( rs: RichSynth ) {
-      rs.whenOnline {
-         bundle.add( rs.synth.freeMsg )
-      }
    }
 
    def addAsync( msg: OSCMessage ) {
       bundle.addAsync( msg )
    }
 
-   class Bundle( count: Int ) {
+   def addAsync( msg: OSCMessage, async: AsyncAction ) {
+      bundle.addAsync( msg, async )
+   }
+
+   def add( msg: OSCMessage ) {
+      bundle.add( msg )
+   }
+
+   class Bundle( count: Int, val time: Double = -1 ) {
       private var msgs     = Queue[ OSCMessage ]()
-      private var asyncs   = Queue[ AsyncModel ]()
+      private var asyncs   = Queue[ AsyncAction ]()
       private var hasAsync = false
 
+//println( "NEW BUNDLE : " + time )
+
       def add( msg: OSCMessage ) {
+//println( "....add " + msg )
          msgs = msgs.enqueue( msg )
       }
 
@@ -327,7 +480,7 @@ class SynthContext( val server: Server ) extends Model {
          add( msg )
       }
 
-      def addAsync( msg: OSCMessage, async: AsyncModel ) {
+      def addAsync( msg: OSCMessage, async: AsyncAction ) {
          hasAsync = true
          asyncs   = asyncs.enqueue( async )
          add( msg )
@@ -342,13 +495,13 @@ class SynthContext( val server: Server ) extends Model {
             msgs
          }
          if( cpy.nonEmpty ) {
-            server.sendBundle( -1, cpy: _* ) // XXX bundle clumping
+            server.sendBundle( time, cpy: _* ) // XXX bundle clumping
          }
       }
 
       def doAsync {
 //println( "asyncs : " + asyncs.size )
-         asyncs.foreach( _.isOnline = true )
+         asyncs.foreach( _.asyncDone )
       }
    }
 }

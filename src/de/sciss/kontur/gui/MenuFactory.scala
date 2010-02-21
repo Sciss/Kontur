@@ -56,19 +56,19 @@ extends BasicMenuFactory( app ) {
 		actionOpen.perform( f )
 	}
 
-	def showPreferences() {
+	def showPreferences {
 		var prefsFrame = app.getComponent( Main.COMP_PREFS ).asInstanceOf[ PrefsFrame ]
 
 		if( prefsFrame == null ) {
 			prefsFrame = new PrefsFrame()
 		}
 		prefsFrame.setVisible( true )
-		prefsFrame.toFront()
+		prefsFrame.toFront
 	}
 
-	protected def getOpenAction() : Action = actionOpen
+	protected def getOpenAction : Action = actionOpen
 
-   protected def addMenuItems() {
+   protected def addMenuItems {
 	   // Ctrl on Mac / Ctrl+Alt on PC
       val myCtrl = if( MENU_SHORTCUT == InputEvent.CTRL_MASK ) InputEvent.CTRL_MASK | InputEvent.ALT_MASK
          else InputEvent.CTRL_MASK
@@ -81,6 +81,9 @@ extends BasicMenuFactory( app ) {
       smgFileNew.add( new MenuItem( "interpreter",
          new ActionScalaInterpreter( getResourceString( "menuNewScalaInterpreter" ))))
 		mgFile.add( smgFileNew, 0 )
+
+      mgFile.addSeparator
+      mgFile.add( new MenuItem( "bounce", getResourceString( "menuBounce" ), null ))
 
   		// --- timeline menu ---
 		val mgTimeline  = new MenuGroup( "timeline", getResourceString( "menuTimeline" ))
