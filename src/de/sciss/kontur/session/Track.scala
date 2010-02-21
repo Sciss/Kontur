@@ -49,7 +49,7 @@ trait TrackEditor extends Editor {
   
 }
 
-class Tracks( doc: Session, tl: BasicTimeline )
+class Tracks( doc: Session )
 extends BasicSessionElementSeq[ Track ]( doc, "Tracks" ) {
 
    def toXML( c: SerializerContext ) =
@@ -67,7 +67,7 @@ extends BasicSessionElementSeq[ Track ]( doc, "Tracks" ) {
          (ch \ "@idref").headOption.map( attr => {
             c.byID[ Track ]( attr.text.toLong )
          }).getOrElse( ch.label match {
-            case AudioTrack.XML_NODE => AudioTrack.fromXML( c, ch, doc, tl )
+            case AudioTrack.XML_NODE => AudioTrack.fromXML( c, ch, doc )
             case lb => throw new IOException( "Unknown track type '" + lb + "'" )
          })
       })

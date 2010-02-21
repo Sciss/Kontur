@@ -38,16 +38,17 @@ import de.sciss.kontur.util.{ SerializerContext }
 
 trait SessionElementSeq[ T <: SessionElement ]
 extends SessionElement {
-  def get( idx: Int ) : Option[ T ]
+   def get( idx: Int ) : Option[ T ]
 
-  // some collection methods
-  def indexOf( elem: T ) : Int
-  def contains( elem: T ) : Boolean
-  def foreach[ U ]( f: T => U ): Unit
-  def toList: List[ T ]
-  def filter( p: (T) => Boolean ): List[ T ]
-  def find( p: (T) => Boolean): Option[ T ]
-  def size: Int
+   // some collection methods
+   def indexOf( elem: T ) : Int
+   def contains( elem: T ) : Boolean
+   def foreach[ U ]( f: T => U ): Unit
+   def toList: List[ T ]
+   def filter( p: (T) => Boolean ): List[ T ]
+   def find( p: (T) => Boolean): Option[ T ]
+   def map[ B ]( f: (T) => B ) : List[ B ]
+   def size: Int
 
   // XXX this could be more performative (e.g. using a separate Map)
 //  def getByID( id: Long ) : Option[ T ] = find( _.id == id )
@@ -120,18 +121,19 @@ with SessionElementSeqEditor[ T ] {
     }
   }
 
-  def get( idx: Int ) : Option[ T ] = try {
-     Some( coll( idx ))
-    } catch { case e: IndexOutOfBoundsException => None }
+   def get( idx: Int ) : Option[ T ] = try {
+      Some( coll( idx ))
+   } catch { case e: IndexOutOfBoundsException => None }
 
-  // some collection methods
-  def indexOf( elem: T ) : Int = coll.indexOf( elem )
-  def contains( elem: T ) : Boolean = coll.contains( elem )
-  def foreach[ U ]( f: T => U ): Unit = coll.foreach( f )
-  def toList: List[ T ] = coll.toList
-  def filter( p: (T) => Boolean ): List[ T ] = coll.filter( p ).toList
-  def find( p: (T) => Boolean): Option[ T ] = coll.find( p )
-  def size: Int = coll.size
+   // some collection methods
+   def indexOf( elem: T ) : Int = coll.indexOf( elem )
+   def contains( elem: T ) : Boolean = coll.contains( elem )
+   def foreach[ U ]( f: T => U ): Unit = coll.foreach( f )
+   def toList: List[ T ] = coll.toList
+   def filter( p: (T) => Boolean ): List[ T ] = coll.filter( p ).toList
+   def find( p: (T) => Boolean): Option[ T ] = coll.find( p )
+   def map[ B ]( f: (T) => B ) : List[ B ] = coll.map( f ).toList
+   def size: Int = coll.size
 
   def editor: Option[ SessionElementSeqEditor[ T ]] = Some( this )
   // ----  SessionElementSeqEditor ----

@@ -38,8 +38,8 @@ import de.sciss.kontur.util.{ SerializerContext }
 object AudioTrack {
    val XML_NODE = "audioTrack"
 
-   def fromXML( c: SerializerContext, node: Node, doc: Session, tl: BasicTimeline ) : AudioTrack = {
-      val at    = new AudioTrack( doc, tl )
+   def fromXML( c: SerializerContext, node: Node, doc: Session ) : AudioTrack = {
+      val at    = new AudioTrack( doc )
       c.id( at, node )
       at.fromXML( c, node )
       at
@@ -48,7 +48,7 @@ object AudioTrack {
    case class DiffusionChanged( oldDiff: Option[ Diffusion ], newDiff: Option[ Diffusion ])
 }
 
-class AudioTrack( doc: Session, tl: BasicTimeline )
+class AudioTrack( doc: Session )
 extends Track with TrackEditor // [ AudioRegion ]
 with Renameable {
   import AudioTrack._

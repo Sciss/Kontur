@@ -420,23 +420,20 @@ with HasDoubleClickAction {
 class TracksTreeIndex( model: SessionTreeModel, tl: Timeline )
 extends SessionElementSeqTreeNode( model, tl.tracks )
 with HasContextMenu with CanBeDropTarget {
-   def createContextMenu() : Option[ PopupRoot ] = tl match {
-      case btl: BasicTimeline => {
-         val root = new PopupRoot()
-         val miAddNewAudio = new MenuItem( "new", new AbstractAction( "New Audio Track" ) {
-            def actionPerformed( a: ActionEvent ) {
-               tl.tracks.editor.foreach( ed => {
-                  val ce = ed.editBegin( getValue( Action.NAME ).toString )
-                  val t = new AudioTrack( model.doc, btl )
-                  ed.editInsert( ce, tl.tracks.size, t )
-                  ed.editEnd( ce )
-               })
-            }
-         })
-         root.add( miAddNewAudio )
-         Some( root )
-      }
-      case _ => None
+   def createContextMenu() : Option[ PopupRoot ] = {
+      val root = new PopupRoot()
+      val miAddNewAudio = new MenuItem( "new", new AbstractAction( "New Audio Track" ) {
+         def actionPerformed( a: ActionEvent ) {
+            tl.tracks.editor.foreach( ed => {
+               val ce = ed.editBegin( getValue( Action.NAME ).toString )
+               val t = new AudioTrack( model.doc )
+               ed.editInsert( ce, tl.tracks.size, t )
+               ed.editEnd( ce )
+            })
+         }
+      })
+      root.add( miAddNewAudio )
+      Some( root )
    }
 
    protected def wrap( elem: Track ): DynamicTreeNode =

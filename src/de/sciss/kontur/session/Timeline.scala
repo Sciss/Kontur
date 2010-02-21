@@ -82,7 +82,7 @@ extends Timeline with Renameable with TimelineEditor {
 
   def transport: Option[ Transport ] = Some( transportVar )
   
-  val tracks = new Tracks( doc, this )
+  val tracks = new Tracks( doc )
 //  val audioTrail  = new AudioTrail
 
   def toXML( c: SerializerContext ) = <timeline id={c.id( this ).toString}>
