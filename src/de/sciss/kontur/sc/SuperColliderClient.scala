@@ -205,7 +205,7 @@ class SuperColliderClient extends Model {
 			println( getResourceString( "errSCSynthAppNotFound" ))
 			return false
 		}
-		so.program.value = appPath
+		so.programPath.value = appPath
 
 		try {
 			// check for automatic port assignment

@@ -58,9 +58,9 @@ extends Disposable {
 
     private def serverRunning {
       client.server.foreach( s => {
-         val context = new SynthContext( s, true )
+         val context = new RealtimeSynthContext( s )
          context.perform {
-            online = Some( new SCSession( doc, context ))
+            online = Some( new SCSession( doc ))
          }
       })
     }

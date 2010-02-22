@@ -92,8 +92,10 @@ extends SCTrackPlayer {
 //println( "---- " + unique )
                         synths += syn
    //                     stakes += (stake -> syn)
+                        syn.endsAfter( (stake.span.getLength - frameOffset) / sampleRate ) // nrt hint
 
                         syn.whenOffline {
+//println( "whenOffline " + syn.synth )
                            stakes -= stake
                            synths -= syn
                            buf.free

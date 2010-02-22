@@ -42,9 +42,10 @@ import SC._
 import scala.math._
 import SynthContext._
 
-class SCSession( val doc: Session, val context: SynthContext ) {
+class SCSession( val doc: Session ) {
    online =>
 
+   val context    = current
    var timelines  = Map[ Timeline, SCTimeline ]()
    var diffusions = Map[ Diffusion, DiffusionSynth ]()
 
@@ -58,9 +59,9 @@ class SCSession( val doc: Session, val context: SynthContext ) {
       case doc.diffusions.ElementRemoved( idx, diff ) => context.perform { removeDiffusion( diff )}
    }
 
-   private val timeListener: AnyRef => Unit = (msg: AnyRef) => msg match {
-      case doc.timelines.ElementAdded( idx, diff ) => addTimeline( diff )
-      case doc.timelines.ElementRemoved( idx, diff ) => removeTimeline( diff )
+   private val timeListener = (msg: AnyRef) => msg match {
+      case doc.timelines.ElementAdded( idx, tl ) => addTimeline( new SCTimeline( this, tl ))
+      case doc.timelines.ElementRemoved( idx, tl ) => removeTimeline( tl )
    }
 
   // ---- constructor2 ----
@@ -69,7 +70,7 @@ class SCSession( val doc: Session, val context: SynthContext ) {
         doc.diffusions.foreach( diff => addDiffusion( diff ))
      }
      if( realtime ) {
-        doc.timelines.foreach( tl => addTimeline( tl ))
+        doc.timelines.foreach( tl => addTimeline( new SCTimeline( this, tl )))
         doc.timelines.addListener( timeListener )
         doc.diffusions.addListener( diffListener )
      }
@@ -117,10 +118,8 @@ class SCSession( val doc: Session, val context: SynthContext ) {
       odiff.dispose
    }
 
-   private def addTimeline( tl: Timeline ) : SCTimeline = {
-      val sctl = new SCTimeline( this, tl, context )
-      timelines += tl -> sctl
-      sctl
+   def addTimeline( sctl: SCTimeline ) {
+      timelines += sctl.tl -> sctl
    }
 
    private def removeTimeline( tl: Timeline ) {

@@ -42,10 +42,11 @@ import SC._
 import scala.math._
 import SynthContext._
 
-class SCTimeline( val scDoc: SCSession, val tl: Timeline, val context: SynthContext )
+class SCTimeline( val scDoc: SCSession, val tl: Timeline )
 extends ActionListener {
    val verbose = false
 
+   val context = current 
    private val tracks = tl.tracks
 //          private val player = new OnlinePlayer( tl )
 
@@ -115,6 +116,10 @@ if( verbose ) println( "| | | | | timer " + start )
       players.insert( idx, player )
    }
 
+   def addTrack( t: Track ) {
+      addTrack( players.size, t )
+   }
+
    private def removeTrack( idx: Int, t: Track ) {
       val ptest = mapPlayers( t )
       mapPlayers -= t
@@ -127,13 +132,13 @@ if( verbose ) println( "| | | | | timer " + start )
 if( verbose ) println( "play ; deltaFrames = " + deltaFrames )
       start = from // + latencyFrames
       players.foreach( _.play )
-      timer.start()
+      if( realtime ) timer.start()
    }
 
    def stop {
 if( verbose ) println( "stop" )
 players.foreach( _.stop )
-      timer.stop()
+      if( realtime ) timer.stop()
    }
 }
  

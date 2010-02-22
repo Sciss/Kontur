@@ -4,15 +4,14 @@
     <list default="true" readonly="true" id="6aaf78f3-2cd3-461b-a3b3-ab35f5d5ed52" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderPlayer.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderPlayer.scala" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/resources/KonturStrings.properties" afterPath="$PROJECT_DIR$/resources/KonturStrings.properties" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SCAudioTrackPlayer.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SCAudioTrackPlayer.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelineFrame.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelineFrame.scala" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SCSession.scala" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SCTrackPlayer.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/resources/KonturStrings.properties" afterPath="$PROJECT_DIR$/resources/KonturStrings.properties" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/ConvolutionDiffusionSynth.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/ConvolutionDiffusionSynth.scala" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SCTimeline.scala" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SCAudioTrackPlayer.scala" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/MenuFactory.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/gui/MenuFactory.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderClient.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderClient.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SCTimeline.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SCTimeline.scala" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/BounceSynthContext.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SCSession.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SCSession.scala" />
     </list>
     <ignored path=".idea/workspace.xml" />
     <ignored path="Kontur.iws" />
@@ -116,62 +115,7 @@
   </component>
   <component name="FileColors" enabled="true" enabledForTabs="true" />
   <component name="FileEditorManager">
-    <leaf>
-      <file leaf-file-name="SuperColliderPlayer.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderPlayer.scala">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="54" column="72" selection-start="1760" selection-end="1760" vertical-scroll-proportion="-8.346154">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="SCSession.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SCSession.scala">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="75" column="0" selection-start="2612" selection-end="2612" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="SCTimeline.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SCTimeline.scala">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="46" column="22" selection-start="1638" selection-end="1638" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="SCAudioTrackPlayer.scala" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SCAudioTrackPlayer.scala">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="71" column="30" selection-start="3353" selection-end="3353" vertical-scroll-proportion="0.30740038">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="SCTrackPlayer.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SCTrackPlayer.scala">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="17" column="11" selection-start="406" selection-end="406" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="SynthContext.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="108" column="83" selection-start="3160" selection-end="3160" vertical-scroll-proportion="-5.9615383">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
+    <leaf />
   </component>
   <component name="FindManager">
     <FindUsagesManager>
@@ -181,21 +125,21 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/session/AudioTrack.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/session/Track.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/SessionTreeModel.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/session/Timeline.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/session/SessionElementSeq.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/MenuFactory.scala" />
         <option value="$PROJECT_DIR$/resources/KonturStrings.properties" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelineFrame.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderPlayer.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/session/SCTrackPlayer.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/SCSession.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/ConvolutionDiffusionSynth.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/SCTrackPlayer.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderClient.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderPlayer.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/SCTimeline.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/SCSession.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelineFrame.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/BounceSynthContext.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/SCAudioTrackPlayer.scala" />
       </list>
     </option>
@@ -587,7 +531,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="24" width="1389" height="860" extended-state="0" />
+    <frame x="3" y="22" width="1389" height="860" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -602,7 +546,7 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.23134328" sideWeight="0.51891893" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.21486486" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.21486486" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32972974" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -643,20 +587,6 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/AudioTrail.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="36" column="7" selection-start="1165" selection-end="1165" vertical-scroll-proportion="0.021067416">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/AudioFileElement.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="97" column="6" selection-start="3149" selection-end="3149" vertical-scroll-proportion="0.021067416">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/Session.scala">
       <provider selected="true" editor-type-id="text-editor">
         <state line="100" column="32" selection-start="3092" selection-end="3162" vertical-scroll-proportion="0.021067416">
@@ -685,27 +615,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SCSession.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="75" column="0" selection-start="2612" selection-end="2612" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SCTrackPlayer.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="17" column="11" selection-start="406" selection-end="406" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderPlayer.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="54" column="72" selection-start="1760" selection-end="1760" vertical-scroll-proportion="-8.346154">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/resources/KonturStrings.properties">
       <provider selected="true" editor-type-id="text-editor">
         <state line="245" column="76" selection-start="7530" selection-end="7530" vertical-scroll-proportion="0.2983539">
@@ -720,37 +629,72 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelineFrame.scala">
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SCSession.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="642" column="51" selection-start="25785" selection-end="25785" vertical-scroll-proportion="4.1193414">
+        <state line="47" column="3" selection-start="1559" selection-end="1559" vertical-scroll-proportion="0.29045644">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/ConvolutionDiffusionSynth.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="79" column="53" selection-start="2943" selection-end="2943" vertical-scroll-proportion="0.093812376">
+        <state line="41" column="6" selection-start="1424" selection-end="1424" vertical-scroll-proportion="-0.64705884">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/BounceSynthContext.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="36" column="31" selection-start="1441" selection-end="1441" vertical-scroll-proportion="0.3889943">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="108" column="83" selection-start="3160" selection-end="3160" vertical-scroll-proportion="-5.9615383">
+        <state line="185" column="9" selection-start="5065" selection-end="5065" vertical-scroll-proportion="0.3662239">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SCTimeline.scala">
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SCTrackPlayer.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="46" column="22" selection-start="1638" selection-end="1638" vertical-scroll-proportion="0.0">
+        <state line="17" column="11" selection-start="406" selection-end="406" vertical-scroll-proportion="0.50898206">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SCAudioTrackPlayer.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="71" column="30" selection-start="3353" selection-end="3353" vertical-scroll-proportion="0.30740038">
+        <state line="115" column="41" selection-start="5376" selection-end="5376" vertical-scroll-proportion="0.85192305">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SCTimeline.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="48" column="3" selection-start="1616" selection-end="1616" vertical-scroll-proportion="0.41346154">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderPlayer.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="86" column="56" selection-start="2464" selection-end="2464" vertical-scroll-proportion="0.8076923">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelineFrame.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="745" column="73" selection-start="30636" selection-end="30636" vertical-scroll-proportion="0.36831683">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderClient.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="201" column="77" selection-start="6460" selection-end="6460" vertical-scroll-proportion="0.2923077">
           <folding />
         </state>
       </provider>

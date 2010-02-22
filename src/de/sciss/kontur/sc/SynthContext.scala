@@ -30,12 +30,13 @@ package de.sciss.kontur.sc
 
 import scala.collection.immutable.{ Queue }
 import scala.collection.mutable.{ ListBuffer }
-import java.io.{ File }
+import java.io.{ File, IOException }
 import java.net.{ SocketAddress }
 import de.sciss.tint.sc._
 import SC._
 import de.sciss.scalaosc.{ OSCMessage }
 import de.sciss.kontur.util.{ Model }
+import de.sciss.util.{ Disposable }
 
 trait AsyncAction {
    def asyncDone : Unit
@@ -100,7 +101,7 @@ trait AsyncModel extends AsyncAction {
    }
 }
 
-class RichSynthDef( val synthDef: SynthDef, val bundleCount: Int )
+class RichSynthDef( val synthDef: SynthDef )
 extends AsyncModel {
    def play : RichSynth = play()
    def play( args: Tuple2[ String, Float ]* ) : RichSynth =
@@ -114,14 +115,12 @@ extends AsyncModel {
 trait RichNode extends AsyncModel {
    def node: Node
 
-   node.onGo  { /* println( "id = " + gaga + " HUHU. ONLINE " + node.id );*/  isOnline = true }
-   node.onEnd { /* println( "id = " + gaga + " HUHU. OFFLINE " + node.id );*/ isOnline = false }
-//   println( "id = " + gaga + "; RICHNODE created" )
+   node.onGo  { SynthContext.current.perform { isOnline = true }}
+   node.onEnd { SynthContext.current.perform { isOnline = false }}
 
    def free {
-      val context = SynthContext.current
       whenOnline {
-         context.add( node.freeMsg )
+         SynthContext.current.add( node.freeMsg )
       }
    }
 }
@@ -129,6 +128,11 @@ trait RichNode extends AsyncModel {
 class RichSynth( val synth: Synth )
 extends RichNode {
    def node = synth
+
+   def endsAfter( dur: Double ) : RichSynth = {
+      SynthContext.current.endsAfter( this, dur )
+      this
+   }
 }
 
 class RichGroup( val group: Group )
@@ -196,14 +200,13 @@ extends RichBuffer {
    }
 
    def free {
-      val context = SynthContext.current
-      whenReady {
+//      whenReady {
          if( wasOpened ) {
-            context.addAsync( buffer.closeMsg )
+            SynthContext.current.addAsync( buffer.closeMsg )
             wasOpened = false
          }
-         context.addAsync( buffer.freeMsg )
-      }
+         SynthContext.current.addAsync( buffer.freeMsg )
+//      }
    }
 }
 
@@ -225,11 +228,10 @@ extends RichBuffer {
    }
 
    def free {
-      val context = SynthContext.current
       whenReady {
          buffers.foreach( buf => {
-            if( wasOpened ) context.addAsync( buf.closeMsg )
-            context.addAsync( buf.freeMsg )
+            if( wasOpened ) SynthContext.current.addAsync( buf.closeMsg )
+            SynthContext.current.addAsync( buf.freeMsg )
          })
          wasOpened = false
       }
@@ -289,50 +291,17 @@ object SynthContext {
    case class Invalidation( obj: AnyRef )
 }
 
-class SynthContext( val server: Server, val realtime: Boolean ) extends Model {
+abstract class SynthContext( val server: Server, val realtime: Boolean )
+extends Model with Disposable {
    private var defMap      = Map[ List[ Any ], RichSynthDef ]()
-   private var syncWait    = Map[ Int, Bundle ]()
    private var uniqueID    = 0
-   private var bundleCount = 0
-   private var bundle: Bundle = null
+   protected var bundle: AbstractBundle = null
    private var currentTarget: RichGroup = new RichGroup( server.defaultGroup ) // XXX make online
 
-   private val resp        = new OSCResponderNode( server, "/synced", syncedAction )
+   def timebase : Double
+   def timebase_=( newVal: Double ) : Unit
 
-   private var startTime   = System.currentTimeMillis    // XXX eventually we need logical time!
-
-   def timebase : Double = {
-      val currentTime = System.currentTimeMillis
-      (currentTime - startTime).toDouble / 1000
-   }
-
-   def timebase_=( newVal: Double ) {
-      val currentTime = System.currentTimeMillis
-      startTime = currentTime + (newVal * 1000 + 0.5).toLong
-   }
-
-   def syncedAction( msg: OSCMessage, addr: SocketAddress, when: Long ) = msg match {
-      case sm: OSCSyncedMessage => syncWait.get( sm.id ).foreach( bundle => {
-//println( "synced : " + sm.id )
-         syncWait -= sm.id
-         perform { bundle.doAsync }
-      })
-      case _ =>
-   }
-
-   // ---- constructor ----
-   {
-      resp.add
-   }
-
-   def dispose {
-      resp.remove
-   }
-
-   private def initBundle( time: Double = -1 ) {
-      bundle = new Bundle( bundleCount, time )
-      bundleCount += 1
-   }
+   protected def initBundle( delta: Double ) : Unit
 
    def perform( thunk: => Unit ) {
       perform( thunk, -1 )
@@ -346,7 +315,7 @@ class SynthContext( val server: Server, val realtime: Boolean ) extends Model {
       val savedContext  = SynthContext.current
       val savedBundle   = bundle
       try {
-         initBundle()
+         initBundle( time )
          SynthContext.current = this
          thunk
          sendBundle
@@ -358,9 +327,17 @@ class SynthContext( val server: Server, val realtime: Boolean ) extends Model {
    }
 
    private def sendBundle {
-      bundle.send( server )
-      bundle = null
+      try {
+         bundle.send // sendBundle( bundle )
+      }
+      catch { case e: IOException => e.printStackTrace }
+      finally {
+         bundle = null
+      }
    }
+
+//   @throws( classOf[ IOException ])
+//   protected def sendBundle( b: AbstractBundle ) : Unit
 
    def sampleRate : Double = server.counts.sampleRate
 
@@ -434,7 +411,7 @@ class SynthContext( val server: Server, val realtime: Boolean ) extends Model {
          })).substring( 1 )
          val ugenFunc = () => ugenThunk
          val sd  = new SynthDef( name )( ugenFunc )
-         val rsd = new RichSynthDef( sd, bundleCount )
+         val rsd = new RichSynthDef( sd )
          defMap += defList -> rsd
          bundle.addAsync( sd.recvMsg, rsd )
          rsd
@@ -445,10 +422,16 @@ class SynthContext( val server: Server, val realtime: Boolean ) extends Model {
       val synth = new Synth( rsd.synthDef.name, server )
       val rs    = new RichSynth( synth )
       val tgt   = currentTarget  // freeze
+//println( "play " + rs.synth )
       rsd.whenOnline {
+//println( "play really " + rs.synth )
          bundle.add( synth.newMsg( tgt.node, args ))
       }
       rs
+   }
+
+   def addAsync( async: AsyncAction ) {
+      bundle.addAsync( async )
    }
 
    def addAsync( msg: OSCMessage ) {
@@ -463,12 +446,15 @@ class SynthContext( val server: Server, val realtime: Boolean ) extends Model {
       bundle.add( msg )
    }
 
-   class Bundle( count: Int, val time: Double = -1 ) {
-      private var msgs     = Queue[ OSCMessage ]()
-      private var asyncs   = Queue[ AsyncAction ]()
-      private var hasAsync = false
+   def endsAfter( rn: RichNode, dur: Double ) {}
 
-//println( "NEW BUNDLE : " + time )
+   trait AbstractBundle {
+      protected var msgs     = Queue[ OSCMessage ]()
+      protected var asyncs   = Queue[ AsyncAction ]()
+      private var hasAsyncVar = false
+
+      @throws( classOf[ IOException ])
+      def send: Unit
 
       def add( msg: OSCMessage ) {
 //println( "....add " + msg )
@@ -476,32 +462,88 @@ class SynthContext( val server: Server, val realtime: Boolean ) extends Model {
       }
 
       def addAsync( msg: OSCMessage ) {
-         hasAsync = true
+         hasAsyncVar = true
          add( msg )
       }
 
       def addAsync( msg: OSCMessage, async: AsyncAction ) {
-         hasAsync = true
-         asyncs   = asyncs.enqueue( async )
+         addAsync( async )
          add( msg )
       }
 
-      def send( server: Server ) {
+      def addAsync( async: AsyncAction ) {
+          hasAsyncVar = true
+          asyncs   = asyncs.enqueue( async )
+       }
+
+      def hasAsync = hasAsyncVar
+
+      def messages: Seq[ OSCMessage ] = msgs
+
+      def doAsync {
+//println( "asyncs : " + asyncs.size )
+         asyncs.foreach( _.asyncDone )
+      }
+   }
+}
+
+class RealtimeSynthContext( s: Server )
+extends SynthContext( s, true ) {
+   private val resp        = new OSCResponderNode( server, "/synced", syncedAction )
+   private var startTime   = System.currentTimeMillis    // XXX eventually we need logical time!
+   private var syncWait    = Map[ Int, Bundle ]()
+   private var bundleCount = 0
+
+   // ---- constructor ----
+   {
+      resp.add
+   }
+
+   def dispose {
+      resp.remove
+   }
+   
+   private def syncedAction( msg: OSCMessage, addr: SocketAddress, when: Long ) = msg match {
+      case sm: OSCSyncedMessage => syncWait.get( sm.id ).foreach( bundle => {
+//println( "synced : " + sm.id )
+         syncWait -= sm.id
+         perform { bundle.doAsync }
+      })
+      case _ =>
+   }
+   
+   def timebase : Double = {
+      val currentTime = System.currentTimeMillis
+      (currentTime - startTime).toDouble / 1000
+   }
+
+   def timebase_=( newVal: Double ) {
+      val currentTime = System.currentTimeMillis
+      startTime = currentTime + (newVal * 1000 + 0.5).toLong
+   }
+
+   protected def initBundle( delta: Double ) {
+      bundle = new Bundle( bundleCount, delta )
+      bundleCount += 1
+   }
+
+//   protected def sendBundle( b: AbstractBundle ) {
+//      b.send( server )
+//   }
+
+   private class Bundle( count: Int, delta: Double )
+   extends AbstractBundle {
+      @throws( classOf[ IOException ])
+      def send {
          val cpy = if( hasAsync ) {
-//println( "sync to " + count )
             syncWait += count -> this
             msgs.enqueue( new OSCSyncMessage( count ))
          } else {
             msgs
          }
          if( cpy.nonEmpty ) {
-            server.sendBundle( time, cpy: _* ) // XXX bundle clumping
+            server.sendBundle( delta, cpy: _* ) // XXX bundle clumping
          }
-      }
-
-      def doAsync {
-//println( "asyncs : " + asyncs.size )
-         asyncs.foreach( _.asyncDone )
       }
    }
 }
