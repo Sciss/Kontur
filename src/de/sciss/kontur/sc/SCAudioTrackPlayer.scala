@@ -73,7 +73,8 @@ extends SCTrackPlayer {
                   val buf  = cue( stake.audioFile, stake.offset + frameOffset )
                   stakes += stake
 //val unique = uniqueSCHNUCK
-                  buf.whenReady { delayed( timebase - tb + dt ) {
+                   /* println( "delayed( "+timebase+" - " + tb + " + " + dt + " )" );*/
+                  buf.whenReady { delayed( tb /* timebase - tb + */, dt ) {
                      if( playing ) {
 //println( "PLAY " + unique )
                         val syn = sd.play( (List[ (String, Float) ]( "i_buf" -> buf.index,

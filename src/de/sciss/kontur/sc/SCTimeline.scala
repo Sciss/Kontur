@@ -56,6 +56,8 @@ extends ActionListener {
    private val latencyFrames     = (bufferLatency * sampleRate).toInt
    private val deltaFrames       = (transportDelta * sampleRate).toInt
    private var start             = 0L
+   private var currentPos        = 0L
+   private var startTime         = 0L
    private val timer             = new SwingTimer( (transportDelta * 1000).toInt, this )
    private val players           = new ArrayBuffer[ SCTrackPlayer ]()
    private var mapPlayers        = Map[ Track, SCTrackPlayer ]()
@@ -74,7 +76,7 @@ extends ActionListener {
    {
 //             server.dumpOSC( 3 )
       timer.setInitialDelay( 0 )
-      timer.setCoalesce( false )
+//      timer.setCoalesce( false )
 
       if( realtime ) {
          { var idx = 0; tracks.foreach( t => { addTrack( idx, t ); idx += 1 })}
@@ -94,11 +96,18 @@ extends ActionListener {
 
    // triggered by timer
    def actionPerformed( e: ActionEvent ) {
-if( verbose ) println( "| | | | | timer " + start )
-      val latentStart = start + latencyFrames
-      val span = new Span( latentStart, latentStart + deltaFrames )
-      context.perform { step( start, span )}
-      start += deltaFrames
+if( verbose ) println( "| | | | | timer " + currentPos )
+      val sr         = context.sampleRate
+      // sucyk swing timer exhibits drift... we need to refer to systemtime
+      val stopFrame  = start + ((System.currentTimeMillis - startTime) * sr / 1000 + 0.5).toLong
+      val latencyStop = stopFrame + latencyFrames
+      val latentStart = currentPos + latencyFrames
+//      val span = new Span( latentStart, latentStart + deltaFrames )
+      val span = new Span( latentStart, latencyStop )
+      context.timebase = (currentPos - start) / sr
+      context.perform { step( currentPos, span )}
+//      currentPos += deltaFrames
+      currentPos = stopFrame
    }
 
    def step( currentPos: Long, span: Span ) {
@@ -131,6 +140,9 @@ if( verbose ) println( "| | | | | timer " + start )
    def play( from: Long, rate: Double ) {
 if( verbose ) println( "play ; deltaFrames = " + deltaFrames )
       start = from // + latencyFrames
+      startTime = System.currentTimeMillis // sucky swing timer is imprecise
+      currentPos = start
+//      if( realtime ) context.timebase = 0.0
       players.foreach( _.play )
       if( realtime ) timer.start()
    }

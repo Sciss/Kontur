@@ -160,7 +160,7 @@ extends SynthContext( s, false ) {
 
    override def endsAfter( rn: RichNode, dur: Double ) {
 //println( "endsAfter " + dur + ": " + rn.node )
-      delayed( dur ) {
+      delayed( timebase, dur ) {
 //println( "endsAfter really " + dur + ": " + rn.node )
 //         add( rn.node.freeMsg )
 //         rn.isOnline = false
