@@ -1,7 +1,7 @@
 package de.sciss.kontur.sc
 
 import scala.collection.mutable.{ PriorityQueue }
-import java.io.{ BufferedInputStream, File, IOException, RandomAccessFile }
+import java.io.{ BufferedInputStream, BufferedReader, File, InputStreamReader, IOException, RandomAccessFile }
 import java.nio.{ ByteBuffer }
 import javax.swing.{ SwingWorker }
 import scala.math._
@@ -84,6 +84,8 @@ extends SynthContext( s, false ) {
    def render: SwingWorker[ _, _ ] = {
       flush
       close
+
+      val dur = timebaseVar // in seconds
       val program = server.options.programPath.value
 //      println( "Booting '" + program + "'" )
       val appPath = new File( program )
@@ -94,27 +96,36 @@ extends SynthContext( s, false ) {
       val pb = new ProcessBuilder( processArgs: _* )
         .directory( appPath.getParentFile )
         .redirectErrorStream( true )
+
       val w = new SwingWorker[ Int, Unit ]() {
+         main =>
          override def doInBackground: Int = {
             var pRunning   = true
             val p          = pb.start
-            val inStream	= new BufferedInputStream( p.getInputStream )
+//            val inStream	= new BufferedInputStream( p.getInputStream )
+            val inReader = new BufferedReader( new InputStreamReader( p.getInputStream ))
             val printWorker   = new SwingWorker[ Unit, Unit ]() {
-               private val buf = new Array[ Byte ]( 128 )
                override def doInBackground {
-                  while( true ) {
-                     var cnt = 0
-                     val byt = inStream.read()
-                     if( byt == -1 ) return
-                     buf( 0 ) = byt.toByte
-                     cnt += 1
-                     while( (inStream.available > 0) && (cnt < 128) ) {
-                        val num = min( 128 - cnt, inStream.available() )
-                        inStream.read( buf, cnt, num )
-                        cnt += num
+                  try {
+                     var lastProg = 0
+                     while( true ) {
+                        val line = inReader.readLine
+                        if( line.startsWith( "nextOSCPacket" )) {
+                           val time = line.substring( 14 ).toFloat
+                           val prog = (time / dur * 100).toInt
+//println( "time = " + time + "; dur = " + dur + "; prog = " + prog )
+                           if( prog != lastProg ) {
+//                        setProgress( prog )
+                              // NOTE: main.setProgress does not work, probably because
+                              // the thread is blocking...
+                              main.firePropertyChange( "progress", lastProg, prog )
+                              lastProg = prog
+                           }
+                        } else {
+                           System.out.println( line )
+                        }
                      }
-                     System.out.write( buf, 0, cnt )
-                  }
+                  } catch { case e: IOException => }
                }
             }
             try {

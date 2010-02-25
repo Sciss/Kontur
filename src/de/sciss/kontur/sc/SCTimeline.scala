@@ -130,11 +130,12 @@ if( verbose ) println( "| | | | | timer " + currentPos )
    }
 
    private def removeTrack( idx: Int, t: Track ) {
-      val ptest = mapPlayers( t )
-      mapPlayers -= t
-      val player = players.remove( idx )
-      assert( ptest == player )
-      player.dispose
+      mapPlayers.get( t ).foreach( ptest => {
+         mapPlayers -= t
+         val player = players.remove( idx )
+         assert( ptest == player )
+         player.dispose
+      })
    }
 
    def play( from: Long, rate: Double ) {
