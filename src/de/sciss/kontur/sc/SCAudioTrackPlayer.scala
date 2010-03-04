@@ -77,7 +77,7 @@ extends SCTrackPlayer {
                   buf.whenReady { delayed( tb /* timebase - tb + */, dt ) {
                      if( playing ) {
 //println( "PLAY " + unique )
-                        val syn = sd.play( (List[ (String, Float) ]( "i_buf" -> buf.index,
+                        val syn = sd.play( (List[ (String, Float) ]( "i_buf" -> buf.id,
                            "i_frames" -> stake.span.getLength.toFloat,
                            "i_frameOff" -> frameOffset.toFloat,
                            "amp" -> stake.gain,

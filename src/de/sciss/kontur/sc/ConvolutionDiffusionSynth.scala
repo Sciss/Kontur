@@ -88,7 +88,7 @@ extends DiffusionSynth {
             }
          }
          Out.ar( out, outSig.toList )
-      } play( "in" -> inBus.index, "amp" -> d.gain, "buf" -> buf.index ) // XXX out bus
+      } play( "in" -> inBus.index, "amp" -> d.gain, "buf" -> buf.id ) // XXX out bus
 
       syn.whenOffline { buf.free }
 

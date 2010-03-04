@@ -145,7 +145,7 @@ extends AsyncAction {
    protected var wasOpened = false
    private var collWhenReady = Queue[ () => Unit ]()
    
-   def index : Int
+   def id : Int
    def numChannels : Int
 
    def free : Unit
@@ -190,7 +190,7 @@ extends AsyncAction {
 
 class RichSingleBuffer( val buffer: Buffer )
 extends RichBuffer {
-   def index = buffer.bufNum
+   def id = buffer.id
    def numChannels = buffer.numChannels
    
    protected def protRead( path: String, offsetI: Int, numFrames: Int, bufStartFrame: Int,
@@ -212,7 +212,7 @@ extends RichBuffer {
 
 class RichMultiBuffer( val buffers: Seq[ Buffer ])
 extends RichBuffer {
-   def index: Int = buffers.head.bufNum
+   def id: Int = buffers.head.id
    val numChannels = buffers.size
 
    protected def protRead( path: String, offsetI: Int, numFrames: Int, bufStartFrame: Int, leaveOpen: Boolean ) {
@@ -375,8 +375,8 @@ extends Model with Disposable {
    }
 
    def emptyMultiBuffer( numFrames: Int, numChannels: Int ) : RichBuffer = {
-      val bufNum = server.getBufferAllocator.alloc( numChannels )
-      val bufs   = (0 until numChannels).map( ch => new Buffer( server, numFrames, 1, bufNum + ch ))
+      val id    = server.bufferAllocator.alloc( numChannels )
+      val bufs  = (0 until numChannels).map( ch => new Buffer( server, numFrames, 1, id + ch ))
       val rb = new RichMultiBuffer( bufs )
       bufs.foreach( buf => {
          bundle.addAsync( buf.allocMsg )
