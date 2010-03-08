@@ -32,7 +32,7 @@ import de.sciss.app.{ AbstractWindow }
 import de.sciss.gui.{ MultiStateButton }
 import de.sciss.kontur.sc.{ SuperColliderClient }
 import de.sciss.tint.sc.{ Server }
-import de.sciss.tint.sc.gui.{ ServerStatusPanel }
+import de.sciss.tint.sc.swing.{ ServerStatusPanel }
 import java.awt.{ BorderLayout, Color, Dimension }
 import java.awt.event.{ ActionEvent, InputEvent, KeyEvent }
 import javax.swing.{ AbstractAction, BorderFactory, Box, JButton, JComponent,

@@ -33,6 +33,7 @@ import de.sciss.kontur.session.{ Session }
 import de.sciss.kontur.util.{ Model, PrefsUtil }
 import de.sciss.scalaosc.{ OSCChannel }
 import de.sciss.tint.sc.{ Server, ServerOptions }
+import de.sciss.tint.sc.swing.{ AWTServer }
 import de.sciss.util.{ Param }
 import java.io.{ IOException }
 import java.net.{ DatagramSocket, ServerSocket }
@@ -224,7 +225,7 @@ class SuperColliderClient extends Model {
 			}
 
 			// loopback is sufficient here
-			val s = new Server( app.getName, so )
+			val s = new AWTServer( app.getName, so )
 			s.addListener( forward )
             s.dumpOSC( dumpMode )
 
