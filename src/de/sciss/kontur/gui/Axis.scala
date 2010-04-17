@@ -109,8 +109,7 @@ object Axis {
 }
 
 class Axis( orient: Int = Axis.HORIZONTAL, private var flagsVar: Int = 0, host: Option[ ComponentHost ] = None )
-extends JComponent
-//implements Disposable
+extends JComponent //implements Disposable
 with TopPaintable
 {
     import Axis._

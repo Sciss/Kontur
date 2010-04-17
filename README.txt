@@ -2,7 +2,7 @@ THIS PROJECT IS COVERED BY THE GNU GENERAL PUBLIC LICENSE V2+
 
 PREREQUISITES
 
-Scala 2.8 snapshot / Java 1.6 / the following:
+Scala 2.8 RC1 / Java 1.6 / the following:
 
 Libraries:
 - create a new folder "libraries"

@@ -31,7 +31,7 @@ package de.sciss.kontur.util
 import scala.collection.immutable.{ Queue }
 
 trait Model {
-  private var listeners: Queue[ AnyRef => Unit ] = Queue.Empty
+  private var listeners: Queue[ AnyRef => Unit ] = Queue.empty
 //  private val sync = new AnyRef
 
 //  def name: String
@@ -52,7 +52,7 @@ trait Model {
   }
 
   def removeListener( l: AnyRef => Unit ) {
-    var filtered: Queue[ AnyRef => Unit ] = Queue.Empty
+    var filtered: Queue[ AnyRef => Unit ] = Queue.empty
 //    sync.synchronized {
       listeners.foreach( x => if( x != l )
         filtered = filtered.enqueue( x )) // ugly; no easier way??

@@ -29,9 +29,9 @@ class ManagedInt( i: Int ) extends ManagedNumber[ Int ] {
 	@inline def -( x: Int ) = i - x
 	@inline def *( x: Int ) = i * x
 	@inline def /( x: Int ) = i / x
-	@inline def abs = Math.abs( i )
-	@inline def min( x: Int ) = Math.min( i, x )
-	@inline def max( x: Int ) = Math.max( i, x )
+	@inline def abs = math.abs( i )
+	@inline def min( x: Int ) = math.min( i, x )
+	@inline def max( x: Int ) = math.max( i, x )
 }
 
 class ManagedLong( n: Long) extends ManagedNumber[ Long ] {
@@ -41,9 +41,9 @@ class ManagedLong( n: Long) extends ManagedNumber[ Long ] {
 	@inline def -( x: Long ) = n - x
 	@inline def *( x: Long ) = n * x
 	@inline def /( x: Long ) = n / x
-	@inline def abs = Math.abs( n )
-	@inline def min( x: Long ) = Math.min( n, x )
-	@inline def max( x: Long ) = Math.max( n, x )
+	@inline def abs = math.abs( n )
+	@inline def min( x: Long ) = math.min( n, x )
+	@inline def max( x: Long ) = math.max( n, x )
 }
 
 object IntManager extends NumberManager[ Int ] {

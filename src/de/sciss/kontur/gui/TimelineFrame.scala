@@ -737,7 +737,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
          descr.rate     = timelineView.timeline.rate
          descr.file     = path
          val tracks     = (if( all ) trackElems else selTrackElems).map( _.track )
-         descr.channels = tracks.partialMap( _ match { case at: AudioTrack if( at.diffusion.isDefined ) => at.diffusion.get })
+         descr.channels = tracks.collect( _ match { case at: AudioTrack if( at.diffusion.isDefined ) => at.diffusion.get })
             .foldLeft( 0 )( (maxi, diff) => max( maxi, diff.numOutputChannels ))
 
          Some( (tracks, if( all ) span else selSpan, descr) )

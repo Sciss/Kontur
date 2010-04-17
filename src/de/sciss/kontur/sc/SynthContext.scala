@@ -409,8 +409,8 @@ extends Model with Disposable {
                case s: String    => s
                case _ => { uniqueID += 1; uniqueID.toString } // XXX sync
          })).substring( 1 )
-         val ugenFunc = () => ugenThunk
-         val sd  = new SynthDef( name )( ugenFunc )
+//         val ugenFunc = () => ugenThunk
+         val sd  = SynthDef( name )( ugenThunk )
          val rsd = new RichSynthDef( sd )
          defMap += defList -> rsd
          bundle.addAsync( sd.recvMsg, rsd )

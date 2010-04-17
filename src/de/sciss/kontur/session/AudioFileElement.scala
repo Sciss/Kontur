@@ -38,6 +38,9 @@ import de.sciss.app.{ AbstractApplication }
 import de.sciss.kontur.io.{ SonagramOverview }
 import de.sciss.kontur.util.{ SerializerContext }
 
+/**
+ *    @version 0.11, 17-Apr-10
+ */
 object AudioFileElement {
     val XML_NODE = "audioFile"
 
@@ -120,8 +123,9 @@ extends BasicSessionElementSeq[ AudioFileElement ]( doc, "Audio Files" ) {
             val trail = t.trail
             if( !trails.contains( trail )) {
                trails += trail
-               trail match {
-                  case at: AudioTrail => {
+               t match {
+                  case atrk: AudioTrack => {
+                     val at = atrk.trail 
                      val stakes = at.getAll()
                      var toRemove = Set[ AudioRegion ]()
                      var toAdd    = Set[ AudioRegion ]()
@@ -157,8 +161,9 @@ extends BasicSessionElementSeq[ AudioFileElement ]( doc, "Audio Files" ) {
             val trail = t.trail
             if( !trails.contains( trail )) {
                trails += trail
-               trail match {
-                  case at: AudioTrail => {
+               t match {
+                  case atrk: AudioTrack => {
+                     val at = atrk.trail
                      val stakes = at.getAll()
                      stakes.foreach( stake => {
                         if( fileSet.contains( stake.audioFile )) {

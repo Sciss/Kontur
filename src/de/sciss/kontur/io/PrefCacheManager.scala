@@ -33,7 +33,6 @@ package de.sciss.kontur.io
 
 import java.io.{ File }
 import java.util.prefs.{ PreferenceChangeEvent, PreferenceChangeListener, Preferences }
-import de.sciss.app.{ AbstractApplication }
 import de.sciss.io.{ CacheManager }
 import de.sciss.util.{ Param, ParamSpace }
 

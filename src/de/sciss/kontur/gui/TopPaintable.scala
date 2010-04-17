@@ -32,7 +32,7 @@ import java.awt.{ Graphics2D }
 import scala.collection.immutable.{ Queue }
 
 trait TopPaintable {
-  private var topPainters: Queue[ Graphics2D => Unit ] = Queue.Empty
+  private var topPainters: Queue[ Graphics2D => Unit ] = Queue.empty
 
   def addTopPainter( t: Graphics2D => Unit ) {
       topPainters = topPainters.enqueue( t )
@@ -43,7 +43,7 @@ trait TopPaintable {
   }
 
   def removeTopPainter( t: Graphics2D => Unit ) {
-    var filtered: Queue[ Graphics2D => Unit ] = Queue.Empty
+    var filtered: Queue[ Graphics2D => Unit ] = Queue.empty
       topPainters.foreach( x => if( x != t )
         filtered = filtered.enqueue( x )) // ugly; no easier way??
       topPainters = filtered

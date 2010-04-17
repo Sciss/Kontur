@@ -44,7 +44,7 @@ import de.sciss.kontur.session.{ Marker, SessionElementSeq, Stake, Timeline,
 
 /**
  *  @author		Hanns Holger Rutz
- *  @version	0.14, 09-Jan-10
+ *  @version	0.15, 17-Apr-10
  */
 //object TimelinePanel {
 //}
@@ -129,7 +129,7 @@ with TopPaintable {
     private val trackListListener = (msg: AnyRef) => msg match {
       case TrackList.ElementAdded( idx, elem ) => updateSelectionAndRepaint
       case TrackList.ElementRemoved( idx, elem ) => updateSelectionAndRepaint
-      case TrackList.SelectionChanged( _ @ _* ) => updateSelectionAndRepaint
+      case TrackList.SelectionChanged( elems @ _* ) => updateSelectionAndRepaint
     }
 
    // ---- constructor ----
@@ -330,7 +330,7 @@ with TopPaintable {
 			// choose update rect such that even a paint manager delay of 200 milliseconds
 			// will still catch the (then advanced) position so we don't see flickering!
 			// XXX this should take playback rate into account, though
-			vpPositionRect.setBounds( vpPosition, 0, Math.max( 1, (vpScale * timelineRate * 0.2f).toInt ), vpRecentRect.height )
+			vpPositionRect.setBounds( vpPosition, 0, max( 1, (vpScale * timelineRate * 0.2f).toInt ), vpRecentRect.height )
 		} else {
 			vpPosition	= -1
 			vpPositionRect.setBounds( 0, 0, 0, 0 )
@@ -344,12 +344,12 @@ with TopPaintable {
 			vpUpdateRect.setBounds( x, vpPositionRect.y, x2 - x, vpPositionRect.height )
 		} else {
 			if( cEmpty ) {
-				val x   = Math.max( 0, vpUpdateRect.x )
-				val x2  = Math.min( vpRecentRect.width, vpUpdateRect.x + vpUpdateRect.width )
+				val x   = max( 0, vpUpdateRect.x )
+				val x2  = min( vpRecentRect.width, vpUpdateRect.x + vpUpdateRect.width )
 				vpUpdateRect.setBounds( x, vpUpdateRect.y, x2 - x, vpUpdateRect.height )
 			} else {
-				val x   = Math.max( 0, Math.min( vpUpdateRect.x, vpPositionRect.x ));
-				val x2  = Math.min( vpRecentRect.width, Math.max( vpUpdateRect.x + vpUpdateRect.width,
+				val x   = max( 0, min( vpUpdateRect.x, vpPositionRect.x ));
+				val x2  = min( vpRecentRect.width, max( vpUpdateRect.x + vpUpdateRect.width,
 															vpPositionRect.x + vpPositionRect.width ))
 				vpUpdateRect.setBounds( x, vpUpdateRect.y, x2 - x, vpUpdateRect.height )
 			}
