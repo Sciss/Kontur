@@ -35,6 +35,9 @@ import de.sciss.io.{ AudioFile }
 import de.sciss.kontur.edit.{ SimpleEdit }
 import de.sciss.kontur.util.{ SerializerContext }
 
+/**
+ *    @version 0.11, 20-Apr-10
+ */
 object ConvolutionDiffusion extends DiffusionFactory {
    def fromXML( c: SerializerContext, doc: Session, node: Node ) : ConvolutionDiffusion = {
       val diff = new ConvolutionDiffusion( doc )
@@ -47,7 +50,8 @@ object ConvolutionDiffusion extends DiffusionFactory {
    def humanReadableName   = "Convolution Diffusion"
 
    case class PathChanged( oldPath: Option[ File ], newPath: Option[ File ])
-   case class GainChanged( oldGain: Float, newGain: Float )
+   case class GainChanged( oldGain: Float, newGain: Float ) // abs amp
+   case class DelayChanged( oldDelay: Float, newDelay: Float ) // seconds
 }
 
 class ConvolutionDiffusion( doc: Session )
@@ -60,6 +64,7 @@ extends BasicDiffusion( doc ) {
    private var numOutputChannelsVar = 1  // use 1 as default to avoid problems allocating dummy buffers
    private var sampleRateVar        = 1.0
    private var gainVar              = 1.0f
+   private var delayVar             = 0f
 
    def path = pathVar
    def path_=( newPath: Option[ File ]) {
@@ -97,6 +102,19 @@ extends BasicDiffusion( doc ) {
       }
    }
 
+   def delay = delayVar
+
+   /**
+    *    @param   newDelay   delay in seconds
+    */
+   def delay_=( newDelay: Float ) {
+      if( newDelay != delayVar ) {
+         val change = DelayChanged( delayVar, newDelay )
+         delayVar = newDelay
+         dispatch( change )
+      }
+   }
+
    def numInputChannels    = 1
    def numOutputChannels   = numOutputChannelsVar
    def numFrames           = numFramesVar
@@ -109,6 +127,7 @@ extends BasicDiffusion( doc ) {
          <name>{name}</name>
          {path.map( p => <path>{p.getCanonicalPath}</path>) getOrElse Null}
          <gain>{gain}</gain>
+         <delay>{delay}</delay>
          <numOutputChannels>{numOutputChannels}</numOutputChannels>
          <numFrames>{numFrames}</numFrames>
          <sampleRate>{sampleRate}</sampleRate>
@@ -117,7 +136,8 @@ extends BasicDiffusion( doc ) {
    def fromXML( node: Node ) {
        nameVar              = (node \ "name").text
        pathVar              = (node \ "path").headOption.map( n => new File( n.text ))
-       gain                 = (node \ "gain").text.toFloat 
+       gainVar              = (node \ "gain").text.toFloat
+       delayVar             = { val txt = (node \ "delay").text; if( txt.nonEmpty ) txt.toFloat else 0f } 
        numOutputChannelsVar = (node \ "numOutputChannels").text.toInt
        numFramesVar         = (node \ "numFrames").text.toLong
        sampleRateVar        = (node \ "sampleRate").text.toDouble
@@ -129,6 +149,24 @@ extends BasicDiffusion( doc ) {
          lazy val oldPath = path
          def apply { oldPath; path = newPath }
          def unapply { path = oldPath }
+      }
+      ce.addPerform( edit )
+   }
+
+   def editSetGain( ce: AbstractCompoundEdit, newGain: Float ) {
+      val edit = new SimpleEdit( "editSetGain" ) {
+         lazy val oldGain = gain
+         def apply { oldGain; gain = newGain }
+         def unapply { gain = oldGain }
+      }
+      ce.addPerform( edit )
+   }
+
+   def editSetDelay( ce: AbstractCompoundEdit, newDelay: Float ) {
+      val edit = new SimpleEdit( "editSetDelay" ) {
+         lazy val oldDelay = delay
+         def apply { oldDelay; delay = newDelay }
+         def unapply { delay = oldDelay }
       }
       ce.addPerform( edit )
    }

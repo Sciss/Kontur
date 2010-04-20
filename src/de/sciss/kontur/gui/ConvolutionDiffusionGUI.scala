@@ -37,10 +37,14 @@ import SwingConstants._
 import scala.math._
 import de.sciss.app.{ AbstractCompoundEdit, DynamicAncestorAdapter, DynamicListening }
 import de.sciss.dsp.{ MathUtil }
-import de.sciss.gui.{ PathEvent, PathField => PathF, PathListener }
 import de.sciss.io.{ AudioFile, AudioFileDescr }
 import de.sciss.kontur.session.{ Diffusion, DiffusionEditor, DiffusionFactory, ConvolutionDiffusion, Renameable, Session }
+import de.sciss.util.ParamSpace
+import de.sciss.gui.{ ParamField => ParamF, PathEvent, PathField => PathF, PathListener}
 
+/**
+ *    @version 0.11, 20-Apr-10
+ */
 object ConvolutionDiffusionGUI extends DiffusionGUIFactory {
    type T = ConvolutionDiffusionGUI
 
@@ -60,6 +64,8 @@ extends JPanel with DynamicListening with FilenameFilter {
    private var objects: List[ Diffusion ] = Nil
    private val ggName         = new JTextField( 16 )
    private val ggPath         = new PathField( PathF.TYPE_INPUTFILE | PathF.TYPE_FORMATFIELD, "Choose Impulse Response Audiofile" )
+   private val ggGain         = new ParamField()
+   private val ggDelay        = new ParamField()
    private var isListening    = false
 // private val tf             = new TimeFormat( 0, null, null, 3, Locale.US )
    private val msgPtrn		   = "{0,choice,0#no channels|1#mono|2#stereo|2<{0,number,integer}-ch}, {1,number,########} frames / fft {2,number,########}, {3,number,0.###} kHz, {4,number,integer}:{5,number,00.000}";
@@ -71,6 +77,8 @@ extends JPanel with DynamicListening with FilenameFilter {
       case ConvolutionDiffusion.PathChanged( _, _ )   => updateGadgets
    }
 
+   private val spcAbsGain     = new ParamSpace( 0.0, Double.MaxValue, 0.0, 0, 10, 0.0, ParamSpace.ABS | ParamSpace.AMP )
+
    // ---- constructor ----
    {
       val layout  = new GroupLayout( this )
@@ -79,12 +87,16 @@ extends JPanel with DynamicListening with FilenameFilter {
       setLayout( layout )
 
       ggPath.setFilter( this )
+      ggGain.addSpace( ParamSpace.spcAmpDecibels )
+      ggDelay.addSpace( ParamSpace.spcTimeMillis )
 
       val lbName     = new JLabel( "Name:", RIGHT )
       val lbPath     = new JLabel( "Path:", RIGHT )
 //    val lbFFTSize  = new JLabel( "FFT Size:", RIGHT )
+      val lbGain     = new JLabel( "Gain:", RIGHT )
+      val lbDelay    = new JLabel( "Delay:", RIGHT )
 
-      List( lbName, lbPath, ggName, ggPath ).foreach(
+      List( lbName, lbPath, lbGain, lbDelay, ggName, ggPath, ggGain, ggDelay ).foreach(
             _.putClientProperty( "JComponent.sizeVariant", "small" )
       )
 
@@ -96,14 +108,32 @@ extends JPanel with DynamicListening with FilenameFilter {
          def pathChanged( e: PathEvent ) = editSetPath( e.getPath() )
       })
 
+      ggGain.addListener( new ParamF.Listener {
+         def paramValueChanged( e: ParamF.Event ) {
+            if( !e.isAdjusting ) editSetGain( e.getTranslatedValue( spcAbsGain ).`val`.toFloat )
+         }
+         def paramSpaceChanged( e: ParamF.Event ) {}
+      })
+
+      ggDelay.addListener( new ParamF.Listener {
+         def paramValueChanged( e: ParamF.Event ) {
+            if( !e.isAdjusting ) editSetDelay( (e.getValue.`val` / 1000).toFloat )
+         }
+         def paramSpaceChanged( e: ParamF.Event ) {}
+      })
+
       layout.setHorizontalGroup( layout.createSequentialGroup()
          .addGroup( layout.createParallelGroup()
             .addComponent( lbName )
             .addComponent( lbPath )
+            .addComponent( lbGain )
+            .addComponent( lbDelay )
          )
          .addGroup( layout.createParallelGroup()
             .addComponent( ggName )
             .addComponent( ggPath )
+            .addComponent( ggGain )
+            .addComponent( ggDelay )
          )
       )
 
@@ -115,6 +145,14 @@ extends JPanel with DynamicListening with FilenameFilter {
          .addGroup( layout.createParallelGroup( GroupLayout.Alignment.BASELINE )
              .addComponent( lbPath )
              .addComponent( ggPath )
+         )
+         .addGroup( layout.createParallelGroup( GroupLayout.Alignment.BASELINE )
+             .addComponent( lbGain )
+             .addComponent( ggGain )
+         )
+         .addGroup( layout.createParallelGroup( GroupLayout.Alignment.BASELINE )
+             .addComponent( lbDelay )
+             .addComponent( ggDelay )
          )
       )
 
@@ -145,6 +183,22 @@ extends JPanel with DynamicListening with FilenameFilter {
    private def editSetPath( newPath: File ) {
       withEditor( "editSetPath", (ed, ce) => ed match {
          case cdiff: ConvolutionDiffusion => cdiff.editSetPath( ce, Some( newPath ))
+         case _ =>
+      })
+   }
+
+   private def editSetGain( newGain: Float ) {
+      println( "new gain = " + newGain )
+      withEditor( "editSetGain", (ed, ce) => ed match {
+         case cdiff: ConvolutionDiffusion => cdiff.editSetGain( ce, newGain )
+         case _ =>
+      })
+   }
+
+   private def editSetDelay( newDelay: Float ) {
+      println( "new delay = " + newDelay )
+      withEditor( "editSetDelay", (ed, ce) => ed match {
+         case cdiff: ConvolutionDiffusion => cdiff.editSetDelay( ce, newDelay )
          case _ =>
       })
    }

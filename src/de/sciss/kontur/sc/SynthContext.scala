@@ -123,6 +123,10 @@ trait RichNode extends AsyncModel {
          SynthContext.current.add( node.freeMsg )
       }
    }
+
+   def set( pairs: Tuple2[ Any, Float ]* ) {
+      SynthContext.current.add( node.setMsg( pairs: _* ))
+   }
 }
 
 class RichSynth( val synth: Synth )

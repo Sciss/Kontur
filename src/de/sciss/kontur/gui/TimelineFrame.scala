@@ -309,19 +309,49 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
       def initiate( span: Span ) {
 			if( /* !checkProcess() ||*/ span.isEmpty ) return
 
-    		val tl = timelineView.timeline
+    		val tl      = timelineView.timeline
+         val pos     = span.start
+         val delta   = span.getLength
 
-			if( (span.start < tl.span.start) || (span.start > tl.span.stop) ) throw new IllegalArgumentException( span.toString )
+			if( (pos < tl.span.start) || (pos > tl.span.stop) ) error( span.toString )
+
+         val affectedSpan = new Span( pos, tl.span.stop )
 
          tl.editor.foreach( ed => {
             val ce = ed.editBegin( editName )
             try {
-               ed.editSpan( ce, tl.span.replaceStop( tl.span.stop + span.getLength ))
+               ed.editSpan( ce, tl.span.replaceStop( tl.span.stop + delta ))
                timelineView.editor.foreach( ved => {
                   if( timelineView.span.isEmpty ) {
         		         ved.editScroll( ce, span )
                   }
                   ved.editSelect( ce, span )
+               })
+               tracksPanel.filter( _.selected ).foreach( elem => {
+                  val t = elem.track // "stable"
+                  val tvCast = elem.trailView.asInstanceOf[ TrailView[ t.T ]] // que se puede...
+                  tvCast.editor.foreach( ed2 => {
+//                   val stakes = tvCast.selectedStakes.toList
+//                   val moed = stakes.map( _.move( ))
+                     val stakes = tvCast.trail.getRange( affectedSpan )
+//                   val toDeselect = stakes.filter( tvCast.isSelected( _ ))
+                     ed2.editDeselect( ce, stakes: _* )
+                     tvCast.trail.editor.foreach( ed3 => {
+                        ed3.editRemove( ce, stakes: _* )
+                     })
+                     val (split, nosplit) = stakes.partition( _.span.contains( pos ))
+                     val newStakes = split.flatMap( _ match {
+                        case rs: ResizableStake[ _ ] => {
+                           val (nomove, move) = rs.split( pos )
+                           List( nomove, move.move( delta ))
+                        }
+                        case x => List( x )
+                     }) ++ nosplit.map( _.move( delta ))
+                     tvCast.trail.editor.foreach( ed3 => {
+                        ed3.editAdd( ce, newStakes: _* )
+                     })
+                     ed2.editSelect( ce, newStakes: _* )
+                  })
                })
                ed.editEnd( ce )
             }

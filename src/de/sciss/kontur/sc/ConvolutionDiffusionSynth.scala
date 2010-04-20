@@ -34,6 +34,9 @@ import SC._
 import de.sciss.tint.sc.ugen._
 import de.sciss.kontur.session.{ Diffusion, ConvolutionDiffusion }
 
+/**
+ *    @version 0.11, 20-Apr-10
+ */
 class ConvolutionDiffusionSynthFactory( diff: ConvolutionDiffusion )
 extends DiffusionSynthFactory {
    def create: DiffusionSynth = new ConvolutionDiffusionSynth( diff )
@@ -48,13 +51,16 @@ extends DiffusionSynth {
    val inBus   = audioBus( diffusion.numInputChannels )
    val outBus  = audioBus( diffusion.numOutputChannels )
 
-   private var synth: Option[ RichSynth ]    = None
+   private var synth: Option[ RichSynth ] = None
 
    private val diffusionListener = (msg: AnyRef) => msg match {
       case Diffusion.NumInputChannelsChanged( _, _ )        => invalidate( this )
       case Diffusion.NumOutputChannelsChanged( _, _ )       => invalidate( this )
       case ConvolutionDiffusion.PathChanged( _, _ )         => invalidate( this )
-//    case ConvolutionDiffusion.GainChanged( _, newGain )   => ...
+      case ConvolutionDiffusion.GainChanged( _, newGain )   => invalidate( this ) 
+//      synth.foreach( syn => perform {
+//         syn.set( "amp" -> newGain )})
+      case ConvolutionDiffusion.DelayChanged( _, newDelay)  => invalidate( this )
    }
 
    // ---- constructor ----
@@ -74,7 +80,10 @@ extends DiffusionSynth {
          val in         = "in".ir
          val out        = "out".ir
          val amp        = "amp".kr( 1 )
+         val dly        = "dly".ir
+//         val dlyFrames  = dlySec * SampleRate.ir
          val inSig      = In.ar( in, d.numInputChannels )
+         val delayed    = DelayN.ar( inSig, dly, dly )
          var outSig: Array[ GE ] = Array.fill( d.numOutputChannels )( 0 )
          val trig       = Impulse.kr( 0 )
          val bufNum     = "buf".ir
@@ -83,12 +92,12 @@ extends DiffusionSynth {
             for( outCh <- (0 until d.numOutputChannels) ) {
                // XXX could try to optimize with StereoConvolutionL ?
                // last time examined it was pretty much broken though...
-               val conv = Convolution2.ar( inSig \ inCh, bufNum + outCh, trig, bufFrames )
+               val conv = Convolution2.ar( delayed \ inCh, bufNum + outCh, trig, bufFrames )
                outSig( outCh ) += conv * amp
             }
          }
          Out.ar( out, outSig.toList )
-      } play( "in" -> inBus.index, "amp" -> d.gain, "buf" -> buf.id ) // XXX out bus
+      } play( "in" -> inBus.index, "amp" -> d.gain, "dly" -> d.delay, "buf" -> buf.id ) // XXX out bus
 
       syn.whenOffline { buf.free }
 

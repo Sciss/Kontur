@@ -186,8 +186,11 @@ class SuperColliderClient extends Model {
 //		so.setNumOutputBusChannels( abCfg.numOutputChannels )
 //		val pBusses = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_AUDIOBUSSES, null )
 //		if( pBusses != null ) so.setNumAudioBusChannels( max( abCfg.numInputChannels + abCfg.numOutputChannels, (int) p.val ));
-		val pMemSize = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCMEMSIZE, null )
-		if( pMemSize != null ) so.memSize.value = pMemSize.`val`.toInt << 10
+
+//		val pMemSize = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCMEMSIZE, null )
+//		if( pMemSize != null ) so.memSize.value = pMemSize.`val`.toInt << 10
+so.memSize.value = 64 << 10
+
 		val pBlockSize = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCBLOCKSIZE, null )
 		if( pBlockSize != null ) so.blockSize.value = pBlockSize.`val`.toInt
 //		if( !abCfg.name.equals( "Default" )) so.setDevice( abCfg.name );
