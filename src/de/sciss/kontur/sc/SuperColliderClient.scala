@@ -199,7 +199,7 @@ so.memSize.value = 64 << 10
 
 		val pPort = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCPORT, null )
 		var serverPort = if( pPort == null ) DEFAULT_PORT else pPort.`val`.toInt
-		val proto = Symbol( audioPrefs.get( PrefsUtil.KEY_SCPROTOCOL, "udp" /* tcp"*/ ))
+		val proto = audioPrefs.get( PrefsUtil.KEY_SCPROTOCOL, "udp" /* tcp"*/ )
 		so.protocol.value = proto
 
 //		so.setEnv( "SC_JACK_NAME", "Eisenkraut" )

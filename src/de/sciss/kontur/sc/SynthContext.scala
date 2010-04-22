@@ -567,7 +567,7 @@ extends SynthContext( s, true ) {
          if( cpy.nonEmpty ) {
 //            server.sendBundle( delta, cpy: _* ) // XXX bundle clumping
             val bndl = if( ref == 0L ) OSCBundle( cpy: _* ) else OSCBundle.millis( ref, cpy: _* )
-            server.sendBundle( bndl )
+            server ! bndl
          }
       }
    }
