@@ -5,10 +5,9 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderClient.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderClient.scala" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/MixedBundle.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/MixedBundle.scala" />
     </list>
-    <ignored path="Kontur.iws" />
     <ignored path=".idea/workspace.xml" />
+    <ignored path="Kontur.iws" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -99,8 +98,8 @@
       <property name="field_breakpoints_groupByClasses" value="true" />
       <property name="method_breakpoints_groupByClasses" value="true" />
       <property name="exception_breakpoints_viewId" value="TABLE" />
-      <property name="exception_breakpoints_groupByClasses" value="true" />
       <property name="field_breakpoints_viewId" value="TABLE" />
+      <property name="exception_breakpoints_groupByClasses" value="true" />
       <property name="method_breakpoints_groupByMethods" value="false" />
     </ui_properties>
   </component>
@@ -128,10 +127,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="SuperColliderClient.scala" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="SuperColliderClient.scala" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderClient.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="201" column="77" selection-start="6453" selection-end="6453" vertical-scroll-proportion="0.21477428">
+            <state line="220" column="49" selection-start="6984" selection-end="6984" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -140,7 +139,16 @@
       <file leaf-file-name="SynthContext.scala" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="569" column="19" selection-start="16655" selection-end="16655" vertical-scroll-proportion="0.0">
+            <state line="419" column="36" selection-start="12330" selection-end="12330" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="EisenkrautClient.scala" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/io/EisenkrautClient.scala">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="142" column="28" selection-start="4920" selection-end="4920" vertical-scroll-proportion="0.020632736">
               <folding />
             </state>
           </provider>
@@ -169,9 +177,9 @@
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/session/ConvolutionDiffusion.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/ConvolutionDiffusionSynth.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelineFrame.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/MixedBundle.scala" />
         <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderClient.scala" />
+        <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala" />
       </list>
     </option>
   </component>
@@ -210,9 +218,8 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="Favorites" />
       <pane id="Scope" />
-      <pane id="PackagesPane" />
+      <pane id="Favorites" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -339,6 +346,7 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -354,9 +362,9 @@
     <property name="GoToClass.toSaveIncludeLibraries" value="false" />
     <property name="MemberChooser.showClasses" value="true" />
     <property name="GoToClass.includeLibraries" value="false" />
-    <property name="options.splitter.details.proportions" value="0.2" />
-    <property name="options.searchVisible" value="true" />
     <property name="dynamic.classpath" value="false" />
+    <property name="options.searchVisible" value="true" />
+    <property name="options.splitter.details.proportions" value="0.2" />
   </component>
   <component name="RunManager" selected="Application.Kontur">
     <configuration default="true" type="Remote" factoryName="Remote">
@@ -562,7 +570,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="1" y="22" width="1371" height="868" extended-state="0" />
+    <frame x="12" y="22" width="1371" height="868" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -618,11 +626,6 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SCTimeline.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="44" column="6" selection-start="1511" selection-end="1511" vertical-scroll-proportion="0.060321715" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SCAudioTrackPlayer.scala">
       <provider selected="true" editor-type-id="text-editor">
         <state line="10" column="6" selection-start="250" selection-end="250" vertical-scroll-proportion="0.15549597" />
@@ -670,42 +673,37 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelineFrame.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="362" column="39" selection-start="15946" selection-end="15946" vertical-scroll-proportion="0.020519836">
-          <folding />
-        </state>
+        <state line="362" column="39" selection-start="15946" selection-end="15946" vertical-scroll-proportion="0.020519836" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/Trail.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="60" column="12" selection-start="1875" selection-end="1880" vertical-scroll-proportion="0.02010724">
-          <folding />
-        </state>
+        <state line="60" column="12" selection-start="1875" selection-end="1880" vertical-scroll-proportion="0.02010724" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/BounceSynthContext.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="114" column="12" selection-start="4300" selection-end="4300" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="569" column="19" selection-start="16655" selection-end="16655" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+        <state line="114" column="12" selection-start="4300" selection-end="4300" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/MixedBundle.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="11" column="0" selection-start="254" selection-end="843" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+        <state line="11" column="0" selection-start="254" selection-end="843" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderClient.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="201" column="77" selection-start="6453" selection-end="6453" vertical-scroll-proportion="0.21477428">
+        <state line="220" column="49" selection-start="6984" selection-end="6984" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="419" column="36" selection-start="12330" selection-end="12330" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/io/EisenkrautClient.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="142" column="28" selection-start="4920" selection-end="4920" vertical-scroll-proportion="0.020632736">
           <folding />
         </state>
       </provider>

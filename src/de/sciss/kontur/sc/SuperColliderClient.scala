@@ -214,11 +214,11 @@ so.memSize.value = 64 << 10
 		try {
 			// check for automatic port assignment
 			if( serverPort == 0 ) {
-				if( so.protocol == 'tcp ) {
+				if( so.protocol.value == "tcp" ) {
 					val ss = new ServerSocket( 0 )
 					serverPort = ss.getLocalPort()
 					ss.close()
-				} else if( so.protocol == 'udp ) {
+				} else if( so.protocol.value == "udp" ) {
 					val ds = new DatagramSocket()
 					serverPort = ds.getLocalPort()
 					ds.close()

@@ -379,7 +379,7 @@ extends Model with Disposable {
    }
 
    def emptyMultiBuffer( numFrames: Int, numChannels: Int ) : RichBuffer = {
-      val id    = server.bufferAllocator.alloc( numChannels )
+      val id    = server.buffers.alloc( numChannels )
       val bufs  = (0 until numChannels).map( ch => new Buffer( server, numFrames, 1, id + ch ))
       val rb = new RichMultiBuffer( bufs )
       bufs.foreach( buf => {
