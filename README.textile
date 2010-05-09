@@ -2,11 +2,11 @@ h2. Kontur ==<small>-- version 0.11 (built 09-may-10) --</small>==
 
 h3. statement
 
-Kontur is (C)opyright 2008-2010 Hanns Holger. It is released under the "GNU General Public License":http://github.com/Sciss/Kontur/blob/master/licenses/Kontur-License.txt .
+Kontur is (C)opyright by 2008-2010 Hanns Holger. All rights reserved. It is released under the "GNU General Public License":http://github.com/Sciss/Kontur/blob/master/licenses/Kontur-License.txt . Kontur is a multitrack audio editor based on ScalaCollider. It provides programmatic (REPL) access to its session elements. Very much alpha state. No warranties, no liability whatsoever.
 
 h3. requirements / installation
 
-Compiles against Scala 2.8.0.RC1 and Java 1.6. The repository contains a project file for Intellij IDEA 9 CE, and project files for sbt. Targets for sbt:
+Compiles against Scala 2.8.0.RC1 and Java 1.6. You will need a SuperCollider 3.3.1+ installation. The repository contains a project file for Intellij IDEA 9 CE, and project files for sbt. Targets for sbt:
 
 * @clean@
 * @compile@
