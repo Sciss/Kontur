@@ -1,10 +1,128 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="ChangeListManager" verified="true">
+  <component name="ChangeListManager">
     <list default="true" readonly="true" id="6aaf78f3-2cd3-461b-a3b3-ab35f5d5ed52" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/trees/Interval.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/trees/Interval.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/SuperColliderFrame.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/SuperColliderFrame.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TrackRenderer.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TrackRenderer.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/util/Model.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/util/Model.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/MainFrame.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/MainFrame.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/SessionTreeFrame.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/SessionTreeFrame.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelineScroll.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TimelineScroll.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/Session.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/Session.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/resources/de/sciss/kontur/gui/transp_end_20.png" afterPath="$PROJECT_DIR$/src/main/resources/de/sciss/kontur/gui/transp_end_20.png" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/Track.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/Track.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TopPaintable.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TopPaintable.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/SessionElement.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/SessionElement.scala" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/manifest.mf" afterPath="" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SCSession.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/SCSession.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TrailView.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TrailView.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/Main.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/Main.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/ObserverFrame.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/ObserverFrame.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelineAxis.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TimelineAxis.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/AudioTrack.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/AudioTrack.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/edit/Editor.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/edit/Editor.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/EditRenameAction.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/EditRenameAction.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/IntensityColorScheme.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/IntensityColorScheme.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/BounceSynthContext.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/BounceSynthContext.scala" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project/plugins/Plugins.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/SessionTreeModel.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/SessionTreeModel.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/DocumentHandler.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/DocumentHandler.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/Diffusion.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/Diffusion.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/MatrixDiffusionGUI.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/MatrixDiffusionGUI.scala" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/README.txt" afterPath="" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/SessionFrame.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/SessionFrame.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/resources/de/sciss/kontur/gui/transp_beg_20.png" afterPath="$PROJECT_DIR$/src/main/resources/de/sciss/kontur/gui/transp_beg_20.png" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/util/SerializerContext.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/util/SerializerContext.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/Timeline.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/Timeline.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TrackTools.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TrackTools.scala" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/compile.sh" afterPath="" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/Marker.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/Marker.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/AppWindow.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/AppWindow.scala" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/compile_fsc.sh" afterPath="" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SCTrackPlayer.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/SCTrackPlayer.scala" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/licenses/ScalaInterpreterPane-License.txt" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TrackToolsPanel.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TrackToolsPanel.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelineView.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TimelineView.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/io/EisenkrautClient.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/io/EisenkrautClient.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/AudioFileElement.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/AudioFileElement.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/PopupRoot.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/PopupRoot.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/PrefsFrame.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/PrefsFrame.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TracksPanel.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TracksPanel.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/trees/Rect.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/trees/Rect.scala" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project/build.properties" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/edit/SimpleEdit.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/edit/SimpleEdit.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/trees/ManagedNumber.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/trees/ManagedNumber.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Kontur.iml" afterPath="$PROJECT_DIR$/Kontur.iml" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/resources/de/sciss/kontur/gui/transp_play_20.png" afterPath="$PROJECT_DIR$/src/main/resources/de/sciss/kontur/gui/transp_play_20.png" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/resources/de/sciss/kontur/gui/transp_stop_20.png" afterPath="$PROJECT_DIR$/src/main/resources/de/sciss/kontur/gui/transp_stop_20.png" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/resources/KonturStrings.properties" afterPath="$PROJECT_DIR$/src/main/resources/KonturStrings.properties" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelinePanel.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TimelinePanel.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/ConvolutionDiffusionSynth.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/ConvolutionDiffusionSynth.scala" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/lib/.gitignore" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/io/PrefCacheManager.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/io/PrefCacheManager.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/SegmentedButtonPanel.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/SegmentedButtonPanel.scala" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/README.textile" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/PathField.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/PathField.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TransportPanel.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TransportPanel.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/PropagateMouseInputAdapter.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/PropagateMouseInputAdapter.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TrackHeaderComponent.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TrackHeaderComponent.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/SynthContext.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/util/Matrix2D.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/util/Matrix2D.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderClient.scala" afterPath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderClient.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/resources/de/sciss/kontur/gui/cursor-openhand.png" afterPath="$PROJECT_DIR$/src/main/resources/de/sciss/kontur/gui/cursor-openhand.png" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TrackList.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TrackList.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/trees/RTree.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/trees/RTree.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TreeDropTarget.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TreeDropTarget.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/HasContextMenu.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/HasContextMenu.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/MatrixDiffusion.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/MatrixDiffusion.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/DiffusionSynth.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/DiffusionSynth.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/resources/de/sciss/kontur/gui/transp_stopa_20.png" afterPath="$PROJECT_DIR$/src/main/resources/de/sciss/kontur/gui/transp_stopa_20.png" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/util/PrefsUtil.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/util/PrefsUtil.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/DiffusionGUIFactory.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/DiffusionGUIFactory.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/MarkerAxis.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/MarkerAxis.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/trees/Shape.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/trees/Shape.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Kontur.app/Contents/Info.plist" afterPath="$PROJECT_DIR$/Kontur.app/Contents/Info.plist" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/ConvolutionDiffusionGUI.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/ConvolutionDiffusionGUI.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/ConvolutionDiffusion.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/ConvolutionDiffusion.scala" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/licenses/Prefuse-License.txt" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.gitignore" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/resources/de/sciss/kontur/gui/transp_playa_20.png" afterPath="$PROJECT_DIR$/src/main/resources/de/sciss/kontur/gui/transp_playa_20.png" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderClient.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/SuperColliderClient.scala" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/licenses/ScalaColliderSwing-License.txt" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/SessionUtil.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/SessionUtil.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/resources/de/sciss/kontur/gui/cursor-closedhand.png" afterPath="$PROJECT_DIR$/src/main/resources/de/sciss/kontur/gui/cursor-closedhand.png" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/ScalaInterpreterFrame.scala" afterPath="" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/MatrixDiffusionSynth.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/MatrixDiffusionSynth.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/BasicTrail.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/BasicTrail.scala" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project/build/Kontur.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderPlayer.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/SuperColliderPlayer.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/Region.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/Region.scala" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/makejar.sh" afterPath="" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/Trail.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/Trail.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TrackComponent.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TrackComponent.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/AudioTrail.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/AudioTrail.scala" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/ScalaInterpreterFrame.scala" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Kontur.app/Contents/Resources/Java/.gitignore" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/io/SonagramOverview.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/io/SonagramOverview.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TreeDragSource.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TreeDragSource.scala" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/ManualManifest.mf" afterPath="" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/SessionElementSeq.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/SessionElementSeq.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TrailPanel.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TrailPanel.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/FadeSpec.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/FadeSpec.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/HasDoubleClickAction.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/HasDoubleClickAction.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SCTimeline.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/SCTimeline.scala" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/project/plugins/project/build.properties" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/ParamField.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/ParamField.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/MenuFactory.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/MenuFactory.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/resources/de/sciss/kontur/gui/cursor-mute.png" afterPath="$PROJECT_DIR$/src/main/resources/de/sciss/kontur/gui/cursor-mute.png" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/SCAudioTrackPlayer.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/SCAudioTrackPlayer.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/Renameable.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/Renameable.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/session/Transport.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/Transport.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelineViewport.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TimelineViewport.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/Axis.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/Axis.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelineFrame.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TimelineFrame.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/de/sciss/kontur/sc/MixedBundle.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/MixedBundle.scala" />
     </list>
     <ignored path=".idea/workspace.xml" />
     <ignored path="Kontur.iws" />
@@ -23,34 +141,6 @@
     <disable_hints />
   </component>
   <component name="DebuggerManager">
-    <line_breakpoints>
-      <breakpoint url="file://$PROJECT_DIR$/src/de/sciss/kontur/io/EisenkrautClient.scala" line="76" class="Class at EisenkrautClient.scala:76" package="">
-        <option name="ENABLED" value="true" />
-        <option name="LOG_ENABLED" value="false" />
-        <option name="LOG_EXPRESSION_ENABLED" value="false" />
-        <option name="SUSPEND_POLICY" value="SuspendAll" />
-        <option name="COUNT_FILTER_ENABLED" value="false" />
-        <option name="COUNT_FILTER" value="0" />
-        <option name="CONDITION_ENABLED" value="false" />
-        <option name="CLASS_FILTERS_ENABLED" value="false" />
-        <option name="INSTANCE_FILTERS_ENABLED" value="false" />
-        <option name="CONDITION" value="" />
-        <option name="LOG_MESSAGE" value="" />
-      </breakpoint>
-      <breakpoint url="file://$PROJECT_DIR$/src/de/sciss/kontur/io/EisenkrautClient.scala" line="91" class="Class at EisenkrautClient.scala:91" package="">
-        <option name="ENABLED" value="true" />
-        <option name="LOG_ENABLED" value="false" />
-        <option name="LOG_EXPRESSION_ENABLED" value="false" />
-        <option name="SUSPEND_POLICY" value="SuspendAll" />
-        <option name="COUNT_FILTER_ENABLED" value="false" />
-        <option name="COUNT_FILTER" value="0" />
-        <option name="CONDITION_ENABLED" value="false" />
-        <option name="CLASS_FILTERS_ENABLED" value="false" />
-        <option name="INSTANCE_FILTERS_ENABLED" value="false" />
-        <option name="CONDITION" value="" />
-        <option name="LOG_MESSAGE" value="" />
-      </breakpoint>
-    </line_breakpoints>
     <breakpoint_any>
       <breakpoint>
         <option name="NOTIFY_CAUGHT" value="true" />
@@ -109,46 +199,19 @@
   <component name="FileColors" enabled="true" enabledForTabs="true" />
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="BounceSynthContext.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/BounceSynthContext.scala">
+      <file leaf-file-name="Kontur.scala" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/project/build/Kontur.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="114" column="12" selection-start="4300" selection-end="4300" vertical-scroll-proportion="0.0">
+            <state line="15" column="3" selection-start="797" selection-end="797" vertical-scroll-proportion="0.28455284">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="MixedBundle.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/MixedBundle.scala">
+      <file leaf-file-name="ScalaInterpreterFrame.scala" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/ScalaInterpreterFrame.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="11" column="0" selection-start="254" selection-end="843" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="SuperColliderClient.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderClient.scala">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="220" column="49" selection-start="6984" selection-end="6984" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="SynthContext.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="419" column="36" selection-start="12330" selection-end="12330" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="EisenkrautClient.scala" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/io/EisenkrautClient.scala">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="142" column="28" selection-start="4920" selection-end="4920" vertical-scroll-proportion="0.020632736">
+            <state line="68" column="32" selection-start="2373" selection-end="2373" vertical-scroll-proportion="-11.538462">
               <folding />
             </state>
           </provider>
@@ -164,22 +227,22 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/SuperColliderFrame.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/io/PrefCacheManager.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/Axis.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/session/AudioFileElement.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/TopPaintable.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/trees/ManagedNumber.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/util/Model.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelineScroll.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelinePanel.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/ConvolutionDiffusionGUI.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/session/ConvolutionDiffusion.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/ConvolutionDiffusionSynth.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelineFrame.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/MixedBundle.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderClient.scala" />
-        <option value="$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TimelineFrame.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/SuperColliderFrame.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TrackComponent.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/FadeSpec.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/SessionUtil.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/MixedBundle.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/MatrixDiffusionSynth.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/SuperColliderPlayer.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/SuperColliderClient.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/SCTimeline.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/Main.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/SynthContext.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/BounceSynthContext.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/SCAudioTrackPlayer.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/ScalaInterpreterFrame.scala" />
+        <option value="$PROJECT_DIR$/project/build/Kontur.scala" />
       </list>
     </option>
   </component>
@@ -218,8 +281,7 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="Scope" />
-      <pane id="Favorites" />
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -251,6 +313,24 @@
               <option name="myItemId" value="src" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Kontur" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Kontur" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="sciss" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
@@ -267,6 +347,10 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
@@ -292,6 +376,10 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
               <option name="myItemId" value="sciss" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
@@ -300,7 +388,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="session" />
+              <option name="myItemId" value="io" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -318,6 +406,10 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
               <option name="myItemId" value="sciss" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
@@ -326,7 +418,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="sc" />
+              <option name="myItemId" value="gui" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -340,13 +432,50 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="resources" />
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Kontur" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Kontur" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="project" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Kontur" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Kontur" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="project" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="build" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
       </pane>
-      <pane id="PackagesPane" />
+      <pane id="Scope" />
+      <pane id="Favorites" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -384,6 +513,10 @@
       <setting name="path" value="" />
       <setting name="vmparams" value="" />
       <setting name="params" value="" />
+      <setting name="packagepath" value="" />
+      <setting name="workingDirectory" value="$PROJECT_DIR$" />
+      <setting name="sysFilter" value=".*" />
+      <setting name="exampleFilter" value=".*" />
       <method>
         <option name="AntTarget" enabled="false" />
         <option name="BuildArtifacts" enabled="false" />
@@ -494,6 +627,7 @@
       <setting name="vmparams" value="" />
       <setting name="params" value="" />
       <setting name="version" value="false" />
+      <setting name="workingDirectory" value="$PROJECT_DIR$" />
       <method>
         <option name="AntTarget" enabled="false" />
         <option name="BuildArtifacts" enabled="false" />
@@ -533,7 +667,7 @@
     </configuration>
   </component>
   <component name="ShelveChangesManager" show_recycled="false" />
-  <component name="SvnConfiguration">
+  <component name="SvnConfiguration" maxAnnotateRevisions="500">
     <option name="USER" value="" />
     <option name="PASSWORD" value="" />
     <option name="LAST_MERGED_REVISION" />
@@ -570,20 +704,20 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="12" y="22" width="1371" height="868" extended-state="0" />
-    <editor active="true" />
+    <frame x="0" y="22" width="1377" height="876" extended-state="0" />
+    <editor active="false" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.26873386" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.2685422" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32972974" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.27231467" sideWeight="0.2764858" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32985073" sideWeight="0.77567565" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.27231467" sideWeight="0.7222222" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.27183735" sideWeight="0.7225064" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.21409921" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -603,6 +737,8 @@
     <option name="PERFORM_ADD_REMOVE_IN_BACKGROUND" value="true" />
     <option name="PERFORM_ROLLBACK_IN_BACKGROUND" value="false" />
     <option name="CHECK_LOCALLY_CHANGED_CONFLICTS_IN_BACKGROUND" value="true" />
+    <option name="ENABLE_BACKGROUND_PROCESSES" value="false" />
+    <option name="CHANGED_ON_SERVER_INTERVAL" value="60" />
     <option name="FORCE_NON_EMPTY_COMMENT" value="false" />
     <option name="LAST_COMMIT_MESSAGE" />
     <option name="MAKE_NEW_CHANGELIST_ACTIVE" value="true" />
@@ -626,84 +762,114 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SCAudioTrackPlayer.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TimelineFrame.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="10" column="6" selection-start="250" selection-end="250" vertical-scroll-proportion="0.15549597" />
+        <state line="40" column="21" selection-start="1649" selection-end="1649" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/Diffusion.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/SuperColliderFrame.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="52" column="6" selection-start="1746" selection-end="1746" vertical-scroll-proportion="0.3418079" />
+        <state line="73" column="9" selection-start="2858" selection-end="2858" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/ConvolutionDiffusion.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/TrackComponent.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="56" column="26" selection-start="1879" selection-end="1899" vertical-scroll-proportion="0.22696011" />
+        <state line="56" column="21" selection-start="2459" selection-end="2459" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/MatrixDiffusionSynth.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/FadeSpec.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="40" column="6" selection-start="1366" selection-end="1366" vertical-scroll-proportion="0.15955983" />
+        <state line="31" column="21" selection-start="1047" selection-end="1047" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/ParamField.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/kontur/session/SessionUtil.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="33" column="6" selection-start="1124" selection-end="1124" vertical-scroll-proportion="0.14442916" />
+        <state line="39" column="21" selection-start="1403" selection-end="1403" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/ConvolutionDiffusionGUI.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/kontur/Main.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="119" column="72" selection-start="4836" selection-end="4836" vertical-scroll-proportion="0.41039672" />
+        <state line="73" column="36" selection-start="2574" selection-end="2574" vertical-scroll-proportion="-1.6935484">
+          <folding />
+        </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/ConvolutionDiffusionSynth.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/SCAudioTrackPlayer.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="85" column="52" selection-start="3146" selection-end="3146" vertical-scroll-proportion="0.21527778" />
+        <state line="40" column="35" selection-start="1652" selection-end="1652" vertical-scroll-proportion="-0.9222689">
+          <folding />
+        </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/SessionElementSeq.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/MixedBundle.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="66" column="15" selection-start="2205" selection-end="2205" vertical-scroll-proportion="-0.8552279" />
+        <state line="7" column="21" selection-start="150" selection-end="150" vertical-scroll-proportion="0.11627907">
+          <folding />
+        </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/SessionFrame.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/BounceSynthContext.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="44" column="6" selection-start="1518" selection-end="1518" vertical-scroll-proportion="-1.124487" />
+        <state line="158" column="66" selection-start="5847" selection-end="5847" vertical-scroll-proportion="0.40918162">
+          <folding />
+        </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/gui/TimelineFrame.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/MatrixDiffusionSynth.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="362" column="39" selection-start="15946" selection-end="15946" vertical-scroll-proportion="0.020519836" />
+        <state line="32" column="0" selection-start="1122" selection-end="1122" vertical-scroll-proportion="0.1744186">
+          <folding />
+        </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/session/Trail.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/SCTimeline.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="60" column="12" selection-start="1875" selection-end="1880" vertical-scroll-proportion="0.02010724" />
+        <state line="119" column="18" selection-start="4329" selection-end="4329" vertical-scroll-proportion="0.31976745">
+          <folding />
+        </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/BounceSynthContext.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/SuperColliderPlayer.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="114" column="12" selection-start="4300" selection-end="4300" vertical-scroll-proportion="0.0" />
+        <state line="32" column="21" selection-start="1100" selection-end="1100" vertical-scroll-proportion="0.16791044">
+          <folding />
+        </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/MixedBundle.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/SuperColliderClient.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="11" column="0" selection-start="254" selection-end="843" vertical-scroll-proportion="0.0" />
+        <state line="230" column="26" selection-start="7232" selection-end="7232" vertical-scroll-proportion="0.30902112">
+          <folding />
+        </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SuperColliderClient.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/kontur/sc/SynthContext.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="220" column="49" selection-start="6984" selection-end="6984" vertical-scroll-proportion="0.0" />
+        <state line="106" column="32" selection-start="3074" selection-end="3074" vertical-scroll-proportion="0.33973128">
+          <folding />
+        </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/sc/SynthContext.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/kontur/gui/ScalaInterpreterFrame.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="419" column="36" selection-start="12330" selection-end="12330" vertical-scroll-proportion="0.0" />
+        <state line="68" column="32" selection-start="2373" selection-end="2373" vertical-scroll-proportion="-11.538462">
+          <folding />
+        </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/de/sciss/kontur/io/EisenkrautClient.scala">
+    <entry file="file://$PROJECT_DIR$/project/build/Kontur.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="142" column="28" selection-start="4920" selection-end="4920" vertical-scroll-proportion="0.020632736">
+        <state line="15" column="3" selection-start="797" selection-end="797" vertical-scroll-proportion="0.28455284">
           <folding />
         </state>
       </provider>
