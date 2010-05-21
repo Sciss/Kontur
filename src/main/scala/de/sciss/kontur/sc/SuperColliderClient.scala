@@ -33,8 +33,8 @@ import de.sciss.kontur.session.{ Session }
 import de.sciss.kontur.util.{ Model, PrefsUtil }
 import de.sciss.scalaosc.{ OSCChannel }
 import de.sciss.synth.{ Server, ServerOptions }
-import de.sciss.synth.swing.{ SwingServer }
 import de.sciss.util.{ Param }
+import java.awt.EventQueue
 import java.io.{ IOException }
 import java.net.{ DatagramSocket, ServerSocket }
 
@@ -57,7 +57,7 @@ class SuperColliderClient extends Model {
     private var dumpMode = OSCChannel.DUMP_OFF
 
     private var players = Map[ Session, SuperColliderPlayer ]()
-    private val forward = (msg: AnyRef) => dispatch( msg )
+    private val forward = (msg: AnyRef) => defer( dispatch( msg ))
 
     // ---- constructor ----
     {
@@ -96,6 +96,10 @@ class SuperColliderClient extends Model {
     }
 
    def getPlayer( doc: Session ) : Option[ SuperColliderPlayer ] = players.get( doc )
+
+   private def defer( thunk: => Unit ) {
+      EventQueue.invokeLater( new Runnable { def run = thunk })
+   }
 
    def dumpOSC( mode: Int ) {
       if( mode != dumpMode ) {
@@ -228,9 +232,9 @@ so.memSize.value = 64 << 10
 			}
 
 			// loopback is sufficient here
-			val s = new SwingServer( app.getName, so )
+			val s = new Server( app.getName, so )
 			s.addListener( forward )
-            s.dumpOSC( dumpMode )
+         s.dumpOSC( dumpMode )
 
 //			if( dumpMode != kDumpOff ) dumpOSC( dumpMode )
 //			nw	= NodeWatcher.newFrom( server )

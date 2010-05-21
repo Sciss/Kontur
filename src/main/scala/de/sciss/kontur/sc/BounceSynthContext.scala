@@ -10,7 +10,6 @@ import de.sciss.io.{ AudioFileDescr, IOUtil }
 import de.sciss.kontur.util.{ PrefsUtil }
 import de.sciss.scalaosc.{ OSCBundle, OSCMessage, OSCPacket, OSCPacketCodec }
 import de.sciss.synth._
-import de.sciss.synth.swing.{ SwingServer }
 
 object BounceSynthContext {
    @throws( classOf[ IOException ])
@@ -27,7 +26,7 @@ object BounceSynthContext {
       val oscFile = new RandomAccessFile( oscPath, "rw" )
 //      oscFile.setLength( 0L )
       so.nrtCmdPath.value = oscPath.getCanonicalPath
-      val s = new SwingServer( "Bounce", so )
+      val s = new Server( "Bounce", so )
       val context = new BounceSynthContext( s, oscPath, oscFile )
       context
    }
