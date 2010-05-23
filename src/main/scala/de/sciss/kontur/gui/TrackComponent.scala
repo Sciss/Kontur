@@ -54,7 +54,7 @@ import de.sciss.app.{ AbstractApplication, AbstractCompoundEdit,
                       DynamicAncestorAdapter,DynamicListening, GraphicsHandler }
 import de.sciss.dsp.{ MathUtil }
 import de.sciss.io.{ AudioFile, Span }
-import de.sciss.synth.{ curveShape, linearShape }
+import de.sciss.synth.{ curveShape, linShape }
 
 //import Track.Tr
 
@@ -791,12 +791,12 @@ with SonagramPaintController {
             val fadeInChange  = dragFdInTime  != 0L || dragFdInCurve != 0f
             val fadeOutChange = dragFdOutTime != 0L || dragFdOutCurve != 0f
             if( fadeInChange || fadeOutChange ) {
-               var fadeInSpec  = ar.fadeIn  getOrElse FadeSpec( 0L, linearShape )
-               var fadeOutSpec = ar.fadeOut getOrElse FadeSpec( 0L, linearShape )
+               var fadeInSpec  = ar.fadeIn  getOrElse FadeSpec( 0L, linShape )
+               var fadeOutSpec = ar.fadeOut getOrElse FadeSpec( 0L, linShape )
                // marika, this should go somewhere, most like AudioRegion ?
                if( fadeInChange ) {
                   val newShape = if( dragFdInCurve != 0f ) fadeInSpec.shape match {
-                     case `linearShape` => curveShape( dragFdInCurve )
+                     case `linShape` => curveShape( dragFdInCurve )
                      case `curveShape`( curvature ) => curveShape( max( -20, min( 20, curvature + dragFdInCurve )))
                      case x => x
                   } else fadeInSpec.shape
@@ -807,7 +807,7 @@ with SonagramPaintController {
                }
                if( fadeOutChange ) {
                   val newShape = if( dragFdOutCurve != 0f ) fadeOutSpec.shape match {
-                     case `linearShape` => curveShape( dragFdOutCurve )
+                     case `linShape` => curveShape( dragFdOutCurve )
                      case `curveShape`( curvature ) => curveShape( max( -20, min( 20, curvature + dragFdOutCurve )))
                      case x => x
                   } else fadeOutSpec.shape

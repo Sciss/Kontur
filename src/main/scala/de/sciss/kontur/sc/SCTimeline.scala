@@ -37,7 +37,6 @@ import de.sciss.synth.ugen._
 import de.sciss.kontur.session.{ AudioRegion, AudioTrack, Diffusion, MatrixDiffusion,
                                  Session, Stake, Timeline, Track, Transport }
 import de.sciss.io.{ Span }
-import SC._
 import scala.math._
 import SynthContext._
 

@@ -34,7 +34,6 @@ import java.io.{ File, IOException }
 import java.net.{ SocketAddress }
 import de.sciss.synth._
 import osc._
-import SC._
 import de.sciss.scalaosc.{ OSCBundle, OSCMessage }
 import de.sciss.kontur.util.{ Model }
 import de.sciss.util.{ Disposable }

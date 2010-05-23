@@ -31,30 +31,33 @@ package de.sciss.kontur.session
 import scala.xml.{ Node, Null }
 import de.sciss.synth._
 
+/**
+ *    @version 0.11, 23-May-10
+ */
 object FadeSpec {
    def fromXML( node: Node ) : FadeSpec = {
       val numFrames  = (node \ "numFrames").text.toLong
       val shape      = (node \ "shape").headOption.map( n => {
          (n \ "@num").text.toInt match {
             case 0 => stepShape
-            case 1 => linearShape
-            case 2 => exponentialShape
-            case 3 => sineShape
+            case 1 => linShape
+            case 2 => expShape
+            case 3 => sinShape
             case 4 => welchShape
             case 5 => curveShape( (n \ "@curve").text.toFloat )
-            case 6 => squaredShape
-            case 7 => cubedShape
+            case 6 => sqrShape
+            case 7 => cubShape
          }
-      }) getOrElse linearShape
+      }) getOrElse linShape
       val floor      = (node \ "floor").headOption.map( _.text.toFloat ) getOrElse 0f
       FadeSpec( numFrames, shape, floor )
    }
 }
 
-case class FadeSpec( numFrames: Long, shape: ConstEnvShape = linearShape, floor: Float = 0f ) {
+case class FadeSpec( numFrames: Long, shape: ConstEnvShape = linShape, floor: Float = 0f ) {
   def toXML = <fade>
   <numFrames>{numFrames}</numFrames>
-  {if( shape != linearShape )
+  {if( shape != linShape )
      <shape num={shape.id.toString} curve={shape.curvature.toString}/>
    else Null}
   {if( floor != 0f) <floor>{floor}</floor> else Null}

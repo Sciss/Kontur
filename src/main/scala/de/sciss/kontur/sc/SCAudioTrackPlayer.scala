@@ -5,7 +5,6 @@ import de.sciss.io.{ Span }
 import de.sciss.kontur.session.{ AudioRegion, AudioTrack }
 import de.sciss.synth.{ EnvSeg => S, _ }
 import de.sciss.synth.ugen._
-import SC._
 import SynthContext._
 
 class SCAudioTrackPlayer( val scDoc: SCSession, val track: AudioTrack )

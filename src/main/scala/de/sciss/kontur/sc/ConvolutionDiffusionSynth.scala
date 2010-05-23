@@ -28,9 +28,8 @@
 
 package de.sciss.kontur.sc
 
-import de.sciss.dsp.{ MathUtil }
-import de.sciss.synth.{ AllocatorExhaustedException, Bus, GE, SC, Server, Synth, SynthDef }
-import SC._
+import de.sciss.dsp.MathUtil
+import de.sciss.synth._
 import de.sciss.synth.ugen._
 import de.sciss.kontur.session.{ Diffusion, ConvolutionDiffusion }
 

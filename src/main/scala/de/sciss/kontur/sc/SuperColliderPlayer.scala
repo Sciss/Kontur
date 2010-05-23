@@ -31,7 +31,6 @@ package de.sciss.kontur.sc
 import de.sciss.kontur.session.{ Session }
 import de.sciss.util.{ Disposable }
 import de.sciss.synth._
-import SC._
 import scala.math._
 import SynthContext._
 
