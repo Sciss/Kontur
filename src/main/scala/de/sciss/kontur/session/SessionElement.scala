@@ -29,7 +29,8 @@
 package de.sciss.kontur.session
 
 import scala.collection.immutable.{ Queue }
-import de.sciss.kontur.util.{ Model, SerializerContext }
+import de.sciss.kontur.util.SerializerContext
+import de.sciss.synth.Model
 import java.io.{ IOException }
 import scala.xml.{ Node }
 

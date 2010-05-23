@@ -42,6 +42,7 @@ import de.sciss.gui.{ GUIUtil, TimeFormat }
 import de.sciss.io.{ Span }
 import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }
 import de.sciss.kontur.session.{ Timeline, Transport }
+import de.sciss.synth.Model
 
 // temporary hack to get osc synced video
 import de.sciss.scalaosc.{ OSCMessage, OSCTransmitter }
@@ -67,12 +68,12 @@ extends SegmentedButtonPanel with DynamicListening {
    private var oscEngaged  = false
    private val oscID       = 0 // tlv.timeline.id.toInt 
 
-   private val transportListener = (msg: AnyRef) => msg match {
+   private val transportListener: Model.Listener = {
       case Play( pos, rate ) => trnspChanged( true )
       case Stop( pos ) => trnspChanged( false )
    }
 
-   private val timelineViewListener = (msg: AnyRef) => msg match {
+   private val timelineViewListener: Model.Listener = {
       case TimelineCursor.PositionChanged( _, _ ) => if( !isPlaying ) updateTimeLabel( true )
       case Timeline.RateChanged( _, _ ) => updateTimeLabel( true )
    }

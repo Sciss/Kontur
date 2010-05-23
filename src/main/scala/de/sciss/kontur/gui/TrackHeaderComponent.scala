@@ -39,9 +39,10 @@ import scala.math._
 import de.sciss.gui.{ GradientPanel }
 import de.sciss.app.{ AbstractApplication, Application, DynamicAncestorAdapter,
                      DynamicListening, GraphicsHandler }
-import de.sciss.util.{ Disposable }
+import de.sciss.util.Disposable
 import de.sciss.kontur.session.{ AudioTrack, Diffusion, Renameable,
                                 SessionElementSeq, Stake, Track }
+import de.sciss.synth.Model
 
 //import Track.Tr
 
@@ -73,7 +74,6 @@ object DefaultTrackHeaderComponent {
 
 class DefaultTrackHeaderComponent( protected val track: Track, trackList: TrackList )
 extends JPanel
-// with TrackRowHeader
 with DynamicListening with Disposable {
   import DefaultTrackHeaderComponent._
   
@@ -258,7 +258,7 @@ with DynamicListening with Disposable {
 
 // ---------------- DynamicListening interface ----------------
 
-    private val trackListListener = (msg: AnyRef) => msg match {
+    private val trackListListener: Model.Listener = {
       case TrackList.SelectionChanged( mod @ _* ) => {
           if( mod.contains( trackListElement )) repaint()
       }

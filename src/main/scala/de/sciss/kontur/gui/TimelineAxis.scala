@@ -28,14 +28,15 @@
 
 package de.sciss.kontur.gui
 
-import java.awt.{ Rectangle }
-import java.awt.event.{ MouseEvent }
+import java.awt.Rectangle
+import java.awt.event.MouseEvent
 import javax.swing.event.{ MouseInputAdapter, MouseInputListener }
 import de.sciss.app.{ AbstractApplication, Application, DynamicAncestorAdapter,
                         DynamicListening, GraphicsHandler }
 import de.sciss.gui.{ /* Axis,*/ ComponentHost, VectorSpace }
-import de.sciss.io.{ Span }
-import de.sciss.kontur.session.{ Timeline }
+import de.sciss.io.Span
+import de.sciss.kontur.session.Timeline
+import de.sciss.synth.Model
 import scala.math._
 
 class TimelineAxis( view: TimelineView, host: Option[ ComponentHost ])
@@ -102,7 +103,7 @@ with DynamicListening {
             }
         }
 
-     private val timelineListener = (msg: AnyRef) => msg match {
+     private val timelineListener: Model.Listener = {
         case Timeline.RateChanged( _, _ ) => recalcSpace( true )
         // note: viewport does not necessarily repaint when
         // view sizes changes, for whatever reason. so we

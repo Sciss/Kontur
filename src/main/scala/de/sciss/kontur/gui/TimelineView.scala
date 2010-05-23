@@ -28,12 +28,12 @@
 
 package de.sciss.kontur.gui
 
-import javax.swing.undo.{ UndoManager }
-import de.sciss.app.{ AbstractCompoundEdit }
-import de.sciss.io.{ Span }
+import javax.swing.undo.UndoManager
+import de.sciss.app.AbstractCompoundEdit
+import de.sciss.io.Span
 import de.sciss.kontur.edit.{ Editor, SimpleEdit }
 import de.sciss.kontur.session.{ Session, Timeline }
-import de.sciss.kontur.util.{ Model }
+import de.sciss.synth.Model
 
 object TimelineView {
   case class SpanChanged( oldSpan: Span, newSpan: Span )
@@ -73,7 +73,7 @@ extends TimelineView with TimelineViewEditor {
   private val basicSel  = new BasicTimelineSelection( timeline )
   def selection: TimelineSelection = basicSel
 
-  private val forward = (msg: AnyRef) => dispatch( msg )
+  private val forward : Model.Listener = { case msg => dispatch( msg )}
 
   // ---- constructor ----
   {

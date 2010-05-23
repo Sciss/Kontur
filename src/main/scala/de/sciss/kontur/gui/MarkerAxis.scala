@@ -50,6 +50,7 @@ import de.sciss.gui.{ ComponentHost, DoClickAction, MenuAction,
 import de.sciss.io.{ Span }
 import de.sciss.util.{ DefaultUnitTranslator, Disposable, Param, ParamSpace }
 import de.sciss.kontur.session.{ Marker, Trail, TrailEditor }
+import de.sciss.synth.Model
 
 /**
  *  @author		Hanns Holger Rutz
@@ -583,14 +584,14 @@ with DynamicListening with Disposable {
 
 // ---------------- MarkerManager.Listener interface ----------------
 
-	private val trailListener = (msg: AnyRef) => msg match {
+	private val trailListener: Model.Listener = {
 //        case Trail.Changed( span ) => if( span.touches( visibleSpan )) triggerRedisplay
          case _ => println( "MarkerAxis : trailListener : NOT YET IMPLEMENTED")
     }
 
 // ---------------- TimelineListener interface ----------------
 
-	private val timelineListener = (msg: AnyRef) => msg match {
+	private val timelineListener: Model.Listener = {
         case TimelineView.SpanChanged( _, newSpan ) => {
             visibleSpan = newSpan
             triggerRedisplay

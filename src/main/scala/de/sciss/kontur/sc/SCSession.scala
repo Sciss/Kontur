@@ -50,14 +50,14 @@ class SCSession( val doc: Session ) {
    val diskGroup  = group()
    val panGroup   = groupAfter( diskGroup )
 
-   private val diffListener = (msg: AnyRef) => msg match {
+   private val diffListener: Model.Listener = {
       case doc.diffusions.ElementAdded( idx, diff ) => {
          context.perform { inGroup( panGroup ) { addDiffusion( diff )}}
       }
       case doc.diffusions.ElementRemoved( idx, diff ) => context.perform { removeDiffusion( diff )}
    }
 
-   private val timeListener = (msg: AnyRef) => msg match {
+   private val timeListener: Model.Listener = {
       case doc.timelines.ElementAdded( idx, tl ) => addTimeline( new SCTimeline( this, tl ))
       case doc.timelines.ElementRemoved( idx, tl ) => removeTimeline( tl )
    }

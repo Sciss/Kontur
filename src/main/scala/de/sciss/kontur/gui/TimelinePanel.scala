@@ -30,15 +30,16 @@ package de.sciss.kontur.gui
 
 import java.awt.{ Color, Graphics, Graphics2D, Rectangle }
 import java.awt.event.{ ActionEvent, ActionListener }
-import java.awt.geom.{ Rectangle2D }
+import java.awt.geom.Rectangle2D
 import javax.swing.{ BoxLayout, JComponent, JViewport, Timer }
 import javax.swing.event.{ ChangeEvent, ChangeListener }
 import scala.math._
 
 import de.sciss.gui.{ ComponentHost, TopPainter }
-import de.sciss.io.{ Span }
+import de.sciss.io.Span
 import de.sciss.kontur.session.{ Marker, SessionElementSeq, Stake, Timeline,
                                 Track, Trail, Transport }
+import de.sciss.synth.Model
 
 //import Track.Tr
 
@@ -98,12 +99,12 @@ with TopPaintable {
    private var trackListVar: TrackList = new DummyTrackList
    private var viewPortVar: Option[ JViewport ] = None
 
-   private val transportListener = (msg: AnyRef) => msg match {
+   private val transportListener: Model.Listener = {
       case Transport.Play( pos, rate ) => play( pos, rate )
       case Transport.Stop( pos ) => stop
    }
 
-   private val timelineListener = (msg: AnyRef) => msg match {
+   private val timelineListener: Model.Listener = {
       case TimelineCursor.PositionChanged( _, newPos ) => {
 		timelinePos = newPos
 		updatePositionAndRepaint
@@ -126,7 +127,7 @@ with TopPaintable {
       }
     }
 
-    private val trackListListener = (msg: AnyRef) => msg match {
+    private val trackListListener: Model.Listener = {
       case TrackList.ElementAdded( idx, elem ) => updateSelectionAndRepaint
       case TrackList.ElementRemoved( idx, elem ) => updateSelectionAndRepaint
       case TrackList.SelectionChanged( elems @ _* ) => updateSelectionAndRepaint

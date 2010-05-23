@@ -34,7 +34,7 @@ import de.sciss.app.{ AbstractCompoundEdit }
 import de.sciss.io.{ Span }
 import de.sciss.util.{ Disposable }
 import de.sciss.kontur.edit.{ Editor }
-import de.sciss.kontur.util.{ Model }
+import de.sciss.synth.Model
 
 /**
  *	@author		Hanns Holger Rutz

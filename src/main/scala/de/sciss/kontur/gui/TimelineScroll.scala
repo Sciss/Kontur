@@ -37,8 +37,9 @@ import javax.swing.undo.{ UndoManager }
 import scala.math._
 
 import de.sciss.app.{ DynamicAncestorAdapter, DynamicListening, PerformableEdit }
-import de.sciss.io.{ Span }
-import de.sciss.kontur.session.{ Timeline }
+import de.sciss.io.Span
+import de.sciss.kontur.session.Timeline
+import de.sciss.synth.Model
 
 /**
  *  A GUI element for allowing
@@ -322,7 +323,7 @@ with AdjustmentListener with DynamicListening {
 
 // ---------------- TimelineListener interface ----------------
 
-  private val timelineListener = (msg: AnyRef) => msg match {
+  private val timelineListener: Model.Listener = {
     case TimelineSelection.SpanChanged( _, newSpan ) => {
 		timelineSel = newSpan
 		recalcTransforms

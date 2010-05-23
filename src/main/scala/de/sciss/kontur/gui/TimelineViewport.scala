@@ -31,7 +31,8 @@ package de.sciss.kontur.gui
 import java.awt.{ Dimension, Point, Rectangle }
 import javax.swing.{ JComponent, JViewport }
 import de.sciss.app.{ DynamicAncestorAdapter, DynamicListening }
-import de.sciss.io.{ Span }
+import de.sciss.io.Span
+import de.sciss.synth.Model
 
 class TimelineViewport( timelineView: TimelineView )
 extends JViewport with DynamicListening {
@@ -50,7 +51,7 @@ extends JViewport with DynamicListening {
      timelineView.removeListener( timelineViewListener )
   }
 
-  private val timelineViewListener = (msg: AnyRef) => msg match {
+  private val timelineViewListener: Model.Listener = {
       case TimelineView.SpanChanged( oldSpan, newSpan ) => {
 //         val dim = getPreferredSize()
          val tlSpan = timelineView.timeline.span

@@ -35,6 +35,7 @@ import de.sciss.io.{ AudioFile, AudioFileDescr }
 import de.sciss.kontur.{ Main }
 import de.sciss.kontur.session.{ AudioFileElement, AudioFileSeq, AudioTrack, BasicTimeline, Diffusion, DiffusionFactory,
    Renameable, Session, SessionElement, SessionElementSeq, Stake, Timeline, Track, TrackEditor }
+import de.sciss.synth.Model
 import java.awt.{ BorderLayout, Component, FileDialog, Frame }
 import java.awt.datatransfer.{ DataFlavor, Transferable }
 import java.awt.dnd.{ DnDConstants }
@@ -156,7 +157,7 @@ extends DynamicTreeNode( model, seq, true )
 {
     protected def wrap( elem: El ) : DynamicTreeNode
 
-    private val seqListener = (msg: AnyRef) => msg match {
+    private val seqListener: Model.Listener = {
       case seq.ElementAdded( idx, elem ) => insertDyn( idx, wrap( elem ))
       case seq.ElementRemoved( idx, elem ) => removeDyn( idx )
     }

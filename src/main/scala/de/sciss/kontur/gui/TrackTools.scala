@@ -40,8 +40,9 @@ import de.sciss.gui.{ GUIUtil }
 import de.sciss.io.{ Span }
 import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }
 import de.sciss.kontur.session.{ MuteableStake, Stake, Track, Trail }
-import de.sciss.kontur.util.{ Model, PrefsUtil }
-import de.sciss.dsp.{ MathUtil }
+import de.sciss.kontur.util.PrefsUtil
+import de.sciss.dsp.MathUtil
+import de.sciss.synth.Model
 
 object TrackTools {
     case class ToolChanged( oldTool: TrackTool, newTool: TrackTool )

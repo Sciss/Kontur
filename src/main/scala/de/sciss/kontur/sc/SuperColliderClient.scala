@@ -30,9 +30,9 @@ package de.sciss.kontur.sc
 
 import de.sciss.app.{ AbstractApplication, DocumentEvent, DocumentListener }
 import de.sciss.kontur.session.{ Session }
-import de.sciss.kontur.util.{ Model, PrefsUtil }
+import de.sciss.kontur.util.PrefsUtil
 import de.sciss.scalaosc.{ OSCChannel }
-import de.sciss.synth.{ Server, ServerOptions }
+import de.sciss.synth.{ Model, Server, ServerOptions }
 import de.sciss.util.{ Param }
 import java.awt.EventQueue
 import java.io.{ IOException }
@@ -57,7 +57,7 @@ class SuperColliderClient extends Model {
     private var dumpMode = OSCChannel.DUMP_OFF
 
     private var players = Map[ Session, SuperColliderPlayer ]()
-    private val forward = (msg: AnyRef) => defer( dispatch( msg ))
+    private val forward: Model.Listener = { case msg => defer( dispatch( msg ))}
 
     // ---- constructor ----
     {

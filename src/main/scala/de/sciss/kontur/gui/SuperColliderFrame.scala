@@ -31,7 +31,7 @@ package de.sciss.kontur.gui
 import de.sciss.app.{ AbstractWindow }
 import de.sciss.gui.{ MultiStateButton }
 import de.sciss.kontur.sc.{ SuperColliderClient }
-import de.sciss.synth.{ Server }
+import de.sciss.synth.{ Model, Server }
 import de.sciss.synth.swing.{ ServerStatusPanel }
 import java.awt.{ BorderLayout, Color, Dimension }
 import java.awt.event.{ ActionEvent, InputEvent, KeyEvent }
@@ -50,7 +50,7 @@ class SuperColliderFrame extends AppWindow( AbstractWindow.SUPPORT /* PALETTE */
      override protected def couldBoot: Boolean = true
    }
 
-   private val clientListener = (msg: AnyRef) => msg match {
+   private val clientListener: Model.Listener = {
       case SuperColliderClient.ServerChanged( server ) =>
           serverPanel.server = server
    }

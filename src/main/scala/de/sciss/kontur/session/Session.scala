@@ -32,7 +32,8 @@ import de.sciss.app.{ AbstractApplication }
 import de.sciss.common.{ BasicDocument, ProcessingThread }
 import de.sciss.io.{ IOUtil }
 import de.sciss.util.{ Flag }
-import de.sciss.kontur.util.{ BasicSerializerContext, Model, SerializerContext }
+import de.sciss.kontur.util.{ BasicSerializerContext, SerializerContext }
+import de.sciss.synth.Model
 import java.awt.{ EventQueue }
 import java.io.{ File, IOException }
 import scala.xml.{ Node, XML }

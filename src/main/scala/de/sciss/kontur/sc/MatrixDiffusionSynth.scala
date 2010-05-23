@@ -48,10 +48,10 @@ extends DiffusionSynth {
 
    private var synth: Option[ RichSynth ]    = None
 
-   private val diffusionListener = (msg: AnyRef) => msg match {
-      case Diffusion.NumInputChannelsChanged( _, _ )  => invalidate( this )
-      case Diffusion.NumOutputChannelsChanged( _, _ ) => invalidate( this )
-      case MatrixDiffusion.MatrixChanged( _, _ )      => invalidate( this )
+   private val diffusionListener: Model.Listener = {
+      case Diffusion.NumInputChannelsChanged( _, _ )  => invalidate( diffSynth )
+      case Diffusion.NumOutputChannelsChanged( _, _ ) => invalidate( diffSynth )
+      case MatrixDiffusion.MatrixChanged( _, _ )      => invalidate( diffSynth )
    }
 
    // ---- constructor ----

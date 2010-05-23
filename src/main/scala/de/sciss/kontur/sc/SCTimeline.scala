@@ -60,12 +60,12 @@ extends ActionListener {
    private val players           = new ArrayBuffer[ SCTrackPlayer ]()
    private var mapPlayers        = Map[ Track, SCTrackPlayer ]()
 
-   private val tracksListener   = (msg: AnyRef) => msg match {
+   private val tracksListener: Model.Listener = {
       case tracks.ElementAdded( idx, t ) => context.perform { addTrack( idx, t )}
       case tracks.ElementRemoved( idx, t ) => context.perform { removeTrack( idx, t )}
    }
 
-   private val transportListener = (msg: AnyRef) => msg match {
+   private val transportListener: Model.Listener = {
       case Transport.Play( from, rate ) => context.perform { play( from, rate )}
       case Transport.Stop( pos ) => context.perform { stop }
    }

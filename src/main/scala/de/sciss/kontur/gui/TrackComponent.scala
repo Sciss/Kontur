@@ -54,7 +54,7 @@ import de.sciss.app.{ AbstractApplication, AbstractCompoundEdit,
                       DynamicAncestorAdapter,DynamicListening, GraphicsHandler }
 import de.sciss.dsp.{ MathUtil }
 import de.sciss.io.{ AudioFile, Span }
-import de.sciss.synth.{ curveShape, linShape }
+import de.sciss.synth.{ curveShape, linShape, Model }
 
 //import Track.Tr
 
@@ -108,12 +108,12 @@ extends JComponent with TrackToolsListener with DynamicListening {
       }
    }
 
-   private val trailViewListener = (msg: AnyRef) => msg match {
+   private val trailViewListener: Model.Listener = {
 //    case TrailView.SelectionChanged( span, stakes @ _* ) => checkSpanRepaint( span )
       case TrailView.SelectionChanged( span ) => checkSpanRepaint( span )
    }
 
-   private val trailListener = (msg: AnyRef) => msg match {
+   private val trailListener: Model.Listener = {
       case trail.StakesAdded( span, stakes @ _* ) => checkSpanRepaint( span )
       case trail.StakesRemoved( span, stakes @ _* ) => checkSpanRepaint( span )
    }
@@ -131,7 +131,7 @@ extends JComponent with TrackToolsListener with DynamicListening {
       }
    }
 
-   private val moveResizeToolListener = (msg: AnyRef) => msg match {
+   private val moveResizeToolListener: Model.Listener = {
         case TrackStakeTool.DragBegin => {
             val union = unionSpan( trailView.selectedStakes )
             if( !union.isEmpty ) {
@@ -169,9 +169,9 @@ extends JComponent with TrackToolsListener with DynamicListening {
         }
    }
 
-   private var toolListener: Option[ AnyRef => Unit ] = None
+   private var toolListener: Option[ Model.Listener ] = None
 
-   private val trackToolsListener = (msg: AnyRef) => msg match {
+   private val trackToolsListener: Model.Listener = {
       case TrackTools.ToolChanged( oldTool, newTool ) => {
          toolListener.foreach( tl => oldTool.removeListener( tl ))
          toolListener = selectToolListener( newTool )
@@ -204,7 +204,7 @@ extends JComponent with TrackToolsListener with DynamicListening {
 //       observer.selectPage( page.id )
    }
 
-   protected def selectToolListener( t: TrackTool ): Option[ AnyRef => Unit ] =
+   protected def selectToolListener( t: TrackTool ): Option[ Model.Listener ] =
       t match {
          case _ : TrackMoveTool   => Some( moveResizeToolListener )
          case _ : TrackResizeTool => Some( moveResizeToolListener )
@@ -590,7 +590,7 @@ with SonagramPaintController {
 
    // XXX eventually we could save space and let the painter
    // do the msg matching, no?
-   private val gainToolListener = (msg: AnyRef) => msg match {
+   private val gainToolListener: Model.Listener = {
       case TrackStakeTool.DragBegin => {
          val union = unionSpan( trailView.selectedStakes )
          if( !union.isEmpty ) {
@@ -614,7 +614,7 @@ with SonagramPaintController {
       }
    }
 
-   private val muteToolListener: AnyRef => Unit = (msg: AnyRef) => msg match {
+   private val muteToolListener: Model.Listener = {
       case TrackMuteTool.Mute( ce, muted ) => {
          val union = unionSpan( trailView.selectedStakes )
          if( !union.isEmpty ) {
@@ -623,7 +623,7 @@ with SonagramPaintController {
       }
    }
 
-   private val fadeToolListener = (msg: AnyRef) => msg match {
+   private val fadeToolListener: Model.Listener = {
       case TrackStakeTool.DragBegin => {
          val union = unionSpan( trailView.selectedStakes )
          if( !union.isEmpty ) {
@@ -716,7 +716,7 @@ with SonagramPaintController {
    override protected def createMoveResizePainter( initialUnion: Span, oldPainter: Painter ) =
       new MoveResizePainter( initialUnion, oldPainter ) with AudioStakePainter
 
-   override protected def selectToolListener( t: TrackTool ): Option[ AnyRef => Unit ] =
+   override protected def selectToolListener( t: TrackTool ): Option[ Model.Listener ] =
       t match {
          case _ : TrackGainTool   => Some( gainToolListener )
          case _ : TrackFadeTool   => Some( fadeToolListener )

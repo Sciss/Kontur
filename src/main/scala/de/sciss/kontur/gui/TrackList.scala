@@ -28,14 +28,14 @@
 
 package de.sciss.kontur.gui
 
-import java.awt.{ Rectangle }
-import javax.swing.{ JComponent }
+import java.awt.Rectangle
+import javax.swing.JComponent
 import scala.collection.mutable.{ ArrayBuffer, ListBuffer }
 import de.sciss.app.{ AbstractCompoundEdit, UndoManager }
 import de.sciss.kontur.edit.{ Editor, SimpleEdit }
 import de.sciss.kontur.session.{ AudioTrack, BasicSessionElementSeq, Session,
                                 Stake, Track }
-import de.sciss.kontur.util.{ Model }
+import de.sciss.synth.Model
 
 object TrackList {
     case class ElementAdded( idx: Int, e: TrackListElement )
@@ -130,7 +130,7 @@ extends TrackList with TrackListEditor {
   private val elements  = new ArrayBuffer[ TrackListElement ]()
   private val tracks    = timelineView.timeline.tracks
 
-  private val tracksListener = (msg: AnyRef) => msg match {
+  private val tracksListener: Model.Listener = {
       case tracks.ElementAdded( idx, t ) => addTrack( t, following )
       case tracks.ElementRemoved( idx, t ) => removeTrack( t )
   }

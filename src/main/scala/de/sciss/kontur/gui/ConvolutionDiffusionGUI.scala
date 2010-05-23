@@ -41,6 +41,7 @@ import de.sciss.io.{ AudioFile, AudioFileDescr }
 import de.sciss.kontur.session.{ Diffusion, DiffusionEditor, DiffusionFactory, ConvolutionDiffusion, Renameable, Session }
 import de.sciss.util.ParamSpace
 import de.sciss.gui.{ ParamField => ParamF, PathEvent, PathField => PathF, PathListener}
+import de.sciss.synth.Model
 
 /**
  *    @version 0.11, 20-Apr-10
@@ -71,7 +72,7 @@ extends JPanel with DynamicListening with FilenameFilter {
    private val msgPtrn		   = "{0,choice,0#no channels|1#mono|2#stereo|2<{0,number,integer}-ch}, {1,number,########} frames / fft {2,number,########}, {3,number,0.###} kHz, {4,number,integer}:{5,number,00.000}";
    private val msgForm		   = new MessageFormat( msgPtrn, Locale.US )
 
-   private val diffListener = (msg: AnyRef) => msg match {
+   private val diffListener: Model.Listener = {
       // XXX the updates could be more selective
       case Renameable.NameChanged( _, _ )             => updateGadgets
       case ConvolutionDiffusion.PathChanged( _, _ )   => updateGadgets

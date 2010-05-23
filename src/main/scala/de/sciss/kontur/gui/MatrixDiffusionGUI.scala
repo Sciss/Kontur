@@ -42,6 +42,7 @@ import de.sciss.gui.{ ParamField => PF }
 import de.sciss.kontur.session.{ Diffusion, DiffusionEditor, DiffusionFactory, MatrixDiffusion, Renameable, Session }
 import de.sciss.kontur.util.{ Matrix2D }
 import de.sciss.util.{ Param, ParamSpace }
+import de.sciss.synth.Model
 
 object MatrixDiffusionGUI extends DiffusionGUIFactory {
    type T = MatrixDiffusionGUI
@@ -72,7 +73,7 @@ extends JPanel with ObserverPage with DynamicListening {
    private val ggMatrixApply       = new JButton( "Apply" )
    private var isListening          = false
 
-   private val diffListener = (msg: AnyRef) => msg match {
+   private val diffListener: Model.Listener = {
       // XXX the updates could be more selective
       case Renameable.NameChanged( _, _ )             => updateGadgets
       case Diffusion.NumInputChannelsChanged( _, _ )  => updateGadgets

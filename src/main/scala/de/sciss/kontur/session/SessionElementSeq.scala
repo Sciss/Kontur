@@ -28,13 +28,14 @@
 
 package de.sciss.kontur.session
 
-import java.io.{ IOException }
-import javax.swing.undo.{ UndoManager }
-import scala.collection.mutable.{ ArrayBuffer }
-import scala.xml.{ Node }
-import de.sciss.app.{ AbstractCompoundEdit }
+import java.io.IOException
+import javax.swing.undo.UndoManager
+import scala.collection.mutable.ArrayBuffer
+import scala.xml.Node
+import de.sciss.app.AbstractCompoundEdit
 import de.sciss.kontur.edit.{ Editor, SimpleEdit }
-import de.sciss.kontur.util.{ SerializerContext }
+import de.sciss.kontur.util.SerializerContext
+import de.sciss.synth.Model
 
 trait SessionElementSeq[ T <: SessionElement ]
 extends SessionElement {
@@ -86,7 +87,7 @@ with SessionElementSeqEditor[ T ] {
   @throws( classOf[ IOException ])
   protected def elementsFromXML( c: SerializerContext, node: Node ) : Seq[ T ]
 
-  private val forward = (msg: AnyRef) => dispatch( msg )
+  private val forward: Model.Listener = { case msg => dispatch( msg )}
 
 /*
   def +=( elem: T ) {

@@ -52,7 +52,7 @@ extends DiffusionSynth {
 
    private var synth: Option[ RichSynth ] = None
 
-   private val diffusionListener = (msg: AnyRef) => msg match {
+   private val diffusionListener : Model.Listener = {
       case Diffusion.NumInputChannelsChanged( _, _ )        => invalidate( this )
       case Diffusion.NumOutputChannelsChanged( _, _ )       => invalidate( this )
       case ConvolutionDiffusion.PathChanged( _, _ )         => invalidate( this )

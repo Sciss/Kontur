@@ -35,12 +35,11 @@ import scala.collection.immutable.{ Queue }
 
 import de.sciss.gui.{ GUIUtil, GradientPanel, StretchedGridLayout }
 import de.sciss.kontur.session.{ Marker, Session, SessionElementSeq, Stake, Timeline, Track }
-import de.sciss.kontur.util.{ Model }
+import de.sciss.synth.Model
 
 //import Track.Tr
 
 /**
- *	@author		Hanns Holger Rutz
  * 	@version	0.12, 11-Jan-10
  */
 class TracksPanel( val doc: Session, val timelinePanel: TimelinePanel )
@@ -57,7 +56,7 @@ with BasicTrackList with TrackToolsListener {
     private val viewPort          = new TimelineViewport( timelineView )
     private var trackTools: Option[ TrackTools ] = None
 
-    private val trackListListener = (msg: AnyRef) => msg match {
+    private val trackListListener: Model.Listener = {
        case TrackList.ElementAdded(   idx: Int, e: TrackListElement ) => addTrack( idx, e )
        case TrackList.ElementRemoved( idx: Int, e: TrackListElement ) => removeTrack( idx, e )
     }
@@ -91,7 +90,7 @@ with BasicTrackList with TrackToolsListener {
 //	override def dispose {
 //	}
 
-    private val trackToolsListener = (msg: AnyRef) => msg match {
+    private val trackToolsListener: Model.Listener = {
         case TrackTools.ToolChanged( oldTool, newTool ) => {
             timelinePanel.setCursor( newTool.defaultCursor )
         }

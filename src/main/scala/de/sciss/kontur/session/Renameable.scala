@@ -28,7 +28,7 @@
 
 package de.sciss.kontur.session
 
-import de.sciss.kontur.util.{ Model }
+import de.sciss.synth.Model
 
 object Renameable {
   case class NameChanged( oldName: String, newName: String )

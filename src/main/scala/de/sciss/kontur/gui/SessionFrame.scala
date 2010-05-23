@@ -34,9 +34,10 @@ import java.io.{ File, IOException }
 import javax.swing.{ AbstractAction, Action, JComponent, JOptionPane, KeyStroke, WindowConstants }
 import de.sciss.app.{ AbstractWindow }
 import de.sciss.common.{ BasicMenuFactory, BasicWindowHandler, ShowWindowAction }
-import de.sciss.gui.{ MenuAction }
-import de.sciss.kontur.session.{ Session }
-import de.sciss.util.{ Flag }
+import de.sciss.gui.MenuAction
+import de.sciss.kontur.session.Session
+import de.sciss.util.Flag
+import de.sciss.synth.Model
 
 /**
  * @author  Hanns Holger Rutz
@@ -67,7 +68,7 @@ trait SessionFrame {
         }
     }
 
-   private val docListener = (msg: AnyRef) => msg match {
+   private val docListener: Model.Listener = {
       case Session.DirtyChanged( _ ) => updateTitle
       case Session.PathChanged( _, _ ) => updateTitle
    }

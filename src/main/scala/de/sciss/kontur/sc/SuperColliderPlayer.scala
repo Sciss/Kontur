@@ -42,16 +42,15 @@ extends Disposable {
 //    private var server: Option[ Server ] = client.server
     private var online: Option[ SCSession ] = None
 
-    private val clientListener = (msg: AnyRef) => msg match {
+    private val clientListener: Model.Listener = {
        case Server.Running => serverRunning
        case Server.Offline => serverOffline
-       case _ => // because we call the listener directly!
-//       case SuperColliderClient.ServerChanged( s ) => serverChanged( s )
     }
 
     // ---- constructor ----
     {
-       clientListener( client.serverCondition )
+       val c = client.serverCondition
+       if( clientListener.isDefinedAt( c )) clientListener( c )
        client.addListener( clientListener )
     }
 
