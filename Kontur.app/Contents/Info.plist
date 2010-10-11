@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleGetInfoString</key>
-	<string>Kontur 0.11. Copyright © 2004-2010 by Hanns Holger Rutz. All rights reserved.</string>
+	<string>Kontur 0.12. Copyright © 2004-2010 by Hanns Holger Rutz. All rights reserved.</string>
 	<key>CFBundleShortVersionString</key>
 	<string>0.12</string>
 	<key>CFBundleName</key>
@@ -43,18 +43,19 @@
 		<string>1.6+</string>
 		<key>ClassPath</key>
 		<array>
+			<string>$JAVAROOT/jsyntaxpane.jar</string>
+			<string>$JAVAROOT/kontur.jar</string>
+			<string>$JAVAROOT/mrjadapter.jar</string>
+			<string>$JAVAROOT/prefuse.jar</string>
+			<string>$JAVAROOT/scala-compiler.jar</string>
+			<string>$JAVAROOT/scala-library.jar</string>
+			<string>$JAVAROOT/scalaaudiofile.jar</string>
+			<string>$JAVAROOT/scalacollider.jar</string>
+			<string>$JAVAROOT/scalacolliderswing.jar</string>
+			<string>$JAVAROOT/scalainterpreterpane.jar</string>
+			<string>$JAVAROOT/scalaosc.jar</string>
 			<string>$JAVAROOT/scissdsp.jar</string>
 			<string>$JAVAROOT/scisslib.jar</string>
-			<string>$JAVAROOT/mrjadapter.jar</string>
-			<string>$JAVAROOT/kontur.jar</string>
-			<string>$JAVAROOT/scalacolliderswing.jar</string>
-			<string>$JAVAROOT/prefuse.jar</string>
-			<string>$JAVAROOT/scala-library.jar</string>
-			<string>$JAVAROOT/scala-compiler.jar</string>
-			<string>$JAVAROOT/scalacollider.jar</string>
-			<string>$JAVAROOT/scalaosc.jar</string>
-			<string>$JAVAROOT/scalainterpreterpane.jar</string>
-			<string>$JAVAROOT/jsyntaxpane.jar</string>
 		</array>
 	</dict>
 </dict>

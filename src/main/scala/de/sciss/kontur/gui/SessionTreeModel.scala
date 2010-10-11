@@ -31,7 +31,6 @@ package de.sciss.kontur.gui
 import de.sciss.app.{ AbstractApplication, DynamicListening }
 import de.sciss.common.{ BasicWindowHandler }
 import de.sciss.gui.{ MenuGroup, MenuItem }
-import de.sciss.io.{ AudioFile, AudioFileDescr }
 import de.sciss.kontur.{ Main }
 import de.sciss.kontur.session.{ AudioFileElement, AudioFileSeq, AudioTrack, BasicTimeline, Diffusion, DiffusionFactory,
    Renameable, Session, SessionElement, SessionElementSeq, Stake, Timeline, Track, TrackEditor }
@@ -45,6 +44,7 @@ import javax.swing.{ AbstractAction, Action, DefaultListSelectionModel, JLabel, 
 import javax.swing.tree.{ DefaultMutableTreeNode, DefaultTreeModel, MutableTreeNode,
                          TreeModel, TreeNode }
 import scala.collection.JavaConversions.{ JEnumerationWrapper }
+import de.sciss.synth.io.AudioFile
 
 abstract class DynamicTreeNode( model: SessionTreeModel, obj: AnyRef, canExpand: Boolean )
 extends DefaultMutableTreeNode( obj, canExpand )
@@ -219,11 +219,9 @@ with HasContextMenu with CanBeDropTarget {
                getPath.foreach( path => {
                   val name = getValue( Action.NAME ).toString
                   try {
-                     val af = AudioFile.openAsRead( path )
-                     val afd = af.getDescr()
-                     af.close
+                     val spec = AudioFile.readSpec( path )
                      val ce = ed.editBegin( name )
-                     val afe = new AudioFileElement( path, afd.length, afd.channels, afd.rate )
+                     val afe = new AudioFileElement( path, spec.numFrames, spec.numChannels, spec.sampleRate )
                      ed.editInsert( ce, audioFiles.size, afe )
                      ed.editEnd( ce )
                   }
@@ -249,7 +247,7 @@ with HasContextMenu with CanBeDropTarget {
          def accept( dir: File, name: String ) : Boolean = {
             val f = new File( dir, name )
             try {
-               AudioFile.retrieveType( f ) != AudioFileDescr.TYPE_UNKNOWN
+               AudioFile.identify( f ).isDefined
             }
             catch { case e1: IOException => false }
          }
@@ -550,7 +548,7 @@ with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
                def accept( dir: File, name: String ) : Boolean = {
                   val f = new File( dir, name )
                   try {
-                     AudioFile.retrieveType( f ) != AudioFileDescr.TYPE_UNKNOWN
+                     AudioFile.identify( f ).isDefined
                   }
                   catch { case e1: IOException => false }
                }

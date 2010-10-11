@@ -43,7 +43,8 @@ extends Disposable {
     private var online: Option[ SCSession ] = None
 
     private val clientListener: Model.Listener = {
-       case Server.Running => serverRunning
+       case SuperColliderClient.ServerRunning( _ ) => serverRunning
+//       case Server.Running => serverRunning
        case Server.Offline => serverOffline
     }
 

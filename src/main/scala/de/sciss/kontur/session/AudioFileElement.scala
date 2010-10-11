@@ -31,12 +31,11 @@ package de.sciss.kontur.session
 import java.awt.datatransfer.{ DataFlavor }
 import java.io.{ File, IOException }
 import scala.xml.{ Node }
-import de.sciss.app.{ AbstractCompoundEdit }
-import de.sciss.io.{ AudioFile, AudioFileDescr }
 
-import de.sciss.app.{ AbstractApplication }
 import de.sciss.kontur.io.{ SonagramOverview }
 import de.sciss.kontur.util.{ SerializerContext }
+import de.sciss.synth.io.AudioFile
+import de.sciss.app.AbstractCompoundEdit
 
 /**
  *    @version 0.11, 17-Apr-10
@@ -57,10 +56,8 @@ object AudioFileElement {
 
    @throws( classOf[ IOException ])
    def fromPath( doc: Session, path: File ) : AudioFileElement = {
-      val af      = AudioFile.openAsRead( path )
-      val descr   = af.getDescr
-      af.close
-      new AudioFileElement( path, descr.length, descr.channels, descr.rate )
+      val spec = AudioFile.readSpec( path )
+      new AudioFileElement( path, spec.numFrames, spec.numChannels, spec.sampleRate )
    }
 
    val flavor = new DataFlavor( classOf[ AudioFileElement ], "AudioFileElement" )

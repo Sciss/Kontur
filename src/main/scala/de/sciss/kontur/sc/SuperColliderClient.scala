@@ -31,18 +31,21 @@ package de.sciss.kontur.sc
 import de.sciss.app.{ AbstractApplication, DocumentEvent, DocumentListener }
 import de.sciss.kontur.session.{ Session }
 import de.sciss.kontur.util.PrefsUtil
-import de.sciss.scalaosc.{ OSCChannel }
-import de.sciss.synth.{ Model, Server, ServerOptions }
 import de.sciss.util.{ Param }
 import java.awt.EventQueue
 import java.io.{ IOException }
 import java.net.{ DatagramSocket, ServerSocket }
+import de.sciss.osc.{UDP, TCP, OSCChannel}
+import de.sciss.synth.{ServerConnection, ServerOptionsBuilder, Model, Server, ServerOptions}
 
 object SuperColliderClient {
    lazy val instance = new SuperColliderClient
    val DEFAULT_PORT = 57108
 
-   case class ServerChanged( s: Option[ Server ])
+//   case class ServerChanged( s: Option[ Server ])
+   case class ServerBooting( s: ServerConnection )
+   case class ServerRunning( s: Server )
+   case object ServerTerminated
 }
 
 class SuperColliderClient extends Model {
@@ -50,7 +53,8 @@ class SuperColliderClient extends Model {
 
     private val app         = AbstractApplication.getApplication()
     private val audioPrefs  = app.getUserPrefs.node( PrefsUtil.NODE_AUDIO )
-    private val so          = new ServerOptions
+    private val so          = new ServerOptionsBuilder
+    private var bootingVar: Option[ ServerConnection ] = None
 	 private var serverVar: Option[ Server ] = None
     private var serverIsReady = false
     private var shouldReboot = false
@@ -129,14 +133,8 @@ class SuperColliderClient extends Model {
 	}
 
 	def stop {
-        serverVar.foreach( s => {
-          if( s.isRunning || s.isBooting ) {
-			try {
-				s.quit // quitAndWait
-			}
-			catch { case e1: IOException => printError( "stop", e1 )}
-          }
-      })
+      bootingVar.foreach( _.abort )
+      serverVar.foreach( s => try { s.quit } catch { case e1: IOException => printError( "stop", e1 )})
 	}
 
 	// @synchronization	must be called in the event thread!
@@ -164,7 +162,7 @@ class SuperColliderClient extends Model {
         })
         if( serverVar != None ) {
            serverVar = None
-           dispatch( ServerChanged( serverVar ))
+           dispatch( ServerTerminated )
         }
 		serverIsReady = false
 	}
@@ -174,10 +172,7 @@ class SuperColliderClient extends Model {
     def boot : Boolean = {
 
 //		if( !EventQueue.isDispatchThread() ) throw new IllegalMonitorStateException();
-
-        serverVar.foreach( s => {
-            if( s.isRunning || s.isBooting ) return false
-        })
+       if( bootingVar.isDefined || serverVar.map( _.isRunning ) == Some( true )) return false
 
 		dispose
 
@@ -185,7 +180,7 @@ class SuperColliderClient extends Model {
 //		final AudioBoxConfig	abCfg		= new AudioBoxConfig( audioPrefs.node( PrefsUtil.NODE_AUDIOBOXES ).node( abCfgID ));
 
 		val pRate = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_AUDIORATE, null )
-		if( pRate != null ) so.sampleRate.value = pRate.`val`.toInt
+		if( pRate != null ) so.sampleRate = pRate.`val`.toInt
 //		so.setNumInputBusChannels( abCfg.numInputChannels )
 //		so.setNumOutputBusChannels( abCfg.numOutputChannels )
 //		val pBusses = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_AUDIOBUSSES, null )
@@ -193,18 +188,21 @@ class SuperColliderClient extends Model {
 
 //		val pMemSize = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCMEMSIZE, null )
 //		if( pMemSize != null ) so.memSize.value = pMemSize.`val`.toInt << 10
-so.memSize.value = 64 << 10
+so.memorySize = 64 << 10
 
 		val pBlockSize = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCBLOCKSIZE, null )
-		if( pBlockSize != null ) so.blockSize.value = pBlockSize.`val`.toInt
+		if( pBlockSize != null ) so.blockSize = pBlockSize.`val`.toInt
 //		if( !abCfg.name.equals( "Default" )) so.setDevice( abCfg.name );
-		so.loadSynthDefs.value = false
-		so.zeroConf.value = audioPrefs.getBoolean( PrefsUtil.KEY_SCZEROCONF, true )
+		so.loadSynthDefs  = false
+		so.zeroConf       = audioPrefs.getBoolean( PrefsUtil.KEY_SCZEROCONF, true )
 
 		val pPort = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCPORT, null )
 		var serverPort = if( pPort == null ) DEFAULT_PORT else pPort.`val`.toInt
-		val proto = audioPrefs.get( PrefsUtil.KEY_SCPROTOCOL, "udp" /* tcp"*/ )
-		so.protocol.value = proto
+		val proto = audioPrefs.get( PrefsUtil.KEY_SCPROTOCOL, "udp" ) match {
+         case "udp" => UDP
+         case "tcp" => TCP
+      }
+		so.transport = proto
 
 //		so.setEnv( "SC_JACK_NAME", "Eisenkraut" )
 
@@ -213,35 +211,45 @@ so.memSize.value = 64 << 10
 			println( getResourceString( "errSCSynthAppNotFound" ))
 			return false
 		}
-		so.programPath.value = appPath
+		so.programPath = appPath
 
 		try {
 			// check for automatic port assignment
 			if( serverPort == 0 ) {
-				if( so.protocol.value == "tcp" ) {
+				if( so.transport == TCP ) {
 					val ss = new ServerSocket( 0 )
 					serverPort = ss.getLocalPort()
 					ss.close()
-				} else if( so.protocol.value == "udp" ) {
+				} else if( so.transport == UDP ) {
 					val ds = new DatagramSocket()
 					serverPort = ds.getLocalPort()
 					ds.close()
 				} else {
-					throw new IllegalArgumentException( "Illegal protocol : " + so.protocol )
+					throw new IllegalArgumentException( "Illegal protocol : " + so.transport )
 				}
 			}
 
 			// loopback is sufficient here
-			val s = new Server( app.getName, so )
-			s.addListener( forward )
-         s.dumpOSC( dumpMode )
+         val b = Server.boot( app.getName, so.build ) {
+            case ServerConnection.Aborted =>
+               bootingVar = None
+            case ServerConnection.Running( s ) =>
+               bootingVar = None
+               serverVar = Some( s )
+               s.addListener( forward )
+               s.dumpOSC( dumpMode )
+//               dispatch( ServerChanged( serverVar ))
+               dispatch( ServerRunning( s ))
+         }
+         bootingVar = Some( b )
 
 //			if( dumpMode != kDumpOff ) dumpOSC( dumpMode )
 //			nw	= NodeWatcher.newFrom( server )
-
-            serverVar = Some( s )
-            dispatch( ServerChanged( serverVar ))
-			s.boot
+//
+//            serverVar = Some( s )
+//            dispatch( ServerChanged( serverVar ))
+//			s.boot
+         dispatch( ServerBooting( b ))
 			true
 		}
 		catch { case e1: IOException => {

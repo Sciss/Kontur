@@ -53,8 +53,9 @@ import de.sciss.kontur.session.{ AudioFileElement, AudioRegion, AudioTrack,
 import de.sciss.app.{ AbstractApplication, AbstractCompoundEdit,
                       DynamicAncestorAdapter,DynamicListening, GraphicsHandler }
 import de.sciss.dsp.{ MathUtil }
-import de.sciss.io.{ AudioFile, Span }
+import de.sciss.io.{ Span }
 import de.sciss.synth.{ curveShape, linShape, Model }
+import de.sciss.synth.io.AudioFile
 
 //import Track.Tr
 
@@ -659,9 +660,7 @@ with SonagramPaintController {
 
       private def pasteExtern( path: File, fileSpan: Span, insPos: Long ) {
          try {
-            val af = AudioFile.openAsRead( path )
-            af.close()
-            val descr = af.getDescr()
+            val spec = AudioFile.readSpec( path )
 
             doc.audioFiles.editor.foreach( aed => {
                 var afe = doc.audioFiles.find( afe => afe.path == path ) getOrElse {

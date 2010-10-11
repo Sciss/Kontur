@@ -37,7 +37,8 @@ import SwingConstants._
 import scala.math._
 import de.sciss.app.{ AbstractCompoundEdit, DynamicAncestorAdapter, DynamicListening }
 import de.sciss.dsp.{ MathUtil }
-import de.sciss.io.{ AudioFile, AudioFileDescr }
+import de.sciss.synth.io.AudioFile
+//import de.sciss.io.{ AudioFile, AudioFileDescr }
 import de.sciss.kontur.session.{ Diffusion, DiffusionEditor, DiffusionFactory, ConvolutionDiffusion, Renameable, Session }
 import de.sciss.util.ParamSpace
 import de.sciss.gui.{ ParamField => ParamF, PathEvent, PathField => PathF, PathListener}
@@ -163,7 +164,7 @@ extends JPanel with DynamicListening with FilenameFilter {
    // ---- FilenameFilter ----
    def accept( dir: File, name: String ) = {
       try {
-         AudioFile.retrieveType( new File( dir, name )) != AudioFileDescr.TYPE_UNKNOWN
+         AudioFile.identify( new File( dir, name )).isDefined
       }
       catch { case e: IOException => false }
    }

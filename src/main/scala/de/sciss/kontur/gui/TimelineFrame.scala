@@ -31,7 +31,6 @@ package de.sciss.kontur.gui
 import de.sciss.app.{ AbstractWindow }
 import de.sciss.common.{ BasicMenuFactory, BasicWindowHandler}
 import de.sciss.gui.{ GUIUtil, MenuAction, PathField => PathF, SpringPanel }
-import de.sciss.io.{ AudioFileDescr, AudioFileFormatPane, IOUtil, Span }
 import de.sciss.kontur.sc.{ BounceSynthContext, SCSession, SCTimeline }
 import de.sciss.kontur.io.{ EisenkrautClient }
 import de.sciss.kontur.session.{ AudioRegion, AudioTrack, Session, SessionUtil, Stake,
@@ -45,6 +44,8 @@ import java.io.{ File }
 import javax.swing.{ AbstractAction, Action, Box, ButtonGroup, JButton, JComponent, JLabel, JOptionPane, JProgressBar,
                      JRadioButton, KeyStroke, SwingUtilities }
 import scala.math._
+import de.sciss.io.{AudioFileDescr, AudioFileFormatPane, IOUtil, Span}
+import de.sciss.synth.io.{AudioFileType, SampleFormat, AudioFileSpec}
 
 object TimelineFrame {
   protected val lastLeftTop		= new Point()
@@ -669,12 +670,12 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
    private class ActionBounce extends MenuAction {
       def actionPerformed( e: ActionEvent ) {
          query.foreach( tup => {
-            val( tls, span, afd ) = tup
-            perform( tls, span, afd )
+            val (tls, span, path, spec) = tup
+            perform( tls, span, path, spec )
          })
       }
 
-      def perform( tracks: List[ Track ], span: Span, descr: AudioFileDescr ) {
+      def perform( tracks: List[ Track ], span: Span, path: File, spec: AudioFileSpec ) {
          val ggProgress = new JProgressBar()
          val name = getValue( Action.NAME ).toString
          val ggCancel = new JButton( getResourceString( "buttonAbort" ))
@@ -687,7 +688,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
          })
          var done = false
          try {
-            val process = SessionUtil.bounce( doc, timelineView.timeline, tracks, span, descr, msg => msg match {
+            val process = SessionUtil.bounce( doc, timelineView.timeline, tracks, span, path, spec, msg => msg match {
                case "done" => { done = true; fDispose() }
                case ("progress", i: Int) => ggProgress.setValue( i )
 //               case _ => println( "received: " + msg ) 
@@ -700,7 +701,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
             BasicWindowHandler.showErrorDialog( frame.getWindow, e, name )}
       }
 
-      def query: Option[ Tuple3[ List[ Track ], Span, AudioFileDescr ]] = {
+      def query: Option[ Tuple4[ List[ Track ], Span, File, AudioFileSpec ]] = {
          val trackElems    = tracksPanel.toList
          val numTracks     = trackElems.size
          val selTrackElems = trackElems.filter( _.selected )
@@ -764,13 +765,31 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
          val all        = bg.isSelected( ggAll.getModel )
 //         val descr      = new AudioFileDescr
          affp.toDescr( descr )
-         descr.rate     = timelineView.timeline.rate
-         descr.file     = path
+         val sampleRate = timelineView.timeline.rate
+//         descr.file     = path
          val tracks     = (if( all ) trackElems else selTrackElems).map( _.track )
-         descr.channels = tracks.collect( _ match { case at: AudioTrack if( at.diffusion.isDefined ) => at.diffusion.get })
+         val numChannels = tracks.collect( _ match { case at: AudioTrack if( at.diffusion.isDefined ) => at.diffusion.get })
             .foldLeft( 0 )( (maxi, diff) => max( maxi, diff.numOutputChannels ))
 
-         Some( (tracks, if( all ) span else selSpan, descr) )
+         val spec          = AudioFileSpec( descr.`type` match {
+            case AudioFileDescr.TYPE_AIFF    => AudioFileType.AIFF
+            case AudioFileDescr.TYPE_WAVE    => AudioFileType.Wave
+            case AudioFileDescr.TYPE_WAVE64  => AudioFileType.Wave64
+            case AudioFileDescr.TYPE_IRCAM   => AudioFileType.IRCAM
+            case AudioFileDescr.TYPE_SND     => AudioFileType.NeXT
+         }, descr.sampleFormat match {
+            case AudioFileDescr.FORMAT_INT => descr.bitsPerSample match {
+               case 16 => SampleFormat.Int16
+               case 24 => SampleFormat.Int24
+               case 32 => SampleFormat.Int32
+            }
+            case AudioFileDescr.FORMAT_FLOAT => descr.bitsPerSample match {
+               case 32 => SampleFormat.Float
+               case 64 => SampleFormat.Double
+            }
+         }, numChannels, sampleRate )
+
+         Some( (tracks, if( all ) span else selSpan, path, spec) )
       }
    }
 }

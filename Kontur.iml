@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="JAVA_MODULE" version="4">
   <component name="FacetManager">
+    <facet type="scala" name="Scala">
+      <configuration>
+        <option name="compilerLibraryLevel" value="Global" />
+        <option name="compilerLibraryName" value="scala-compiler-2.8.0 (3)" />
+      </configuration>
+    </facet>
     <facet type="Scala" name="Scala">
       <configuration>
         <option name="myScalaCompilerJarPaths">
@@ -25,11 +31,11 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="scala-2.8.0" level="application" />
+    <orderEntry type="library" name="scala-library-2.8.0 (3)" level="application" />
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/ScissLib.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0/compile/jsyntaxpane-0.9.5-b29.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -38,7 +44,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/ScissDSP.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0/compile/prefuse-beta-SNAPSHOT.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -47,7 +53,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0.RC2/compile/scalaosc_2.8.0.RC2-0.13.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0/compile/mrjadapter-1.1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -56,7 +62,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0.RC2/compile/prefuse-beta-20071021.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0/compile/scalacollider_2.8.0-0.21.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -65,7 +71,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0.RC2/compile/scalacollider_2.8.0.RC2-0.12.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0/compile/scalaaudiofile_2.8.0-0.14.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -74,7 +80,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0.RC2/compile/mrjadapter-1.1.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0/compile/scalainterpreterpane_2.8.0-0.16.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -83,7 +89,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0.RC2/compile/scalainterpreterpane_2.8.0.RC2-0.13.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0/compile/scalacolliderswing_2.8.0-0.22.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -92,7 +98,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0.RC2/compile/scalacolliderswing_2.8.0.RC2-0.12.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0/compile/scalaosc_2.8.0-0.20.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -101,7 +107,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0.RC2/compile/jsyntaxpane-0.9.5-b29.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0/compile/scisslib_2.8.0-0.12.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -110,12 +116,13 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0.RC2/compile/scalaaudiofile_2.8.0.RC2-0.10.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.8.0/compile/scissdsp_2.8.0-0.10.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="scala-compiler-2.8.0" level="application" />
   </component>
 </module>
 

@@ -33,10 +33,10 @@ import java.net.{ InetSocketAddress, SocketAddress }
 import java.util.prefs.{ PreferenceChangeListener, PreferenceChangeEvent }
 import de.sciss.io.{ Span }
 import de.sciss.app.{ AbstractApplication }
-import de.sciss.scalaosc.{ OSCClient, OSCMessage }
 import de.sciss.kontur.util.{ PrefsUtil }
 import scala.actors.{ Actor, TIMEOUT }
 import scala.math._
+import de.sciss.osc.{UDP, TCP, OSCClient, OSCMessage}
 
 object EisenkrautClient {
    val verbose = true
@@ -110,7 +110,7 @@ class EisenkrautClient {
 //      println( "AQUI 6 " + a.c )
       val msg = OSCMessage( path, args: _* )
 //      println( "AQUI 7 " + msg )
-      a.c.send( msg )
+      a.c ! msg // .send( msg )
 //      println( "AQUI 8" )
    }
 
@@ -173,7 +173,10 @@ class EisenkrautClient {
    private def osc: Option[ OSCClient ] = {
       if( oscVar.isEmpty ) {
          // tcp is actual default, but scalaosc does not support it yet
-         val proto = Symbol( prefs.get( PrefsUtil.KEY_EISKOSCPROTOCOL, "udp" ))
+         val proto = prefs.get( PrefsUtil.KEY_EISKOSCPROTOCOL, "udp" ) match {
+            case "udp" => UDP
+            case "tcp" => TCP
+         }
          val port  = prefs.getInt( PrefsUtil.KEY_EISKOSCPORT, 0x4549 )
          try {
             val c = OSCClient( proto )

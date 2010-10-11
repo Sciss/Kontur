@@ -51,8 +51,9 @@ class SuperColliderFrame extends AppWindow( AbstractWindow.SUPPORT /* PALETTE */
    }
 
    private val clientListener: Model.Listener = {
-      case SuperColliderClient.ServerChanged( server ) =>
-          serverPanel.server = server
+      case SuperColliderClient.ServerBooting( s ) => serverPanel.booting = Some( s )
+      case SuperColliderClient.ServerRunning( s ) => serverPanel.server  = Some( s )
+      case SuperColliderClient.ServerTerminated   => serverPanel.server  = None
    }
    
    // ---- constructor ----
