@@ -99,15 +99,21 @@ extends SynthContext( s, false ) {
          main =>
          override def doInBackground: Int = {
             var pRunning   = true
+//println( "PROC WORKER STARTED" )
             val p          = pb.start
 //            val inStream	= new BufferedInputStream( p.getInputStream )
-            val inReader = new BufferedReader( new InputStreamReader( p.getInputStream ))
-            val printWorker   = new SwingWorker[ Unit, Unit ]() {
-               override def doInBackground {
+            val inReader      = new BufferedReader( new InputStreamReader( p.getInputStream ))
+            // we used a SwingWorker before here, but it never ran on Scala 2.8.0...
+            // might be connected to the actor starvation problem (using the same thread pool??)
+            val printWorker   = new Thread {
+               override def run {
+//println( "PRINT WORKER STARTED" )
                   try {
                      var lastProg = 0
                      while( true ) {
                         val line = inReader.readLine
+//println( "GOT LINE: '" + line + "'" )
+                        if( line == null ) return
                         if( line.startsWith( "nextOSCPacket" )) {
                            val time = line.substring( 14 ).toFloat
                            val prog = (time / dur * 100).toInt
@@ -123,15 +129,20 @@ extends SynthContext( s, false ) {
                            System.out.println( line )
                         }
                      }
-                  } catch { case e: IOException => }
+                  } catch { case e: IOException =>
+//                     println( "PRINT WORKER IOEXCEPTION" )
+                  }
                }
             }
             try {
-               printWorker.execute()
+//println( "STARING PRINT WORKER" )
+               printWorker.start() // execute()
+//println( "WAITIN FOR PROCESS" )
                p.waitFor()
             } catch { case e: InterruptedException => }
+//println( "RETURNED" )
 
-            printWorker.cancel( true )
+//            printWorker.cancel( true )
 
             try {
                val resultCode	= p.exitValue
