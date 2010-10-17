@@ -63,7 +63,8 @@ extends SCTrackPlayer {
 
                      val envGen = IEnvGen.ar( env, frameIndex ) * amp
                      val sig = DiskIn.ar( numChannels, i_buf )
-                     Out.ar( out, (if( monoMix ) Mix( sig ) else sig) * envGen )
+                     val sig1: GE = if( monoMix ) Mix( sig ) else sig
+                     Out.ar( out, sig1 * envGen )
                   }
 
                   val tb   = timebase

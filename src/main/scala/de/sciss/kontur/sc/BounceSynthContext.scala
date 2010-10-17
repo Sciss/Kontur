@@ -1,19 +1,17 @@
 package de.sciss.kontur.sc
 
 import scala.collection.mutable.{ PriorityQueue }
-import java.io.{ BufferedInputStream, BufferedReader, File, InputStreamReader, IOException, RandomAccessFile }
+import java.io.{ BufferedReader, File, InputStreamReader, IOException, RandomAccessFile }
 import java.nio.{ ByteBuffer }
 import javax.swing.{ SwingWorker }
 import scala.math._
-import de.sciss.app.{ AbstractApplication }
-import de.sciss.io.{ AudioFileDescr, IOUtil }
-import de.sciss.kontur.util.{ PrefsUtil }
-import de.sciss.scalaosc.{ OSCBundle, OSCMessage, OSCPacket, OSCPacketCodec }
+import de.sciss.io.{ IOUtil }
+import de.sciss.osc.{ OSCBundle, OSCPacket, OSCPacketCodec }
 import de.sciss.synth._
 
 object BounceSynthContext {
    @throws( classOf[ IOException ])
-   def apply( so: ServerOptions ) : BounceSynthContext = {
+   def apply( so: ServerOptionsBuilder ) : BounceSynthContext = {
 //      val appPath = audioPrefs.get( PrefsUtil.KEY_SUPERCOLLIDERAPP, null )
 //      if( appPath == null ) {
 //         throw new IOException( AbstractApplication.getApplication.getResourceString( "errSCSynthAppNotFound" ))
@@ -25,8 +23,8 @@ object BounceSynthContext {
       val oscPath = IOUtil.createTempFile( "kontur", ".osc" )
       val oscFile = new RandomAccessFile( oscPath, "rw" )
 //      oscFile.setLength( 0L )
-      so.nrtCmdPath.value = oscPath.getCanonicalPath
-      val s = new Server( "Bounce", so )
+      so.nrtCommandPath = oscPath.getCanonicalPath
+      val s = Server.dummy( "Bounce", so.build )
       val context = new BounceSynthContext( s, oscPath, oscFile )
       context
    }
@@ -86,7 +84,7 @@ extends SynthContext( s, false ) {
       close
 
       val dur = timebaseVar // in seconds
-      val program = server.options.programPath.value
+      val program = server.options.programPath // .value
 //      println( "Booting '" + program + "'" )
       val appPath = new File( program )
       // -N cmd-filename input-filename output-filename sample-rate header-format sample-format -o numOutChans
@@ -101,15 +99,21 @@ extends SynthContext( s, false ) {
          main =>
          override def doInBackground: Int = {
             var pRunning   = true
+//println( "PROC WORKER STARTED" )
             val p          = pb.start
 //            val inStream	= new BufferedInputStream( p.getInputStream )
-            val inReader = new BufferedReader( new InputStreamReader( p.getInputStream ))
-            val printWorker   = new SwingWorker[ Unit, Unit ]() {
-               override def doInBackground {
+            val inReader      = new BufferedReader( new InputStreamReader( p.getInputStream ))
+            // we used a SwingWorker before here, but it never ran on Scala 2.8.0...
+            // might be connected to the actor starvation problem (using the same thread pool??)
+            val printWorker   = new Thread {
+               override def run {
+//println( "PRINT WORKER STARTED" )
                   try {
                      var lastProg = 0
                      while( true ) {
                         val line = inReader.readLine
+//println( "GOT LINE: '" + line + "'" )
+                        if( line == null ) return
                         if( line.startsWith( "nextOSCPacket" )) {
                            val time = line.substring( 14 ).toFloat
                            val prog = (time / dur * 100).toInt
@@ -125,15 +129,20 @@ extends SynthContext( s, false ) {
                            System.out.println( line )
                         }
                      }
-                  } catch { case e: IOException => }
+                  } catch { case e: IOException =>
+//                     println( "PRINT WORKER IOEXCEPTION" )
+                  }
                }
             }
             try {
-               printWorker.execute()
+//println( "STARING PRINT WORKER" )
+               printWorker.start() // execute()
+//println( "WAITIN FOR PROCESS" )
                p.waitFor()
             } catch { case e: InterruptedException => }
+//println( "RETURNED" )
 
-            printWorker.cancel( true )
+//            printWorker.cancel( true )
 
             try {
                val resultCode	= p.exitValue

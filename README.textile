@@ -1,4 +1,4 @@
-h2. Kontur ==<small>-- version 0.11 (built 09-may-10) --</small>==
+h2. Kontur ==<small>-- version 0.12 (built 11-oct-10) --</small>==
 
 h3. statement
 
@@ -6,7 +6,7 @@ Kontur is (C)opyright by 2008-2010 Hanns Holger. All rights reserved. It is rele
 
 h3. requirements / installation
 
-Compiles against Scala 2.8.0.RC1 and Java 1.6. You will need a SuperCollider 3.3.1+ installation. The repository contains a project file for Intellij IDEA 9 CE, and project files for sbt. Targets for sbt:
+Compiles against Scala 2.8.0 and Java 1.6. You will need a SuperCollider 3.3.1+ installation. The repository contains a project file for Intellij IDEA 9 CE, and project files for sbt. Targets for sbt:
 
 * @clean@
 * @compile@
@@ -15,23 +15,19 @@ Compiles against Scala 2.8.0.RC1 and Java 1.6. You will need a SuperCollider 3.3
 * @standalone@
 * @package-app@
 
-The following dependancies currently need to be installed manually into the @lib@ folder:
+The following dependancies will be downloaded by @sbt update@ into the @lib_managed@ folder:
 
-* @scisslib.jar@ (from "sourceforge.net/projects/scisslib":http://sourceforge.net/projects/scisslib/ )
-* @scissdsp.jar@ (from "github.com/Sciss/ScissDSP":http://github.com/Sciss/ScissDSP )
+* ScissLib
+* ScissDSP@
+* JSyntaxPane
+* MRJAdapter
+* Prefuse
 
-Furthermore, you need the following libraries:
+Furthermore, you need the following libraries (and their respective dependancies):
 
-* "ScalaInterpreterPane":http://github.com/Sciss/ScalaInterpreterPane
-* "ScalaCollider":http://github.com/Sciss/ScalaCollider
 * "ScalaCollider-Swing":http://github.com/Sciss/ScalaColliderSwing
-* "ScalaOSC":http://github.com/Sciss/ScalaOSC
 
-You can install them by cloning their git repositories and building each with @sbt publish-local@. You also need the following libraries which should be automatically downloaded by sbt:
-
-* @jsyntaxpane-0.9.5-b29.jar@
-* @mrjadapter-1.1.jar@
-* @prefuse-beta-20071021.jar@
+You can install them by cloning their git repositories and building each with @sbt publish-local@.
 
 After a fresh install, run @sbt update@ on Kontur before compiling. @sbt package-app@ will update the OS X application bundle, @sbt standalone@ creates a self-contained double-clickable jar:
 

@@ -29,56 +29,44 @@
 package de.sciss.kontur.session
 
 import java.beans.{ PropertyChangeEvent, PropertyChangeListener }
-import java.io.{ IOException }
 import javax.swing.{ SwingWorker }
 import scala.math._
 import de.sciss.app.{ AbstractApplication }
-import de.sciss.io.{ AudioFileDescr, Span }
+import de.sciss.io.{ Span }
 import de.sciss.util.{ Param }
 import de.sciss.kontur.sc.{ BounceSynthContext, SCSession, SCTimeline }
 import de.sciss.kontur.util.{ PrefsUtil }
-import de.sciss.synth.{ ServerOptions }
+import de.sciss.synth.{ServerOptionsBuilder, ServerOptions}
+import de.sciss.synth.io.AudioFileSpec
+import java.io.{File, IOException}
 
 object SessionUtil {
    private def getResourceString( key: String ) =
       AbstractApplication.getApplication.getResourceString( key )
 
    @throws( classOf[ IOException ])
-   def bounce( doc: Session, tl: Timeline, tracks: List[ Track ], span: Span, descr: AudioFileDescr,
+   def bounce( doc: Session, tl: Timeline, tracks: List[ Track ], span: Span, path: File, spec: AudioFileSpec,
                upd: AnyRef => Unit = _ => () ) : { def cancel: Unit } = {
       
-      val so                        = new ServerOptions()
-      so.nrtOutputPath.value        = descr.file.getCanonicalPath
-      so.outputBusChannels.value    = descr.channels // 2   // XXX
-      so.nrtHeaderFormat.value      = descr.`type` match {
-         case AudioFileDescr.TYPE_AIFF   => "aiff"
-         case AudioFileDescr.TYPE_SND    => "next"
-         case AudioFileDescr.TYPE_WAVE   => "wav"
-         case AudioFileDescr.TYPE_IRCAM  => "ircam"
-         case AudioFileDescr.TYPE_WAVE64 => "w64"
-         case _ => throw new Exception( "Illegal audio file format: " + descr.getFormat )
-      }
-      so.nrtSampleFormat.value      = {
-         (descr.sampleFormat match {
-            case AudioFileDescr.FORMAT_INT   => "int"
-            case AudioFileDescr.FORMAT_FLOAT => "float"
-            case _ => throw new Exception( "Illegal sample format: " + descr.sampleFormat )
-         }) + descr.bitsPerSample
-      }
-      val sampleRate                = descr.rate
-      so.sampleRate.value           = sampleRate.toInt
+      val so                        = new ServerOptionsBuilder
+      so.nrtOutputPath              = path.getCanonicalPath
+      so.outputBusChannels          = spec.numChannels // 2   // XXX
+      so.nrtHeaderFormat            = spec.fileType
+      so.nrtSampleFormat            = spec.sampleFormat
+      val sampleRate                = spec.sampleRate
+      so.sampleRate                 = sampleRate.toInt
       val audioPrefs                = AbstractApplication.getApplication.getUserPrefs().node( PrefsUtil.NODE_AUDIO )
       val pMemSize = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCMEMSIZE, null )
       if( pMemSize != null ) {
-         so.memSize.value           = pMemSize.`val`.toInt << 10
+         so.memorySize              = pMemSize.`val`.toInt << 10
       }
-      so.blockSize.value            = 1
-      so.loadSynthDefs.value        = false
+      so.blockSize                  = 1
+      so.loadSynthDefs              = false
       val appPath = audioPrefs.get( PrefsUtil.KEY_SUPERCOLLIDERAPP, null )
       if( appPath == null ) {
          throw new Exception( getResourceString( "errSCSynthAppNotFound" ))
       }
-      so.programPath.value          = appPath
+      so.programPath              = appPath
 
       // karlheinz bounce core
       val context = BounceSynthContext( so )

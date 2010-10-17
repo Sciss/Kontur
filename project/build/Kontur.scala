@@ -2,18 +2,14 @@ import xml._
 import sbt.{ FileUtilities => FU, _}
 
 /**
- *    @version 0.10, 21-May-10
+ *    @version 0.12, 11-Oct-10
  */
 class KonturProject( info: ProjectInfo ) extends ProguardProject( info ) {
-   // stupidly, we need to redefine the dependancy here, because
-   // for some reason, sbt will otherwise try to look in the maven repo
-   val dep1 = "jsyntaxpane" % "jsyntaxpane" % "0.9.5-b29" from "http://jsyntaxpane.googlecode.com/files/jsyntaxpane-0.9.5-b29.jar"
-   val dep2 = "de.sciss" %% "scalaaudiofile" % "0.10"
-   val dep3 = "de.sciss" %% "scalacollider" % "0.12"
-   val dep4 = "de.sciss" %% "scalacolliderswing" % "0.12"
-   val dep5 = "de.sciss" %% "scalainterpreterpane" % "0.13"
-   val dep6 = "prefuse" % "prefuse" % "beta-20071021" from "http://github.com/downloads/Sciss/ScalaColliderSwing/prefuse-beta-20071021.jar"
-   val dep7 = "net.roydesign" % "mrjadapter" % "1.1" from "http://github.com/downloads/Sciss/Kontur/mrjadapter-1.1.jar"
+   val scalaColliderSwing = "de.sciss" %% "scalacolliderswing" % "0.22"
+   val prefuse = "prefuse" % "prefuse" % "beta-SNAPSHOT" from "http://github.com/downloads/Sciss/ScalaColliderSwing/prefuse-beta-SNAPSHOT.jar"
+   val mrjAdapter = "net.roydesign" % "mrjadapter" % "1.1" from "http://github.com/downloads/Sciss/Kontur/mrjadapter-1.1.jar"
+   val scissLib = "de.sciss" %% "scisslib" % "0.12" from "http://github.com/downloads/Sciss/Kontur/ScissLib-0.12.jar"
+   val scissDSP = "de.sciss" %% "scissdsp" % "0.10" from "http://github.com/downloads/Sciss/ScissDSP/ScissDSP-0.10.jar"
 
    val camelCaseName          = "Kontur"
    def appBundleName          = camelCaseName + ".app"

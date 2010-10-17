@@ -31,9 +31,9 @@ package de.sciss.kontur.session
 import java.io.{ File, IOException }
 import scala.xml.{ Node, Null }
 import de.sciss.app.{ AbstractCompoundEdit }
-import de.sciss.io.{ AudioFile }
 import de.sciss.kontur.edit.{ SimpleEdit }
 import de.sciss.kontur.util.{ SerializerContext }
+import de.sciss.synth.io.AudioFile
 
 /**
  *    @version 0.11, 20-Apr-10
@@ -73,10 +73,8 @@ extends BasicDiffusion( doc ) {
           val defaults = (0L, 1, 1.0)
           val (newNumFrames, newNumOutputChans, newSampleRate) = try {
              newPath.map( p => {
-                val af     = AudioFile.openAsRead( p )
-                val descr  = af.getDescr
-                af.close
-                (descr.length, descr.channels, descr.rate)
+                val spec = AudioFile.readSpec( p )
+                (spec.numFrames, spec.numChannels, spec.sampleRate)
              }) getOrElse defaults
           }
           catch { case e: IOException => defaults }

@@ -56,7 +56,7 @@ import de.sciss.util.{ Flag }
  *  class from the <code>de.sciss.app</code> package.
  *
  *  @author		Hanns Holger Rutz
- *  @version	0.11, 09-May-10
+ *  @version	0.12, 11-Oct-10
  *
  *	@todo		OSC /main/quit doesn't work repeatedly
  *				; seems to be a problem of menuFactory.closeAll!
@@ -71,7 +71,7 @@ object Main {
 	 *
 	 *  @todo   should be saved in the session file as well
 	 */
-	private val APP_VERSION		= 0.11
+	private val APP_VERSION		= 0.12
 
 	/**
 	 *  Enables / disables event dispatching debugging

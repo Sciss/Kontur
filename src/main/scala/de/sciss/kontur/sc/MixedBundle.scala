@@ -6,7 +6,7 @@
 package de.sciss.kontur.sc
 
 import de.sciss.synth.{ Server }
-import de.sciss.scalaosc.{ OSCMessage }
+import de.sciss.osc.{ OSCMessage }
 import scala.collection.mutable.{ ListBuffer }
 
 //class MixedBundle {
