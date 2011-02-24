@@ -1,12 +1,12 @@
-h2. Kontur ==<small>-- version 0.12 (built 11-oct-10) --</small>==
+h2. Kontur
 
 h3. statement
 
-Kontur is (C)opyright by 2008-2010 Hanns Holger. All rights reserved. It is released under the "GNU General Public License":http://github.com/Sciss/Kontur/blob/master/licenses/Kontur-License.txt . Kontur is a multitrack audio editor based on ScalaCollider. It provides programmatic (REPL) access to its session elements. Very much alpha state. No warranties, no liability whatsoever.
+Kontur is (C)opyright by 2008-2011 Hanns Holger. All rights reserved. It is released under the "GNU General Public License":http://github.com/Sciss/Kontur/blob/master/licenses/Kontur-License.txt . Kontur is a multitrack audio editor based on ScalaCollider. It provides programmatic (REPL) access to its session elements. Very much alpha state. No warranties, no liability whatsoever.
 
 h3. requirements / installation
 
-Compiles against Scala 2.8.0 and Java 1.6. You will need a SuperCollider 3.3.1+ installation. The repository contains a project file for Intellij IDEA 9 CE, and project files for sbt. Targets for sbt:
+Compiles against Scala 2.8.1 and Java 1.6. You will need a SuperCollider 3.3.1+ installation. The repository contains a project file for Intellij IDEA 9 CE, and project files for sbt. Targets for sbt:
 
 * @clean@
 * @compile@
@@ -18,10 +18,19 @@ Compiles against Scala 2.8.0 and Java 1.6. You will need a SuperCollider 3.3.1+ 
 The following dependancies will be downloaded by @sbt update@ into the @lib_managed@ folder:
 
 * ScissLib
-* ScissDSP@
+* ScissDSP
 * JSyntaxPane
 * MRJAdapter
 * Prefuse
+
+If git chokes on downloading ScissLib or ScissDSP from github (which happens), you can make them available this way:
+
+pre. $ curl http://github.com/downloads/Sciss/ScissDSP/ScissDSP-0.10.jar >/tmp/scissdsp.jar
+$ mkdir -p ~/.ivy2/local/de.sciss/scissdsp/0.10/jars
+$ mv /tmp/scissdsp.jar ~/.ivy2/local/de.sciss/scissdsp/0.10/jars/
+$ curl http://github.com/downloads/Sciss/Kontur/ScissLib-0.12.jar >/tmp/scisslib.jar
+$ mkdir -p ~/.ivy2/local/de.sciss/scisslib/0.12/jars
+$ mv /tmp/scisslib.jar ~/.ivy2/local/de.sciss/scisslib/0.12/jars/
 
 Furthermore, you need the following libraries (and their respective dependancies):
 

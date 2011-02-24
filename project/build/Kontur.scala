@@ -5,11 +5,11 @@ import sbt.{ FileUtilities => FU, _}
  *    @version 0.12, 11-Oct-10
  */
 class KonturProject( info: ProjectInfo ) extends ProguardProject( info ) {
-   val scalaColliderSwing = "de.sciss" %% "scalacolliderswing" % "0.22"
+   val scalaColliderSwing = "de.sciss" %% "scalacolliderswing" % "0.25"
    val prefuse = "prefuse" % "prefuse" % "beta-SNAPSHOT" from "http://github.com/downloads/Sciss/ScalaColliderSwing/prefuse-beta-SNAPSHOT.jar"
    val mrjAdapter = "net.roydesign" % "mrjadapter" % "1.1" from "http://github.com/downloads/Sciss/Kontur/mrjadapter-1.1.jar"
-   val scissLib = "de.sciss" %% "scisslib" % "0.12" from "http://github.com/downloads/Sciss/Kontur/ScissLib-0.12.jar"
-   val scissDSP = "de.sciss" %% "scissdsp" % "0.10" from "http://github.com/downloads/Sciss/ScissDSP/ScissDSP-0.10.jar"
+   val scissLib = "de.sciss" % "scisslib" % "0.12" from "http://github.com/downloads/Sciss/Kontur/ScissLib-0.12.jar"
+   val scissDSP = "de.sciss" % "scissdsp" % "0.10" from "http://github.com/downloads/Sciss/ScissDSP/ScissDSP-0.10.jar"
 
    val camelCaseName          = "Kontur"
    def appBundleName          = camelCaseName + ".app"
