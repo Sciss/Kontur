@@ -71,7 +71,7 @@ object Main {
 	 *
 	 *  @todo   should be saved in the session file as well
 	 */
-	private val APP_VERSION		= 0.12
+	private val APP_VERSION		= 0.14
 
 	/**
 	 *  Enables / disables event dispatching debugging
