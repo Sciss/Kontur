@@ -97,6 +97,10 @@ extends BasicMenuFactory( app ) {
 		mgTimeline.add( new MenuItem( "removeSpan", getResourceString( "menuRemoveSpan" ),
 							  KeyStroke.getKeyStroke( KeyEvent.VK_BACK_SLASH, MENU_SHORTCUT | InputEvent.SHIFT_MASK )))
       mgTimeline.addSeparator()
+      mgTimeline.add( new MenuItem( "nudgeAmount", getResourceString( "menuNudgeAmount" )))
+      mgTimeline.add( new MenuItem( "nudgeLeft", getResourceString( "menuNudgeLeft" ), KeyStroke.getKeyStroke( '-' )))
+      mgTimeline.add( new MenuItem( "nudgeRight", getResourceString( "menuNudgeRight" ), KeyStroke.getKeyStroke( '+' )))
+      mgTimeline.addSeparator()
       mgTimeline.add( new MenuItem( "selFollowingObj", getResourceString( "menuSelFollowingObj" ),
                        KeyStroke.getKeyStroke( KeyEvent.VK_F, myCtrl )))
       mgTimeline.add( new MenuItem( "alignObjStartToPos", getResourceString( "menuAlignObjStartToPos" ), null ))

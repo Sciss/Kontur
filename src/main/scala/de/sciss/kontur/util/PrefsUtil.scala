@@ -152,4 +152,10 @@ object PrefsUtil {
 	 *  Child node of audio prefs
 	 */
 	val NODE_AUDIOBOXES		= "audioboxes"
+
+	// ------------
+
+   val NODE_GUI         = "gui"
+
+   val KEY_NUDGEAMOUNT  = "nudgeamount"
 }

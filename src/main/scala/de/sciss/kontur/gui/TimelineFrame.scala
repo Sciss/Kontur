@@ -39,7 +39,7 @@ import de.sciss.kontur.util.{ PrefsUtil }
 import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }
 import de.sciss.synth.{ ServerOptions }
 import java.awt.event.{ ActionEvent, ActionListener, InputEvent, KeyEvent }
-import java.awt.{ BorderLayout, Dimension, Point, Rectangle }
+import java.awt.{ BorderLayout, Component, Dimension, Point, Rectangle }
 import java.io.{ File }
 import javax.swing.{ AbstractAction, Action, Box, ButtonGroup, JButton, JComponent, JLabel, JOptionPane, JProgressBar,
                      JRadioButton, KeyStroke, SwingUtilities }
@@ -139,16 +139,20 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
       mr.putMimic( "file.bounce", this, new ActionBounce() )
 
-		mr.putMimic( "edit.cut", this, new ActionCut() )
-		mr.putMimic( "edit.copy", this, new ActionCopy() )
-		mr.putMimic( "edit.paste", this, new ActionPaste() )
-		mr.putMimic( "edit.clear", this, new ActionDelete() )
+		mr.putMimic( "edit.cut", this, ActionCut )
+		mr.putMimic( "edit.copy", this, ActionCopy )
+		mr.putMimic( "edit.paste", this, ActionPaste )
+		mr.putMimic( "edit.clear", this, ActionDelete )
 		mr.putMimic( "edit.selectAll", this, new ActionSelect( ActionSelect.SELECT_ALL ))
 
 //		mr.putMimic( "timeline.trimToSelection", this, doc.getTrimAction() )
-		mr.putMimic( "timeline.insertSpan", this, new ActionInsertSpan )
+		mr.putMimic( "timeline.insertSpan", this, ActionInsertSpan )
 //		mr.putMimic( "timeline.clearSpan", this, new ActionClearSpan )
 //		mr.putMimic( "timeline.removeSpan", this, new ActionRemoveSpan )
+      mr.putMimic( "timeline.nudgeAmount", this, ActionNudgeAmount )
+      mr.putMimic( "timeline.nudgeLeft", this, new ActionNudge( -1 ))
+      mr.putMimic( "timeline.nudgeRight", this, new ActionNudge( 1 ))
+
 		mr.putMimic( "timeline.splitObjects", this, new ActionSplitObjects )
       mr.putMimic( "timeline.selFollowingObj", this, new ActionSelectFollowingObjects )
       mr.putMimic( "timeline.alignObjStartToPos", this, new ActionAlignObjectsStartToTimelinePosition )
@@ -177,6 +181,8 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
    protected def elementName = Some( tl.name )
 
    protected def windowClosing { dispose }
+
+   def nudgeFrames : Long = ActionNudgeAmount.numFrames
 
 	private def initBounds {
 		val cp	= getClassPrefs()
@@ -258,63 +264,39 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
       })
     }
 
-   private class ActionInsertSpan extends MenuAction {
-      private var value: Option[ Param ] = None
-      private var space: Option[ ParamSpace ] = None
+   private object ActionNudgeAmount extends ActionQueryDuration {
+      protected def timeline : Timeline = timelineView.timeline
+      protected def parent : Component = getWindow
 
-      def actionPerformed( e: ActionEvent ) : Unit = perform
-
-      def perform {
-			val msgPane     = new SpringPanel( 4, 2, 4, 2 )
-			val timeTrans   = new DefaultUnitTranslator()
-			val ggDuration  = new ParamField( timeTrans )
-			ggDuration.addSpace( ParamSpace.spcTimeHHMMSS )
-			ggDuration.addSpace( ParamSpace.spcTimeSmps )
-			ggDuration.addSpace( ParamSpace.spcTimeMillis )
-			ggDuration.addSpace( ParamSpace.spcTimePercentF )
-			msgPane.gridAdd( ggDuration, 0, 0 )
-			msgPane.makeCompactGrid()
-			GUIUtil.setInitialDialogFocus( ggDuration )
-
-         val tl = timelineView.timeline
-			timeTrans.setLengthAndRate( tl.span.getLength, tl.rate )
-
-         ggDuration.setValue( value getOrElse new Param( 60.0, ParamSpace.TIME | ParamSpace.SECS ))
-			space.foreach( sp => ggDuration.setSpace( sp ))
-
-			val op = new JOptionPane( msgPane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )
-			val result = BasicWindowHandler.showDialog( op, getWindow, getValue( Action.NAME ).toString )
-
-			if( result == JOptionPane.OK_OPTION ) {
-            val v = ggDuration.getValue
-				value	= Some( v )
-				space	= Some( ggDuration.getSpace )
-				val durationSmps = timeTrans.translate( v, ParamSpace.spcTimeSmps ).`val`
-				if( durationSmps > 0.0 ) {
-//		         final ProcessingThread proc;
-
-//		   	   proc =
-               val pos = timelineView.cursor.position
-               initiate( new Span( pos, pos + durationSmps.toLong ))
-//				   if( proc != null ) start( proc );
-				}
-			} else {
-            value = None
-            space = None
-         }
-		}
-
-      private def editName : String = {
-         val name = getValue( Action.NAME ).toString
-         if( name.endsWith( "..." )) name.substring( 0, name.length - 3 ) else name
+      protected def initiate( v: Param, trans: ParamSpace.Translator ) {
+         prefs.put( PrefsUtil.KEY_NUDGEAMOUNT, v.toString )
       }
 
-      def initiate( span: Span ) {
-			if( /* !checkProcess() ||*/ span.isEmpty ) return
+      private def prefs = app.getUserPrefs.node( PrefsUtil.NODE_GUI )
 
-    		val tl      = timelineView.timeline
-         val pos     = span.start
-         val delta   = span.getLength
+      protected def initialValue : Param = Param.fromPrefs( prefs, PrefsUtil.KEY_NUDGEAMOUNT, new Param( 0.1, ParamSpace.TIME | ParamSpace.SECS ))
+
+      def numFrames: Long = {
+         val v       = initialValue
+         val trans   = new DefaultUnitTranslator()
+         val tl      = timeline
+         trans.setLengthAndRate( tl.span.getLength, tl.rate )
+         (trans.translate( v, ParamSpace.spcTimeSmps ).`val` + 0.5).toLong
+      }
+   }
+
+   private object ActionInsertSpan extends ActionQueryDuration {
+      protected def timeline : Timeline = timelineView.timeline
+      protected def parent : Component = getWindow
+      protected def initialValue : Param = new Param( 60.0, ParamSpace.TIME | ParamSpace.SECS )
+
+      protected def initiate( v: Param, trans: ParamSpace.Translator ) {
+         val delta   = (trans.translate( v, ParamSpace.spcTimeSmps ).`val` + 0.5).toLong
+         if( delta <= 0L ) return
+         val pos     = timelineView.cursor.position
+         val span = new Span( pos, pos + delta )
+
+    		val tl      = timeline //
 
 			if( (pos < tl.span.start) || (pos > tl.span.stop) ) error( span.toString )
 
@@ -545,7 +527,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 //        def actionPerformed( e: ActionEvent ) : Unit = debugGenerator
 //    }
 
-    private class ActionCut
+    private object ActionCut
     extends MenuAction {
         def actionPerformed( e: ActionEvent ) : Unit = perform
 
@@ -554,7 +536,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
         }
     }
 
-    private class ActionCopy
+    private object ActionCopy
     extends MenuAction {
         def actionPerformed( e: ActionEvent ) : Unit = perform
 
@@ -563,7 +545,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
         }
     }
 
-    private class ActionPaste
+    private object ActionPaste
     extends MenuAction {
         def actionPerformed( e: ActionEvent ) : Unit = perform
 
@@ -572,7 +554,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
         }
     }
 
-    private class ActionDelete
+    private object ActionDelete
     extends MenuAction {
         def actionPerformed( e: ActionEvent ) : Unit = perform
 
@@ -594,6 +576,17 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
             })
         }
     }
+
+   private class ActionNudge( factor: Double )
+   extends MenuAction {
+      def actionPerformed( e: ActionEvent ) : Unit = perform
+
+      def perform {
+         val pos	      = timelineView.cursor.position
+         val delta      = (factor * nudgeFrames + 0.5).toLong
+         transformSelectedStakes( getValue( Action.NAME ).toString, stake => Some( List( stake.move( delta ))))
+      }
+   }
 
     private class ActionSplitObjects
     extends MenuAction {
