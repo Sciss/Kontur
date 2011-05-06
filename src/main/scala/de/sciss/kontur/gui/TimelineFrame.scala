@@ -64,17 +64,17 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
    private val timelinePanel = new TimelinePanel( timelineView )
 // private val trailView     = new javax.swing.JLabel( "Trail" )
 // private val trailsView     = new BasicTrailsView( doc, tl.tracks )
-   private val tracksPanel    = new TracksPanel( doc, timelinePanel )
-   private val trackTools     = new TrackToolsPanel( tracksPanel, timelineView )
+   private val tracksPanelV    = new TracksPanel( doc, timelinePanel )
+   private val trackTools     = new TrackToolsPanel( tracksPanelV, timelineView )
 
    // ---- constructor ----
    {
-      tracksPanel.registerTools( trackTools )
-      timelinePanel.viewPort    = Some( tracksPanel.getViewport )
+      tracksPanelV.registerTools( trackTools )
+      timelinePanel.viewPort    = Some( tracksPanelV.getViewport )
 
 //    app.getMenuFactory().addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
       val cp = getContentPane
-      cp.add( tracksPanel, BorderLayout.CENTER )
+      cp.add( tracksPanelV, BorderLayout.CENTER )
       val topBox = Box.createHorizontalBox()
       topBox.add( trackTools )
       topBox.add( Box.createHorizontalGlue() )
@@ -166,6 +166,15 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 	  toFront()
     }
 
+   /**
+    * Returns the document viewed by this frame
+    */
+   def document: Session         = doc
+   /**
+    * Returns the track panel associated with this frame
+    */
+   def tracksPanel: TracksPanel  = tracksPanelV
+
 	override protected def alwaysPackSize() = false
 
   //	protected def documentUpdate {
@@ -177,18 +186,18 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
    protected def windowClosing { dispose }
 
 	private def initBounds {
-		val cp	= getClassPrefs()
-		val bwh	= getWindowHandler()
-		val sr	= bwh.getWindowSpace()
-      val dt	= /* AppWindow.*/ stringToDimension( cp.get( TimelineFrame.KEY_TRACKSIZE, null ))
-		val d	= if( dt == null ) new Dimension() else dt
-		val hf	= 1f // Math.sqrt( Math.max( 1, waveView.getNumChannels() )).toFloat
-		var w	= d.width
-		var h	= d.height
-		sr.x		+= 36
-		sr.y		+= 36
-		sr.width	-= 60
-		sr.height	-= 60
+		val cp	   = getClassPrefs()
+		val bwh	   = getWindowHandler()
+		val sr	   = bwh.getWindowSpace()
+      val dt	   = /* AppWindow.*/ stringToDimension( cp.get( TimelineFrame.KEY_TRACKSIZE, null ))
+		val d	      = if( dt == null ) new Dimension() else dt
+		val hf	   = 1f // Math.sqrt( Math.max( 1, waveView.getNumChannels() )).toFloat
+		var w	      = d.width
+		var h	      = d.height
+		sr.x	     += 36
+		sr.y	     += 36
+		sr.width   -= 60
+		sr.height  -= 60
 		if( w <= 0 ) {
 			w = sr.width*2/3 // - AudioTrackRowHeader.ROW_WIDTH
 		}
@@ -223,21 +232,21 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
    protected def transformSelectedStakes( name: String, func: Stake[ _ ] => Option[ List[ _ ]]) {
       timelineView.timeline.editor.foreach( ed => {
          val ce = ed.editBegin( name )
-         tracksPanel.foreach( elem => {
+         tracksPanelV.foreach( elem => {
             val track = elem.track // "stable"
-            val tvCast = elem.trailView.asInstanceOf[ TrailView[ track.T ]]
+            val tvCast = elem.trailView //.asInstanceOf[ TrailView[ track.T2 ]]
             tvCast.editor.foreach( ed2 => {
                val selectedStakes = ed2.view.selectedStakes
                val trail = tvCast.trail
                trail.editor.foreach( ted => {
-                  var toDeselect: List[ track.T ] = Nil // = trail.emptyList
+                  var toDeselect: List[ track.T2 ] = Nil // = trail.emptyList
                   var toRemove   = trail.emptyList
                   var toAdd      = trail.emptyList
                   var toSelect   = trail.emptyList
 
                   selectedStakes.foreach( stake => {
                      func( stake ).foreach( list => {
-                        val castList = list.asInstanceOf[ List[ track.T ]]
+                        val castList = list // .asInstanceOf[ List[ track.T2 ]]
                         toDeselect ::= stake
                         toRemove   ::= stake
                         toAdd     :::= castList
@@ -328,31 +337,32 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
                   }
                   ved.editSelect( ce, span )
                })
-               tracksPanel.filter( _.selected ).foreach( elem => {
-                  val t = elem.track // "stable"
-                  val tvCast = elem.trailView.asInstanceOf[ TrailView[ t.T ]] // que se puede...
-                  tvCast.editor.foreach( ed2 => {
-//                   val stakes = tvCast.selectedStakes.toList
-//                   val moed = stakes.map( _.move( ))
-                     val stakes = tvCast.trail.getRange( affectedSpan )
-//                   val toDeselect = stakes.filter( tvCast.isSelected( _ ))
-                     ed2.editDeselect( ce, stakes: _* )
-                     tvCast.trail.editor.foreach( ed3 => {
-                        ed3.editRemove( ce, stakes: _* )
-                     })
-                     val (split, nosplit) = stakes.partition( _.span.contains( pos ))
-                     val newStakes = split.flatMap( _ match {
-                        case rs: ResizableStake[ _ ] => {
-                           val (nomove, move) = rs.split( pos )
-                           List( nomove, move.move( delta ))
-                        }
-                        case x => List( x )
-                     }) ++ nosplit.map( _.move( delta ))
-                     tvCast.trail.editor.foreach( ed3 => {
-                        ed3.editAdd( ce, newStakes: _* )
-                     })
-                     ed2.editSelect( ce, newStakes: _* )
-                  })
+               tracksPanelV.filter( _.selected ).foreach( elem => {
+// PPP
+//                  val t = elem.track // "stable"
+//                  val tvCast = elem.trailView // .asInstanceOf[ TrailView[ t.T2 ]] // que se puede...
+//                  tvCast.editor.foreach( ed2 => {
+////                   val stakes = tvCast.selectedStakes.toList
+////                   val moed = stakes.map( _.move( ))
+//                     val stakes = tvCast.trail.getRange( affectedSpan )
+////                   val toDeselect = stakes.filter( tvCast.isSelected( _ ))
+//                     ed2.editDeselect( ce, stakes: _* )
+//                     tvCast.trail.editor.foreach( ed3 => {
+//                        ed3.editRemove( ce, stakes: _* )
+//                     })
+//                     val (split, nosplit) = stakes.partition( _.span.contains( pos ))
+//                     val newStakes = split.flatMap( _ match {
+//                        case rs: ResizableStake.Any => {
+//                           val (nomove, move) = rs.split( pos )
+//                           List( nomove, move.move( delta ))
+//                        }
+//                        case x => List( x )
+//                     }) ++ nosplit.map( _.move( delta ))
+//                     tvCast.trail.editor.foreach( ed3 => {
+//                        ed3.editAdd( ce, newStakes: _* )
+//                     })
+//                     ed2.editSelect( ce, newStakes: _* )
+//                  })
                })
                ed.editEnd( ce )
             }
@@ -575,11 +585,11 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
         def actionPerformed( e: ActionEvent ) : Unit = perform
 
         def perform {
-            tracksPanel.editor.foreach( ed => {
+            tracksPanelV.editor.foreach( ed => {
                 val ce = ed.editBegin( getValue( Action.NAME ).toString )
-                tracksPanel.foreach( elem => {
+                tracksPanelV.foreach( elem => {
                      val t = elem.track // "stable"
-                     val tvCast = elem.trailView.asInstanceOf[ TrailView[ t.T ]] // que se puede...
+                     val tvCast = elem.trailView // .asInstanceOf[ TrailView[ t.T2 ]] // que se puede...
                      tvCast.editor.foreach( ed2 => {
                          val stakes = tvCast.selectedStakes.toList
                          ed2.editDeselect( ce, stakes: _* )
@@ -619,10 +629,10 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
          val span = new Span( pos, stop )
          timelineView.timeline.editor.foreach( ed => {
             val ce = ed.editBegin( getValue( Action.NAME ).toString )
-            tracksPanel.foreach( elem => {
+            tracksPanelV.foreach( elem => {
                val track = elem.track // "stable"
                if( elem.selected ) {
-                  val tvCast = elem.trailView.asInstanceOf[ TrailView[ track.T ]]
+                  val tvCast = elem.trailView // .asInstanceOf[ TrailView[ track.T2 ]]
                   tvCast.editor.foreach( ed2 => {
                      val trail      = tvCast.trail
                      var toSelect   = trail.getRange( span, true, false )
@@ -653,7 +663,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
       def actionPerformed( e: ActionEvent ) : Unit = perform
 
       def perform {
-         tracksPanel.find( _.trailView.selectedStakes.headOption match {
+         tracksPanelV.find( _.trailView.selectedStakes.headOption match {
             case Some( ar: AudioRegion ) => {
                val delta      = ar.offset - ar.span.start
                val cursor     = Some( timelineView.cursor.position + delta )
@@ -675,7 +685,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
          })
       }
 
-      def perform( tracks: List[ Track ], span: Span, path: File, spec: AudioFileSpec ) {
+      def perform( tracks: List[ Track.Any ], span: Span, path: File, spec: AudioFileSpec ) {
          val ggProgress = new JProgressBar()
          val name = getValue( Action.NAME ).toString
          val ggCancel = new JButton( getResourceString( "buttonAbort" ))
@@ -701,8 +711,8 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
             BasicWindowHandler.showErrorDialog( frame.getWindow, e, name )}
       }
 
-      def query: Option[ Tuple4[ List[ Track ], Span, File, AudioFileSpec ]] = {
-         val trackElems    = tracksPanel.toList
+      def query: Option[ Tuple4[ List[ Track.Any ], Span, File, AudioFileSpec ]] = {
+         val trackElems    = tracksPanelV.toList
          val numTracks     = trackElems.size
          val selTrackElems = trackElems.filter( _.selected )
          val span          = timelineView.timeline.span

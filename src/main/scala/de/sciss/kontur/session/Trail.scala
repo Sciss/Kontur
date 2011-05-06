@@ -46,6 +46,10 @@ case object TouchNone   extends TouchMode( 0 )
 case object TouchSplit  extends TouchMode( 1 )
 case object TouchResize extends TouchMode( 2 )
 
+object Stake {
+   type Any = Stake[ T ] forSome { type T <: Stake[ T ]}
+}
+
 trait Stake[ +Repr ] {
   Repr =>
   val span: Span
@@ -53,6 +57,9 @@ trait Stake[ +Repr ] {
    def move( delta: Long ) : Repr
 }
 
+object ResizableStake {
+   type Any = ResizableStake[ T ] forSome { type T <: ResizableStake[ T ]}
+}
 trait ResizableStake[ +Repr ] extends Stake[ Repr ] {
    def moveStart( delta: Long ) : Repr
    def moveStop( delta: Long ) : Repr
@@ -77,7 +84,7 @@ trait MuteableStake[ +Repr ] extends Stake[ Repr ] {
 //  case class StakesRemoved( span: Span, stakes: Stake* )
 //}
 
-trait Trail[ T <: Stake[ T ]]
+trait Trail[ T ]
 extends Disposable with Model {
 //    type St = T
 
@@ -101,7 +108,7 @@ extends Disposable with Model {
    case class StakesRemoved( span: Span, stakes: T* )
 }
 
-trait TrailEditor[ T <: Stake[ T ]]
+trait TrailEditor[ T ]
 extends Editor {
 //    type St = T
 	def editInsert( ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode ) : Unit

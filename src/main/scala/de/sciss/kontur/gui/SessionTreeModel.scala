@@ -50,8 +50,6 @@ abstract class DynamicTreeNode( model: SessionTreeModel, obj: AnyRef, canExpand:
 extends DefaultMutableTreeNode( obj, canExpand )
 with DynamicListening {
 
-//  type Tr = Track[ _ <: Stake[ _ ]]
-
   private var isListening = false
 
     def startListening {
@@ -435,7 +433,7 @@ with HasContextMenu with CanBeDropTarget {
       Some( root )
    }
 
-   protected def wrap( elem: Track ): DynamicTreeNode =
+   protected def wrap( elem: Track[ Stake[ _ ]]): DynamicTreeNode =
       new TrackTreeLeaf( model, elem )
 
    // ---- CanBeDropTarget ----
@@ -447,7 +445,7 @@ with HasContextMenu with CanBeDropTarget {
    }
 
    def importData( data: AnyRef, flavor: DataFlavor, action: Int ) : Boolean = data match {
-      case t: Track => {
+      case t: Track.Any => {
          tl.tracks.editor.map( ed => {
             val success = !tl.tracks.contains( t )
             if( success ) {
@@ -465,7 +463,7 @@ with HasContextMenu with CanBeDropTarget {
    }
 }
 
-class TrackTreeLeaf( model: SessionTreeModel, t: Track )
+class TrackTreeLeaf( model: SessionTreeModel, t: Track[ Stake[ _ ]])
 extends SessionElementTreeNode( model, t, false )
 with HasContextMenu with CanBeDragSource {
    def createContextMenu() : Option[ PopupRoot ] = {

@@ -45,7 +45,7 @@ object SessionUtil {
       AbstractApplication.getApplication.getResourceString( key )
 
    @throws( classOf[ IOException ])
-   def bounce( doc: Session, tl: Timeline, tracks: List[ Track ], span: Span, path: File, spec: AudioFileSpec,
+   def bounce( doc: Session, tl: Timeline, tracks: List[ Track.Any ], span: Span, path: File, spec: AudioFileSpec,
                upd: AnyRef => Unit = _ => () ) : { def cancel: Unit } = {
       
       val so                        = new ServerOptionsBuilder

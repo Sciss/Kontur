@@ -79,7 +79,7 @@ object DefaultTrackComponent {
    val colrBgSel  = Color.blue
 }
 
-class DefaultTrackComponent( doc: Session, protected val track: Track, trackList: TrackList,
+class DefaultTrackComponent[ T <: Stake[ T ]]( doc: Session, protected val track: Track[ T ], trackList: TrackList,
                              timelineView: TimelineView )
 extends JComponent with TrackToolsListener with DynamicListening {
 
@@ -88,7 +88,7 @@ extends JComponent with TrackToolsListener with DynamicListening {
 //    protected val track     = t // necessary for trail.trail (DO NOT ASK WHY)
     protected val trail     = track.trail // "stable"
     protected lazy val trackListElement = trackList.getElement( track ).get
-    protected lazy val trailView = trackListElement.trailView.asInstanceOf[ TrailView[ track.T ]]
+    protected lazy val trailView = trackListElement.trailView // .asInstanceOf[ TrailView[ track.T ]]
     protected lazy val trailViewEditor = trailView.editor
 /*
     protected val p_rect    = new Rectangle()
@@ -309,7 +309,7 @@ extends JComponent with TrackToolsListener with DynamicListening {
 //   protected class DefaultPainter extends DefaultPainterTrait
 
    protected trait DefaultPainterTrait extends Painter {
-      def paintStake( pc: PaintContext, stake: track.T, selected: Boolean ) {
+      def paintStake( pc: PaintContext, stake: T, selected: Boolean ) {
          val x = pc.virtualToScreen( stake.span.start )
          val width = ((stake.span.stop + pc.p_off) * pc.p_scale + 0.5).toInt - x
          val g2 = pc.g2
@@ -342,10 +342,10 @@ extends JComponent with TrackToolsListener with DynamicListening {
       protected var copyTransform = false
       protected var copyTransformChanged = false
 
-      protected var dragTrail: Option[ BasicTrail[ track.T ]] = None
+      protected var dragTrail: Option[ BasicTrail[ T ]] = None
 
       def adjusted {
-         val tTrail = new BasicTrail[ track.T ]( doc )
+         val tTrail = new BasicTrail[ T ]( doc )
          dragTrail = Some( tTrail )
          val tStakes = trailView.selectedStakes.toList.map( transform _ )
          tTrail.add( tStakes: _* )
@@ -360,7 +360,7 @@ extends JComponent with TrackToolsListener with DynamicListening {
          checkSpanRepaint( repaintSpan )
       }
 
-      protected def transform( stake: track.T ): track.T
+      protected def transform( stake: T ): T
 
       def finish( ce: AbstractCompoundEdit ) {
          painter = oldPainter
@@ -436,7 +436,7 @@ extends JComponent with TrackToolsListener with DynamicListening {
          moveInner   = newMoveInner
       }
 
-      protected def transform( stake: track.T ) : track.T = {
+      protected def transform( stake: T ) : T = {
          val tlSpan = timelineView.timeline.span
          if( move != 0L ) {
             val m = if( move < 0)
@@ -511,7 +511,7 @@ object AudioTrackComponent {
 
 class AudioTrackComponent( doc: Session, audioTrack: AudioTrack, trackList: TrackList,
                            timelineView: TimelineView )
-extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
+extends DefaultTrackComponent[ AudioRegion ]( doc, audioTrack, trackList, timelineView )
 with SonagramPaintController {
     component =>
     
@@ -738,10 +738,10 @@ with SonagramPaintController {
          finish( ce )
       }
 
-      protected def transform( stake: track.T ) = stake match {
+      protected def transform( stake: AudioRegion ) = stake match {
          case ar: AudioRegion => {
             val tStake = ar.mute( dragMute )
-            tStake.asInstanceOf[ track.T ]
+            tStake // .asInstanceOf[ T ]
          }
          case _ => stake
       }
@@ -755,10 +755,10 @@ with SonagramPaintController {
          dragGain = newGain
       }
 
-      protected def transform( stake: track.T ) = stake match {
+      protected def transform( stake: AudioRegion ) = stake match {
          case ar: AudioRegion if( dragGain != 1f ) => {
             val tStake = ar.replaceGain( ar.gain * dragGain )
-            tStake.asInstanceOf[ track.T ]
+            tStake // .asInstanceOf[ AudioRegion ]
          }
          case _ => stake
       }
@@ -784,42 +784,38 @@ with SonagramPaintController {
          dragFdOutCurve = newOutCurve
       }
 
-      protected def transform( stake: track.T ) = stake match {
-         case ar: AudioRegion => {
-            var tStake: AudioRegion = ar
-            val fadeInChange  = dragFdInTime  != 0L || dragFdInCurve != 0f
-            val fadeOutChange = dragFdOutTime != 0L || dragFdOutCurve != 0f
-            if( fadeInChange || fadeOutChange ) {
-               var fadeInSpec  = ar.fadeIn  getOrElse FadeSpec( 0L, linShape )
-               var fadeOutSpec = ar.fadeOut getOrElse FadeSpec( 0L, linShape )
-               // marika, this should go somewhere, most like AudioRegion ?
-               if( fadeInChange ) {
-                  val newShape = if( dragFdInCurve != 0f ) fadeInSpec.shape match {
-                     case `linShape` => curveShape( dragFdInCurve )
-                     case `curveShape`( curvature ) => curveShape( max( -20, min( 20, curvature + dragFdInCurve )))
-                     case x => x
-                  } else fadeInSpec.shape
-                  fadeInSpec = FadeSpec(
-                     max( 0L, min( ar.span.getLength - fadeOutSpec.numFrames,
-                     fadeInSpec.numFrames + dragFdInTime )), newShape )
-                  tStake = tStake.replaceFadeIn( Some( fadeInSpec ))
-               }
-               if( fadeOutChange ) {
-                  val newShape = if( dragFdOutCurve != 0f ) fadeOutSpec.shape match {
-                     case `linShape` => curveShape( dragFdOutCurve )
-                     case `curveShape`( curvature ) => curveShape( max( -20, min( 20, curvature + dragFdOutCurve )))
-                     case x => x
-                  } else fadeOutSpec.shape
-                  fadeOutSpec = FadeSpec(
-                     max( 0L, min( ar.span.getLength - fadeInSpec.numFrames,
-                     fadeOutSpec.numFrames + dragFdOutTime )), newShape )
-                  tStake = tStake.replaceFadeOut( Some( fadeOutSpec ))
-               }
+      protected def transform( ar: AudioRegion ) = {
+         var tStake: AudioRegion = ar
+         val fadeInChange  = dragFdInTime  != 0L || dragFdInCurve != 0f
+         val fadeOutChange = dragFdOutTime != 0L || dragFdOutCurve != 0f
+         if( fadeInChange || fadeOutChange ) {
+            var fadeInSpec  = ar.fadeIn  getOrElse FadeSpec( 0L, linShape )
+            var fadeOutSpec = ar.fadeOut getOrElse FadeSpec( 0L, linShape )
+            // marika, this should go somewhere, most like AudioRegion ?
+            if( fadeInChange ) {
+               val newShape = if( dragFdInCurve != 0f ) fadeInSpec.shape match {
+                  case `linShape` => curveShape( dragFdInCurve )
+                  case `curveShape`( curvature ) => curveShape( max( -20, min( 20, curvature + dragFdInCurve )))
+                  case x => x
+               } else fadeInSpec.shape
+               fadeInSpec = FadeSpec(
+                  max( 0L, min( ar.span.getLength - fadeOutSpec.numFrames,
+                  fadeInSpec.numFrames + dragFdInTime )), newShape )
+               tStake = tStake.replaceFadeIn( Some( fadeInSpec ))
             }
-            // WHHHHHHHHYYYYYYYYYYYYYYYYYYYYYYYYYYY THE CAST?
-            tStake.asInstanceOf[ track.T ]
+            if( fadeOutChange ) {
+               val newShape = if( dragFdOutCurve != 0f ) fadeOutSpec.shape match {
+                  case `linShape` => curveShape( dragFdOutCurve )
+                  case `curveShape`( curvature ) => curveShape( max( -20, min( 20, curvature + dragFdOutCurve )))
+                  case x => x
+               } else fadeOutSpec.shape
+               fadeOutSpec = FadeSpec(
+                  max( 0L, min( ar.span.getLength - fadeInSpec.numFrames,
+                  fadeOutSpec.numFrames + dragFdOutTime )), newShape )
+               tStake = tStake.replaceFadeOut( Some( fadeOutSpec ))
+            }
          }
-         case _ => stake
+         tStake
       }
    }
 
@@ -857,68 +853,63 @@ with SonagramPaintController {
 
       protected def stakeInfo( stake: AudioRegion ) : Option[ String ] = None
 
-      override def paintStake( pc: PaintContext, stake: track.T, selected: Boolean ) {
-         stake match {
-            case ar: AudioRegion => { // man, no chance to skip this matching??
-               val x = pc.virtualToScreen( ar.span.start )
+      override def paintStake( pc: PaintContext, ar: AudioRegion, selected: Boolean ) {
+         val x = pc.virtualToScreen( ar.span.start )
 //               val width = ((ar.span.stop + pc.p_off) * pc.p_scale + 0.5).toInt - x
-               val width = (ar.span.getLength * pc.p_scale + 0.5).toInt
+         val width = (ar.span.getLength * pc.p_scale + 0.5).toInt
 //             val x1C = max( x, pc.clip.x - 2 )
-               val x1C = max( x + 1, pc.clip.x - 2 ) // + 1 for left margin
-               val x2C = min( x + width, pc.clip.x + pc.clip.width + 3 )
-               if( x1C < x2C ) { // skip this if we are not overlapping with clip
-                  val g2 = pc.g2
+         val x1C = max( x + 1, pc.clip.x - 2 ) // + 1 for left margin
+         val x2C = min( x + width, pc.clip.x + pc.clip.width + 3 )
+         if( x1C < x2C ) { // skip this if we are not overlapping with clip
+            val g2 = pc.g2
 //                  val cmpOrig = g2.getComposite
 //                  if( ar.muted ) g2.setComposite( cmpMuted )
-                  g2.setColor( if( selected ) colrBgSel else colrBg )
-                  g2.fillRoundRect( x, 0, width, pc.height, 5, 5 )
+            g2.setColor( if( selected ) colrBgSel else colrBg )
+            g2.fillRoundRect( x, 0, width, pc.height, 5, 5 )
 
-                  val clipOrig = g2.getClip
-                  g2.clipRect( x + 1, hndlExtent, width - 1, pc.height - hndlExtent - 1 )
-                  
-                  // --- sonagram ---
-                  ar.audioFile.sona.foreach( sona => {
+            val clipOrig = g2.getClip
+            g2.clipRect( x + 1, hndlExtent, width - 1, pc.height - hndlExtent - 1 )
+
+            // --- sonagram ---
+            ar.audioFile.sona.foreach( sona => {
 //                  sona.paint( new Span( ar.offset, ar.offset + ar.span.getLength ),
 //                    g2, x, 15, width, pc.height - 16, component )
-                     val dStart = ar.offset - ar.span.start
-                     val startC = max( 0.0, pc.screenToVirtualD( x1C ))
-                     val stopC  = pc.screenToVirtualD( x2C )
-                     paintStakeGain = ar.gain // XXX dirty muthafucka
-                     sona.paint( startC + dStart, stopC + dStart, g2,
-                        x1C, 15, x2C - x1C, pc.height - 16, component )
+               val dStart = ar.offset - ar.span.start
+               val startC = max( 0.0, pc.screenToVirtualD( x1C ))
+               val stopC  = pc.screenToVirtualD( x2C )
+               paintStakeGain = ar.gain // XXX dirty muthafucka
+               sona.paint( startC + dStart, stopC + dStart, g2,
+                  x1C, 15, x2C - x1C, pc.height - 16, component )
 //                   g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON )
-                  })
-               
-                  // --- fades ---
-                  ar.fadeIn.foreach( f => {
-                     paintFade( f, pc, f.floor, 1f, x, hndlExtent, pc.height - 1 - hndlExtent, x )
-                  })
-                  ar.fadeOut.foreach( f => {
-                     val px = (f.numFrames * pc.p_scale).toFloat
-                     paintFade( f, pc, 1f, f.floor, x + width - 1 - px, hndlExtent,
-                                pc.height - 1 - hndlExtent, x + width - 1 )
-                  })
+            })
 
-                  g2.setClip( clipOrig )
-                  
-                  // --- label ---
-                  g2.clipRect( x + 2, 2, width - 4, pc.height - 4 )
-                  g2.setColor( Color.white )
-                  // possible unicodes: 2327 23DB 24DC 25C7 2715 29BB
-                  g2.drawString( if( ar.muted ) "\u23DB " + ar.name else ar.name, x + 4, hndlBaseline )
-                  stakeInfo( ar ).foreach( info => {
-                     g2.setColor( Color.yellow )
-                     g2.drawString( info, x + 4, hndlBaseline + hndlExtent )
-                  })
-                  g2.setClip( clipOrig )
+            // --- fades ---
+            ar.fadeIn.foreach( f => {
+               paintFade( f, pc, f.floor, 1f, x, hndlExtent, pc.height - 1 - hndlExtent, x )
+            })
+            ar.fadeOut.foreach( f => {
+               val px = (f.numFrames * pc.p_scale).toFloat
+               paintFade( f, pc, 1f, f.floor, x + width - 1 - px, hndlExtent,
+                          pc.height - 1 - hndlExtent, x + width - 1 )
+            })
+
+            g2.setClip( clipOrig )
+
+            // --- label ---
+            g2.clipRect( x + 2, 2, width - 4, pc.height - 4 )
+            g2.setColor( Color.white )
+            // possible unicodes: 2327 23DB 24DC 25C7 2715 29BB
+            g2.drawString( if( ar.muted ) "\u23DB " + ar.name else ar.name, x + 4, hndlBaseline )
+            stakeInfo( ar ).foreach( info => {
+               g2.setColor( Color.yellow )
+               g2.drawString( info, x + 4, hndlBaseline + hndlExtent )
+            })
+            g2.setClip( clipOrig )
 //                  g2.setComposite( cmpOrig )
-                  if( ar.muted ) {
-                     g2.setColor( colrBgMuted )
-                     g2.fillRoundRect( x, 0, width, pc.height, 5, 5 )
-                  }
-               }
+            if( ar.muted ) {
+               g2.setColor( colrBgMuted )
+               g2.fillRoundRect( x, 0, width, pc.height, 5, 5 )
             }
-            case _ => super.paintStake( pc, stake, selected )
          }
       }
    }

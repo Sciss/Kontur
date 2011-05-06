@@ -60,7 +60,7 @@ extends TrackRendererFactory {
       }
 }
 */
-class DefaultTrackRenderer( doc: Session, t: Track, trackList: TrackList,
+class DefaultTrackRenderer[ T <: Stake[ T ]]( doc: Session, t: Track[ T ], trackList: TrackList,
                             timelineView: TimelineView )
 extends TrackRenderer {
   val trackHeaderComponent = new DefaultTrackHeaderComponent( t, trackList )

@@ -72,7 +72,7 @@ object DefaultTrackHeaderComponent {
                                                new Color( colrDarken.getRGB() & 0xFFFFFF, true ))
 }
 
-class DefaultTrackHeaderComponent( protected val track: Track, trackList: TrackList )
+class DefaultTrackHeaderComponent( protected val track: Track.Any, trackList: TrackList )
 extends JPanel
 with DynamicListening with Disposable {
   import DefaultTrackHeaderComponent._

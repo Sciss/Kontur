@@ -36,11 +36,13 @@ import de.sciss.kontur.edit.{ Editor }
 import de.sciss.kontur.util.{ SerializerContext }
 
 object Track {
-   val flavor = new DataFlavor( classOf[ Track ], "Track" )
+   val flavor = new DataFlavor( classOf[ Track.Any ], "Track" )
+
+   type Any = Track[ T ] forSome { type T <: Stake[ T ]}
 }
 
-trait Track extends SessionElement {
-   type T <: Stake[ T ]
+trait Track[ +T ] extends SessionElement {
+//   type T2 = T
    def trail: Trail[ T ]
    def editor: Option[ TrackEditor ]
 }
@@ -50,7 +52,7 @@ trait TrackEditor extends Editor {
 }
 
 class Tracks( doc: Session )
-extends BasicSessionElementSeq[ Track ]( doc, "Tracks" ) {
+extends BasicSessionElementSeq[ Track[ Stake[ _ ]]]( doc, "Tracks" ) {
 
    def toXML( c: SerializerContext ) =
       <tracks id={c.id( this ).toString}>
@@ -62,10 +64,10 @@ extends BasicSessionElementSeq[ Track ]( doc, "Tracks" ) {
       innerFromXML( c, innerXML )
    }
 
-   protected def elementsFromXML( c: SerializerContext, node: Node ) : Seq[ Track ] =
+   protected def elementsFromXML( c: SerializerContext, node: Node ) : Seq[ Track[ Stake[ _ ]]] =
       node.child.filter( _.label != "#PCDATA" ).map( ch => {
          (ch \ "@idref").headOption.map( attr => {
-            c.byID[ Track ]( attr.text.toLong )
+            c.byID[ Track.Any ]( attr.text.toLong )
          }).getOrElse( ch.label match {
             case AudioTrack.XML_NODE => AudioTrack.fromXML( c, ch, doc )
             case lb => throw new IOException( "Unknown track type '" + lb + "'" )

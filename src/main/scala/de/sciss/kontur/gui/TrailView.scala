@@ -39,9 +39,11 @@ object TrailView {
    // FUCKING SCHEISS DOES NOT COMPILE ANY MORE
 //    case class SelectionChanged( span: Span, stakes: Stake[ _ ]* )
     case class SelectionChanged( span: Span )
+
+   type Any = TrailView[ T ] forSome{ type T <: Stake[ T ]}
 }
 
-trait TrailView[ T <: Stake[ T ]] extends Model {
+trait TrailView[ T ] extends Model {
     def isSelected( s: T ) : Boolean
     def editor: Option[ TrailViewEditor[ T ]]
     def selectedStakes: Set[ T ]
@@ -50,7 +52,7 @@ trait TrailView[ T <: Stake[ T ]] extends Model {
 //    case class SelectionChanged( span: Span, stakes: T* )
 }
 
-trait TrailViewEditor[ T <: Stake[ T ]] extends Editor {
+trait TrailViewEditor[ T ] extends Editor {
 //   type St = T
    def editSelect( ce: AbstractCompoundEdit, stakes: T* ) : Unit
    def editDeselect( ce: AbstractCompoundEdit, stakes: T* ) : Unit
@@ -163,10 +165,3 @@ extends TrailView[ T ] with TrailViewEditor[ T ] {
 //    var selected = false
 //  }
 }
-
-/*
-trait TrailsView extends Model {
-    def isSelected[ T <: Stake[ T ]]( s: T ) : Boolean
-    def selectedStakes: Set[ _ <: Stake[ _ ]]
-}
-*/
