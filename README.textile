@@ -2,7 +2,7 @@ h2. Kontur
 
 h3. statement
 
-Kontur is (C)opyright by 2008-2011 Hanns Holger. All rights reserved. It is released under the "GNU General Public License":http://github.com/Sciss/Kontur/blob/master/licenses/Kontur-License.txt . Kontur is a multitrack audio editor based on ScalaCollider. It provides programmatic (REPL) access to its session elements. Very much alpha state. No warranties, no liability whatsoever.
+Kontur is (C)opyright by 2008-2011 Hanns Holger. All rights reserved. It is released under the "GNU General Public License":http://github.com/Sciss/Kontur/blob/master/licenses/Kontur-License.txt . Kontur is a multitrack audio editor based on ScalaCollider. It provides programmatic (REPL) access to its session elements, allowing for algorithmic manipulation in the Scala programming language. Very much alpha state. No warranties, no liability whatsoever.
 
 h3. requirements / installation
 
