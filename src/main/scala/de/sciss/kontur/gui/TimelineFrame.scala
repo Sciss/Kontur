@@ -59,12 +59,12 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 // private var writeProtected	= false
 //	private var wpHaveWarned	= false
 // private val actionShowWindow= new ShowWindowAction( this )
-   private val timelineView  = new BasicTimelineView( doc, tl )
-// private val trackList     = new BasicTrackList( doc, timelineView )
-   private val timelinePanel = new TimelinePanel( timelineView )
-// private val trailView     = new javax.swing.JLabel( "Trail" )
+   private val timelineView   = new BasicTimelineView( doc, tl )
+// private val trackList      = new BasicTrackList( doc, timelineView )
+   private val timelinePanel  = new TimelinePanel( timelineView )
+// private val trailView      = new javax.swing.JLabel( "Trail" )
 // private val trailsView     = new BasicTrailsView( doc, tl.tracks )
-   private val tracksPanel    = new TracksPanel( doc, timelinePanel )
+   val tracksPanel            = new TracksPanel( doc, timelinePanel )
    private val trackTools     = new TrackToolsPanel( tracksPanel, timelineView )
 
    // ---- constructor ----
@@ -171,6 +171,8 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
   //	protected def documentUpdate {
   //    // nada
   //  }
+
+   def document: Session = doc
    
    protected def elementName = Some( tl.name )
 

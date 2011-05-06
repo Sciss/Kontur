@@ -225,7 +225,7 @@ with AdjustmentListener with DynamicListening {
 			} else {
 				start -= timelineVis.getLength >> 2
 			}
-			val stop  = min( timelineSpan.stop, math.max( timelineSpan.start, start ) + timelineVis.getLength )
+			val stop  = min( timelineSpan.stop, max( timelineSpan.start, start ) + timelineVis.getLength )
 			start     = max( timelineSpan.start, stop - timelineVis.getLength )
 			if( stop > start ) {
 				// it's crucial to update internal var timelineVis here because
