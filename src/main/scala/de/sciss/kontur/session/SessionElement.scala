@@ -57,5 +57,3 @@ trait SessionElement extends Model {
 //  @throws( classOf[ IOException ])
 //  def fromXML( parent: Node ) : Unit
 }
-
-//trait SessionElement2[ T ] extends SessionElement

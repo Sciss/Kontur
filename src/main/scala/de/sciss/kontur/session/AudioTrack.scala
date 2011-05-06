@@ -49,7 +49,7 @@ object AudioTrack {
 }
 
 class AudioTrack( doc: Session )
-extends Track[ AudioRegion ] with TrackEditor // [ AudioRegion ]
+extends Track with TrackEditor // [ AudioRegion ]
 with Renameable {
   import AudioTrack._
 

@@ -61,7 +61,7 @@ trait TrackTools extends Model {
 trait TrackTool extends Model {
     def defaultCursor : Cursor
     def name: String
-    def handleSelect[ T <: Stake[ T ]]( e: MouseEvent, hitTrack: TrackListElement[ T ], pos: Long, stakeO: Option[ T ]) : Unit
+    def handleSelect( e: MouseEvent, hitTrack: TrackListElement, pos: Long, stakeO: Option[ Stake[ _ ]]) : Unit
 }
 
 //object DummyTrackTool extends TrackTool {
@@ -78,7 +78,7 @@ class TrackCursorTool( trackList: TrackList, timelineView: TimelineView ) extend
    def defaultCursor = Cursor.getPredefinedCursor( Cursor.TEXT_CURSOR )
    val name = "Cursor"
 
-    def handleSelect[ T <: Stake[ T ]]( e: MouseEvent, hitTrack: TrackListElement[ T ], pos: Long, stakeO: Option[ T ]) {
+    def handleSelect( e: MouseEvent, hitTrack: TrackListElement, pos: Long, stakeO: Option[ Stake[ _ ]]) {
 
     }
 }
@@ -113,10 +113,10 @@ trait TrackStakeTool extends TrackTool {
 //      }
 //   }
 
-   def handleSelect[ T <: Stake[ T ]]( e: MouseEvent, tle: TrackListElement[ T ], pos: Long, stakeO: Option[ T ]) {
+   def handleSelect( e: MouseEvent, tle: TrackListElement, pos: Long, stakeO: Option[ Stake[ _ ]]) {
       val track      = tle.track // "stable"
-      val tvCast     = tle.trailView // .asInstanceOf[ TrailView[ track.T ]]
-      val stakeOCast = stakeO // stakeO.asInstanceOf[ Option[ track.T ]]
+      val tvCast     = tle.trailView.asInstanceOf[ TrailView[ track.T ]]
+      val stakeOCast = stakeO.asInstanceOf[ Option[ track.T ]]
 
       tvCast.editor.foreach( ed => {
          if( e.isShiftDown ) {
@@ -136,7 +136,7 @@ trait TrackStakeTool extends TrackTool {
                val ce = ed.editBegin( "editSelectStakes" )
                trackList.foreach( tle2 => {
                   val track2 = tle2.track // "stable"
-                  val tvCast2 = tle2.trailView // .asInstanceOf[ TrailView[ track2.T ]]
+                  val tvCast2 = tle2.trailView.asInstanceOf[ TrailView[ track2.T ]]
                   tvCast2.editor.foreach( ed2 => {
                      ed2.editDeselect( ce, ed2.view.selectedStakes.toList: _* )
 //                     if( linked && !newSelRecalc ) {
@@ -173,7 +173,7 @@ trait TrackStakeTool extends TrackTool {
       })
    }
 
-   protected def handleSelect( e: MouseEvent, tle: TrackListElement.Any, pos: Long, stake: Stake.Any ) : Unit
+   protected def handleSelect( e: MouseEvent, tle: TrackListElement, pos: Long, stake: Stake[ _ ]) : Unit
 
    protected def screenToVirtual( e: MouseEvent ) : Long = {
       val tlSpan   = timelineView.timeline.span
@@ -206,7 +206,7 @@ extends TrackStakeTool {
       dispatch( DragCancel )
    }
    
-   protected def handleSelect( e: MouseEvent, tle: TrackListElement.Any, pos: Long, stake: Stake.Any ) {
+   protected def handleSelect( e: MouseEvent, tle: TrackListElement, pos: Long, stake: Stake[ _ ]) {
       if( e.getClickCount == 2 ) {
          handleDoubleClick
       } else {
@@ -255,8 +255,8 @@ extends TrackStakeTool {
       result == JOptionPane.OK_OPTION
    }
 
-   protected class Drag( val firstEvent: MouseEvent, val firstTLE: TrackListElement.Any,
-                         val firstPos: Long, val firstStake: Stake.Any )
+   protected class Drag( val firstEvent: MouseEvent, val firstTLE: TrackListElement,
+                        val firstPos: Long, val firstStake: Stake[ _ ])
    extends MouseInputAdapter with KeyListener {
       private var started = false
 
@@ -496,7 +496,7 @@ class TrackMuteTool (
 extends TrackStakeTool {
    import TrackMuteTool._
 
-   protected def handleSelect( e: MouseEvent, tle: TrackListElement.Any, pos: Long, stake: Stake.Any ) {
+   protected def handleSelect( e: MouseEvent, tle: TrackListElement, pos: Long, stake: Stake[ _ ]) {
       stake match {
          case mStake: MuteableStake[ _ ] => {
             timelineView.timeline.editor.foreach( ed => {

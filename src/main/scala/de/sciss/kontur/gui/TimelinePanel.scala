@@ -401,7 +401,7 @@ with TopPaintable {
 //        vpSelections ::= ViewportSelection( timelineAxis.getBounds, colrSelection )
  
         trackList.foreach( elem => {
-           val r = trackList.getBounds( elem.asInstanceOf[ TrackListElement.Any ])
+           val r = trackList.getBounds( elem )
            vpSelections ::= ViewportSelection( r,
                if( elem.selected ) colrSelection else colrSelection2 )
         })

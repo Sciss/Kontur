@@ -58,13 +58,11 @@ extends ActionListener {
    private var startTime         = 0L
    private val timer             = new SwingTimer( (transportDelta * 1000).toInt, this )
    private val players           = new ArrayBuffer[ SCTrackPlayer ]()
-   private var mapPlayers        = Map[ Track.Any, SCTrackPlayer ]()
+   private var mapPlayers        = Map[ Track, SCTrackPlayer ]()
 
    private val tracksListener: Model.Listener = {
-      case "never" =>
-// PPP
-//      case tracks.ElementAdded( idx, t )   => context.perform { addTrack( idx, t )}
-//      case tracks.ElementRemoved( idx, t ) => context.perform { removeTrack( idx, t )}
+      case tracks.ElementAdded( idx, t ) => context.perform { addTrack( idx, t )}
+      case tracks.ElementRemoved( idx, t ) => context.perform { removeTrack( idx, t )}
    }
 
    private val transportListener: Model.Listener = {
@@ -79,7 +77,7 @@ extends ActionListener {
 //      timer.setCoalesce( false )
 
       if( realtime ) {
-         { var idx = 0; tracks.foreach( t => { addTrack( idx, t.asInstanceOf[ Track.Any ]); idx += 1 })}
+         { var idx = 0; tracks.foreach( t => { addTrack( idx, t ); idx += 1 })}
          tracks.addListener( tracksListener )
          tl.transport.foreach( _.addListener( transportListener ))
       }
@@ -87,7 +85,7 @@ extends ActionListener {
 
    def dispose {
       stop
-      tracks.foreach( t => removeTrack( 0, t.asInstanceOf[ Track.Any ]))
+      tracks.foreach( t => removeTrack( 0, t ))
       if( realtime ) {
          tl.transport.foreach( _.removeListener( transportListener ))
          tracks.removeListener( tracksListener )
@@ -116,7 +114,7 @@ if( verbose ) println( "| | | | | timer " + currentPos )
       }
    }
 
-   private def addTrack[ T <: Stake[ T ]]( idx: Int, t: Track[ T ]) {
+   private def addTrack( idx: Int, t: Track ) {
       val player: SCTrackPlayer = t match {
          case at: AudioTrack => new SCAudioTrackPlayer( scDoc, at )
          case _ => new SCDummyPlayer( t )
@@ -125,11 +123,11 @@ if( verbose ) println( "| | | | | timer " + currentPos )
       players.insert( idx, player )
    }
 
-   def addTrack[ T <: Stake[ T ]]( t: Track[ T ]) {
+   def addTrack( t: Track ) {
       addTrack( players.size, t )
    }
 
-   private def removeTrack[ T <: Stake[ T ]]( idx: Int, t: Track[ T ]) {
+   private def removeTrack( idx: Int, t: Track ) {
       mapPlayers.get( t ).foreach( ptest => {
          mapPlayers -= t
          val player = players.remove( idx )

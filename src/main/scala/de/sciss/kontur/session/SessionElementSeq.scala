@@ -60,8 +60,6 @@ extends SessionElement {
   case class ElementRemoved( index: Int, elem: T )
 }
 
-//trait SessionElementSeq2[ T, E <: SessionElement2[ T ]]
-
 trait SessionElementSeqEditor[ T ] extends Editor {
   def editInsert( ce: AbstractCompoundEdit, idx: Int, e: T ) : Unit
   def editRemove( ce: AbstractCompoundEdit, e: T ) : Unit
