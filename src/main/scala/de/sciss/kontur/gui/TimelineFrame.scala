@@ -59,7 +59,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 // private var writeProtected	= false
 //	private var wpHaveWarned	= false
 // private val actionShowWindow= new ShowWindowAction( this )
-   private val timelineView   = new BasicTimelineView( doc, tl )
+   val timelineView           = new BasicTimelineView( doc, tl )
 // private val trackList      = new BasicTrackList( doc, timelineView )
    private val timelinePanel  = new TimelinePanel( timelineView )
 // private val trailView      = new javax.swing.JLabel( "Trail" )
