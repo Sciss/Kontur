@@ -474,13 +474,13 @@ extends SynthContext( s, true ) {
    private var bundleCount = 0
 
    // ---- constructor ----
-   {
-      resp.add
-   }
+   resp.add
 
    def dispose {
       resp.remove
    }
+
+   override def toString = "Realtime(" + s.toString + ")"
 
    def timebase : Double = {
       timebaseVar

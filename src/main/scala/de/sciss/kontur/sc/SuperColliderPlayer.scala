@@ -55,6 +55,8 @@ extends Disposable {
        client.addListener( clientListener )
     }
 
+   override def toString = "SuperColliderPlayer(" + doc.name.getOrElse( "<Untitled>" ) + ")"
+
     private def serverRunning {
       client.server.foreach( s => {
          val context = new RealtimeSynthContext( s )

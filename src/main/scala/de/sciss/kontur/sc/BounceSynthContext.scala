@@ -57,6 +57,8 @@ extends SynthContext( s, false ) {
       }
    }
 
+   override def toString = "Offline"
+
    override val sampleRate : Double = server.options.sampleRate.value
 
    private def advanceTo( newTime: Double ) {

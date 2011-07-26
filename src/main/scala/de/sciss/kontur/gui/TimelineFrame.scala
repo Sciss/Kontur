@@ -298,7 +298,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
     		val tl      = timeline //
 
-			if( (pos < tl.span.start) || (pos > tl.span.stop) ) error( span.toString )
+			require( (pos >= tl.span.start) && (pos <= tl.span.stop), span.toString )
 
          val affectedSpan = new Span( pos, tl.span.stop )
 

@@ -99,6 +99,8 @@ class SuperColliderClient extends Model {
         })
     }
 
+   override def toString = "SuperColliderClient"
+
    def getPlayer( doc: Session ) : Option[ SuperColliderPlayer ] = players.get( doc )
 
    private def defer( thunk: => Unit ) {

@@ -71,7 +71,7 @@ object Main {
 	 *
 	 *  @todo   should be saved in the session file as well
 	 */
-	private val APP_VERSION		= 0.14
+	private val APP_VERSION		= 0.15
 
 	/**
 	 *  Enables / disables event dispatching debugging
@@ -247,6 +247,8 @@ extends BasicApplication( classOf[ Main ], Main.APP_NAME ) {
 //			}
 //		}
 	}
+
+   override def toString = "Kontur"
 
 	protected def createMenuFactory() : BasicMenuFactory = new MenuFactory( this )
 	protected def createDocumentHandler() : DocumentHandler = new de.sciss.kontur.session.DocumentHandler( this )

@@ -151,6 +151,8 @@ extends BasicDocument with Model {
 
 	def getName() = name getOrElse null
 
+   override def toString = "Session(" + name.getOrElse( "<Untitled>" ) + ")"
+
     def displayName =
        name getOrElse getResourceString( "frameUntitled" )
 

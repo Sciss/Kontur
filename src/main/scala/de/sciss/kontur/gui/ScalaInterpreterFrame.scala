@@ -15,38 +15,64 @@ import de.sciss.kontur.sc.{ SuperColliderClient, SuperColliderPlayer, SynthConte
 import de.sciss.kontur.session.Session
 import de.sciss.synth.Server
 import de.sciss.scalainterpreter.{ LogPane, ScalaInterpreterPane }
+import tools.nsc.interpreter.NamedParam
+import de.sciss.common.BasicApplication
 
 /**
  *    @version 0.11, 09-May-10
  */
+object ScalaInterpreterFrame {
+   class REPLSupport( val app: BasicApplication ) {
+      def doc : Session             = app.getDocumentHandler.getActiveDocument.asInstanceOf[ Session ]
+      def sc : SuperColliderClient  = SuperColliderClient.instance
+      def scp : SuperColliderPlayer = { val d = doc; (if( d != null ) sc.getPlayer( d ) else None).orNull }
+      def con : SynthContext        = { val p = scp; (if( p != null ) p.context else None).orNull }
+      def s : Server                = sc.server.orNull
+   }
+}
 class ScalaInterpreterFrame
 extends AppWindow( AbstractWindow.REGULAR ) {
+   import ScalaInterpreterFrame._
+
    // ---- constructor ----
    {
       setTitle( getResourceString( "frameScalaInterpreter" ))
       val cp = getContentPane
 
       val ip = new ScalaInterpreterPane
-      ip.initialCode = Some(
-"""
-         import de.sciss.kontur.session._
-         import math._
-"""
+//      ip.initialCode = Some(
+//"""
+//         import de.sciss.kontur.session._
+//         import math._
+//"""
+//      )
+
+      val support = new REPLSupport( app )
+      ip.customBindings = Seq(
+//         NamedParam( "app", app ),
+         NamedParam( "replsupport", support )
+//         NamedParam( "sc", SuperColliderClient.instance )
       )
 
-      ip.bindingsCreator = Some( (in: Interpreter ) => {
-         in.bind( "app",  classOf[ Main ].getName, app )
-         in.bind( "doc",  classOf[ Session ].getName, app.getDocumentHandler.getActiveDocument )
-         val doc = app.getDocumentHandler.getActiveDocument.asInstanceOf[ Session ]
-         val sc  = SuperColliderClient.instance
-         in.bind( "sc",   classOf[ SuperColliderClient ].getName, sc )
-         val scp = (if( doc != null ) sc.getPlayer( doc ) else None) orNull;
-         in.bind( "scp", classOf[ SuperColliderPlayer ].getName, scp )
-         val con = (if( scp != null ) scp.context else None) orNull;
-         in.bind( "con", classOf[ SynthContext ].getName, con )
-         val s = sc.server orNull; // if( con != null ) con.server else null
-         in.bind( "s", classOf[ Server ].getName, s )
-      })
+      ip.customImports = Seq(
+         "de.sciss.kontur.session._",
+         "math._",
+         "replsupport._"
+      )
+
+//      ip.bindingsCreator = Some( (in: Interpreter ) => {
+//         in.bind( "app",  classOf[ Main ].getName, app )
+//         in.bind( "doc",  classOf[ Session ].getName, app.getDocumentHandler.getActiveDocument )
+//         val doc = app.getDocumentHandler.getActiveDocument.asInstanceOf[ Session ]
+//         val sc  = SuperColliderClient.instance
+//         in.bind( "sc",   classOf[ SuperColliderClient ].getName, sc )
+//         val scp = (if( doc != null ) sc.getPlayer( doc ) else None) orNull;
+//         in.bind( "scp", classOf[ SuperColliderPlayer ].getName, scp )
+//         val con = (if( scp != null ) scp.context else None) orNull;
+//         in.bind( "con", classOf[ SynthContext ].getName, con )
+//         val s = sc.server orNull; // if( con != null ) con.server else null
+//         in.bind( "s", classOf[ Server ].getName, s )
+//      })
 
       val lp = new LogPane
       lp.init

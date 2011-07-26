@@ -5,11 +5,16 @@ import sbt.{ FileUtilities => FU, _}
  *    @version 0.12, 11-Oct-10
  */
 class KonturProject( info: ProjectInfo ) extends ProguardProject( info ) {
-   val scalaColliderSwing = "de.sciss" %% "scalacolliderswing" % "0.25"
-   val prefuse = "prefuse" % "prefuse" % "beta-SNAPSHOT" from "http://github.com/downloads/Sciss/ScalaColliderSwing/prefuse-beta-SNAPSHOT.jar"
-   val mrjAdapter = "net.roydesign" % "mrjadapter" % "1.1" from "http://github.com/downloads/Sciss/Kontur/mrjadapter-1.1.jar"
-   val scissLib = "de.sciss" % "scisslib" % "0.12" from "http://github.com/downloads/Sciss/Kontur/ScissLib-0.12.jar"
-   val scissDSP = "de.sciss" % "scissdsp" % "0.10" from "http://github.com/downloads/Sciss/ScissDSP/ScissDSP-0.10.jar"
+   val scalaColliderSwing = "de.sciss" %% "scalacolliderswing" % "0.27"
+//   val prefuse = "prefuse" % "prefuse" % "beta-SNAPSHOT" from "http://github.com/downloads/Sciss/ScalaColliderSwing/prefuse-beta-SNAPSHOT.jar"
+
+// these don't work anywmore, either because of sbt 0.7.4 -> 0.7.7 or because github changed something
+//   val mrjAdapter = "net.roydesign" % "mrjadapter" % "1.1" from "http://github.com/downloads/Sciss/Kontur/mrjadapter-1.1.jar"
+//   val scissLib = "de.sciss" % "scisslib" % "0.12" from "http://github.com/downloads/Sciss/Kontur/ScissLib-0.12.jar"
+
+   val scissDSP = "de.sciss" % "scissdsp" % "0.11" // from "http://github.com/downloads/Sciss/ScissDSP/ScissDSP-0.10.jar"
+
+   val repo1               = "Clojars Repository" at "http://clojars.org/repo" // this is needed for ScalaInterpreterPane
 
    val camelCaseName          = "Kontur"
    def appBundleName          = camelCaseName + ".app"
@@ -45,19 +50,21 @@ class KonturProject( info: ProjectInfo ) extends ProguardProject( info ) {
       val javaPath               = appBundleJavaPath
       val cleanPaths             = javaPath * jarFilter
       val quiet                  = false
-      val versionedNamePattern   = """([^-_]*)[-_].*.jar""".r
+      val versionedNamePattern   = "(.*?)[-_]\\d.*\\.jar".r // thanks to Don Mackenzie
 
       FU.clean( cleanPaths.get, quiet, log )
 
       for( fromPath <- jarsPath.get ) {
-         val versionedName = fromPath.asFile.getName
-         val plainName     = versionedName match {
-            case versionedNamePattern( name ) if( name != "scala" ) => name + jarExt
-            case n => n
+         val vName = fromPath.asFile.getName
+         if( !vName.contains( "-javadoc" ) && !vName.contains( "-sources" )) {
+            val plainName     = vName match {
+               case versionedNamePattern( name ) => name + jarExt
+               case n => n
+            }
+            val toPath = javaPath / plainName
+            log.log( if(quiet) Level.Debug else Level.Info, "Copying to file " + toPath.asFile )
+            FU.copyFile( fromPath, toPath, log )
          }
-         val toPath = javaPath / plainName
-         log.log( if(quiet) Level.Debug else Level.Info, "Copying to file " + toPath.asFile )
-         FU.copyFile( fromPath, toPath, log )
       }
 
 // plist is a real shitty format. we will need apache commons configuration
