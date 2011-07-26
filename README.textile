@@ -6,46 +6,16 @@ Kontur is (C)opyright by 2008-2011 Hanns Holger. All rights reserved. It is rele
 
 h3. requirements / installation
 
-Compiles against Scala 2.8.1 and Java 1.6. You will need a SuperCollider 3.3.1+ installation. The repository contains a project file for Intellij IDEA 9 CE, and project files for sbt. Targets for sbt:
+Compiles against Scala 2.9 and Java 1.6. You will need a SuperCollider 3.3.1+ installation. The repository contains a project file for Intellij IDEA 10.5 CE, and project files for sbt.
 
-* @clean@
-* @compile@
-* @doc@
-* @package@
-* @standalone@
-* @package-app@
+When building a freshly checked out project, run @sbt update@ first, which will pull all dependencies from the net or your local ivy2 folder. Two libraries (ScissLib and MRJAdapter) are now included as binaries in @lib@ for simplicity.
 
-The following dependancies will be downloaded by @sbt update@ into the @lib_managed@ folder:
-
-* ScissLib
-* ScissDSP
-* JSyntaxPane
-* MRJAdapter
-* Prefuse
-
-If git chokes on downloading ScissLib or ScissDSP from github (which happens), you can make them available this way:
-
-pre. $ curl http://github.com/downloads/Sciss/ScissDSP/ScissDSP-0.10.jar >/tmp/scissdsp.jar
-$ mkdir -p ~/.ivy2/local/de.sciss/scissdsp/0.10/jars
-$ mv /tmp/scissdsp.jar ~/.ivy2/local/de.sciss/scissdsp/0.10/jars/
-$ curl http://github.com/downloads/Sciss/Kontur/ScissLib-0.12.jar >/tmp/scisslib.jar
-$ mkdir -p ~/.ivy2/local/de.sciss/scisslib/0.12/jars
-$ mv /tmp/scisslib.jar ~/.ivy2/local/de.sciss/scisslib/0.12/jars/
-
-Furthermore, you need the following libraries (and their respective dependancies):
-
-* "ScalaCollider-Swing":http://github.com/Sciss/ScalaColliderSwing
-
-You can install them by cloning their git repositories and building each with @sbt publish-local@.
-
-After a fresh install, run @sbt update@ on Kontur before compiling. @sbt package-app@ will update the OS X application bundle, @sbt standalone@ creates a self-contained double-clickable jar:
+@sbt compile@ will then build the project, and @sbt package-app@ will update the OS X application bundle, while @sbt standalone@ creates a self-contained double-clickable jar (which you can use on platforms other than OS X):
 
 pre. $ sbt standalone
 $ java -jar Kontur-full.jar 
 
-h3. todo
-
-SonogramOverview should be replaced by the separate library now.
+The create the API documentation, run @sbt doc@.
 
 h3. download
 
