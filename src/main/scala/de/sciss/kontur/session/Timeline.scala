@@ -2,7 +2,7 @@
  *  Timeline.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2011 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -28,12 +28,12 @@
 
 package de.sciss.kontur.session
 
-import javax.swing.undo.{ UndoManager }
-import scala.xml.{ Node }
-import de.sciss.app.{ AbstractCompoundEdit }
-import de.sciss.io.{ Span }
+import javax.swing.undo.UndoManager
+import scala.xml.Node
+import de.sciss.app.AbstractCompoundEdit
+import de.sciss.io.Span
 import de.sciss.kontur.edit.{ Editor, SimpleEdit }
-import de.sciss.kontur.util.{ SerializerContext }
+import de.sciss.kontur.util.SerializerContext
 
 object Timeline {
   case class SpanChanged( oldSpan: Span, newSpan: Span )
@@ -131,8 +131,8 @@ extends Timeline with Renameable with TimelineEditor {
   def editSpan( ce: AbstractCompoundEdit, newSpan: Span ) {
     val edit = new SimpleEdit( "editTimelineSpan" ) {
        lazy val oldSpan = span
-       def apply { oldSpan; span = newSpan }
-       def unapply { span = oldSpan }
+       def apply() { oldSpan; span = newSpan }
+       def unapply() { span = oldSpan }
     }
     ce.addPerform( edit )
   }
@@ -140,8 +140,8 @@ extends Timeline with Renameable with TimelineEditor {
   def editRate( ce: AbstractCompoundEdit, newRate: Double ) {
     val edit = new SimpleEdit( "editTimelineRate" ) {
        lazy val oldRate = rate
-       def apply { oldRate; rate = newRate }
-       def unapply { rate = oldRate }
+       def apply() { oldRate; rate = newRate }
+       def unapply() { rate = oldRate }
     }
     ce.addPerform( edit )
   }

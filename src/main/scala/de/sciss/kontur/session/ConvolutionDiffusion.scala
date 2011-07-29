@@ -2,7 +2,7 @@
  *  ConvolutionDiffusion.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2011 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -30,9 +30,9 @@ package de.sciss.kontur.session
 
 import java.io.{ File, IOException }
 import scala.xml.{ Node, Null }
-import de.sciss.app.{ AbstractCompoundEdit }
-import de.sciss.kontur.edit.{ SimpleEdit }
-import de.sciss.kontur.util.{ SerializerContext }
+import de.sciss.app.AbstractCompoundEdit
+import de.sciss.kontur.edit.SimpleEdit
+import de.sciss.kontur.util.SerializerContext
 import de.sciss.synth.io.AudioFile
 
 /**
@@ -145,8 +145,8 @@ extends BasicDiffusion( doc ) {
    def editSetPath( ce: AbstractCompoundEdit, newPath: Option[ File ]) {
       val edit = new SimpleEdit( "editSetPath" ) {
          lazy val oldPath = path
-         def apply { oldPath; path = newPath }
-         def unapply { path = oldPath }
+         def apply() { oldPath; path = newPath }
+         def unapply() { path = oldPath }
       }
       ce.addPerform( edit )
    }
@@ -154,8 +154,8 @@ extends BasicDiffusion( doc ) {
    def editSetGain( ce: AbstractCompoundEdit, newGain: Float ) {
       val edit = new SimpleEdit( "editSetGain" ) {
          lazy val oldGain = gain
-         def apply { oldGain; gain = newGain }
-         def unapply { gain = oldGain }
+         def apply() { oldGain; gain = newGain }
+         def unapply() { gain = oldGain }
       }
       ce.addPerform( edit )
    }
@@ -163,8 +163,8 @@ extends BasicDiffusion( doc ) {
    def editSetDelay( ce: AbstractCompoundEdit, newDelay: Float ) {
       val edit = new SimpleEdit( "editSetDelay" ) {
          lazy val oldDelay = delay
-         def apply { oldDelay; delay = newDelay }
-         def unapply { delay = oldDelay }
+         def apply() { oldDelay; delay = newDelay }
+         def unapply() { delay = oldDelay }
       }
       ce.addPerform( edit )
    }

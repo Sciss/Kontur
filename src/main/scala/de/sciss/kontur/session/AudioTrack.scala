@@ -2,7 +2,7 @@
  *  AudioTrack.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2011 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -28,12 +28,11 @@
 
 package de.sciss.kontur.session
 
-import java.io.{ IOException }
-import javax.swing.undo.{ UndoManager }
-import scala.xml.{ Node }
-import de.sciss.app.{ AbstractCompoundEdit }
-import de.sciss.kontur.edit.{ Editor, SimpleEdit }
-import de.sciss.kontur.util.{ SerializerContext }
+import javax.swing.undo.UndoManager
+import scala.xml.Node
+import de.sciss.app.AbstractCompoundEdit
+import de.sciss.kontur.edit.SimpleEdit
+import de.sciss.kontur.util.SerializerContext
 
 object AudioTrack {
    val XML_NODE = "audioTrack"

@@ -2,7 +2,7 @@
  *  BasicTrail.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2011 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -28,12 +28,12 @@
 
 package de.sciss.kontur.session
 
-import de.sciss.app.{ AbstractCompoundEdit }
-import de.sciss.io.{ Span }
+import de.sciss.app.AbstractCompoundEdit
+import de.sciss.io.Span
 import de.sciss.trees.{ Interval, LongManager, ManagedLong, Rect, RTree, Shaped }
-import de.sciss.kontur.edit.{ SimpleEdit }
-import javax.swing.undo.{ UndoManager }
-import scala.collection.mutable.{ ListBuffer }
+import de.sciss.kontur.edit.SimpleEdit
+import javax.swing.undo.UndoManager
+import scala.collection.mutable.ListBuffer
 
 /**
  *  Basic trail structure using R-Tree
@@ -63,7 +63,7 @@ with TrailEditor[ T ] {
       })
     }
 
-    def visitAll( byStart: Boolean = true )( f: (T) => Unit ) = {
+    def visitAll( byStart: Boolean = true )( f: (T) => Unit ) {
       // XXX is this the most efficient approach?
       tree.findOverlapping( tree.getRoot.bounds, (ss: StoredStake) => {
         f( ss.stake )
@@ -112,9 +112,9 @@ with TrailEditor[ T ] {
        if( !modSpan.isEmpty ) dispatch( StakesRemoved( modSpan, stakes: _* ))
     }
 
-    def dispose {}
+    def dispose() {}
 
-    private case class StoredStake( val stake: T ) extends Shaped[ Long ] {
+    private case class StoredStake( stake: T ) extends Shaped[ Long ] {
       val shape = spanToRect( stake.span )
     }
 
@@ -135,16 +135,16 @@ with TrailEditor[ T ] {
 
 	def editAdd( ce: AbstractCompoundEdit, stakes: T* ) {
       val edit = new SimpleEdit( "editAddStakes" ) {
-        def apply { add( stakes: _* )}
-        def unapply { remove( stakes: _* )}
+        def apply() { add( stakes: _* )}
+        def unapply() { remove( stakes: _* )}
       }
       ce.addPerform( edit )
     }
 
 	def editRemove( ce: AbstractCompoundEdit, stakes: T* ) {
       val edit = new SimpleEdit( "editRemoveStakes" ) {
-        def apply { remove( stakes: _* )}
-        def unapply { add( stakes: _* )}
+        def apply() { remove( stakes: _* )}
+        def unapply() { add( stakes: _* )}
       }
       ce.addPerform( edit )
     }

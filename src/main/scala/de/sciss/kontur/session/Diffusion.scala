@@ -2,7 +2,7 @@
  *  Diffusions.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2011 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -28,12 +28,12 @@
 
 package de.sciss.kontur.session
 
-import java.awt.datatransfer.{ DataFlavor }
-import javax.swing.undo.{ UndoManager }
-import scala.xml.{ Node }
-import de.sciss.app.{ AbstractCompoundEdit }
+import java.awt.datatransfer.DataFlavor
+import javax.swing.undo.UndoManager
+import scala.xml.Node
+import de.sciss.app.AbstractCompoundEdit
 import de.sciss.kontur.edit.{ Editor, SimpleEdit }
-import de.sciss.kontur.util.{ SerializerContext }
+import de.sciss.kontur.util.SerializerContext
 
 object Diffusion {
    case class NumInputChannelsChanged( oldNum: Int, newNum: Int )
@@ -95,7 +95,7 @@ extends BasicSessionElementSeq[ Diffusion ]( doc, "Diffusions" ) {
 
 abstract class BasicDiffusion( doc: Session )
 extends Diffusion with DiffusionEditor with Renameable {
-    import Diffusion._
+//    import Diffusion._
 
     protected var nameVar = "Diffusion"
 
@@ -107,8 +107,8 @@ extends Diffusion with DiffusionEditor with Renameable {
     def editRename( ce: AbstractCompoundEdit, newName: String ) {
         val edit = new SimpleEdit( "editRenameDiffusion" ) {
            lazy val oldName = name
-           def apply { oldName; name = newName }
-           def unapply { name = oldName }
+           def apply() { oldName; name = newName }
+           def unapply() { name = oldName }
         }
         ce.addPerform( edit )
     }

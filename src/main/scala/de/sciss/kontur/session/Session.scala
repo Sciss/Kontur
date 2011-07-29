@@ -2,7 +2,7 @@
  *  Session.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2011 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -28,12 +28,12 @@
 
 package de.sciss.kontur.session
 
-import de.sciss.app.{ AbstractApplication }
+import de.sciss.app.AbstractApplication
 import de.sciss.common.{ BasicDocument, ProcessingThread }
-import de.sciss.util.{ Flag }
+import de.sciss.util.Flag
 import de.sciss.kontur.util.{ BasicSerializerContext, SerializerContext }
 import de.sciss.synth.Model
-import java.awt.{ EventQueue }
+import java.awt.EventQueue
 import java.io.{ File, IOException }
 import scala.xml.{ Node, XML }
 

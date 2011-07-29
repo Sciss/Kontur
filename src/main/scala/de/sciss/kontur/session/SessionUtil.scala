@@ -2,7 +2,7 @@
  *  SessionUtil.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2011 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -29,14 +29,13 @@
 package de.sciss.kontur.session
 
 import java.beans.{ PropertyChangeEvent, PropertyChangeListener }
-import javax.swing.{ SwingWorker }
-import scala.math._
-import de.sciss.app.{ AbstractApplication }
-import de.sciss.io.{ Span }
-import de.sciss.util.{ Param }
+import javax.swing.SwingWorker
+import de.sciss.app.AbstractApplication
+import de.sciss.io.Span
+import de.sciss.util.Param
 import de.sciss.kontur.sc.{ BounceSynthContext, SCSession, SCTimeline }
-import de.sciss.kontur.util.{ PrefsUtil }
-import de.sciss.synth.{ServerOptionsBuilder, ServerOptions}
+import de.sciss.kontur.util.PrefsUtil
+import de.sciss.synth.ServerOptionsBuilder
 import de.sciss.synth.io.AudioFileSpec
 import java.io.{File, IOException}
 
@@ -46,7 +45,7 @@ object SessionUtil {
 
    @throws( classOf[ IOException ])
    def bounce( doc: Session, tl: Timeline, tracks: List[ Track ], span: Span, path: File, spec: AudioFileSpec,
-               upd: AnyRef => Unit = _ => () ) : { def cancel: Unit } = {
+               upd: AnyRef => Unit = _ => () ) : { def cancel(): Unit } = {
       
       val so                        = new ServerOptionsBuilder
       so.nrtOutputPath              = path.getCanonicalPath
@@ -55,7 +54,7 @@ object SessionUtil {
       so.nrtSampleFormat            = spec.sampleFormat
       val sampleRate                = spec.sampleRate
       so.sampleRate                 = sampleRate.toInt
-      val audioPrefs                = AbstractApplication.getApplication.getUserPrefs().node( PrefsUtil.NODE_AUDIO )
+      val audioPrefs                = AbstractApplication.getApplication.getUserPrefs.node( PrefsUtil.NODE_AUDIO )
       val pMemSize = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCMEMSIZE, null )
       if( pMemSize != null ) {
          so.memorySize              = pMemSize.`val`.toInt << 10
@@ -84,7 +83,7 @@ object SessionUtil {
       val stepSize = (sampleRate * 0.1).toLong
       var pos     = span.start
       while( pos < span.stop ) {
-         val chunkLen      = min( stepSize, span.stop - pos )
+         val chunkLen      = math.min( stepSize, span.stop - pos )
          val procSpan      = new Span( pos, pos + chunkLen )
          context.perform {
             scTL.step( pos, procSpan )
@@ -95,8 +94,8 @@ object SessionUtil {
 
       // "stop"
       context.perform {
-         scTL.stop
-         scDoc.dispose
+         scTL.stop()
+         scDoc.dispose()
       }
 
       // run NRT
@@ -120,7 +119,7 @@ object SessionUtil {
       })
       worker.execute()
       new {
-         def cancel {
+         def cancel() {
             println( "WARNING: CANCEL DOES NOT WORK YET PROPERLY" )
             worker.cancel( true )
          }

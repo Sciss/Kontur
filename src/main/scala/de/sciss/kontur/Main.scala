@@ -2,7 +2,7 @@
  *  Main.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2011 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -28,16 +28,13 @@
 
 package de.sciss.kontur
 
-import java.awt.{ EventQueue }
-import javax.swing.{ UIManager }
-import de.sciss.app.{ DocumentHandler }
-import de.sciss.common.{ AppWindow, BasicApplication, BasicDocument, BasicMenuFactory,
-                         BasicWindowHandler, ProcessingThread }
-import de.sciss.gui.{ GUIUtil }
+import java.awt.EventQueue
+import javax.swing.UIManager
+import de.sciss.app.DocumentHandler
+import de.sciss.common.{ BasicApplication, BasicDocument, BasicMenuFactory, BasicWindowHandler, ProcessingThread }
 import de.sciss.kontur.gui.{ MainFrame, MenuFactory, SuperColliderFrame }
-import de.sciss.kontur.sc.{ SuperColliderClient }
-import de.sciss.kontur.util.{ PrefsUtil }
-import de.sciss.util.{ Flag }
+import de.sciss.kontur.util.PrefsUtil
+import de.sciss.util.Flag
 
 /**
  *  The <code>Main</code> class contains the java VM
@@ -134,12 +131,12 @@ extends BasicApplication( classOf[ Main ], Main.APP_NAME ) {
 
         // if the saving was successfull, we will call closeAll again
 		def processStopped( e: ProcessingThread.Event ) {
-			if( e.isDone ) quit
+			if( e.isDone ) quit()
 		}
 	}
 
     // ---- constructor ----
-    preInit
+    preInit()
 
 	/**
 	 *	The arguments may contain the following options:
@@ -150,8 +147,8 @@ extends BasicApplication( classOf[ Main ], Main.APP_NAME ) {
 	 *	All other arguments not starting with a hyphen are considered to be paths to documents
 	 *	that will be opened after launch.
 	 */
-	private def preInit {
-		val prefs = getUserPrefs()
+	private def preInit() {
+		val prefs = getUserPrefs
 
 		// ---- init prefs ----
 
@@ -213,7 +210,7 @@ extends BasicApplication( classOf[ Main ], Main.APP_NAME ) {
 		// ---- component views ----
 
 		val mainFrame	= new MainFrame()
-		getWindowHandler().asInstanceOf[ BasicWindowHandler ].setDefaultBorrower( mainFrame )
+		getWindowHandler.asInstanceOf[ BasicWindowHandler ].setDefaultBorrower( mainFrame )
 //        val ctrlRoom	= new ControlRoomFrame()
 //		val observer	= new ObserverPalette()
 		val scFrame = new SuperColliderFrame()
@@ -259,14 +256,14 @@ extends BasicApplication( classOf[ Main ], Main.APP_NAME ) {
     override def quit() {
 //      this.synchronized {
           val confirmed = new Flag( false )
-          val pt          = getMenuFactory().closeAll( forcedQuit, confirmed )
+          val pt          = getMenuFactory.closeAll( forcedQuit, confirmed )
 
 //println( "---1" )
           if( pt != null ) {
 //println( "---2" )
             pt.addListener( quitAfterSaveListener )
             pt.getClientArg( "doc" ).asInstanceOf[ BasicDocument ].start( pt )
-          } else if( confirmed.isSet() ) {
+          } else if( confirmed.isSet ) {
 //println( "---3" )
 //			OSCRoot.getInstance().quit();
 //			SuperColliderClient.getInstance().quit();
@@ -280,18 +277,18 @@ extends BasicApplication( classOf[ Main ], Main.APP_NAME ) {
 		quit()
 	}
 
-    private def lookAndFeelUpdate( className: String ) {
-        if( className != null ) {
-            try {
-                UIManager.setLookAndFeel( className )
-				AppWindow.lookAndFeelUpdate()
-            }
-            catch { case e1: Exception => GUIUtil.displayError( null, e1, null )}
-        }
-    }
+//    private def lookAndFeelUpdate( className: String ) {
+//        if( className != null ) {
+//            try {
+//                UIManager.setLookAndFeel( className )
+//				AppWindow.lookAndFeelUpdate()
+//            }
+//            catch { case e1: Exception => GUIUtil.displayError( null, e1, null )}
+//        }
+//    }
 
 // ------------ Application interface ------------
 
-	def getMacOSCreator() : String = Main.CREATOR
-	def getVersion(): Double = Main.APP_VERSION
+	def getMacOSCreator : String = Main.CREATOR
+	def getVersion: Double = Main.APP_VERSION
 }

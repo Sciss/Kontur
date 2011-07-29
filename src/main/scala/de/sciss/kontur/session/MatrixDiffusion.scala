@@ -2,7 +2,7 @@
  *  MatrixDiffusion.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2011 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -28,9 +28,9 @@
 
 package de.sciss.kontur.session
 
-import scala.xml.{ Node }
-import de.sciss.app.{ AbstractCompoundEdit }
-import de.sciss.kontur.edit.{ SimpleEdit }
+import scala.xml.Node
+import de.sciss.app.AbstractCompoundEdit
+import de.sciss.kontur.edit.SimpleEdit
 import de.sciss.kontur.util.{ Matrix2D, SerializerContext }
 
 object MatrixDiffusion extends DiffusionFactory {
@@ -134,8 +134,8 @@ extends BasicDiffusion( doc ) {
     def editSetNumInputChannels( ce: AbstractCompoundEdit, newNum: Int ) {
         val edit = new SimpleEdit( "editSetNumInputChannels" ) {
            lazy val oldNum = numInputChannels
-           def apply { oldNum; numInputChannels = newNum }
-           def unapply { numInputChannels = oldNum }
+           def apply() { oldNum; numInputChannels = newNum }
+           def unapply() { numInputChannels = oldNum }
         }
         ce.addPerform( edit )
     }
@@ -143,8 +143,8 @@ extends BasicDiffusion( doc ) {
     def editSetNumOutputChannels( ce: AbstractCompoundEdit, newNum: Int ) {
         val edit = new SimpleEdit( "editSetNumOutputChannels" ) {
            lazy val oldNum = numOutputChannels
-           def apply { oldNum; numOutputChannels = newNum }
-           def unapply { numOutputChannels = oldNum }
+           def apply() { oldNum; numOutputChannels = newNum }
+           def unapply() { numOutputChannels = oldNum }
         }
         ce.addPerform( edit )
     }
@@ -152,8 +152,8 @@ extends BasicDiffusion( doc ) {
     def editSetMatrix( ce: AbstractCompoundEdit, newMatrix: Matrix2D[ Float ]) {
         val edit = new SimpleEdit( "editSetMatrix" ) {
            lazy val oldMatrix = matrix
-           def apply { oldMatrix; matrix = newMatrix }
-           def unapply { matrix = oldMatrix }
+           def apply() { oldMatrix; matrix = newMatrix }
+           def unapply() { matrix = oldMatrix }
         }
         ce.addPerform( edit )
     }

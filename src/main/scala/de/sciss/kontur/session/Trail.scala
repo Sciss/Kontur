@@ -2,7 +2,7 @@
  *  Trail.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2011 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -28,12 +28,10 @@
 
 package de.sciss.kontur.session
 
-import java.io.{ IOException }
-
-import de.sciss.app.{ AbstractCompoundEdit }
-import de.sciss.io.{ Span }
-import de.sciss.util.{ Disposable }
-import de.sciss.kontur.edit.{ Editor }
+import de.sciss.app.AbstractCompoundEdit
+import de.sciss.io.Span
+import de.sciss.util.Disposable
+import de.sciss.kontur.edit.Editor
 import de.sciss.synth.Model
 
 /**
@@ -58,7 +56,7 @@ trait ResizableStake[ +Repr ] extends Stake[ Repr ] {
    def moveStop( delta: Long ) : Repr
    // default semantics is to apply moveStart and moveStop.
    // subclasses can override behavior if needed
-   def split( pos: Long ) : Tuple2[ Repr, Repr ] =
+   def split( pos: Long ) : (Repr, Repr) =
       (moveStop( pos - span.stop ), moveStart( pos - span.start ))
 }
 

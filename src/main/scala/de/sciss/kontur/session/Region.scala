@@ -2,7 +2,7 @@
  *  Region.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2011 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -28,7 +28,7 @@
 
 package de.sciss.kontur.session
 
-import de.sciss.io.{ Span }
+import de.sciss.io.Span
 
 trait RegionTrait[ +Repr ] extends ResizableStake[ Repr ] {
    val name: String

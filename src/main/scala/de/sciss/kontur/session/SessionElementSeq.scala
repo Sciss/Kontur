@@ -2,7 +2,7 @@
  *  SessionElementSeq.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2011 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -129,7 +129,7 @@ with SessionElementSeqEditor[ T ] {
    // some collection methods
    def indexOf( elem: T ) : Int = coll.indexOf( elem )
    def contains( elem: T ) : Boolean = coll.contains( elem )
-   def foreach[ U ]( f: T => U ): Unit = coll.foreach( f )
+   def foreach[ U ]( f: T => U ) { coll.foreach( f )}
    def toList: List[ T ] = coll.toList
    def filter( p: (T) => Boolean ): List[ T ] = coll.filter( p ).toList
    def find( p: (T) => Boolean): Option[ T ] = coll.find( p )
@@ -140,8 +140,8 @@ with SessionElementSeqEditor[ T ] {
   // ----  SessionElementSeqEditor ----
   def editInsert( ce: AbstractCompoundEdit, idx: Int, elem: T ) {
       val edit = new SimpleEdit( "editAddSessionElement" ) {
-        def apply { insert( idx, elem )}
-        def unapply { remove( elem )}
+        def apply() { insert( idx, elem )}
+        def unapply() { remove( elem )}
       }
       ce.addPerform( edit )
   }
@@ -149,8 +149,8 @@ with SessionElementSeqEditor[ T ] {
   def editRemove( ce: AbstractCompoundEdit, elem: T ) {
       val edit = new SimpleEdit( "editAddSessionElement" ) {
         lazy val idx = indexOf( elem )
-        def apply { remove( elem )}
-        def unapply { insert( idx, elem )}
+        def apply() { remove( elem )}
+        def unapply() { insert( idx, elem )}
       }
       ce.addPerform( edit )
   }

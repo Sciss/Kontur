@@ -2,7 +2,7 @@
  *  AudioFileElement.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2011 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -28,12 +28,12 @@
 
 package de.sciss.kontur.session
 
-import java.awt.datatransfer.{ DataFlavor }
+import java.awt.datatransfer.DataFlavor
 import java.io.{ File, IOException }
-import scala.xml.{ Node }
+import scala.xml.Node
 
-import de.sciss.kontur.io.{ SonagramOverview }
-import de.sciss.kontur.util.{ SerializerContext }
+import de.sciss.kontur.io.SonagramOverview
+import de.sciss.kontur.util.SerializerContext
 import de.sciss.synth.io.AudioFile
 import de.sciss.app.AbstractCompoundEdit
 

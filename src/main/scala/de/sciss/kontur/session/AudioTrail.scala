@@ -2,7 +2,7 @@
  *  AudioTrail.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2011 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -28,11 +28,10 @@
 
 package de.sciss.kontur.session
 
-import java.io.{ IOException }
 import scala.xml.{ Node, Null }
-import de.sciss.io.{ Span }
-import de.sciss.kontur.util.{ SerializerContext }
-import scala.math._
+import de.sciss.io.Span
+import de.sciss.kontur.util.SerializerContext
+import math._
 
 object AudioRegion {
    val XML_NODE = "stake"
@@ -92,7 +91,7 @@ extends RegionTrait[ AudioRegion ] with SlidableStake[ AudioRegion ] with Muteab
 
    def mute( newMuted: Boolean ) : AudioRegion = copy( muted = newMuted )
 
-   override def split( pos: Long ) : Tuple2[ AudioRegion, AudioRegion ] = {
+   override def split( pos: Long ) : (AudioRegion, AudioRegion) = {
       val left = {
          val d = max( -(span.getLength - 1), min( audioFile.numFrames - offset - span.getLength, pos - span.stop ))
          if( d == 0 ) this

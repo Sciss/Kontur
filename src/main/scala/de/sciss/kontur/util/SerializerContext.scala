@@ -1,6 +1,6 @@
 package de.sciss.kontur.util
 
-import scala.xml.{ Node, NodeSeq }
+import scala.xml.NodeSeq
 
 trait SerializerContext {
    def id( obj: AnyRef ) : Long
