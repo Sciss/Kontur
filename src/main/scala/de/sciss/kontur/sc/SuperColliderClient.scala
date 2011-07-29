@@ -232,16 +232,23 @@ so.memorySize = 64 << 10
 			}
 
 			// loopback is sufficient here
+//println( "CALLING BOOT" )
          val b = Server.boot( app.getName, so.build ) {
             case ServerConnection.Aborted =>
+defer {
+//println( "---ABORTED" )
                bootingVar = None
+}
             case ServerConnection.Running( s ) =>
+defer {
+//println( "---RUNNING" )
                bootingVar = None
                serverVar = Some( s )
                s.addListener( forward )
                s.dumpOSC( dumpMode )
 //               dispatch( ServerChanged( serverVar ))
                dispatch( ServerRunning( s ))
+}
          }
          bootingVar = Some( b )
 
@@ -259,4 +266,10 @@ so.memorySize = 64 << 10
             false
 		}}
     }
+
+   override protected def dispatch( change: AnyRef ) {
+//println( "DISPATCH >>>>>>> " + change )
+      super.dispatch( change )
+//println( "DISPATCH <<<<<<< " + change )
+   }
 }

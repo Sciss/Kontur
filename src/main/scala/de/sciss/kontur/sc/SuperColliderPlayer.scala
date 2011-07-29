@@ -41,15 +41,24 @@ extends Disposable {
     private var online: Option[ SCSession ] = None
 
     private val clientListener: Model.Listener = {
-       case SuperColliderClient.ServerRunning( _ ) => serverRunning()
+       case SuperColliderClient.ServerRunning( _ ) => {
+//println( "SERVER RUNNING AT PLAYER >>>>>>> " + hashCode )
+          serverRunning()
+//println( "SERVER RUNNING AT PLAYER <<<<<<< " + hashCode )
+       }
 //       case Server.Running => serverRunning
-       case Server.Offline => serverOffline()
+       case Server.Offline => {
+//println( "SERVER OFFLINE AT PLAYER >>>>>>>> " + hashCode )
+          serverOffline()
+//println( "SERVER OFFLINE AT PLAYER <<<<<<<< " + hashCode )
+       }
     }
 
     // ---- constructor ----
     {
        val c = client.serverCondition
        if( clientListener.isDefinedAt( c )) clientListener( c )
+//println( "ADDING PLAYER " + hashCode )
        client.addListener( clientListener )
     }
 
@@ -57,9 +66,13 @@ extends Disposable {
 
     private def serverRunning() {
       client.server.foreach( s => {
+//println( "---- CONSTRUCTING RealtimeSynthContext" )
          val context = new RealtimeSynthContext( s )
+//println( "---- PERFORMING RealtimeSynthContext" )
          context.perform {
+//println( "---- >>>>>> PERFORMING" )
             online = Some( new SCSession( doc ))
+//println( "---- <<<<<< PERFORMING" )
          }
       })
     }

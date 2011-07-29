@@ -223,7 +223,14 @@ class RichBus( val bus: Bus ) {
 }
 
 object SynthContext {
-   private[sc] var current: SynthContext = null
+   private var currentVar : SynthContext = null
+   def current: SynthContext = currentVar
+//   private def current_=( c: SynthContext ) {
+////      println( "SETTING CONTEXT TO " + c )
+////      new Throwable().printStackTrace()
+////      println( "-------------------------" )
+//      currentVar = c
+//   }
 
    def inGroup( g: RichGroup )( thunk: => Unit ) {
       current.inGroup( g )( thunk )
@@ -271,13 +278,15 @@ abstract class SynthContext( val server: Server, val realtime: Boolean )
 extends Model with Disposable {
    private var defMap      = Map[ List[ Any ], RichSynthDef ]()
    private var uniqueID    = 0
-   protected var bundle: AbstractBundle = null
+   private var bundleVar: AbstractBundle = null
    private var currentTarget: RichGroup = new RichGroup( server.defaultGroup ) // XXX make online
+
+//   private def bundle : AbstractBundle = bundleVar
 
    def timebase : Double
    def timebase_=( newVal: Double ) : Unit
 
-   protected def initBundle( delta: Double ) : Unit
+   protected def initBundle( delta: Double ) : AbstractBundle
 
    def perform( thunk: => Unit ) {
       perform( thunk, -1 )
@@ -289,42 +298,45 @@ extends Model with Disposable {
    
    private def perform( thunk: => Unit, time: Double ) {
       val savedContext  = SynthContext.current
-      val savedBundle   = bundle
+      val savedBundle   = bundleVar
+//println( " context perform >>>>> " + hashCode() )
       try {
-         initBundle( time )
-         SynthContext.current = this
+         bundleVar = initBundle( time )
+         SynthContext.currentVar = this
          thunk
-         sendBundle()
-      }
-      finally {
-         SynthContext.current = savedContext
-         bundle = savedBundle
-      }
-   }
-
-   private def sendBundle() {
-      try {
-         bundle.send() // sendBundle( bundle )
+         bundleVar.send()
       }
       catch { case e: IOException => e.printStackTrace() }
       finally {
-         bundle = null
+//println( " context perform <<<<< " + hashCode() )
+         SynthContext.currentVar = savedContext
+         bundleVar = savedBundle
       }
    }
+
+//   private def sendBundle() {
+//      try {
+//         bundle.send() // sendBundle( bundle )
+//      }
+//      catch { case e: IOException => e.printStackTrace() }
+//      finally {
+//         bundle = null
+//      }
+//   }
 
    def sampleRate : Double = server.counts.sampleRate
 
    def group : RichGroup = {
       val group = new Group( server )
       val rg    = new RichGroup( group )
-      bundle.add( group.newMsg( currentTarget.group, addToHead ))
+      add( group.newMsg( currentTarget.group, addToHead ))
       rg
    }
 
    def groupAfter( n: RichNode ) : RichGroup = {
       val group = new Group( server )
       val rg    = new RichGroup( group )
-      bundle.add( group.newMsg( n.node, addAfter ))  // XXX should check g.online!
+      add( group.newMsg( n.node, addAfter ))  // XXX should check g.online!
       rg
    }
 
@@ -334,15 +346,15 @@ extends Model with Disposable {
    def emptyBuffer( numFrames: Int, numChannels: Int ) : RichBuffer = {
       val buf  = Buffer( server )
       val rb   = new RichSingleBuffer( buf )
-      bundle.addAsync( buf.allocMsg( numFrames, numChannels ))
-      bundle.addAsync( buf.zeroMsg )
+      addAsync( buf.allocMsg( numFrames, numChannels ))
+      addAsync( buf.zeroMsg )
       rb
    }
 
    def cue( obj: { def numChannels: Int; def path: File }, fileStartFrame: Long, bufSize: Int ) : RichBuffer = {
       val buf  = Buffer( server )
       val rb   = new RichSingleBuffer( buf )
-      bundle.addAsync( buf.allocMsg( bufSize, obj.numChannels ))
+      addAsync( buf.allocMsg( bufSize, obj.numChannels ))
       rb.read( obj.path, fileStartFrame, leaveOpen = true )
       rb
    }
@@ -352,8 +364,8 @@ extends Model with Disposable {
       val bufs  = (0 until numChannels).map( ch => Buffer( server, id + ch ))
       val rb = new RichMultiBuffer( bufs )
       bufs.foreach( buf => {
-         bundle.addAsync( buf.allocMsg( numFrames ))
-         bundle.addAsync( buf.zeroMsg )
+         addAsync( buf.allocMsg( numFrames ))
+         addAsync( buf.zeroMsg )
       })
       rb
    }
@@ -386,7 +398,7 @@ extends Model with Disposable {
          val sd  = SynthDef( name )( ugenThunk )
          val rsd = new RichSynthDef( sd )
          defMap += defList -> rsd
-         bundle.addAsync( sd.recvMsg, rsd )
+         addAsync( sd.recvMsg, rsd )
          rsd
       }
    }
@@ -396,7 +408,7 @@ extends Model with Disposable {
       val rs    = new RichSynth( synth )
       val tgt   = currentTarget  // freeze
       rsd.whenOnline {
-         bundle.add( synth.newMsg( rsd.synthDef.name, tgt.node, args ))
+         add( synth.newMsg( rsd.synthDef.name, tgt.node, args ))
          rs.node.onGo  { perform { rs.isOnline = true }}
          rs.node.onEnd { perform { rs.isOnline = false }}
       }
@@ -404,19 +416,19 @@ extends Model with Disposable {
    }
 
    def addAsync( async: AsyncAction ) {
-      bundle.addAsync( async )
+      bundleVar.addAsync( async )
    }
 
    def addAsync( msg: OSCMessage ) {
-      bundle.addAsync( msg )
+      bundleVar.addAsync( msg )
    }
 
    def addAsync( msg: OSCMessage, async: AsyncAction ) {
-      bundle.addAsync( msg, async )
+      bundleVar.addAsync( msg, async )
    }
 
    def add( msg: OSCMessage ) {
-      bundle.add( msg )
+      bundleVar.add( msg )
    }
 
    def endsAfter( rn: RichNode, dur: Double ) {}
@@ -489,9 +501,10 @@ extends SynthContext( s, true ) {
       timebaseVar = newVal
    }
 
-   protected def initBundle( delta: Double ) {
-      bundle = new Bundle( bundleCount, if( delta < 0 ) 0L else timebaseSysRef + ((timebase + delta) * 1000 + 0.5).toLong )
+   protected def initBundle( delta: Double ) : AbstractBundle = {
+      val res = new Bundle( bundleCount, if( delta < 0 ) 0L else timebaseSysRef + ((timebase + delta) * 1000 + 0.5).toLong )
       bundleCount += 1
+      res
    }
 
    private class Bundle( count: Int, ref: Long )

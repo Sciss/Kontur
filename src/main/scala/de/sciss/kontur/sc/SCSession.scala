@@ -36,6 +36,7 @@ class SCSession( val doc: Session ) {
    online =>
 
    val context    = current
+//println( "SESSION >>>>> " + context )
    var timelines  = Map[ Timeline, SCTimeline ]()
    var diffusions = Map[ Diffusion, DiffusionSynth ]()
 
@@ -50,8 +51,8 @@ class SCSession( val doc: Session ) {
    }
 
    private val timeListener: Model.Listener = {
-      case doc.timelines.ElementAdded( idx, tl ) => addTimeline( new SCTimeline( this, tl ))
-      case doc.timelines.ElementRemoved( idx, tl ) => removeTimeline( tl )
+      case doc.timelines.ElementAdded( idx, tl ) => context.perform { addTimeline( new SCTimeline( this, tl ))}
+      case doc.timelines.ElementRemoved( idx, tl ) => context.perform { removeTimeline( tl )}
    }
 
   // ---- constructor2 ----
@@ -65,6 +66,7 @@ class SCSession( val doc: Session ) {
         doc.diffusions.addListener( diffListener )
      }
   }
+//println( "SESSION <<<<<< " )
 
   // ---- SynthContext ----
   def invalidate( obj: AnyRef ) {}

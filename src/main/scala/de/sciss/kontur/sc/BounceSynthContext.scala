@@ -75,8 +75,8 @@ extends SynthContext( s, false ) {
       timebaseVar = newTime
    }
 
-   protected def initBundle( delta: Double ) {
-      bundle = new Bundle( timebase + math.max( 0.0, delta ))
+   protected def initBundle( delta: Double ) : AbstractBundle = {
+      new Bundle( timebase + math.max( 0.0, delta ))
    }
 
    @throws( classOf[ IOException ])
