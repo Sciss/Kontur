@@ -28,22 +28,19 @@
 
 package de.sciss.kontur.gui
 
-import de.sciss.app.{ AbstractApplication, DynamicListening }
+import de.sciss.app.DynamicListening
 import de.sciss.common.{ BasicWindowHandler }
 import de.sciss.gui.{ MenuGroup, MenuItem }
-import de.sciss.kontur.{ Main }
-import de.sciss.kontur.session.{ AudioFileElement, AudioFileSeq, AudioTrack, BasicTimeline, Diffusion, DiffusionFactory,
-   Renameable, Session, SessionElement, SessionElementSeq, Stake, Timeline, Track, TrackEditor }
+import de.sciss.kontur.session.{ AudioFileElement, AudioFileSeq, AudioTrack, BasicTimeline, Diffusion,
+   Renameable, Session, SessionElement, SessionElementSeq, Timeline, Track }
 import de.sciss.synth.Model
-import java.awt.{ BorderLayout, Component, FileDialog, Frame }
-import java.awt.datatransfer.{ DataFlavor, Transferable }
-import java.awt.dnd.{ DnDConstants }
-import java.awt.event.{ ActionEvent }
+import java.awt.{ BorderLayout, FileDialog, Frame }
+import java.awt.datatransfer.DataFlavor
+import java.awt.dnd.DnDConstants
+import java.awt.event.ActionEvent
 import java.io.{ File, FilenameFilter, IOException }
 import javax.swing.{ AbstractAction, Action, DefaultListSelectionModel, JLabel, JList, JPanel, JOptionPane, JScrollPane }
-import javax.swing.tree.{ DefaultMutableTreeNode, DefaultTreeModel, MutableTreeNode,
-                         TreeModel, TreeNode }
-import scala.collection.JavaConversions.{ JEnumerationWrapper }
+import javax.swing.tree.{ DefaultMutableTreeNode, DefaultTreeModel }
 import de.sciss.synth.io.AudioFile
 
 abstract class DynamicTreeNode( model: SessionTreeModel, obj: AnyRef, canExpand: Boolean )
@@ -54,7 +51,7 @@ with DynamicListening {
 
   private var isListening = false
 
-    def startListening {
+    def startListening() {
       isListening = true
 // some version of scalac cannot deal with Enumeration
 // that is not generified ....
@@ -66,11 +63,11 @@ with DynamicListening {
 //         case d: DynamicTreeNode => d.startListening
 //      }
        for( i <- 0 until getChildCount ) getChildAt( i ) match {
-          case d: DynamicTreeNode => d.startListening
+          case d: DynamicTreeNode => d.startListening()
        }
    }
 
-  def stopListening {
+  def stopListening() {
       isListening = false
 //      new JEnumerationWrapper( children() ).foreach( _ match {
 //        case d: DynamicTreeNode => d.stopListening
@@ -80,24 +77,24 @@ with DynamicListening {
 //        case d: DynamicTreeNode => d.stopListening
 //     }
      for( i <- 0 until getChildCount ) getChildAt( i ) match {
-        case d: DynamicTreeNode => d.stopListening
+        case d: DynamicTreeNode => d.stopListening()
      }
     }
 
   protected def addDyn( elem: DynamicTreeNode ) {
     add( elem )
-    if( isListening ) elem.startListening
+    if( isListening ) elem.startListening()
   }
 
   protected def insertDyn( idx: Int, elem: DynamicTreeNode ) {
     model.insertNodeInto( elem, this, idx )
-    if( isListening ) elem.startListening
+    if( isListening ) elem.startListening()
   }
   
   protected def removeDyn( idx: Int ) {
     getChildAt( idx ) match {
       case d: DynamicTreeNode => {
-          d.stopListening
+          d.stopListening()
           model.removeNodeFromParent( d )
       }
 // let it crash
@@ -115,12 +112,12 @@ with DynamicListening {
 
   setRoot( docRoot )
 
-  def startListening {
-    docRoot.startListening
+  def startListening() {
+    docRoot.startListening()
   }
 
-  def stopListening {
-    docRoot.stopListening
+  def stopListening() {
+    docRoot.stopListening()
   }
 }
 
@@ -147,7 +144,7 @@ extends DynamicTreeNode( model, model.doc, true ) {
   addDyn( audioFiles )
   addDyn( diffusions )
 
-  override def toString() = model.doc.displayName
+  override def toString = model.doc.displayName
 }
 
 abstract class SessionElementSeqTreeNode[ El <: SessionElement ](
@@ -162,23 +159,23 @@ extends DynamicTreeNode( model, seq, true )
       case seq.ElementRemoved( idx, elem ) => removeDyn( idx )
     }
     
-    override def startListening {
+    override def startListening() {
       // cheesy shit ...
       // that is why eventually we should use
       // our own tree model instead of the defaulttreemodel...
 //      removeAllChildren()
       seq.foreach( elem => add( wrap( elem ))) // not addDyn, because super does that
       seq.addListener( seqListener )
-      super.startListening
+      super.startListening()
     }
     
-    override def stopListening {
+    override def stopListening() {
       seq.removeListener( seqListener )
-      super.stopListening
+      super.stopListening()
       removeAllChildren()
     }
 
-   override def toString() = seq.name
+   override def toString = seq.name
 }
 
 class TimelinesTreeIndex( model: SessionTreeModel, timelines: SessionElementSeq[ Timeline ])
@@ -294,7 +291,7 @@ with HasContextMenu with CanBeDropTarget {
     new AudioFileTreeLeaf( model, audioFiles, elem ) // with UniqueCount
 
    // ---- CanBeDropTarget ----
-    def pickImport( flavors: List[ DataFlavor ], actions: Int ) : Option[ Tuple2[ DataFlavor, Int ]] = {
+    def pickImport( flavors: List[ DataFlavor ], actions: Int ) : Option[ (DataFlavor, Int) ] = {
        flavors.find( _ == AudioFileElement.flavor ).map( f => {
           val action  = actions & DnDConstants.ACTION_COPY
           (f, action)
@@ -355,7 +352,7 @@ with HasContextMenu with CanBeDropTarget {
       new DiffusionTreeLeaf( model, elem ) // with UniqueCount
 
    // ---- CanBeDropTarget ----
-    def pickImport( flavors: List[ DataFlavor ], actions: Int ) : Option[ Tuple2[ DataFlavor, Int ]] = {
+    def pickImport( flavors: List[ DataFlavor ], actions: Int ) : Option[ (DataFlavor, Int) ] = {
        flavors.find( _ == Diffusion.flavor ).map( f => {
           val action  = actions & DnDConstants.ACTION_COPY
           (f, action)
@@ -380,7 +377,7 @@ with HasContextMenu with CanBeDropTarget {
 
 class SessionElementTreeNode( model: SessionTreeModel, elem: SessionElement, canExpand: Boolean )
 extends DynamicTreeNode( model, elem, canExpand ) {
-  override def toString() = elem.name
+  override def toString = elem.name
 }
 
 class TimelineTreeIndex( model: SessionTreeModel, tl: Timeline )
@@ -410,10 +407,10 @@ with HasContextMenu {
 class TimelineTreeLeaf( model: SessionTreeModel, tl: Timeline )
 extends SessionElementTreeNode( model, tl, false )
 with HasDoubleClickAction {
-    def doubleClickAction {
+    def doubleClickAction() {
       new TimelineFrame( model.doc, tl )
    }
-  override def toString() = "View"
+  override def toString = "View"
 }
 
 class TracksTreeIndex( model: SessionTreeModel, tl: Timeline )
@@ -439,7 +436,7 @@ with HasContextMenu with CanBeDropTarget {
       new TrackTreeLeaf( model, elem )
 
    // ---- CanBeDropTarget ----
-   def pickImport( flavors: List[ DataFlavor ], actions: Int ) : Option[ Tuple2[ DataFlavor, Int ]] = {
+   def pickImport( flavors: List[ DataFlavor ], actions: Int ) : Option[ (DataFlavor, Int) ] = {
       flavors.find( _ == Track.flavor ).map( f => {
          val action  = actions & DnDConstants.ACTION_COPY_OR_MOVE
          (f, action)
@@ -492,7 +489,7 @@ with HasContextMenu with CanBeDragSource {
 class AudioFileTreeLeaf( model: SessionTreeModel, coll: SessionElementSeq[ AudioFileElement ], afe: AudioFileElement )
 extends SessionElementTreeNode( model, afe, false )
 with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
-    def doubleClickAction {
+    def doubleClickAction() {
       println( "DANG" )
    }
 
@@ -572,7 +569,7 @@ with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
 class DiffusionTreeLeaf( model: SessionTreeModel, diff: Diffusion )
 extends SessionElementTreeNode( model, diff, false )
 with HasDoubleClickAction with CanBeDragSource {
-    def doubleClickAction {
+    def doubleClickAction() {
 /*
         val page      = DiffusionObserverPage.instance
         val observer  = AbstractApplication.getApplication()

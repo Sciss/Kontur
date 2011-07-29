@@ -85,7 +85,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
     	// ---- actions ----
 		val imap		= getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW )
-		val amap		= getActionMap()
+		val amap		= getActionMap
 		val myMeta		= if( BasicMenuFactory.MENU_SHORTCUT == InputEvent.CTRL_MASK )
 			InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK else BasicMenuFactory.MENU_SHORTCUT	// META on Mac, CTRL+SHIFT on PC
 

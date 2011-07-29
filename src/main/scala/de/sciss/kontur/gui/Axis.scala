@@ -590,7 +590,7 @@ throw new IllegalStateException( "LOG NOT YET IMPLEMENTED" )
 
 	// -------------- Disposable interface --------------
 
-	def dispose {
+	def dispose() {
 		labels      = null
 		shpTicks.reset()
 		img.flush()

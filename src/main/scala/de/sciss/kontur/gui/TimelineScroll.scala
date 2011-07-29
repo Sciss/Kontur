@@ -28,15 +28,12 @@
 
 package de.sciss.kontur.gui
 
-import java.awt.{ Adjustable, BasicStroke, Color, Dimension, Graphics, Graphics2D, Insets,
-                 Paint, Shape, Stroke }
+import java.awt.{ Adjustable, BasicStroke, Color, Graphics, Graphics2D, Insets, Shape }
 import java.awt.event.{ AdjustmentEvent, AdjustmentListener }
 import java.awt.geom.{ Line2D, Rectangle2D }
-import javax.swing.{ JScrollBar, LookAndFeel, UIManager }
-import javax.swing.undo.{ UndoManager }
-import scala.math._
+import javax.swing.{ JScrollBar, UIManager }
 
-import de.sciss.app.{ DynamicAncestorAdapter, DynamicListening, PerformableEdit }
+import de.sciss.app.{ DynamicAncestorAdapter, DynamicListening }
 import de.sciss.io.Span
 import de.sciss.kontur.session.Timeline
 import de.sciss.synth.Model
@@ -75,7 +72,7 @@ extends JScrollBar( Adjustable.HORIZONTAL )
 with AdjustmentListener with DynamicListening {
     import TimelineScroll._
 
-	private var recentSize = getMinimumSize()
+	private var recentSize = getMinimumSize
     private var shpSelection: Option[ Shape ] = None
     private var shpPosition: Option[ Shape ] = None
 	private var timelineSel	= timelineView.selection.span
@@ -88,7 +85,7 @@ with AdjustmentListener with DynamicListening {
 //	private val adjustmentSource = new AnyRef
 
     private val trackMargin = {
-		val lafName = UIManager.getLookAndFeel().getName
+		val lafName = UIManager.getLookAndFeel.getName
 //println( "lafName = " + lafName )
         if( lafName.contains( "Aqua" ) || lafName.contains( "Quaqua" ) ||
             lafName.contains( "Mac OS X" )) {
@@ -106,10 +103,10 @@ with AdjustmentListener with DynamicListening {
 	private var isListening = false
 
     // ---- constructor ----
-    {
-        calcLenShift
-		recalcTransforms
-		recalcBoundedRange
+//    {
+        calcLenShift()
+		recalcTransforms()
+		recalcBoundedRange()
 
 		// --- Listener ---
 
@@ -117,9 +114,9 @@ with AdjustmentListener with DynamicListening {
         this.addAdjustmentListener( this )
 
 		setFocusable( false )
-    }
+//    }
 
-    private def calcLenShift {
+    private def calcLenShift() {
         var i = 0
         while( (timelineSpan.getLength >> i) > 0x3FFFFFFF ) i += 1
 		timelineLenShift = i
@@ -134,13 +131,13 @@ with AdjustmentListener with DynamicListening {
         super.paintComponent( g )
 
 		val d         = getSize()
-        val g2        = g.asInstanceOf[ Graphics2D ]
-		val strkOrig  = g2.getStroke()
-		val pntOrig   = g2.getPaint()
+      val g2        = g.asInstanceOf[ Graphics2D ]
+		val strkOrig  = g2.getStroke
+		val pntOrig   = g2.getPaint
 
 		if( d.width != recentSize.width || d.height != recentSize.height ) {
 			recentSize = d
-			recalcTransforms
+			recalcTransforms()
 		}
 
         shpSelection.foreach( shp => {
@@ -157,15 +154,15 @@ with AdjustmentListener with DynamicListening {
 		g2.setPaint( pntOrig )
     }
 
-    private def recalcBoundedRange {
+    private def recalcBoundedRange() {
 		val len   = (timelineSpan.getLength >> timelineLenShift).toInt
 		val len2  = (timelineVis.getLength >> timelineLenShift).toInt
 // println( "recalcBoundedRange: len = " + len + "; len2 = " + len2 )
 		if( (len > 0) && (len2 > 0) ) {
 			if( !isEnabled ) setEnabled( true )
 			setValues( (timelineVis.start >> timelineLenShift).toInt, len2, 0, len )   // val, extent, min, max
-			setUnitIncrement( max( 1, (len2 >> 5) ))            // 1/32 extent
-			setBlockIncrement( max( 1, (len2 * 3) >> 2 ))     // 3/4 extent
+			setUnitIncrement( math.max( 1, (len2 >> 5) ))            // 1/32 extent
+			setBlockIncrement( math.max( 1, (len2 * 3) >> 2 ))     // 3/4 extent
 		} else {
 			if( isEnabled ) setEnabled( false )
 			setValues( 0, 100, 0, 100 )	// full view will hide the scrollbar knob
@@ -176,8 +173,8 @@ with AdjustmentListener with DynamicListening {
      *  Calculates virtual->screen coordinates
      *  for timeline position and selection
      */
-    private def recalcTransforms {
-		if( !timelineSpan.isEmpty() ) {
+    private def recalcTransforms() {
+		if( !timelineSpan.isEmpty ) {
 			val scale = (recentSize.width - trackMargin.left - trackMargin.right).toDouble /
               timelineSpan.getLength
 			if( timelineSel.isEmpty ) {
@@ -225,8 +222,8 @@ with AdjustmentListener with DynamicListening {
 			} else {
 				start -= timelineVis.getLength >> 2
 			}
-			val stop  = min( timelineSpan.stop, max( timelineSpan.start, start ) + timelineVis.getLength )
-			start     = max( timelineSpan.start, stop - timelineVis.getLength )
+			val stop  = math.min( timelineSpan.stop, math.max( timelineSpan.start, start ) + timelineVis.getLength )
+			start     = math.max( timelineSpan.start, stop - timelineVis.getLength )
 			if( stop > start ) {
 				// it's crucial to update internal var timelineVis here because
 				// otherwise the delay between emitting the edit and receiving the
@@ -234,33 +231,33 @@ with AdjustmentListener with DynamicListening {
 				// to fire more than one edit!
 				timelineVis = new Span( start, stop )
                 timelineView.editor.foreach( ed => {
-                    val ce = ed.editBegin( "scroll" )
-    				ed.editScroll( ce, timelineVis )
-                    ed.editEnd( ce )
+                  val ce = ed.editBegin( "scroll" )
+    				   ed.editScroll( ce, timelineVis )
+                  ed.editEnd( ce )
                 })
 				return
 			}
 		}
 		timelinePos = pos
-		recalcTransforms
+		recalcTransforms()
 		repaint( patience )
 	}
 
-	def addCatchBypass {
+	def addCatchBypass() {
         catchBypassCount += 1
 		if( catchBypassCount == 1 ) {
 			catchBypassWasSynced = timelineVis.contains( timelinePos )
 		}
 	}
 
-	def removeCatchBypass {
+	def removeCatchBypass() {
         catchBypassCount -= 1
 		if( (catchBypassCount == 0) && catchBypassWasSynced ) {
 			catchBypassWasSynced = false
 			if( prefCatch && !timelineVis.contains( timelinePos )) {
 				var start = timelinePos - (timelineVis.getLength >> 2)
-				val stop  = min( timelineSpan.stop, max( timelineSpan.start, start ) + timelineVis.getLength )
-				start     = max( timelineSpan.start, stop - timelineVis.getLength )
+				val stop  = math.min( timelineSpan.stop, math.max( timelineSpan.start, start ) + timelineVis.getLength )
+				start     = math.max( timelineSpan.start, stop - timelineVis.getLength )
 				if( stop > start ) {
 					// it's crucial to update internal var timelineVis here because
 					// otherwise the delay between emitting the edit and receiving the
@@ -279,17 +276,17 @@ with AdjustmentListener with DynamicListening {
 
 // ---------------- DynamicListening interface ----------------
 
-    def startListening {
+    def startListening() {
     	if( !isListening ) {
     		isListening = true
 //println( "TimelineScroll : startListening ")
     		timelineView.addListener( timelineListener )
-    		recalcTransforms
+    		recalcTransforms()
     		repaint()
     	}
     }
 
-    def stopListening {
+    def stopListening() {
     	if( isListening ) {
     		isListening = false
             timelineView.removeListener( timelineListener )
@@ -307,9 +304,9 @@ with AdjustmentListener with DynamicListening {
 		catchBypassCount	= 0
 		adjustCatchBypass	= false
 		if( !timelineVis.contains( timelinePos )) {
-			var start	= max( 0, timelinePos - (timelineVis.getLength >> 2) )
-			val stop	= min( timelineSpan.stop, start + timelineVis.getLength )
-			start		= max( timelineSpan.start, stop - timelineVis.getLength )
+			var start   = math.max( 0, timelinePos - (timelineVis.getLength >> 2) )
+			val stop	   = math.min( timelineSpan.stop, start + timelineVis.getLength )
+			start		   = math.max( timelineSpan.start, stop - timelineVis.getLength )
 			if( stop > start ) {
 				timelineVis = new Span( start, stop )
                 timelineView.editor.foreach( ed => {
@@ -326,20 +323,20 @@ with AdjustmentListener with DynamicListening {
   private val timelineListener: Model.Listener = {
     case TimelineSelection.SpanChanged( _, newSpan ) => {
 		timelineSel = newSpan
-		recalcTransforms
+		recalcTransforms()
         repaint()
     }
     case Timeline.SpanChanged( _, newSpan ) => {
 		timelineSpan = newSpan
-        calcLenShift
-		recalcTransforms
-		recalcBoundedRange
+        calcLenShift()
+		recalcTransforms()
+		recalcBoundedRange()
         repaint()
     }
     case TimelineView.SpanChanged( _, newSpan ) => {
         if( newSpan != timelineVis ) {
             timelineVis = newSpan
-			recalcBoundedRange
+			recalcBoundedRange()
 		}
     }
   }
@@ -359,7 +356,7 @@ with AdjustmentListener with DynamicListening {
 
 		if( prefCatch && isAdjusting && !wasAdjusting ) {
 			adjustCatchBypass = true
-			addCatchBypass
+			addCatchBypass()
 		} else if( wasAdjusting && !isAdjusting && adjustCatchBypass ) {
 			if( prefCatch && !newVisi.contains( timelinePos )) {
 				// we need to set prefCatch here even though laterInvocation will handle it,
@@ -367,7 +364,7 @@ with AdjustmentListener with DynamicListening {
 				prefCatch = false
 			}
 			adjustCatchBypass = false
-			removeCatchBypass
+			removeCatchBypass()
 		}
 
 		if( !newVisi.equals( oldVisi )) {

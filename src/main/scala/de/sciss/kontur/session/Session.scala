@@ -30,7 +30,6 @@ package de.sciss.kontur.session
 
 import de.sciss.app.{ AbstractApplication }
 import de.sciss.common.{ BasicDocument, ProcessingThread }
-import de.sciss.io.{ IOUtil }
 import de.sciss.util.{ Flag }
 import de.sciss.kontur.util.{ BasicSerializerContext, SerializerContext }
 import de.sciss.synth.Model
@@ -114,7 +113,7 @@ extends BasicDocument with Model {
 	 * 	@synchronization	must be called in the event thread
 	 */
 	def start( process: ProcessingThread ) {
-		if( !EventQueue.isDispatchThread() ) throw new IllegalMonitorStateException()
+		if( !EventQueue.isDispatchThread ) throw new IllegalMonitorStateException()
 		if( pt.isDefined ) throw new IllegalStateException( "Process already running" )
 
 		pt = Some( process )
@@ -130,7 +129,7 @@ extends BasicDocument with Model {
 	def closeDocument( force: Boolean, wasClosed: Flag ) : ProcessingThread = {
 //		return frame.closeDocument( force, wasClosed );	// XXX should be in here not frame!!!
       wasClosed.set( true )
-	  AbstractApplication.getApplication().getDocumentHandler().removeDocument( this, this )
+	  AbstractApplication.getApplication.getDocumentHandler.removeDocument( this, this )
       null
 	}
 
@@ -144,12 +143,12 @@ extends BasicDocument with Model {
     }
 
     def name: Option[ String ] = pathVar.map( p => {
-            val n = p.getName()
+            val n = p.getName
             val i = n.lastIndexOf( '.' )
             if( i == -1 ) n else n.substring( 0, i )
         })
 
-	def getName() = name getOrElse null
+	def getName = name getOrElse null
 
    override def toString = "Session(" + name.getOrElse( "<Untitled>" ) + ")"
 
@@ -159,19 +158,19 @@ extends BasicDocument with Model {
   	protected def getResourceString( key: String ) : String =
 		getApplication().getResourceString( key )
       
-	def isDirty() : Boolean = dirty
+	def isDirty : Boolean = dirty
 
-    def setDirty( newDirty: Boolean ) = {
+    def setDirty( newDirty: Boolean ) {
 		if( dirty != newDirty ) {
 			dirty = newDirty
          dispatch( DirtyChanged( newDirty ))
 		}
 	}
 
-	def getApplication() : de.sciss.app.Application =
-      AbstractApplication.getApplication()
+	def getApplication : de.sciss.app.Application =
+      AbstractApplication.getApplication
 
-	def getUndoManager() : de.sciss.app.UndoManager = undo
+	def getUndoManager : de.sciss.app.UndoManager = undo
 
     def dispose() {
        // nada

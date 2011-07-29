@@ -28,16 +28,13 @@
 
 package de.sciss.kontur.gui
 
-import de.sciss.app.{ AbstractWindow }
-import de.sciss.gui.{ MultiStateButton }
+import de.sciss.app.AbstractWindow
 import de.sciss.kontur.sc.{ SuperColliderClient }
 import de.sciss.synth.{ Model, Server }
 import de.sciss.synth.swing.{ ServerStatusPanel }
-import java.awt.{ BorderLayout, Color, Dimension }
+import java.awt.BorderLayout
 import java.awt.event.{ ActionEvent, InputEvent, KeyEvent }
-import javax.swing.{ AbstractAction, BorderFactory, Box, JButton, JComponent,
-          JPanel, JProgressBar, KeyStroke, OverlayLayout }
-import scala.math._
+import javax.swing.{ AbstractAction, JComponent, KeyStroke }
 
 // note: should be PALETTE, but then we loose the key actions...
 class SuperColliderFrame extends AppWindow( AbstractWindow.SUPPORT /* PALETTE */ ) {
@@ -45,8 +42,8 @@ class SuperColliderFrame extends AppWindow( AbstractWindow.SUPPORT /* PALETTE */
    private val serverPanel = new ServerStatusPanel(
      ServerStatusPanel.COUNTS | ServerStatusPanel.BOOT_BUTTON ) {
 
-     override protected def bootServer: Unit = superCollider.boot
-     override protected def stopServer: Unit = superCollider.stop
+     override protected def bootServer { superCollider.boot }
+     override protected def stopServer { superCollider.stop }
      override protected def couldBoot: Boolean = true
    }
 
@@ -63,7 +60,7 @@ class SuperColliderFrame extends AppWindow( AbstractWindow.SUPPORT /* PALETTE */
 
       // ---- actions ----
       val imap		= getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW )
-      val amap		= getActionMap()
+      val amap		= getActionMap
       imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_N, 0 ), "dumptree" )
       amap.put( "dumptree", new ActionDumpTree( false ))
       imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_N, InputEvent.SHIFT_MASK ), "dumptreec" )

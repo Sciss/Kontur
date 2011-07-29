@@ -28,10 +28,10 @@
 
 package de.sciss.kontur.edit
 
-import java.awt.{ EventQueue }
-import javax.swing.undo.{ UndoManager }
-import de.sciss.app.{ AbstractCompoundEdit }
-import de.sciss.common.{ BasicCompoundEdit }
+import java.awt.EventQueue
+import javax.swing.undo.UndoManager
+import de.sciss.app.AbstractCompoundEdit
+import de.sciss.common.BasicCompoundEdit
 
 trait Editor {
 //    private var map = Map[ Int, Client ]()
@@ -39,7 +39,7 @@ trait Editor {
     def undoManager: UndoManager
 
 	def editBegin( name: String ) : AbstractCompoundEdit = {
-		if( !EventQueue.isDispatchThread() ) throw new IllegalMonitorStateException()
+		if( !EventQueue.isDispatchThread ) throw new IllegalMonitorStateException()
 		new BasicCompoundEdit( name )
 	}
     
@@ -50,14 +50,14 @@ trait Editor {
 //    }
 
 	def editEnd( ce: AbstractCompoundEdit ) {
-		if( !EventQueue.isDispatchThread() ) throw new IllegalMonitorStateException()
-        ce.perform
-        ce.end
+		if( !EventQueue.isDispatchThread ) throw new IllegalMonitorStateException()
+        ce.perform()
+        ce.end()
         undoManager.addEdit( ce )
 	}
 
 	def editCancel( ce: AbstractCompoundEdit ) {
-		if( !EventQueue.isDispatchThread() ) throw new IllegalMonitorStateException()
+		if( !EventQueue.isDispatchThread ) throw new IllegalMonitorStateException()
 		ce.cancel()
 	}
 

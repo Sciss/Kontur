@@ -28,27 +28,20 @@
 
 package de.sciss.kontur.gui
 
-import java.awt.{ BasicStroke, BorderLayout, Color, Dimension, FontMetrics, Graphics,
-                 Graphics2D, Paint, Rectangle, RenderingHints, Stroke, TexturePaint,
-                 Toolkit }
-import java.awt.event.{ ActionEvent, KeyAdapter, KeyEvent, KeyListener, MouseEvent }
-import java.awt.geom.{ GeneralPath }
-import java.awt.image.{ BufferedImage }
-import java.io.{ IOException }
-import javax.swing.{ Action, ActionMap, InputMap, JButton, JComponent, JLabel,
-                    JOptionPane, JPanel, JTextField, KeyStroke }
-import javax.swing.event.{ AncestorEvent, MouseInputAdapter, MouseInputListener }
-import scala.collection.mutable.{ ListBuffer }
-import scala.math._
+import java.awt.{ BasicStroke, Color, Dimension, FontMetrics, Graphics,
+                 Graphics2D, Rectangle, RenderingHints, TexturePaint }
+import java.awt.event.{ KeyAdapter, KeyEvent, MouseEvent }
+import java.awt.geom.GeneralPath
+import java.awt.image.BufferedImage
+import java.io.IOException
+import javax.swing.JComponent
+import javax.swing.event.MouseInputAdapter
+import scala.collection.mutable.ListBuffer
+//import scala.math._
 
-import de.sciss.app.{ AbstractApplication, AncestorAdapter, Application, BasicEvent,
-                     DynamicAncestorAdapter, DynamicListening, EventManager,
-                     GraphicsHandler }
-import de.sciss.common.{ BasicWindowHandler }
-import de.sciss.gui.{ ComponentHost, DoClickAction, MenuAction,
-                     SpringPanel }
-import de.sciss.io.{ Span }
-import de.sciss.util.{ DefaultUnitTranslator, Disposable, Param, ParamSpace }
+import de.sciss.app.{ AbstractApplication, DynamicAncestorAdapter, DynamicListening, GraphicsHandler }
+import de.sciss.gui.ComponentHost
+import de.sciss.util.Disposable
 import de.sciss.kontur.session.{ Marker, Trail, TrailEditor }
 import de.sciss.synth.Model
 
@@ -123,7 +116,7 @@ with DynamicListening with Disposable {
     private val marks       = new ListBuffer[ Mark ]()
 
 	// ----- Edit-Marker Dialog -----
-	private var editMarkerPane: Option[ JPanel ] = None
+//	private var editMarkerPane: Option[ JPanel ] = None
 //	private Object[]					editOptions		= null;
 //	private ParamField					ggMarkPos;
 //	protected JTextField				ggMarkName;
@@ -142,7 +135,7 @@ with DynamicListening with Disposable {
 
 	private val mil = new MouseInputAdapter() {
 			override def mousePressed( e: MouseEvent ) {
-				val scale	= visibleSpan.getLength.toDouble / max( 1, getWidth )
+				val scale	= visibleSpan.getLength.toDouble / math.max( 1, getWidth )
 				val pos		= (e.getX * scale + visibleSpan.start + 0.5).toLong
 
 				if( shpFlags.contains( e.getPoint )) {
@@ -188,7 +181,7 @@ with DynamicListening with Disposable {
 			override def mouseDragged( e: MouseEvent ) {
               drag.foreach( d => {
 				if( !d.started ) {
-					if( abs( e.getX - d.startX ) < 5 ) return
+					if( math.abs( e.getX - d.startX ) < 5 ) return
 					d.started = true
 				}
 
@@ -198,7 +191,7 @@ with DynamicListening with Disposable {
 
 				if( oldPos == newPos ) return
 
-				val dirtySpan = new Span( min( oldPos, newPos ), max( oldPos, newPos ))
+//				val dirtySpan = new Span( min( oldPos, newPos ), max( oldPos, newPos ))
 				d.lastMark = Some( Marker( newPos, d.firstMark.name ))
 //				dispatchEvent( Event.DRAGADJUSTED, dirtySpan )
 			  })
@@ -229,7 +222,7 @@ with DynamicListening with Disposable {
 		setPreferredSize( new Dimension( getPreferredSize.width, barExtent ))
 
 		setOpaque( true )
- 		setFont( AbstractApplication.getApplication().getGraphicsHandler().getFont(
+ 		setFont( AbstractApplication.getApplication.getGraphicsHandler.getFont(
             GraphicsHandler.FONT_SYSTEM | GraphicsHandler.FONT_MINI ))
 
         new DynamicAncestorAdapter( this ).addTo( this )
@@ -244,7 +237,7 @@ with DynamicListening with Disposable {
         newTrail.foreach( t => {
             if( isListening ) t.addListener( trailListener )
 		})
-		triggerRedisplay
+		triggerRedisplay()
 	}
 
     def editor = editorVar
@@ -264,13 +257,13 @@ with DynamicListening with Disposable {
 	}
 
 	protected def getResourceString( key: String ) =
-		AbstractApplication.getApplication().getResourceString( key )
+		AbstractApplication.getApplication.getResourceString( key )
 
 	private def recalcDisplay( fm: FontMetrics ) {
 		val scale = recentWidth.toDouble / visibleSpan.getLength
 
 		shpFlags.reset()
-        marks.clear
+        marks.clear()
         trailVar.foreach( t => {
           t.visitRange( visibleSpan ) { m =>
             val flagPos = (((m.pos - visibleSpan.start) * scale) + 0.5).toInt
@@ -288,7 +281,7 @@ with DynamicListening with Disposable {
 		val fm	= g2.getFontMetrics
 		val y	= fm.getAscent + 2
 
-		if( doRecalc || (recentWidth != getWidth()) ) {
+		if( doRecalc || (recentWidth != getWidth) ) {
 			recentWidth = getWidth
 			recalcDisplay( fm )
 		}
@@ -367,7 +360,7 @@ with DynamicListening with Disposable {
 		if( editorVar.isEmpty ) throw new IllegalStateException()
 
 		getMarkerLeftTo( pos ).foreach( m => {
-          val posC	= timelineView.timeline.span.clip( pos )
+//          val posC	= timelineView.timeline.span.clip( pos )
           val ed      = editorVar.get
           val ce      = ed.editBegin( getResourceString( "editDeleteMarker" ))
           try {
@@ -551,8 +544,8 @@ with DynamicListening with Disposable {
 
 	// -------------- Disposable interface --------------
 
-	def dispose {
-		stopListening
+	def dispose() {
+		stopListening()
 		editor = None
 		trail  = None
 //		markLabels	= null;
@@ -569,7 +562,7 @@ with DynamicListening with Disposable {
 		if( !isListening ) {
 			timelineView.addListener( timelineListener )
             trailVar.foreach( _.addListener( trailListener ))
-			triggerRedisplay
+			triggerRedisplay()
 			isListening = true
 		}
     }
@@ -594,7 +587,7 @@ with DynamicListening with Disposable {
 	private val timelineListener: Model.Listener = {
         case TimelineView.SpanChanged( _, newSpan ) => {
             visibleSpan = newSpan
-            triggerRedisplay
+            triggerRedisplay()
         }
     }
     

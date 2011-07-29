@@ -30,9 +30,8 @@ package de.sciss.kontur.gui
 
 import java.awt.Rectangle
 import java.awt.event.MouseEvent
-import javax.swing.event.{ MouseInputAdapter, MouseInputListener }
-import de.sciss.app.{ AbstractApplication, Application, DynamicAncestorAdapter,
-                        DynamicListening, GraphicsHandler }
+import javax.swing.event.MouseInputAdapter
+import de.sciss.app.{ AbstractApplication, DynamicAncestorAdapter, DynamicListening, GraphicsHandler }
 import de.sciss.gui.{ /* Axis,*/ ComponentHost, VectorSpace }
 import de.sciss.io.Span
 import de.sciss.kontur.session.Timeline
@@ -56,8 +55,8 @@ with DynamicListening {
             private var altDrag         = false
 
         	override def mousePressed( e: MouseEvent ) {
-        		shiftDrag		= e.isShiftDown()
-        		altDrag			= e.isAltDown()
+        		shiftDrag		= e.isShiftDown
+        		altDrag			= e.isAltDown
         		selectionStart  = -1L
         		dragTimelinePosition( e )
         	}
@@ -70,7 +69,7 @@ with DynamicListening {
                 view.editor.foreach( ed => {
                   // translate into a valid time offset
                   val position  = view.timeline.span.clip(
-                    timelineVis.start + ((e.getX().toDouble / getWidth) * timelineVis.getLength).toLong )
+                    timelineVis.start + ((e.getX.toDouble / getWidth) * timelineVis.getLength).toLong )
 
                   val ce = ed.editBegin( getResourceString( "editTimelineView" ))
 
@@ -124,14 +123,14 @@ with DynamicListening {
         val scale       = tlSpan.getLength.toDouble / w
         val start       = (r.x * scale + 0.5).toLong + tlSpan.start
         val stop        = (r.width * scale + 0.5).toLong + start
-        val timelineVis = new Span( start, stop )
+        timelineVis = new Span( start, stop )
         recalcSpace( false )
     }
 
     // ---- constructor ----
     {
- 		val app = AbstractApplication.getApplication()
- 		setFont( app.getGraphicsHandler().getFont( GraphicsHandler.FONT_SYSTEM | GraphicsHandler.FONT_MINI ))
+ 		val app = AbstractApplication.getApplication
+ 		setFont( app.getGraphicsHandler.getFont( GraphicsHandler.FONT_SYSTEM | GraphicsHandler.FONT_MINI ))
 
         if( view.editor.isDefined ) {
 //println( "EDITOR" )
@@ -195,13 +194,13 @@ with DynamicListening {
     }
 
 	protected def getResourceString( key: String ) =
-		AbstractApplication.getApplication().getResourceString( key )
+		AbstractApplication.getApplication.getResourceString( key )
 
 	// -------------- Disposable interface --------------
 
 	override def dispose() {
-		stopListening
+		stopListening()
 //		editor = null
-		super.dispose
+		super.dispose()
 	}
 }

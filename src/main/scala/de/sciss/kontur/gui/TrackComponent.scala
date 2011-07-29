@@ -44,7 +44,6 @@ import java.nio.{ CharBuffer }
 import javax.swing.{ JComponent, Spring, SpringLayout, TransferHandler }
 import javax.swing.event.{ MouseInputAdapter }
 import scala.collection.{ IterableLike }
-import scala.math._
 import de.sciss.kontur.io.{ SonagramPaintController }
 import de.sciss.kontur.session.{ AudioFileElement, AudioRegion, AudioTrack,
                                 BasicTrail, FadeSpec, Region, RegionTrait,
@@ -191,13 +190,13 @@ extends JComponent with TrackToolsListener with DynamicListening {
    protected def unionSpan( stakes: IterableLike[ Stake[ _ ], _ ]) : Span = {
       val (start, stop) = stakes.foldLeft(
          (Long.MaxValue, Long.MinValue) )( (tup, stake) =>
-            (min( tup._1, stake.span.start ), max( tup._2, stake.span.stop)) )
+            (math.min( tup._1, stake.span.start ), math.max( tup._2, stake.span.stop)) )
       if( start < stop ) {
          new Span( start, stop )
       } else new Span()
    }
 
-   private def showObserverPage {
+   private def showObserverPage() {
 //       val page      = StakeObserverPage.instance
 //       val observer  = AbstractApplication.getApplication()
 //          .getComponent( Main.COMP_OBSERVER ).asInstanceOf[ ObserverFrame ]
@@ -440,17 +439,17 @@ extends JComponent with TrackToolsListener with DynamicListening {
          val tlSpan = timelineView.timeline.span
          if( move != 0L ) {
             val m = if( move < 0)
-               max( tlSpan.start - stake.span.start, move )
+               math.max( tlSpan.start - stake.span.start, move )
             else
-               min( tlSpan.stop - stake.span.stop, move )
+               math.min( tlSpan.stop - stake.span.stop, move )
             stake.move( m )
          } else if( moveOuter != 0L ) {
             stake match {
                case sStake: SlidableStake[ _ ] => {
                   val mOuter = if( moveOuter < 0)
-                     max( tlSpan.start - stake.span.start, moveOuter )
+                     math.max( tlSpan.start - stake.span.start, moveOuter )
                   else
-                     min( tlSpan.stop - stake.span.stop, moveOuter )
+                     math.min( tlSpan.stop - stake.span.stop, moveOuter )
                   sStake.moveOuter( mOuter )
                }
                case _ => stake
@@ -464,9 +463,9 @@ extends JComponent with TrackToolsListener with DynamicListening {
             stake match {
                case rStake: ResizableStake[ _ ] => {
                   val mStart = if( moveStart < 0 )
-                     max( tlSpan.start - stake.span.start, moveStart )
+                     math.max( tlSpan.start - stake.span.start, moveStart )
                   else
-                     min( stake.span.getLength - MIN_SPAN_LEN, moveStart )
+                     math.min( stake.span.getLength - MIN_SPAN_LEN, moveStart )
 
 //println( "stake " + stake.span + "; moveStart " + moveStart + "; mStart " + mStart )
                   rStake.moveStart( mStart )
@@ -477,9 +476,9 @@ extends JComponent with TrackToolsListener with DynamicListening {
             stake match {
                case rStake: ResizableStake[ _ ] => {
                   val mStop = if( moveStop < 0 )
-                     max( -stake.span.getLength + MIN_SPAN_LEN, moveStop )
+                     math.max( -stake.span.getLength + MIN_SPAN_LEN, moveStop )
                   else
-                     min( tlSpan.stop - stake.span.stop, moveStop )
+                     math.min( tlSpan.stop - stake.span.stop, moveStop )
                   rStake.moveStop( mStop )
                }
                case _ => stake
@@ -551,7 +550,7 @@ with SonagramPaintController {
                   val dirtySpan = if( dropPos.isDefined ) {
                      val pos1 = dropPos.get
                      val pos2 = newLoc getOrElse pos1
-                     new Span( min( pos1, pos2 ), max( pos1, pos2 ))
+                     new Span( math.min( pos1, pos2 ), math.max( pos1, pos2 ))
                   } else {
                      val pos1 = newLoc.get
                      new Span( pos1, pos1 )
@@ -568,15 +567,15 @@ with SonagramPaintController {
               })
               if( dtde.isDataFlavorSupported( DataFlavor.stringFlavor )) {
                  dtde.acceptDrop( DnDConstants.ACTION_COPY )
-                 val str = dtde.getTransferable().getTransferData( DataFlavor.stringFlavor ).toString()
+                 val str = dtde.getTransferable.getTransferData( DataFlavor.stringFlavor ).toString
                  val arr = str.split( ':' )
                  if( arr.size == 3 ) {
                    try {
                       val path   = new File( arr( 0 ))
                       val span   = new Span( arr( 1 ).toLong, arr( 2 ).toLong )
                       val tlSpan = timelineView.timeline.span
-                      val insPos = max( tlSpan.start, min( tlSpan.stop,
-                          screenToVirtual( dtde.getLocation().x )))
+                      val insPos = math.max( tlSpan.start, math.min( tlSpan.stop,
+                          screenToVirtual( dtde.getLocation.x )))
                       pasteExtern( path, span, insPos )
                    }
                    catch { case e1: NumberFormatException => }
@@ -673,7 +672,7 @@ with SonagramPaintController {
 
                 audioTrack.trail.editor.foreach( ted => {
                      val insSpan = new Span( insPos,
-                                min( insPos + fileSpan.getLength,
+                                math.min( insPos + fileSpan.getLength,
                                      timelineView.timeline.span.stop ))
                       if( !insSpan.isEmpty ) {
                          val ar = new AudioRegion( insSpan, afe.name, afe, fileSpan.start )
@@ -765,7 +764,7 @@ with SonagramPaintController {
 
       override protected def stakeInfo( stake: AudioRegion ) : Option[ String ] = {
          val db = MathUtil.linearToDB( stake.gain ) // * dragGain
-         val cb = (abs( db ) * 10 + 0.5).toInt
+         val cb = (math.abs( db ) * 10 + 0.5).toInt
          Some( (if( db > 0 ) "+" else if( db < 0) "-" else "") + (cb/10) + "." + (cb%10) + " dB" )
       }
    }
@@ -786,6 +785,7 @@ with SonagramPaintController {
 
       protected def transform( stake: track.T ) = stake match {
          case ar: AudioRegion => {
+            import math._
             var tStake: AudioRegion = ar
             val fadeInChange  = dragFdInTime  != 0L || dragFdInCurve != 0f
             val fadeOutChange = dragFdOutTime != 0L || dragFdOutCurve != 0f
@@ -828,6 +828,7 @@ with SonagramPaintController {
    protected trait AudioStakePainter extends DefaultPainterTrait {
 //      DefaultPainter =>
       private def paintFade( f: FadeSpec, pc: PaintContext, y1: Float, y2: Float, x: Float, y: Float, h: Float, x0: Float ) {
+         import math._
          val shpFill = new Path2D.Float()
          val shpDraw = new Path2D.Float()
          val px = (f.numFrames * pc.p_scale).toFloat
@@ -858,6 +859,7 @@ with SonagramPaintController {
       protected def stakeInfo( stake: AudioRegion ) : Option[ String ] = None
 
       override def paintStake( pc: PaintContext, stake: track.T, selected: Boolean ) {
+         import math._
          stake match {
             case ar: AudioRegion => { // man, no chance to skip this matching??
                val x = pc.virtualToScreen( ar.span.start )

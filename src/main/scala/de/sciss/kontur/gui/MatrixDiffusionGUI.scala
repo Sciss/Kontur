@@ -33,14 +33,14 @@ import java.awt.event.{ ActionEvent, ActionListener, MouseEvent }
 import javax.swing.{ AbstractCellEditor, Box, GroupLayout, JButton, JComponent, JLabel, JPanel, JScrollPane, JTable,
    JTextField, SwingConstants }
 import SwingConstants._
-import javax.swing.border.{ Border }
-import javax.swing.event.{ MouseInputAdapter }
+import javax.swing.border.Border
+import javax.swing.event.MouseInputAdapter
 import javax.swing.table.{ AbstractTableModel, DefaultTableColumnModel, TableCellEditor, TableCellRenderer, TableColumn }
 import scala.math._
 import de.sciss.app.{ AbstractCompoundEdit, Document, DynamicAncestorAdapter, DynamicListening }
 import de.sciss.gui.{ ParamField => PF }
 import de.sciss.kontur.session.{ Diffusion, DiffusionEditor, DiffusionFactory, MatrixDiffusion, Renameable, Session }
-import de.sciss.kontur.util.{ Matrix2D }
+import de.sciss.kontur.util.Matrix2D
 import de.sciss.util.{ Param, ParamSpace }
 import de.sciss.synth.Model
 
@@ -75,10 +75,10 @@ extends JPanel with ObserverPage with DynamicListening {
 
    private val diffListener: Model.Listener = {
       // XXX the updates could be more selective
-      case Renameable.NameChanged( _, _ )             => updateGadgets
-      case Diffusion.NumInputChannelsChanged( _, _ )  => updateGadgets
-      case Diffusion.NumOutputChannelsChanged( _, _ ) => updateGadgets
-      case MatrixDiffusion.MatrixChanged( _, _ )      => updateGadgets
+      case Renameable.NameChanged( _, _ )             => updateGadgets()
+      case Diffusion.NumInputChannelsChanged( _, _ )  => updateGadgets()
+      case Diffusion.NumOutputChannelsChanged( _, _ ) => updateGadgets()
+      case MatrixDiffusion.MatrixChanged( _, _ )      => updateGadgets()
    }
 
    // ---- constructor ----
@@ -99,14 +99,14 @@ extends JPanel with ObserverPage with DynamicListening {
       tabMatrix.setDefaultRenderer( classOf[ java.lang.Object ], matrixRenderer )
       tabMatrix.setDefaultEditor( classOf[ java.lang.Object ], matrixEditor )
       tabMatrix.setAutoResizeMode( JTable.AUTO_RESIZE_OFF )
-      tabMatrix.getTableHeader().setReorderingAllowed( false )
-      tabMatrix.getTableHeader().setResizingAllowed( false )
+      tabMatrix.getTableHeader.setReorderingAllowed( false )
+      tabMatrix.getTableHeader.setResizingAllowed( false )
       tabMatrix.setColumnModel( new MatrixColumnModel )
-      scrollMatrix.getViewport().setBackground( SystemColor.control )
+      scrollMatrix.getViewport.setBackground( SystemColor.control )
       ggMatrix.add( scrollMatrix )
       ggMatrixApply.putClientProperty( "JButton.buttonType", "bevel" )
       ggMatrixApply.addActionListener( new ActionListener {
-         def actionPerformed( e: ActionEvent ) = applyMatrixChanges
+         def actionPerformed( e: ActionEvent ) { applyMatrixChanges() }
       })
       val bTmp = Box.createHorizontalBox()
       bTmp.add( Box.createHorizontalGlue ); bTmp.add( ggMatrixApply )
@@ -118,18 +118,24 @@ extends JPanel with ObserverPage with DynamicListening {
       )
 
       ggName.addActionListener( new ActionListener {
-         def actionPerformed( e: ActionEvent ) = editRename( ggName.getText() )
+         def actionPerformed( e: ActionEvent ) {
+            editRename( ggName.getText )
+         }
       })
 
       ggNumInputChannels.addListener( new PF.Listener {
-         def paramValueChanged( e: PF.Event ) = if( !e.isAdjusting )
-            editSetNumInputChannels( e.getValue.`val`.toInt )
+         def paramValueChanged( e: PF.Event ) {
+            if( !e.isAdjusting )
+               editSetNumInputChannels( e.getValue.`val`.toInt )
+         }
          def paramSpaceChanged( e: PF.Event ) {}
       })
 
       ggNumOutputChannels.addListener( new PF.Listener {
-         def paramValueChanged( e: PF.Event ) = if( !e.isAdjusting )
-            editSetNumOutputChannels( e.getValue.`val`.toInt )
+         def paramValueChanged( e: PF.Event ) {
+            if( !e.isAdjusting )
+               editSetNumOutputChannels( e.getValue.`val`.toInt )
+         }
          def paramSpaceChanged( e: PF.Event ) {}
       })
 
@@ -222,13 +228,13 @@ extends JPanel with ObserverPage with DynamicListening {
         else head
     }
 
-    private def updateGadgets {
+    private def updateGadgets() {
         val enabled  = !objects.isEmpty
         val editable = enabled && objects.forall( _.editor.isDefined )
         ggName.setText( collapse( objects.map( _.name ): _* ))
         ggName.setEnabled( enabled )
         ggName.setEditable( editable )
-        val pDummy = new Param( Double.NaN, ParamSpace.NONE )
+//        val pDummy = new Param( Double.NaN, ParamSpace.NONE )
         ggNumInputChannels.setValue( new Param( collapse(
               objects.map( _.numInputChannels.toDouble ): _* ),
             ParamSpace.NONE ))
@@ -260,28 +266,28 @@ extends JPanel with ObserverPage with DynamicListening {
        objects.foreach( _.removeListener( diffListener ))
        objects = diff.toList
        if( isListening ) {
-          updateGadgets
+          updateGadgets()
           objects.foreach( _.addListener( diffListener ))
        }
     }
 
-   def startListening {
+   def startListening() {
       isListening = true
-      updateGadgets
+      updateGadgets()
       objects.foreach( _.addListener( diffListener ))
    }
 
-   def stopListening {
+   def stopListening() {
       isListening = false
       objects.foreach( _.removeListener( diffListener ))
    }
 
-    private def matrixChanged {
+    private def matrixChanged() {
        ggMatrixApply.setEnabled( true )
-       if( autoApply ) applyMatrixChanges 
+       if( autoApply ) applyMatrixChanges()
     }
 
-    private def applyMatrixChanges {
+    private def applyMatrixChanges() {
        ggMatrixApply.setEnabled( false )
        editSetMatrix( matrixModel.matrix )
     }
@@ -306,14 +312,14 @@ extends JPanel with ObserverPage with DynamicListening {
             val colsChanged = newMatrix.numColumns != matrixVar.numColumns
             matrixVar = newMatrix
             if( colsChanged ) {
-                fireTableStructureChanged
+                fireTableStructureChanged()
             } else {
-                fireTableDataChanged
+                fireTableDataChanged()
             }
         }
 
-        def getRowCount() : Int = matrixVar.numRows
-        def getColumnCount() : Int = matrixVar.numColumns
+        def getRowCount : Int = matrixVar.numRows
+        def getColumnCount : Int = matrixVar.numColumns
         def getValueAt( row: Int, column: Int ) : AnyRef =
            MatrixCellValue( matrix( row, column ))
 
@@ -326,7 +332,7 @@ extends JPanel with ObserverPage with DynamicListening {
               case MatrixCellValue( f ) => {
                   if( matrix( row, col ) != f ) {
                       matrix = matrix( row, col ) = f
-                      matrixChanged
+                      matrixChanged()
                   }
               }
               case _ =>
@@ -360,8 +366,8 @@ extends JPanel with ObserverPage with DynamicListening {
         }
 
         override def paintComponent( g: Graphics ) {
-            g.setColor( getBackground() )
-            g.fillRect( 0, 0, getWidth(), getHeight() )
+            g.setColor( getBackground )
+            g.fillRect( 0, 0, getWidth, getHeight )
         }
     }
 
@@ -373,7 +379,7 @@ extends JPanel with ObserverPage with DynamicListening {
         private var lastClickRow  = -1
         private var lastClickTime = 0L
         private var editCol = -1
-        private var editRow = -1
+        private var editRow = -1;
 
         // ---- constructor ----
         {
@@ -451,11 +457,11 @@ extends JPanel with ObserverPage with DynamicListening {
             comp
         }
 
-        def getCellEditorValue() : AnyRef = editVal getOrElse null
+        def getCellEditorValue : AnyRef = editVal getOrElse null
 
         def getBorderInsets( c: Component ) = new Insets( 0, 0, 0, 0 )
 
-        def isBorderOpaque() = true
+        def isBorderOpaque = true
 
         def paintBorder( c: Component, g:  Graphics, x: Int, y: Int, w: Int, h: Int ) {
             g.setColor( Color.red )

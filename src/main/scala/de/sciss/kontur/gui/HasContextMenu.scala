@@ -28,8 +28,6 @@
 
 package de.sciss.kontur.gui
 
-import java.awt.{ Component }
-
 trait HasContextMenu {
   def createContextMenu() : Option[ PopupRoot ]
 }

@@ -28,7 +28,7 @@
 
 package de.sciss.kontur.gui
 
-import javax.swing.{ JComponent }
+import javax.swing.JComponent
 import de.sciss.kontur.session.{ ConvolutionDiffusion, Diffusion, DiffusionFactory, MatrixDiffusion, Session }
 
 object DiffusionGUIFactory {

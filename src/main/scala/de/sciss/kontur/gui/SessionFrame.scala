@@ -62,8 +62,8 @@ trait SessionFrame {
         override def windowActivated( e: AbstractWindow.Event ) {
             // need to check 'disposed' to avoid runtime exception in doc handler if document was just closed
             if( !disposed ) {
-                app.getDocumentHandler().setActiveDocument( frame, doc )
-                app.getWindowHandler().asInstanceOf[ BasicWindowHandler ].setMenuBarBorrower( frame )
+                app.getDocumentHandler.setActiveDocument( frame, doc )
+                app.getWindowHandler.asInstanceOf[ BasicWindowHandler ].setMenuBarBorrower( frame )
             }
         }
     }
@@ -73,7 +73,7 @@ trait SessionFrame {
       case Session.PathChanged( _, _ ) => updateTitle
    }
 
-   private var disposed   = false  // compiler problem, we cannot name it disposed
+   private var disposed   = false;  // compiler problem, we cannot name it disposed
    
    // ---- constructor ----
    {
@@ -98,17 +98,17 @@ trait SessionFrame {
 
    protected def elementName: Option[ String ]
 
-   protected def windowClosing: Unit
+   protected def windowClosing(): Unit
 
 	/**
 	 *  Recreates the main frame's title bar
 	 *  after a sessions name changed (clear/load/save as session)
 	 */
-   protected def updateTitle {
+   protected def updateTitle() {
       writeProtected	= doc.path.map( !_.canWrite ) getOrElse false
 
       val name = doc.displayName
-      setTitle( (if( !internalFrames ) app.getName() else "") +
+      setTitle( (if( !internalFrames ) app.getName else "") +
                 (if( doc.isDirty() ) " - \u2022" else " - ") + name + (elementName.map( e => " - " + e ) getOrElse "") )
 
       actionShowWindow.putValue( Action.NAME, name )
@@ -121,18 +121,18 @@ trait SessionFrame {
 
 		if( writeProtected && !wpHaveWarned && doc.isDirty() ) {
 			val op = new JOptionPane( getResourceString( "warnWriteProtected" ), JOptionPane.WARNING_MESSAGE )
-			BasicWindowHandler.showDialog( op, getWindow(), getResourceString( "msgDlgWarn" ))
+			BasicWindowHandler.showDialog( op, getWindow, getResourceString( "msgDlgWarn" ))
 			wpHaveWarned = true
 		}
 	}
 
-   protected def documentClosed {
+   protected def documentClosed() {
       disposed = true	// important to avoid "too late window messages" to be processed; fucking swing doesn't kill them despite listener being removed
       removeListener( winListener )
       doc.removeListener( docListener )
-      actionShowWindow.dispose
+      actionShowWindow.dispose()
       app.getDocumentHandler.removeDocument( this, doc )	// XXX
-      dispose
+      dispose()
    }
 
    private def closeDocument( force: Boolean, wasClosed: Flag ) {
@@ -159,7 +159,7 @@ trait SessionFrame {
       }
 println( "wasClosed : " + wasClosed.isSet )
       if( wasClosed.isSet ) {
-         documentClosed
+         documentClosed()
       }
 //      return null;
    }
@@ -209,12 +209,12 @@ println( "wasClosed : " + wasClosed.isSet )
       val op = new JOptionPane( name + " :\n" + getResourceString( "optionDlgUnsaved" ),
                             JOptionPane.WARNING_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION, null,
                             options, options( 1 ))
-      val d = op.createDialog( getWindow(), actionName )
-      val rp = d.getRootPane()
+      val d = op.createDialog( getWindow, actionName )
+      val rp = d.getRootPane
       if( rp != null ) {
          rp.getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW ).put(
            KeyStroke.getKeyStroke( KeyEvent.VK_D, BasicMenuFactory.MENU_SHORTCUT ), "dont" )
-         rp.getActionMap().put( "dont", new AbstractAction {
+         rp.getActionMap.put( "dont", new AbstractAction {
             def actionPerformed( e: ActionEvent ) {
                dont.set(  true )
                d.dispose()
@@ -222,10 +222,10 @@ println( "wasClosed : " + wasClosed.isSet )
          })
       }
       BasicWindowHandler.showDialog( d )
-      val choice = if( dont.isSet() ) {
+      val choice = if( dont.isSet ) {
          2
       } else {
-         val value = op.getValue()
+         val value = op.getValue
          if( (value == null) || (value == options( 1 ))) {
             1
          } else if( value == options( 0 )) {
@@ -249,12 +249,12 @@ println( "wasClosed : " + wasClosed.isSet )
       case 0 => {
          confirmed.set( false )
          val path = if( doc.path.isEmpty || writeProtected ) {
-            actionSaveAs.query( actionSave.getValue( Action.NAME ).toString() )
+            actionSaveAs.query( actionSave.getValue( Action.NAME ).toString )
          } else {
             doc.path
          }
          path.map( p => {
-            actionSave.perform( actionSave.getValue( Action.NAME ).toString(), p, false, false )
+            actionSave.perform( actionSave.getValue( Action.NAME ).toString, p, false, false )
          }) getOrElse false
       }
       case _ => {
@@ -264,9 +264,9 @@ println( "wasClosed : " + wasClosed.isSet )
    }
 
    protected class ActionClose extends MenuAction {
-      def actionPerformed( e: ActionEvent ): Unit = perform
+      def actionPerformed( e: ActionEvent ) { perform }
 
-      def perform {
+      def perform() {
          closeDocument( false, new Flag( false ))
       }
    }
@@ -293,7 +293,7 @@ println( "wasClosed : " + wasClosed.isSet )
             if( !asCopy ) {
                app.getMenuFactory.addRecent( file )
                doc.path = Some( file )
-               doc.getUndoManager.discardAllEdits
+               doc.getUndoManager.discardAllEdits()
             }
             if( openAfterSave ) {
                app.getMenuFactory.openDocument( file )
@@ -301,7 +301,7 @@ println( "wasClosed : " + wasClosed.isSet )
             true
          }
          catch { case e1: IOException =>
-            BasicWindowHandler.showErrorDialog( getWindow(), e1, name )
+            BasicWindowHandler.showErrorDialog( getWindow, e1, name )
             false
          }
       }

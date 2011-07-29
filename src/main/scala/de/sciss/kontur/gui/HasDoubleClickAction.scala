@@ -29,5 +29,5 @@
 package de.sciss.kontur.gui
 
 trait HasDoubleClickAction {
-  def doubleClickAction : Unit
+  def doubleClickAction() : Unit
 }

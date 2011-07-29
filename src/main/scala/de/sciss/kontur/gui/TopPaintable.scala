@@ -28,8 +28,8 @@
 
 package de.sciss.kontur.gui
 
-import java.awt.{ Graphics2D }
-import scala.collection.immutable.{ Queue }
+import java.awt.Graphics2D
+import scala.collection.immutable.Queue
 
 trait TopPaintable {
   private var topPainters: Queue[ Graphics2D => Unit ] = Queue.empty

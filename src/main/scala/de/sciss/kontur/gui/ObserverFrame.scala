@@ -28,30 +28,11 @@
 
 package de.sciss.kontur.gui
 
-import de.sciss.app.{ AbstractApplication, AbstractCompoundEdit, AbstractWindow,
-                     Document, DocumentEvent,
-                     DocumentListener, DynamicListening }
-import de.sciss.gui.{ ParamField => PF }
-import de.sciss.util.{ NumberSpace, Param, ParamSpace }
-import de.sciss.kontur.{ Main }
-import de.sciss.kontur.edit.{ Editor }
-import de.sciss.kontur.session.{ Diffusion, DiffusionEditor }
-import de.sciss.kontur.util.{ Matrix2D }
-import java.awt.{ BorderLayout, Color, Component, Cursor, Dimension, Graphics,
-                  Insets, SystemColor }
-import java.awt.event.{ ActionEvent, ActionListener, MouseEvent }
-import javax.swing.{ AbstractCellEditor, Box, BoxLayout, GroupLayout, JButton,
-                    JComponent, JLabel, JPanel, JScrollPane,
-                    JTabbedPane, JTable, JTextField,
-                    SwingConstants, WindowConstants }
-import javax.swing.border.{ Border }
-import javax.swing.event.{ ChangeEvent, ChangeListener, MouseInputAdapter }
-import javax.swing.table.{ AbstractTableModel, DefaultTableCellRenderer,
-                          DefaultTableColumnModel, TableCellEditor,
-                          TableCellRenderer, TableColumn }
-import scala.math._
-
-import SwingConstants._
+import de.sciss.app.{ AbstractWindow, Document, DocumentEvent, DocumentListener }
+import de.sciss.kontur.Main
+import java.awt.{ BorderLayout, Dimension }
+import javax.swing.{ JComponent, JTabbedPane, WindowConstants }
+import javax.swing.event.{ ChangeEvent, ChangeListener }
 import WindowConstants._
 
 class ObserverFrame extends AppWindow( AbstractWindow.PALETTE )
@@ -69,19 +50,19 @@ with DocumentListener {
 //        ggTabPane.setPreferredSize( new Dimension( 400, 400 )) // XXX
         ggTabPane.addChangeListener( new ChangeListener {
             def stateChanged( e: ChangeEvent ) {
-                val c = ggTabPane.getSelectedComponent()
+                val c = ggTabPane.getSelectedComponent
                 val newShown  = if( c != null ) {
                   mapTabs.find( _._2.component == c ).map( _._2 )
                 } else None
                 if( newShown != shown ) {
-                    shown.foreach( _.pageHidden )
+                    shown.foreach( _.pageHidden() )
                     shown = newShown
-                    shown.foreach( _.pageShown )
+                    shown.foreach( _.pageShown() )
                 }
             }
         })
 //        ggTabPane.putClientProperty( "JComponent.sizeVariant", "small" )
-        getContentPane().add( ggTabPane, BorderLayout.CENTER )
+        getContentPane.add( ggTabPane, BorderLayout.CENTER )
 
         setDefaultCloseOperation( HIDE_ON_CLOSE )
         init()
@@ -134,11 +115,11 @@ with DocumentListener {
 }
 
 trait ObserverPage /* extends DynamicListening */ {
-    def component:  JComponent
-    def id:         String
-    def title:      String
-    def pageShown:  Unit
-    def pageHidden: Unit
+    def component:    JComponent
+    def id:           String
+    def title:        String
+    def pageShown():  Unit
+    def pageHidden(): Unit
     def documentChanged( newDoc: Document )
 }
 

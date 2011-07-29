@@ -1,13 +1,13 @@
 package de.sciss.kontur.gui
 
-import java.awt.{ Point }
-import java.awt.datatransfer.{ DataFlavor, Transferable }
-import java.awt.dnd.{ DnDConstants, DropTarget, DropTargetDragEvent, DropTargetDropEvent, DropTargetEvent }
+import java.awt.Point
+import java.awt.datatransfer.DataFlavor
+import java.awt.dnd.{ DnDConstants, DropTarget, DropTargetDragEvent, DropTargetDropEvent }
 import DnDConstants._
-import javax.swing.{ JTree }
+import javax.swing.JTree
 
 trait CanBeDropTarget {
-   def pickImport( flavors: List[ DataFlavor ], actions: Int ) : Option[ Tuple2[ DataFlavor, Int ]]
+   def pickImport( flavors: List[ DataFlavor ], actions: Int ) : Option[ (DataFlavor, Int) ]
    def importData( data: AnyRef, flavor: DataFlavor, action: Int ) : Boolean
 }
 
@@ -36,7 +36,7 @@ extends DropTarget {
       }
    }
 
-   private def findDropTarget( dtde: DropTargetDragDropEvent ) : Option[ Tuple3[ CanBeDropTarget, DataFlavor, Int ]] = {
+   private def findDropTarget( dtde: DropTargetDragDropEvent ) : Option[ (CanBeDropTarget, DataFlavor, Int) ] = {
       val loc   = dtde.getLocation()
       val path  = tree.getPathForLocation( loc.x, loc.y )
       if( path == null ) return None
@@ -44,7 +44,7 @@ extends DropTarget {
 
       child match {
          case cbdt: CanBeDropTarget => {
-            cbdt.pickImport( dtde.getCurrentDataFlavors.toList, dtde.getSourceActions ).map( tup => {
+            cbdt.pickImport( dtde.getCurrentDataFlavors().toList, dtde.getSourceActions() ).map( tup => {
                (cbdt, tup._1, tup._2)
             })
          }
@@ -56,8 +56,8 @@ extends DropTarget {
       findDropTarget( dtde ).map( tup => {
          val (cbdt, flavor, action) = tup
          dtde.acceptDrop( action )
-         val data = dtde.getTransferable().getTransferData( flavor )
-         val success = cbdt.importData( data, flavor, dtde.getDropAction() )
+         val data = dtde.getTransferable.getTransferData( flavor )
+         val success = cbdt.importData( data, flavor, dtde.getDropAction )
          dtde.dropComplete( success )
       }) getOrElse {
          dtde.rejectDrop()

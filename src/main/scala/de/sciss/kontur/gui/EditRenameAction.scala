@@ -6,12 +6,12 @@
  */
 package de.sciss.kontur.gui
 
-import java.awt.event.{ ActionEvent }
-import javax.swing.{ Action, JOptionPane }
-import de.sciss.common.{ BasicWindowHandler }
-import de.sciss.gui.{ MenuAction }
+import java.awt.event.ActionEvent
+import javax.swing.JOptionPane
+import de.sciss.common.BasicWindowHandler
+import de.sciss.gui.MenuAction
 import de.sciss.kontur.edit.{ Editor, SimpleEdit }
-import de.sciss.kontur.session.{ Renameable }
+import de.sciss.kontur.session.Renameable
 
 class EditRenameAction( r: Renameable, ed: Editor, name: String = "Rename..." )
 extends MenuAction( name ) {
@@ -22,12 +22,12 @@ extends MenuAction( name ) {
       val result = BasicWindowHandler.showDialog( op, null, name )
 
       if( result == JOptionPane.OK_OPTION ) {
-         val newName = op.getInputValue().toString
+         val newName = op.getInputValue.toString
          val ce = ed.editBegin( name )
          val edit = new SimpleEdit( name ) {
             lazy val oldName = r.name
-            def apply { oldName; r.name = newName }
-            def unapply { r.name = oldName }
+            def apply() { oldName; r.name = newName }
+            def unapply() { r.name = oldName }
          }
          ce.addPerform( edit )
          ed.editEnd( ce )

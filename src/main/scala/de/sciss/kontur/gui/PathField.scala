@@ -35,8 +35,8 @@ class PathField( typ: Int, title: String )
 extends BasicPathField( typ, title ) {
     addPropertyChangeListener( "JComponent.sizeVariant", new PropertyChangeListener {
         def propertyChange( pce: PropertyChangeEvent ) {
-           ggPath.putClientProperty( pce.getPropertyName(), pce.getNewValue() )
-           if( ggFormat != null ) ggFormat.putClientProperty( pce.getPropertyName(), pce.getNewValue() )
+           ggPath.putClientProperty( pce.getPropertyName, pce.getNewValue )
+           if( ggFormat != null ) ggFormat.putClientProperty( pce.getPropertyName, pce.getNewValue )
         }
     })
 

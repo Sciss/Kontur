@@ -28,18 +28,15 @@
 
 package de.sciss.kontur.gui
 
-import java.awt.{ Color, Component, Dimension, Font, GradientPaint, Graphics, Graphics2D, Insets, LinearGradientPaint, RenderingHints }
+import java.awt.{ Color, Dimension, Font, Graphics, Graphics2D, LinearGradientPaint, RenderingHints }
 import java.awt.event.{ ActionEvent, ActionListener, KeyEvent, MouseAdapter, MouseEvent }
-import java.awt.geom.{ RoundRectangle2D }
-import java.util.{ Locale }
-import javax.swing.{ AbstractAction, AbstractButton, BorderFactory, Box, BoxLayout, ImageIcon,
-                    JButton, JComponent, JLabel, JOptionPane, JPanel, JToggleButton, KeyStroke, SwingConstants, Timer }
-import javax.swing.border.{ Border }
-import scala.math._
+import java.awt.geom.RoundRectangle2D
+import java.util.Locale
+import javax.swing.{ AbstractAction, BorderFactory, Box, BoxLayout, ImageIcon,
+                    JButton, JComponent, JLabel, JOptionPane, JToggleButton, KeyStroke, SwingConstants, Timer }
 import de.sciss.app.{ AbstractApplication, DynamicAncestorAdapter, DynamicListening }
-import de.sciss.common.{ BasicWindowHandler }
+import de.sciss.common.BasicWindowHandler
 import de.sciss.gui.{ GUIUtil, TimeFormat }
-import de.sciss.io.{ Span }
 import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }
 import de.sciss.kontur.session.{ Timeline, Transport }
 import de.sciss.synth.Model
@@ -78,7 +75,7 @@ extends SegmentedButtonPanel with DynamicListening {
    }
 
    private val playTimer = new Timer( 27, new ActionListener {
-      def actionPerformed( e: ActionEvent ) : Unit = updateTimeLabel( false )
+      def actionPerformed( e: ActionEvent ) { updateTimeLabel( false )}
    })
 
    // ---- constructor ----
@@ -104,7 +101,7 @@ extends SegmentedButtonPanel with DynamicListening {
       setButtons( List( butBeg, butStop, butPlay, butEnd ))
 
       val imap	= getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW )
-      val amap = getActionMap()
+      val amap = getActionMap
       imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_SPACE, 0 ), "playstop" )
       amap.put( "playstop", new AbstractAction {
          def actionPerformed( e: ActionEvent ) {
@@ -118,7 +115,7 @@ extends SegmentedButtonPanel with DynamicListening {
 
       lbTime.addMouseListener( new MouseAdapter {
          override def mouseClicked( e: MouseEvent ) {
-            if( e.getClickCount == 2 ) showGoToTimeDialog
+            if( e.getClickCount == 2 ) showGoToTimeDialog()
          }
       })
 
@@ -144,7 +141,7 @@ extends SegmentedButtonPanel with DynamicListening {
    private var spaceGoToTime: Option[ ParamSpace ] = None
    private var valueGoToTime: Option[ Param ] = None
 
-   private def showGoToTimeDialog {
+   private def showGoToTimeDialog() {
       val timeTrans  = new DefaultUnitTranslator()
       val ggTime     = new ParamField( timeTrans )
       ggTime.addSpace( ParamSpace.spcTimeHHMMSS )
@@ -167,7 +164,7 @@ extends SegmentedButtonPanel with DynamicListening {
          val v          = ggTime.getValue
          valueGoToTime	= Some( v )
          spaceGoToTime	= Some( ggTime.getSpace )
-         val pos = max( tl.span.start, min( tl.span.stop, timeTrans.translate( v, ParamSpace.spcTimeSmps ).`val`.toLong ))
+         val pos = math.max( tl.span.start, math.min( tl.span.stop, timeTrans.translate( v, ParamSpace.spcTimeSmps ).`val`.toLong ))
          tlv.editor.foreach( ed => {
             val ce = ed.editBegin( "pos" )
             ed.editPosition( ce, pos )
@@ -204,7 +201,7 @@ extends SegmentedButtonPanel with DynamicListening {
       if( sendOSC && oscEngaged ) osc ! OSCMessage( "/kontur", "transport", oscID, "pos", secs )
    }
 
-  def startListening {
+  def startListening() {
      transport.foreach( t => {
         t.addListener( transportListener )
         trnspChanged( t.isPlaying )
@@ -212,7 +209,7 @@ extends SegmentedButtonPanel with DynamicListening {
      tlv.addListener( timelineViewListener )
   }
 
-  def stopListening {
+  def stopListening() {
      playTimer.stop()
      tlv.removeListener( timelineViewListener )
      transport.foreach( t => {
@@ -249,21 +246,21 @@ extends SegmentedButtonPanel with DynamicListening {
       setFont( new Font( "Lucida Grande", Font.BOLD, 13 ))
       setForeground( Color.black )
       setBorder( BorderFactory.createEmptyBorder( 3, 12, 4, 12 ))
-      private val pref = super.getPreferredSize()
+      private val pref = super.getPreferredSize
 
-      override def getPreferredSize() : Dimension = pref
+      override def getPreferredSize : Dimension = pref
 
       override def paintComponent( g: Graphics ) {
          val h = getHeight; val w = getWidth
          if( h != recentH || w != recentW ) {
             recentH = getHeight
             recentW = getWidth
-            recalcGrad
-            recalcShape
+            recalcGrad()
+            recalcShape()
          }
          val g2 = g.asInstanceOf[ Graphics2D ]
-         val atOrig = g2.getTransform()
-         val clipOrig = g2.getClip()
+         val atOrig = g2.getTransform
+         val clipOrig = g2.getClip
          g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON )
          g2.setPaint( grad )
 //         g2.translate( 0, 1 )
@@ -284,7 +281,7 @@ extends SegmentedButtonPanel with DynamicListening {
          super.paintComponent( g )
       }
 
-      private def recalcShape {
+      private def recalcShape() {
          shape1.setRoundRect( 0.2f, 1.2f, recentW - 1.4f, recentH - 2f, 8f, 8f )
 //         shape1.setRoundRect( 0.5f, 0.5f, recentW - 2f, recentH - 2.5f, 8f, 8f )
 //         shape3.setRoundRect( 0.2f, 1.2f, recentW - 1.4f, recentH - 2.4f, 8f, 8f )
@@ -294,7 +291,7 @@ extends SegmentedButtonPanel with DynamicListening {
          setText( frmt.formatTime( secs ))
       }
 
-      private def recalcGrad {
+      private def recalcGrad() {
          val m6 = (recentH - 6).toFloat
          val mid = (m6 / 2).toInt
 //         grad = new LinearGradientPaint( 0, 2, 0, recentH - 6,

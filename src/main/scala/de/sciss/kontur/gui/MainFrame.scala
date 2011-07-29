@@ -28,12 +28,12 @@
 
 package de.sciss.kontur.gui
 
-import de.sciss.app.{ AbstractApplication, AbstractWindow }
-import de.sciss.gui.{ LogTextArea }
-import de.sciss.kontur.{ Main }
+import de.sciss.app.AbstractWindow
+import de.sciss.gui.LogTextArea
+import de.sciss.kontur.Main
 import java.awt.{ BorderLayout, Color, Font }
-import java.awt.geom.{ Point2D }
-import javax.swing.{ BorderFactory, JInternalFrame, JLabel, JPanel, WindowConstants }
+import java.awt.geom.Point2D
+import javax.swing.{ BorderFactory, JInternalFrame, WindowConstants }
 
 class MainFrame extends AppWindow( AbstractWindow.REGULAR ) {
 
@@ -58,7 +58,7 @@ class MainFrame extends AppWindow( AbstractWindow.REGULAR ) {
 //      lta.setOpaque( false )
       lta.setBorder( BorderFactory.createEmptyBorder( 2, 4, 2, 4 ))
 
-      val cp		= getContentPane()
+      val cp		= getContentPane
 //      val cp = new JPanel( new BorderLayout() )
 //      cp.setOpaque( false )
 //      cp.setBackground( new Color( 0, 0, 0, 0 ))
@@ -86,7 +86,7 @@ class MainFrame extends AppWindow( AbstractWindow.REGULAR ) {
       app.getMenuBarRoot.putMimic( "edit.clear", this, lta.getClearAction )
 	  val winListener = new AbstractWindow.Adapter {
 			override def windowClosing( e: AbstractWindow.Event ) {
-				app.quit
+				app.quit()
 			}
       }
       addListener( winListener )
@@ -102,8 +102,8 @@ class MainFrame extends AppWindow( AbstractWindow.REGULAR ) {
 
    override protected def getPreferredLocation: Point2D = new Point2D.Float( 0f, 0f )
 
-   override def dispose {
+   override def dispose() {
 		app.removeComponent( Main.COMP_MAIN )
-		super.dispose
+		super.dispose()
 	}
 }

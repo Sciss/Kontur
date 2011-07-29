@@ -29,15 +29,13 @@
 package de.sciss.kontur.gui
 
 import java.awt.event.{ ActionEvent, ActionListener, KeyEvent }
-import javax.swing.{ AbstractAction, Box, BoxLayout, ButtonGroup, JButton, JComboBox,
-                     JComponent, JPanel, JSlider, JToggleButton, KeyStroke }
+import javax.swing.{ AbstractAction, Box, BoxLayout, JComboBox, JComponent, JPanel, JSlider, KeyStroke }
 import javax.swing.event.{ ChangeEvent, ChangeListener }
-import scala.math._
 import de.sciss.common.{ BasicMenuFactory }
 
 object TrackToolsPanel {
    private def linexp( x: Double, inLo: Double, inHi: Double, outLo: Double, outHi: Double ) =
-      pow( outHi / outLo, (x - inLo) / (inHi - inLo) ) * outLo
+      math.pow( outHi / outLo, (x - inLo) / (inHi - inLo) ) * outLo
 }
 
 class TrackToolsPanel( trackList: TrackList, timelineView: TimelineView )
@@ -56,12 +54,12 @@ extends JPanel with TrackTools {
 
     private var currentToolVar: TrackTool = tools.head
     private val ggCombo = new JComboBox()
-    private var visualBoostVar = 1f
+    private var visualBoostVar = 1f;
 
     // ---- constructor ----
     {
         val imap	= ggCombo.getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW )
-        val amap    = ggCombo.getActionMap()
+        val amap    = ggCombo.getActionMap
         val meta    = BasicMenuFactory.MENU_SHORTCUT
 
         var i = 1; tools.foreach( t => {
@@ -76,7 +74,7 @@ extends JPanel with TrackTools {
         ggCombo.addActionListener( new ActionListener {
             def actionPerformed( e: ActionEvent ) {
                 ggCombo.getSelectedItem match {
-                    case t: ToolAction => t.perform
+                    case t: ToolAction => t.perform()
                     case _ =>
                 }
             }
@@ -122,7 +120,7 @@ extends JPanel with TrackTools {
             ggCombo.setSelectedItem( this )
         }
 
-        def perform = changeTool( t )
+        def perform() { changeTool( t )}
 
         override def toString = t.name
     }

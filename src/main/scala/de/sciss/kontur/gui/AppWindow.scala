@@ -28,16 +28,16 @@
 
 package de.sciss.kontur.gui
 
-import de.sciss.app.{ AbstractApplication }
-import de.sciss.common.{ BasicApplication }
-import java.awt.{ Container, Dimension }
-import java.io.{ File }
-import java.util.{ StringTokenizer }
-import javax.swing.{ JFrame, JInternalFrame, RootPaneContainer }
+import de.sciss.app.AbstractApplication
+import de.sciss.common.BasicApplication
+import java.awt.Dimension
+import java.io.File
+import java.util.StringTokenizer
+import javax.swing.RootPaneContainer
 
 class AppWindow( mode: Int ) extends de.sciss.common.AppWindow( mode ) {
-   protected val app				   = AbstractApplication.getApplication().asInstanceOf[ BasicApplication ]
-	protected val internalFrames	= app.getWindowHandler().usesInternalFrames()
+   protected val app				   = AbstractApplication.getApplication.asInstanceOf[ BasicApplication ]
+	protected val internalFrames	= app.getWindowHandler.usesInternalFrames
     
   	protected def getResourceString( key: String ) : String =
 		app.getResourceString( key )
@@ -48,7 +48,7 @@ class AppWindow( mode: Int ) extends de.sciss.common.AppWindow( mode ) {
       new Dimension( Integer.parseInt( tok.nextToken() ), Integer.parseInt( tok.nextToken() ))
 	}
 
-   protected def makeUnifiedLook {
+   protected def makeUnifiedLook() {
       putRootPaneProperty( "apple.awt.brushMetalLook", java.lang.Boolean.TRUE )
    }
 
@@ -58,7 +58,7 @@ class AppWindow( mode: Int ) extends de.sciss.common.AppWindow( mode ) {
 
    private def putRootPaneProperty( name: String, value: AnyRef ) {
       getWindow match {
-         case rpc: RootPaneContainer => rpc.getRootPane().putClientProperty( name, value )
+         case rpc: RootPaneContainer => rpc.getRootPane.putClientProperty( name, value )
          case _ =>
       }
    }

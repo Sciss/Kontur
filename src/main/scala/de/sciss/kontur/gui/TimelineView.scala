@@ -82,7 +82,7 @@ extends TimelineView with TimelineViewEditor {
     timeline.addListener( forward ) // XXX a little dangerous
   }
 
-  def dispose {
+  def dispose() {
     timeline.removeListener( forward )
   }
 
@@ -94,8 +94,8 @@ extends TimelineView with TimelineViewEditor {
   def editPosition( ce: AbstractCompoundEdit, newPos: Long ) {
     val edit = new SimpleEdit( "editTimelinePosition", false ) {
        lazy val oldPos = basicCsr.position
-       def apply { oldPos; basicCsr.position = newPos }
-       def unapply { basicCsr.position = oldPos }
+       def apply() { oldPos; basicCsr.position = newPos }
+       def unapply() { basicCsr.position = oldPos }
     }
     ce.addPerform( edit )
    }
@@ -103,8 +103,8 @@ extends TimelineView with TimelineViewEditor {
   def editScroll( ce: AbstractCompoundEdit, newSpan: Span ) {
     val edit = new SimpleEdit( "editTimelineScroll", false ) {
        lazy val oldSpan = span
-       def apply { oldSpan; span = newSpan }
-       def unapply { span = oldSpan }
+       def apply() { oldSpan; span = newSpan }
+       def unapply() { span = oldSpan }
     }
     ce.addPerform( edit )
    }
@@ -112,8 +112,8 @@ extends TimelineView with TimelineViewEditor {
    def editSelect( ce: AbstractCompoundEdit, newSpan: Span ) {
       val edit = new SimpleEdit( "editTimelineSelection", false ) {
         lazy val oldSpan = basicSel.span
-        def apply { oldSpan; basicSel.span = newSpan }
-        def unapply { basicSel.span = oldSpan }
+        def apply() { oldSpan; basicSel.span = newSpan }
+        def unapply() { basicSel.span = oldSpan }
       }
       ce.addPerform( edit )
    }

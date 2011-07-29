@@ -28,19 +28,19 @@
 
 package de.sciss.kontur.gui
 
-import de.sciss.app.{ AbstractApplication, AbstractWindow }
+import de.sciss.app.AbstractWindow
 import de.sciss.common.{ BasicApplication, BasicMenuFactory, BasicWindowHandler }
 import de.sciss.gui.{ BooleanPrefsMenuAction, MenuAction, MenuCheckItem, MenuGroup, MenuItem }
-import de.sciss.kontur.{ Main }
-import de.sciss.kontur.util.{ PrefsUtil }
-import de.sciss.kontur.session.{ Session }
+import de.sciss.kontur.Main
+import de.sciss.kontur.util.PrefsUtil
+import de.sciss.kontur.session.Session
 import java.awt.{ FileDialog, Frame }
 import java.awt.event.{ ActionEvent, InputEvent, KeyEvent }
 import java.io.{ File, FilenameFilter, FileReader, IOException }
 import javax.swing.{ Action, KeyStroke }
-import javax.xml.parsers.{ SAXParserFactory, SAXParser }
+import javax.xml.parsers.SAXParserFactory
 import org.xml.sax.{ Attributes, InputSource, SAXException }
-import org.xml.sax.helpers.{ DefaultHandler }
+import org.xml.sax.helpers.DefaultHandler
 
 class MenuFactory( app: BasicApplication )
 extends BasicMenuFactory( app ) {
@@ -56,19 +56,19 @@ extends BasicMenuFactory( app ) {
 		actionOpen.perform( f )
 	}
 
-	def showPreferences {
+	def showPreferences() {
 		var prefsFrame = app.getComponent( Main.COMP_PREFS ).asInstanceOf[ PrefsFrame ]
 
 		if( prefsFrame == null ) {
 			prefsFrame = new PrefsFrame()
 		}
 		prefsFrame.setVisible( true )
-		prefsFrame.toFront
+		prefsFrame.toFront()
 	}
 
 	protected def getOpenAction : Action = actionOpen
 
-   protected def addMenuItems {
+   protected def addMenuItems() {
 	   // Ctrl on Mac / Ctrl+Alt on PC
       val myCtrl = if( MENU_SHORTCUT == InputEvent.CTRL_MASK ) InputEvent.CTRL_MASK | InputEvent.ALT_MASK
          else InputEvent.CTRL_MASK
@@ -82,7 +82,7 @@ extends BasicMenuFactory( app ) {
          new ActionScalaInterpreter( getResourceString( "menuNewScalaInterpreter" ))))
 		mgFile.add( smgFileNew, 0 )
 
-      mgFile.addSeparator
+      mgFile.addSeparator()
       mgFile.add( new MenuItem( "bounce", getResourceString( "menuBounce" ), null ))
 
   		// --- timeline menu ---
@@ -114,7 +114,7 @@ extends BasicMenuFactory( app ) {
       add( mgActions, indexOf( "timeline" ) + 1 )
 
       // --- operation menu ---
-      val prefs = app.getUserPrefs()
+      val prefs = app.getUserPrefs
       val mgOperation = new MenuGroup( "operation", getResourceString( "menuOperation" ))
       val actionLinkObjTimelineSel = new BooleanPrefsMenuAction( getResourceString( "menuLinkObjTimelineSel" ), null )
       val miLinkObjTimelineSel = new MenuCheckItem( "insertionFollowsPlay", actionLinkObjTimelineSel )
@@ -143,7 +143,7 @@ extends BasicMenuFactory( app ) {
 		protected def perform: Session = {
 //			try {
 				val doc = Session.newEmpty // ( afd );
-				app.getDocumentHandler().addDocument( this, doc )
+				app.getDocumentHandler.addDocument( this, doc )
 				new SessionTreeFrame( doc )
 				doc
 //			}
@@ -176,11 +176,11 @@ extends BasicMenuFactory( app ) {
 
       private def queryFile() : Option[ File ] = {
 			val w = app.getComponent( Main.COMP_MAIN ).asInstanceOf[ AbstractWindow ]
-			val frame	= w.getWindow() match {
+			val frame	= w.getWindow match {
                case f: Frame => f
                case _ => null
             }
-			val prefs = app.getUserPrefs()
+			val prefs = app.getUserPrefs
 
 			val fDlg = new FileDialog( frame, getResourceString( "fileDlgOpenSession" ), FileDialog.LOAD )
 			fDlg.setDirectory( prefs.get( PrefsUtil.KEY_FILEOPENDIR, System.getProperty( "user.home" )))
@@ -190,9 +190,9 @@ extends BasicMenuFactory( app ) {
          catch { case _ => None }
          accept.foreach( a => fDlg.setFilenameFilter( a ))
 			fDlg.setVisible( true )
-            accept.foreach( _.dispose )
-			val strDir	= fDlg.getDirectory()
-			val strFile	= fDlg.getFile()
+            accept.foreach( _.dispose() )
+			val strDir	= fDlg.getDirectory
+			val strFile	= fDlg.getFile
 
 			if( strFile == null ) return None;   // means the dialog was cancelled
 
@@ -248,7 +248,7 @@ extends BasicMenuFactory( app ) {
             else new SessionNotFoundException)
          }
 
-         def dispose {
+         def dispose() {
             // nothing actually
          }
 
@@ -279,11 +279,11 @@ extends BasicMenuFactory( app ) {
 			try {
 				val doc = Session.newFrom( path )
 				addRecent( path )
-				app.getDocumentHandler().addDocument( this, doc )
+				app.getDocumentHandler.addDocument( this, doc )
 				new SessionTreeFrame( doc )
 			}
 			catch { case e1: IOException =>
-				BasicWindowHandler.showErrorDialog( null, e1, getValue( Action.NAME ).toString() )
+				BasicWindowHandler.showErrorDialog( null, e1, getValue( Action.NAME ).toString )
 			}
 		}
 	}

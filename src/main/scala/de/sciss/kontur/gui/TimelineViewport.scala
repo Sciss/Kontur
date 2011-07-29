@@ -39,15 +39,15 @@ extends JViewport with DynamicListening {
    var verbose = false
 
   // ---- constructor ----
-  {
+//  {
      new DynamicAncestorAdapter( this ).addTo( this )
-  }
+//  }
 
-  def startListening {
+  def startListening() {
      timelineView.addListener( timelineViewListener )
   }
 
-  def stopListening {
+  def stopListening() {
      timelineView.removeListener( timelineViewListener )
   }
 
@@ -57,16 +57,16 @@ extends JViewport with DynamicListening {
          val tlSpan = timelineView.timeline.span
          if( !tlSpan.isEmpty && !newSpan.isEmpty ) {
 //             val scale = dim.getWidth.toDouble / tlSpan.getLength
-             val e = getExtentSize()
+             val e = getExtentSize
 if( verbose ) println( "e.w " + e.width + "; tl.len " + tlSpan.getLength + "; visi.len " + newSpan.getLength )
              val w = (tlSpan.getLength.toDouble / newSpan.getLength * e.width + 0.5).toInt
              val x = ((newSpan.start - tlSpan.start).toDouble / tlSpan.getLength * w + 0.5).toInt
-             val d = getViewSize()
-             val p = getViewPosition()
+             val d = getViewSize
+             val p = getViewPosition
 if( verbose ) println( "old.x" + p.x + "; old.w " + d.width + "; new.x " + x + "; new.w " + w )
              if( w != d.width ) {
-                  val v = getView()
-                  val pref = v.getPreferredSize()
+                  val v = getView
+                  val pref = v.getPreferredSize
                   pref.width = w
                   v.setPreferredSize( pref )
                   v.asInstanceOf[ JComponent ].revalidate() // bad bad

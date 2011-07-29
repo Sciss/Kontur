@@ -28,16 +28,11 @@
 
 package de.sciss.kontur.gui
 
-import de.sciss.app.{ AbstractApplication, AbstractWindow, DynamicAncestorAdapter }
-import de.sciss.common.{ BasicApplication, BasicWindowHandler, ShowWindowAction }
-import de.sciss.gui.{ GUIUtil, MenuAction }
-import de.sciss.util.{ Flag }
-import de.sciss.kontur.session.{ Session }
-import java.awt.{ BorderLayout, FileDialog, Frame }
-import java.awt.event.{ ActionEvent, MouseAdapter, MouseEvent }
-import java.io.{ File, IOException }
-import javax.swing.{ Action, DropMode, JScrollPane, JTree, ScrollPaneConstants }
-import javax.swing.tree.{ TreeNode }
+import de.sciss.app.AbstractWindow
+import de.sciss.kontur.session.Session
+import java.awt.BorderLayout
+import java.awt.event.{ MouseAdapter, MouseEvent }
+import javax.swing.{ DropMode, JScrollPane, JTree, ScrollPaneConstants }
 
 class SessionTreeFrame( protected val doc: Session )
 extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
@@ -59,29 +54,33 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
       ggTree.addMouseListener( new MouseAdapter() {
        override def mousePressed( e: MouseEvent ) {
-          val selRow  = ggTree.getRowForLocation( e.getX(), e.getY() )
+          val selRow  = ggTree.getRowForLocation( e.getX, e.getY )
           if( selRow == -1 ) return
-          val selPath = ggTree.getPathForLocation( e.getX(), e.getY() )
-          val node = selPath.getLastPathComponent()
+          val selPath = ggTree.getPathForLocation( e.getX, e.getY )
+          val node = selPath.getLastPathComponent
 
           if( e.isPopupTrigger ) popup( node, e )
           else if( e.getClickCount == 2 ) doubleClick( node, e )
        }
        
-        private def popup( node: AnyRef, e: MouseEvent ): Unit = node match {
-           case hcm: HasContextMenu => {
-               hcm.createContextMenu.foreach( root => {
-                   val pop = root.createPopup( frame )
-                   pop.show( e.getComponent(), e.getX(), e.getY() )
-               })
-           }
-             case _ =>
-         }
+        private def popup( node: AnyRef, e: MouseEvent ) {
+           node match {
+              case hcm: HasContextMenu => {
+                  hcm.createContextMenu().foreach( root => {
+                      val pop = root.createPopup( frame )
+                      pop.show( e.getComponent, e.getX, e.getY )
+                  })
+              }
+                case _ =>
+            }
+        }
 
-        private def doubleClick( node: AnyRef, e: MouseEvent ): Unit = node match {
-           case hdca: HasDoubleClickAction => hdca.doubleClickAction
-             case _ =>
-         }
+        private def doubleClick( node: AnyRef, e: MouseEvent ) {
+           node match {
+              case hdca: HasDoubleClickAction => hdca.doubleClickAction()
+              case _ =>
+           }
+        }
       })
       new TreeDragSource( ggTree )
       new TreeDropTarget( ggTree )
@@ -99,7 +98,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 	  toFront()
    }
 
-   protected def windowClosing { actionClose.perform }
+   protected def windowClosing() { actionClose.perform() }
 
    override protected def autoUpdatePrefs = true
    override protected def alwaysPackSize = false

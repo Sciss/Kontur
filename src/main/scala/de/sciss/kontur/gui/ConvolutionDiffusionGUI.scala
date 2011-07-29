@@ -30,15 +30,14 @@ package de.sciss.kontur.gui
 
 import java.awt.event.{ ActionEvent, ActionListener }
 import java.io.{ File, FilenameFilter, IOException }
-import java.util.{ Locale }
-import java.text.{ MessageFormat }
+import java.util.Locale
+import java.text.MessageFormat
 import javax.swing.{ GroupLayout, JLabel, JPanel, JTextField, SwingConstants }
 import SwingConstants._
-import scala.math._
+//import scala.math._
 import de.sciss.app.{ AbstractCompoundEdit, DynamicAncestorAdapter, DynamicListening }
-import de.sciss.dsp.{ MathUtil }
+import de.sciss.dsp.MathUtil
 import de.sciss.synth.io.AudioFile
-//import de.sciss.io.{ AudioFile, AudioFileDescr }
 import de.sciss.kontur.session.{ Diffusion, DiffusionEditor, DiffusionFactory, ConvolutionDiffusion, Renameable, Session }
 import de.sciss.util.ParamSpace
 import de.sciss.gui.{ ParamField => ParamF, PathEvent, PathField => PathF, PathListener}
@@ -75,8 +74,8 @@ extends JPanel with DynamicListening with FilenameFilter {
 
    private val diffListener: Model.Listener = {
       // XXX the updates could be more selective
-      case Renameable.NameChanged( _, _ )             => updateGadgets
-      case ConvolutionDiffusion.PathChanged( _, _ )   => updateGadgets
+      case Renameable.NameChanged( _, _ )             => updateGadgets()
+      case ConvolutionDiffusion.PathChanged( _, _ )   => updateGadgets()
    }
 
    private val spcAbsGain     = new ParamSpace( 0.0, Double.MaxValue, 0.0, 0, 10, 0.0, ParamSpace.ABS | ParamSpace.AMP )
@@ -103,11 +102,11 @@ extends JPanel with DynamicListening with FilenameFilter {
       )
 
       ggName.addActionListener( new ActionListener {
-         def actionPerformed( e: ActionEvent ) = editRename( ggName.getText() )
+         def actionPerformed( e: ActionEvent ) { editRename( ggName.getText )}
       })
 
       ggPath.addPathListener( new PathListener {
-         def pathChanged( e: PathEvent ) = editSetPath( e.getPath() )
+         def pathChanged( e: PathEvent ) { editSetPath( e.getPath )}
       })
 
       ggGain.addListener( new ParamF.Listener {
@@ -213,7 +212,7 @@ extends JPanel with DynamicListening with FilenameFilter {
       else head
    }
 
-   private def updateGadgets {
+   private def updateGadgets() {
       val enabled  = !objects.isEmpty
       val editable = enabled && objects.forall( _.editor.isDefined )
       ggName.setText( collapse( objects.map( _.name ): _* ))
@@ -247,18 +246,18 @@ extends JPanel with DynamicListening with FilenameFilter {
       objects.foreach( _.removeListener( diffListener ))
       objects = diff.toList
       if( isListening ) {
-         updateGadgets
+         updateGadgets()
          objects.foreach( _.addListener( diffListener ))
       }
    }
 
-   def startListening {
+   def startListening() {
       isListening = true
-      updateGadgets
+      updateGadgets()
       objects.foreach( _.addListener( diffListener ))
    }
 
-   def stopListening {
+   def stopListening() {
       isListening = false
       objects.foreach( _.removeListener( diffListener ))
    }

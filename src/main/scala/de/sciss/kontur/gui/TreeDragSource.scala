@@ -30,9 +30,8 @@ package de.sciss.kontur.gui
 
 import java.awt.datatransfer.{ DataFlavor, Transferable, UnsupportedFlavorException }
 import java.awt.dnd.{ DnDConstants, DragGestureEvent, DragGestureListener, DragSource,
-                     DragSourceAdapter, DragSourceListener,
-                     InvalidDnDOperationException }
-import javax.swing.{ JTree }
+                     DragSourceAdapter, InvalidDnDOperationException }
+import javax.swing.JTree
 import DnDConstants._
 
 trait CanBeDragSource extends Transferable {
@@ -42,7 +41,7 @@ trait CanBeDragSource extends Transferable {
    def isDataFlavorSupported( flavor: DataFlavor ) : Boolean =
       transferDataFlavors.contains( flavor )
 
-   def getTransferDataFlavors() : Array[ DataFlavor ] =
+   def getTransferDataFlavors : Array[ DataFlavor ] =
      transferDataFlavors.toArray
 
    def getTransferData( flavor: DataFlavor ) : AnyRef = try {
@@ -53,20 +52,20 @@ trait CanBeDragSource extends Transferable {
 class TreeDragSource( tree: JTree, actions: Int = ACTION_COPY_OR_MOVE | ACTION_LINK )
 extends DragSourceAdapter with DragGestureListener {
 
-    // ---- constructor ----
-    {
-       val dgr = DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(
-          tree, actions, this )
-    }
+//    // ---- constructor ----
+//    {
+//       val dgr = DragSource.getDefaultDragSource.createDefaultDragGestureRecognizer(
+//          tree, actions, this )
+//    }
 
     // ---- DragGestureListener ----
    def dragGestureRecognized( dge: DragGestureEvent ) {
-      val path = tree.getSelectionPath()
+      val path = tree.getSelectionPath
       if( path == null ) return
-      path.getLastPathComponent() match {
+      path.getLastPathComponent match {
          case cbds: CanBeDragSource => {
              try {
-               DragSource.getDefaultDragSource().startDrag( dge, null, cbds, this )
+               DragSource.getDefaultDragSource.startDrag( dge, null, cbds, this )
              }
              catch { case e1: InvalidDnDOperationException => /* ignore */}
          }

@@ -28,20 +28,17 @@
 
 package de.sciss.kontur.gui
 
-import java.awt.{ Color, Dimension, GradientPaint, Graphics, Graphics2D, Paint }
-import java.awt.datatransfer.{ DataFlavor }
+import java.awt.{ Color, GradientPaint, Graphics, Graphics2D }
 import java.awt.dnd.{ DnDConstants, DropTarget, DropTargetAdapter,
-                     DropTargetDragEvent, DropTargetDropEvent, DropTargetListener }
-import java.awt.event.{ MouseAdapter, MouseEvent, MouseListener }
-import javax.swing.{ BorderFactory, JComponent, JLabel, JPanel, Spring, SpringLayout }
-import scala.math._
+                     DropTargetDragEvent, DropTargetDropEvent }
+import java.awt.event.{ MouseAdapter, MouseEvent }
+import javax.swing.{ BorderFactory, JLabel, JPanel, Spring, SpringLayout }
 
-import de.sciss.gui.{ GradientPanel }
-import de.sciss.app.{ AbstractApplication, Application, DynamicAncestorAdapter,
+import de.sciss.gui.GradientPanel
+import de.sciss.app.{ AbstractApplication, DynamicAncestorAdapter,
                      DynamicListening, GraphicsHandler }
 import de.sciss.util.Disposable
-import de.sciss.kontur.session.{ AudioTrack, Diffusion, Renameable,
-                                SessionElementSeq, Stake, Track }
+import de.sciss.kontur.session.{ AudioTrack, Diffusion, Renameable, Track }
 import de.sciss.synth.Model
 
 //import Track.Tr
@@ -65,11 +62,11 @@ object DefaultTrackHeaderComponent {
     private val colrUnselected	= new Color( 0x00, 0x00, 0x00, 0x20 )
     private val colrDarken		= new Color( 0x00, 0x00, 0x00, 0x18 )
 	private val pntSelected		= new GradientPaint(  0, 0, colrSelected, 36, 0,
-                                                 new Color( colrSelected.getRGB() & 0xFFFFFF, true ))
+                                                 new Color( colrSelected.getRGB & 0xFFFFFF, true ))
 	private val pntUnselected	= new GradientPaint(  0, 0, colrUnselected, 36, 0,
-                                                  new Color( colrUnselected.getRGB() & 0xFFFFFF, true ))
+                                                  new Color( colrUnselected.getRGB & 0xFFFFFF, true ))
 	private val pntDarken		= new GradientPaint(  0, 0, colrDarken, 36, 0,
-                                               new Color( colrDarken.getRGB() & 0xFFFFFF, true ))
+                                               new Color( colrDarken.getRGB & 0xFFFFFF, true ))
 }
 
 class DefaultTrackHeaderComponent( protected val track: Track, trackList: TrackList )
@@ -138,7 +135,7 @@ with DynamicListening with Disposable {
 		setLayout( lay )
 //        setPreferredSize( new Dimension( 64, 64 )) // XXX
 
- 		lbTrackName.setFont( AbstractApplication.getApplication().getGraphicsHandler().getFont(
+ 		lbTrackName.setFont( AbstractApplication.getApplication.getGraphicsHandler.getFont(
             GraphicsHandler.FONT_SYSTEM | GraphicsHandler.FONT_SMALL ))
 		val cons = lay.getConstraints( lbTrackName )
 		cons.setX( Spring.constant( 7 ))
@@ -177,7 +174,7 @@ with DynamicListening with Disposable {
 //    def component: JComponent = this
 
 	protected def getResourceString( key: String ) =
-		AbstractApplication.getApplication().getResourceString( key )
+		AbstractApplication.getApplication.getResourceString( key )
 
 /*
     def track = trackVar
@@ -209,8 +206,8 @@ with DynamicListening with Disposable {
 		}
 	}
 */
-	def dispose {
-		stopListening
+	def dispose() {
+		stopListening()
 	}
 
 	/**
@@ -224,10 +221,10 @@ with DynamicListening with Disposable {
 	override def paintComponent( g: Graphics ) {
 		super.paintComponent( g )
 
-        val g2	= g.asInstanceOf[ Graphics2D ]
-		val h	= getHeight
-		val w	= getWidth
-		val x	= min( w - 36, lbTrackName.getX + lbTrackName.getWidth )
+      val g2   = g.asInstanceOf[ Graphics2D ]
+		val h	   = getHeight
+		val w	   = getWidth
+		val x	   = math.min( w - 36, lbTrackName.getX + lbTrackName.getWidth )
 
 	g2.translate( x, 0 )
 		g2.setPaint( pntDarken )
@@ -250,7 +247,7 @@ with DynamicListening with Disposable {
 		g2.fillRect( 0, 0, w, 8 )
 	}
 
-	private def checkTrackName {
+	private def checkTrackName() {
 		if( lbTrackName.getText != track.name ) {
 			lbTrackName.setText( track.name )
 		}
@@ -262,18 +259,18 @@ with DynamicListening with Disposable {
       case TrackList.SelectionChanged( mod @ _* ) => {
           if( mod.contains( trackListElement )) repaint()
       }
-      case Renameable.NameChanged( _, newName ) => checkTrackName
+      case Renameable.NameChanged( _, newName ) => checkTrackName()
     }
 
-    def startListening {
+    def startListening() {
     	if( !isListening ) {
     		isListening = true
             trackList.addListener( trackListListener )
-    		checkTrackName
+    		checkTrackName()
     	}
     }
 
-    def stopListening {
+    def stopListening() {
     	if( isListening ) {
     		isListening = false
             trackList.removeListener( trackListListener )
@@ -295,13 +292,13 @@ extends DefaultTrackHeaderComponent( audioTrack, trackList ) {
               }
            }
 
-           override def dragEnter( dtde: DropTargetDragEvent ) : Unit = process( dtde )
-           override def dragOver( dtde: DropTargetDragEvent ) : Unit = process( dtde )
+           override def dragEnter( dtde: DropTargetDragEvent ) { process( dtde )}
+           override def dragOver( dtde: DropTargetDragEvent ) { process( dtde )}
 
            def drop( dtde: DropTargetDropEvent ) {
              if( dtde.isDataFlavorSupported( Diffusion.flavor )) {
                  dtde.acceptDrop( DnDConstants.ACTION_LINK )
-                 dtde.getTransferable().getTransferData( Diffusion.flavor ) match {
+                 dtde.getTransferable.getTransferData( Diffusion.flavor ) match {
                     case diff: Diffusion => {
                        val ce = audioTrack.editBegin( "editTrackDiffusion" )
                        audioTrack.editDiffusion( ce, Some( diff ))

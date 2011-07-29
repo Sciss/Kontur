@@ -29,12 +29,10 @@
 package de.sciss.kontur.gui
 
 import java.awt.Rectangle
-import javax.swing.JComponent
 import scala.collection.mutable.{ ArrayBuffer, ListBuffer }
 import de.sciss.app.{ AbstractCompoundEdit, UndoManager }
 import de.sciss.kontur.edit.{ Editor, SimpleEdit }
-import de.sciss.kontur.session.{ AudioTrack, BasicSessionElementSeq, Session,
-                                Stake, Track }
+import de.sciss.kontur.session.{ AudioTrack, Session, Stake, Track }
 import de.sciss.synth.Model
 
 object TrackList {
@@ -64,8 +62,7 @@ trait TrackList extends Model {
    def editor : Option[ TrackListEditor ]
 
    // support these common methods
-   def foreach[ U ]( f: TrackListElement => U ) : Unit =
-      toList.foreach( f )
+   def foreach[ U ]( f: TrackListElement => U ) { toList.foreach( f )}
 
    def filter( p: (TrackListElement) => Boolean ): List[ TrackListElement ] =
       toList.filter( p )
@@ -120,7 +117,7 @@ extends TrackList with TrackListEditor {
    *  Adds all tracks from the timeline
    *  to the list view
    */
-  def addAllTracks {
+  def addAllTracks() {
       tracks.foreach( t => addTrack( t, true ))
   }
 
@@ -140,12 +137,11 @@ extends TrackList with TrackListEditor {
       tracks.addListener( tracksListener )
   }
 
-  def followTracks {
+  def followTracks() {
      following = true
   }
 
-   override def foreach[ U ]( f: TrackListElement => U ) : Unit =
-       elements.foreach( f )
+   override def foreach[ U ]( f: TrackListElement => U ) { elements.foreach( f )}
 
    override def filter( p: (TrackListElement) => Boolean ): List[ TrackListElement ] =
         elements.filter( p ).toList
@@ -192,14 +188,14 @@ extends TrackList with TrackListEditor {
       }
    }
 
-   def dispose {
+   def dispose() {
       tracks.removeListener( tracksListener )
       everAdded = Set[ Track ]()
       mapElem   = Map[ Track, TrackListElement ]()
    }
 
-   def select( e: TrackListElement* ) : Unit = setSelection( e, true )
-   def deselect( e: TrackListElement* ) : Unit = setSelection( e, false )
+   def select( e: TrackListElement* ) { setSelection( e, true )}
+   def deselect( e: TrackListElement* ) { setSelection( e, false )}
 
    private def setSelection( e: Seq[ TrackListElement ], state: Boolean ) {
       val ef = e.filterNot( elem => elem.selected == state )
@@ -214,8 +210,7 @@ extends TrackList with TrackListEditor {
    }
 
    // ---- TrackList trait ----
-	def getBounds( e: TrackListElement ) : Rectangle =
-      e.renderer.trackComponent.getBounds()
+	def getBounds( e: TrackListElement ) : Rectangle = e.renderer.trackComponent.getBounds
 
 	def numElements: Int = elements.size
 	def getElementAt( idx: Int ) : TrackListElement = elements( idx )
@@ -226,19 +221,17 @@ extends TrackList with TrackListEditor {
 
    def undoManager: UndoManager = doc.getUndoManager
 
-   def editSelect( ce: AbstractCompoundEdit, e: TrackListElement* ) : Unit =
-      editSetSelection( ce, e, true )
+   def editSelect( ce: AbstractCompoundEdit, e: TrackListElement* ) { editSetSelection( ce, e, true )}
 
-   def editDeselect( ce: AbstractCompoundEdit, e: TrackListElement* ) : Unit =
-      editSetSelection( ce, e, false )
+   def editDeselect( ce: AbstractCompoundEdit, e: TrackListElement* ) { editSetSelection( ce, e, false )}
 
    private def editSetSelection( ce: AbstractCompoundEdit,
                                  e: Seq[ TrackListElement ], state: Boolean ) {
       val ef = e.filterNot( _.selected == state )
       if( !ef.isEmpty ) {
          val edit = new SimpleEdit( "editTrackSelection", false ) {
-            def apply { setSelection( ef, state )}
-            def unapply { setSelection( ef, !state )}
+            def apply() { setSelection( ef, state )}
+            def unapply() { setSelection( ef, !state )}
          }
          ce.addPerform( edit )
       }

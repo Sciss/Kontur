@@ -31,11 +31,10 @@ package de.sciss.kontur.io
 import java.io.{ File, IOException }
 import java.net.{ InetSocketAddress, SocketAddress }
 import java.util.prefs.{ PreferenceChangeListener, PreferenceChangeEvent }
-import de.sciss.io.{ Span }
-import de.sciss.app.{ AbstractApplication }
-import de.sciss.kontur.util.{ PrefsUtil }
+import de.sciss.io.Span
+import de.sciss.app.AbstractApplication
+import de.sciss.kontur.util.PrefsUtil
 import scala.actors.{ Actor, TIMEOUT }
-import scala.math._
 import de.sciss.osc.{UDP, TCP, OSCClient, OSCMessage}
 
 object EisenkrautClient {
@@ -52,11 +51,11 @@ class EisenkrautClient {
    private var queryIDCount                  = 0
 
    private val prefsListener = new PreferenceChangeListener {
-      def preferenceChange( e: PreferenceChangeEvent ) = e.getKey match {
-         case PrefsUtil.KEY_EISKOSCPORT     => shutDown
-         case PrefsUtil.KEY_EISKOSCPROTOCOL => shutDown
+      def preferenceChange( e: PreferenceChangeEvent ) { e.getKey match {
+         case PrefsUtil.KEY_EISKOSCPORT     => shutDown()
+         case PrefsUtil.KEY_EISKOSCPROTOCOL => shutDown()
          case _ =>
-      }
+      }}
    }
 
    private val receiveAction = (msg: OSCMessage, addr: SocketAddress, when: Long ) => {
@@ -68,7 +67,7 @@ class EisenkrautClient {
       prefs.addPreferenceChangeListener( prefsListener )
    }
 
-   def dispose {
+   def dispose() {
       prefs.removePreferenceChangeListener( prefsListener )
    }
 
@@ -77,7 +76,7 @@ class EisenkrautClient {
          send( "/doc", "open", path.getCanonicalPath )
          documentForPath( path ).foreach( addr => {
             send( addr, "activate" )
-            var tAddr = addr + "/timeline"
+            val tAddr = addr + "/timeline"
             cursor.foreach( pos => {
                send( tAddr, "position", pos )
             })
@@ -121,7 +120,7 @@ class EisenkrautClient {
       })
    }
 
-   private def query[ A, B ]( path: String, propA: String, propB: String ) : Option[ Tuple2[ A, B ]] = {
+   private def query[ A, B ]( path: String, propA: String, propB: String ) : Option[ (A, B) ] = {
       query( path, 4000L, propA, propB ).map( seq => {
          Tuple2( seq( 0 ).asInstanceOf[ A ], seq( 1 ).asInstanceOf[ B ])
       })
@@ -139,8 +138,8 @@ class EisenkrautClient {
        val t1 = System.currentTimeMillis
        while( keepGoing ) {
           val t2 = System.currentTimeMillis
-          result = Actor.receiveWithin[ Option[ Seq[ Any ]]]( max( 0L, timeOut - (t2 - t1) )) {
-             case OSCMessage( "/query.reply", queryID, objects @ _* ) => {
+          result = Actor.receiveWithin[ Option[ Seq[ Any ]]]( math.max( 0L, timeOut - (t2 - t1) )) {
+             case OSCMessage( "/query.reply", `queryID`, objects @ _* ) => {
                 keepGoing = false; Some( objects )
              }
              case TIMEOUT => { println( "TIMEOUT" ); keepGoing = false; None }
@@ -158,11 +157,11 @@ class EisenkrautClient {
       osc.foreach( c => {
          val a = new OSCActor( c, body )
          actorVar = Some( a )
-         a.start
+         a.start()
       })
    }
 
-   private def shutDown {
+   private def shutDown() {
       oscVar.foreach( c => {
          c.dispose
          oscVar = None
@@ -190,13 +189,13 @@ class EisenkrautClient {
             } catch { case e: IOException => { c.dispose; throw e }}
             oscVar = Some( c )
          }
-         catch { case e: IOException => e.printStackTrace }
+         catch { case e: IOException => e.printStackTrace() }
       }
       oscVar
    }
 
    private class OSCActor( val c: OSCClient, body: => Unit ) extends Actor {
-      def act {
+      def act() {
          body
          if( actorVar == Some( Actor.self )) actorVar = None
       }

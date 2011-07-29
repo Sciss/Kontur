@@ -8,9 +8,7 @@ package de.sciss.kontur.gui;
 
 import java.io.PrintStream
 import javax.swing.{ JSplitPane, SwingConstants }
-import tools.nsc.Interpreter
 import de.sciss.app.AbstractWindow
-import de.sciss.kontur.Main
 import de.sciss.kontur.sc.{ SuperColliderClient, SuperColliderPlayer, SynthContext }
 import de.sciss.kontur.session.Session
 import de.sciss.synth.Server
@@ -75,13 +73,13 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 //      })
 
       val lp = new LogPane
-      lp.init
+      lp.init()
       ip.out = Some( lp.writer )
       Console.setOut( lp.outputStream )
       Console.setErr( lp.outputStream )
       System.setErr( new PrintStream( lp.outputStream ))
 
-      ip.init
+      ip.init()
       val sp = new JSplitPane( SwingConstants.HORIZONTAL )
       sp.setTopComponent( ip )
       sp.setBottomComponent( lp )

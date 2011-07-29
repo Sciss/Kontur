@@ -28,13 +28,11 @@
 
 package de.sciss.kontur.gui
 
-import java.awt.{ BorderLayout, Color, Dimension, Rectangle }
-import javax.swing.{ Box, JComponent, JPanel, JScrollPane, ScrollPaneConstants }
+import java.awt.Color
+import javax.swing.{ Box, JPanel, JScrollPane, ScrollPaneConstants }
 import ScrollPaneConstants._
-import scala.collection.immutable.{ Queue }
 
-import de.sciss.gui.{ GUIUtil, GradientPanel, StretchedGridLayout }
-import de.sciss.kontur.session.{ Marker, Session, SessionElementSeq, Stake, Timeline, Track }
+import de.sciss.kontur.session.Session
 import de.sciss.synth.Model
 
 //import Track.Tr
@@ -83,8 +81,8 @@ with BasicTrackList with TrackToolsListener {
 		timelinePanel.trackList = this
 
         addListener( trackListListener ) // before calling addAllTracks obviously
-        addAllTracks
-        followTracks
+        addAllTracks()
+        followTracks()
 	}
 
 //	override def dispose {

@@ -32,7 +32,7 @@ import javax.swing.undo.UndoManager
 import de.sciss.app.AbstractCompoundEdit
 import de.sciss.io.Span
 import de.sciss.kontur.edit.{ Editor, SimpleEdit }
-import de.sciss.kontur.session.{ Session, SessionElementSeq, Stake, Track, Trail }
+import de.sciss.kontur.session.{ Session, Stake, Trail }
 import de.sciss.synth.Model
 
 object TrailView {
@@ -87,7 +87,7 @@ extends TrailView[ T ] with TrailViewEditor[ T ] {
 
   def view: TrailView[ T ] = this
 
-  def dispose {
+  def dispose() {
 //    tracks.removeListener( tracksListener )
 //    tracks.foreach( t => removeTrack( t ))
      trail.removeListener( trailListener )
@@ -102,8 +102,8 @@ extends TrailView[ T ] with TrailViewEditor[ T ] {
 //     t.trail.removeListener( trailListener )
 //  }
 
-  def select( stakes: T* ) : Unit = setSelection( stakes, true )
-  def deselect( stakes: T* ) : Unit = setSelection( stakes, false )
+  def select( stakes: T* ) { setSelection( stakes, true )}
+  def deselect( stakes: T* ) { setSelection( stakes, false )}
 
   private def unionSpan( stakes: T* ) : Span = {
      var span = stakes.headOption.map( _.span ) getOrElse new Span()
@@ -142,18 +142,16 @@ extends TrailView[ T ] with TrailViewEditor[ T ] {
 
   def undoManager: UndoManager = doc.getUndoManager
 
-  def editSelect( ce: AbstractCompoundEdit, stakes: T* ) : Unit =
-    editSetSelection( ce, stakes, true )
+  def editSelect( ce: AbstractCompoundEdit, stakes: T* ) { editSetSelection( ce, stakes, true )}
 
-  def editDeselect( ce: AbstractCompoundEdit, stakes: T* ) : Unit =
-    editSetSelection( ce, stakes, false )
+  def editDeselect( ce: AbstractCompoundEdit, stakes: T* ) { editSetSelection( ce, stakes, false )}
 
   private def editSetSelection( ce: AbstractCompoundEdit, stakes: Seq[ T ], state: Boolean ) {
     val sf = stakes.filterNot( stake => isSelected( stake ) == state )
     if( !sf.isEmpty ) {
         val edit = new SimpleEdit( "editStakeSelection", false ) {
-            def apply { setSelection( sf, state )}
-            def unapply { setSelection( sf, !state )}
+            def apply() { setSelection( sf, state )}
+            def unapply() { setSelection( sf, !state )}
         }
         ce.addPerform( edit )
     }

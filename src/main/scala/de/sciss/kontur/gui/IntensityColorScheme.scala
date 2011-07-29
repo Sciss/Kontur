@@ -28,8 +28,7 @@
 
 package de.sciss.kontur.gui
 
-import java.awt.{ Color }
-import scala.math._
+import java.awt.Color
 
 // colors from niklas werner's sonasound!
 object IntensityColorScheme {
@@ -172,7 +171,7 @@ object IntensityColorScheme {
     )
 
     def apply( intensity: Float ) : Int =
-      colors( (max( 0f, min( 1f, intensity )) * (colors.size - 1) + 0.5f).toInt )
+      colors( (math.max( 0f, math.min( 1f, intensity )) * (colors.size - 1) + 0.5f).toInt )
 
     def getColor( intensity: Float ) : Color = new Color( apply( intensity ))
 }

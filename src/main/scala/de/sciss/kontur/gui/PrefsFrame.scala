@@ -28,22 +28,22 @@
 
 package de.sciss.kontur.gui
 
-import de.sciss.app.{ AbstractApplication, AbstractWindow, PreferenceEntrySync }
+import de.sciss.app.{ AbstractWindow, PreferenceEntrySync }
 import de.sciss.gui.{ ComboBoxEditorBorder, CoverGrowBox, PathField => PathF,
                      PrefCheckBox, PrefComboBox, PrefPathField, PrefParamField,
                      StringItem, TreeExpanderButton }
 import de.sciss.common.{ BasicWindowHandler, BasicPathField }
 import de.sciss.util.{ Param, ParamSpace }
-import de.sciss.kontur.{ Main }
-import de.sciss.kontur.util.{ PrefsUtil }
-import de.sciss.kontur.io.{ PrefCacheManager }
+import de.sciss.kontur.Main
+import de.sciss.kontur.util.PrefsUtil
+import de.sciss.kontur.io.PrefCacheManager
 import PrefsUtil._
-import java.awt.{ BorderLayout, Color, Dimension, SystemColor }
+import java.awt.{ BorderLayout, SystemColor }
 import java.awt.event.{ ActionEvent, ActionListener }
 import java.util.prefs.{ Preferences }
 import javax.swing.{ AbstractAction, AbstractButton, ButtonGroup, GroupLayout,
-                    JButton, JComboBox, JComponent, JLabel, JPanel, JScrollPane,
-                    JTable, JToggleButton, JToolBar, OverlayLayout, ScrollPaneConstants,
+                    JComboBox, JComponent, JLabel, JPanel, JScrollPane,
+                    JTable, JToggleButton, JToolBar, ScrollPaneConstants,
                     SwingConstants, UIManager, WindowConstants }
 
 class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
@@ -52,7 +52,7 @@ class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
     {
       setTitle( getResourceString( "framePrefs" ))
       setResizable( false )
-      makeUnifiedLook
+      makeUnifiedLook()
       
 //	  val app = AbstractApplication.getApplication()
 
@@ -73,7 +73,7 @@ class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
 
       def newTab( key: String, panel: JComponent ) : AbstractButton = {
         val action = new AbstractAction( getResourceString( key )) {
-            def actionPerformed( e: ActionEvent ) : Unit = activateTab( this )
+            def actionPerformed( e: ActionEvent ) { activateTab( this )}
         }
         val ggTab = new JToggleButton( action )
         ggTab.putClientProperty( "JButton.buttonType", "toolbar" )
@@ -114,7 +114,7 @@ class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
         ggScroll
     }
 
-    private def createPanel : Tuple2[ JPanel, GroupLayout ] = {
+    private def createPanel : (JPanel, GroupLayout) = {
         val panel   = new JPanel()
         panel.setBackground( SystemColor.control ) // new Color( 216, 216, 216 )
         val layout  = new GroupLayout( panel )
@@ -124,13 +124,13 @@ class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
         (panel, layout)
     }
 
-    override def dispose {
+    override def dispose() {
         app.removeComponent( Main.COMP_PREFS )
-        super.dispose
+        super.dispose()
     }
     
     private def generalPanel : JComponent = {
-		val prefs   = app.getUserPrefs()
+		val prefs   = app.getUserPrefs
 
         val (panel, layout) = createPanel
 
@@ -145,15 +145,15 @@ class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
 //        })
         val ggWarn = new JPanel() {
             setOpaque( false )
-            override def getPreferredSize() = lbWarn.getPreferredSize()
+            override def getPreferredSize = lbWarn.getPreferredSize
         }
         ggWarn.add( lbWarn )
 
         def addWarn( b: { def addActionListener( l: ActionListener ): Unit }, pes: PreferenceEntrySync ) {
-			val initialValue = pes.getPreferenceNode().get( pes.getPreferenceKey(), null )
+			val initialValue = pes.getPreferenceNode.get( pes.getPreferenceKey, null )
             b.addActionListener( new ActionListener {
                 def actionPerformed( e: ActionEvent ) {
-                  val newValue = pes.getPreferenceNode().get( pes.getPreferenceKey(), initialValue )
+                  val newValue = pes.getPreferenceNode.get( pes.getPreferenceKey, initialValue )
         		  if( newValue != initialValue ) {
                       lbWarn.setVisible( true )
                   }
@@ -163,9 +163,9 @@ class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
 
         val lbLAF   = new JLabel( getResourceString( "prefsLookAndFeel" ))
         val ggLAF   = new PrefComboBox()
-		val lafInfos = UIManager.getInstalledLookAndFeels()
+		val lafInfos = UIManager.getInstalledLookAndFeels
         for( info <- lafInfos ) {
-            ggLAF.addItem( new StringItem( info.getClassName(), info.getName() ))
+            ggLAF.addItem( new StringItem( info.getClassName, info.getName ))
         }
         ggLAF.setPreferences( prefs, KEY_LOOKANDFEEL )
         addWarn( ggLAF, ggLAF )
@@ -215,7 +215,7 @@ class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
     }
 
    private def ioPanel : JComponent = {
-		val prefs   = app.getUserPrefs().node( NODE_IO )
+		val prefs   = app.getUserPrefs.node( NODE_IO )
 
       val (panel, layout) = createPanel
 
@@ -236,7 +236,7 @@ class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
    }
 
     private def audioPanel : JComponent = {
-		val prefs   = app.getUserPrefs().node( NODE_AUDIO );
+		val prefs   = app.getUserPrefs.node( NODE_AUDIO );
 //		val abPrefs	= prefs.node( NODE_AUDIOBOXES );
 
         val (panel, layout) = createPanel

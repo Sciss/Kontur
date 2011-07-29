@@ -31,9 +31,9 @@
 
 package de.sciss.kontur.io
 
-import java.io.{ File }
+import java.io.File
 import java.util.prefs.{ PreferenceChangeEvent, PreferenceChangeListener, Preferences }
-import de.sciss.io.{ CacheManager }
+import de.sciss.io.CacheManager
 import de.sciss.util.{ Param, ParamSpace }
 
 /**
@@ -67,7 +67,7 @@ with PreferenceChangeListener {
 		preferences.addPreferenceChangeListener( this )
 	}
 
-   def dispose {
+   def dispose() {
       preferences.removePreferenceChangeListener( this )
    }
 
@@ -78,28 +78,28 @@ with PreferenceChangeListener {
 
 	override def setFolderAndCapacity( folder: File, capacity: Int ) {
 		super.setFolderAndCapacity( folder, capacity )
-		preferences.put( KEY_FOLDER, folder.getPath() )
-		preferences.put( KEY_CAPACITY, new Param( capacity, ParamSpace.NONE | ParamSpace.ABS ).toString() )
+		preferences.put( KEY_FOLDER, folder.getPath )
+		preferences.put( KEY_CAPACITY, new Param( capacity, ParamSpace.NONE | ParamSpace.ABS ).toString )
 	}
 
 // ------- PreferenceChangeListener interface -------
 
 	def preferenceChange( e: PreferenceChangeEvent) {
-		val key = e.getKey()
+		val key = e.getKey
 
 		if( key == KEY_FOLDER ) {
-			val f = new File( e.getNewValue() );
-			if( (getFolder() == null) || (getFolder() != f) ) {
+			val f = new File( e.getNewValue );
+			if( (getFolder == null) || (getFolder != f) ) {
 				setFolder( f )
 			}
       } else if( key == KEY_CAPACITY ) {
 			val c = Param.fromPrefs( preferences, key, defaultCapacityP ).`val`.toInt
-			if( getCapacity() != c ) {
+			if( getCapacity != c ) {
 				setCapacity( c )
 			}
 		} else if( key == KEY_ACTIVE ) {
-			val b = java.lang.Boolean.valueOf( e.getNewValue() ).booleanValue()
-			if( isActive() != b ) {
+			val b = java.lang.Boolean.valueOf( e.getNewValue ).booleanValue()
+			if( isActive != b ) {
 				setActive( b )
 			}
 		}

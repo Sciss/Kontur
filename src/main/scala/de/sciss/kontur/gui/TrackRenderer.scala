@@ -28,9 +28,8 @@
 
 package de.sciss.kontur.gui
 
-import javax.swing.{ JComponent }
-import de.sciss.kontur.session.{ AudioTrack, Session, Stake, Track }
-import de.sciss.synth.Model
+import javax.swing.JComponent
+import de.sciss.kontur.session.{ AudioTrack, Session, Track }
 
 //import Track.Tr
 

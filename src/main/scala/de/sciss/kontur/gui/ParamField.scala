@@ -37,7 +37,7 @@ extends de.sciss.gui.PrefParamField( ut ) {
 
     addPropertyChangeListener( "JComponent.sizeVariant", new PropertyChangeListener {
         def propertyChange( pce: PropertyChangeEvent ) {
-            ggNumber.putClientProperty( pce.getPropertyName(), pce.getNewValue() )
+            ggNumber.putClientProperty( pce.getPropertyName, pce.getNewValue )
         }
     })
 

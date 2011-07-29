@@ -40,17 +40,17 @@ extends BasicUndoableEdit {
   def apply() : Unit
   def unapply() : Unit
 
-  override def undo() : Unit = {
+  override def undo() {
     super.undo()
     unapply()
   }
 
-  override def redo() : Unit = {
+  override def redo() {
     super.redo()
     apply()
   }
 
-  override def getPresentationName() : String = {
-     AbstractApplication.getApplication().getResourceString( name )
+  override def getPresentationName : String = {
+     AbstractApplication.getApplication.getResourceString( name )
   }
 }

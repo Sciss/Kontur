@@ -4,8 +4,7 @@ import java.awt.event.ActionEvent
 import de.sciss.util.{DefaultUnitTranslator, Param, ParamSpace}
 import de.sciss.gui.{GUIUtil, MenuAction, SpringPanel}
 import de.sciss.common.BasicWindowHandler
-import de.sciss.io.Span
-import javax.swing.{KeyStroke, Action, JOptionPane}
+import javax.swing.{Action, JOptionPane}
 import java.awt.Component
 import de.sciss.kontur.session.Timeline
 
@@ -13,9 +12,9 @@ abstract class ActionQueryDuration extends MenuAction {
    private var value: Option[ Param ] = None
    private var space: Option[ ParamSpace ] = None
 
-   def actionPerformed( e: ActionEvent ) : Unit = perform
+   def actionPerformed( e: ActionEvent ) { perform() }
 
-   def perform {
+   def perform() {
       val msgPane     = new SpringPanel( 4, 2, 4, 2 )
       val timeTrans   = new DefaultUnitTranslator()
       val ggDuration  = new ParamField( timeTrans )
