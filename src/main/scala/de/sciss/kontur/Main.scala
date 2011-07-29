@@ -35,6 +35,7 @@ import de.sciss.common.{ BasicApplication, BasicDocument, BasicMenuFactory, Basi
 import de.sciss.kontur.gui.{ MainFrame, MenuFactory, SuperColliderFrame }
 import de.sciss.kontur.util.PrefsUtil
 import de.sciss.util.Flag
+import sc.SuperColliderClient
 
 /**
  *  The <code>Main</code> class contains the java VM
@@ -251,29 +252,28 @@ extends BasicApplication( classOf[ Main ], Main.APP_NAME ) {
 	protected def createDocumentHandler() : DocumentHandler = new de.sciss.kontur.session.DocumentHandler( this )
 	protected def createWindowHandler() : BasicWindowHandler = new BasicWindowHandler( this )
 
-	private var forcedQuit = false
+	private var shouldForceQuit = false
 
-    override def quit() {
-//      this.synchronized {
-          val confirmed = new Flag( false )
-          val pt          = getMenuFactory.closeAll( forcedQuit, confirmed )
+   override def quit() {
+      val confirmed  = new Flag( false )
+//println( "---0 " + shouldForceQuit )
+      val pt         = getMenuFactory.closeAll( shouldForceQuit, confirmed )
 
 //println( "---1" )
-          if( pt != null ) {
+      if( pt != null ) {
 //println( "---2" )
-            pt.addListener( quitAfterSaveListener )
-            pt.getClientArg( "doc" ).asInstanceOf[ BasicDocument ].start( pt )
-          } else if( confirmed.isSet ) {
+         pt.addListener( quitAfterSaveListener )
+         pt.getClientArg( "doc" ).asInstanceOf[ BasicDocument ].start( pt )
+      } else if( confirmed.isSet ) {
 //println( "---3" )
-//			OSCRoot.getInstance().quit();
-//			SuperColliderClient.getInstance().quit();
-			super.quit()
-		  }
-//      }
+//       OSCRoot.getInstance().quit();
+         SuperColliderClient.instance.quit()
+         super.quit()
+      }
 	}
 
     def forceQuit() {
-		forcedQuit = true
+		shouldForceQuit = true
 		quit()
 	}
 

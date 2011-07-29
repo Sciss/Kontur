@@ -52,7 +52,7 @@ object TimelineFrame {
   protected val KEY_TRACKSIZE	= "tracksize"
 }
 
-class TimelineFrame( protected val doc: Session, tl: Timeline )
+class TimelineFrame( val doc: Session, tl: Timeline )
 extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
    frame =>
 

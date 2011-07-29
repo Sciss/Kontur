@@ -94,7 +94,7 @@ trait SessionFrame {
       addListener( winListener )
    }
 
-   protected def doc: Session
+   def doc: Session
 
    protected def elementName: Option[ String ]
 
@@ -144,7 +144,7 @@ trait SessionFrame {
       invokeDispose() // dispose()
    }
 
-   private def closeDocument( force: Boolean, wasClosed: Flag ) {
+   def closeDocument( force: Boolean, wasClosed: Flag ) {
 //      doc.getTransport().stop();
       val okToClose = force || {
          val name = getResourceString( "menuClose" )
@@ -203,7 +203,7 @@ trait SessionFrame {
     *
     *	@see	de.sciss.eisenkraut.util.ProcessingThread#start
     */
-   private def confirmUnsaved( actionName: String, confirmed: Flag ) : Boolean = {
+   def confirmUnsaved( actionName: String, confirmed: Flag ) : Boolean = {
       if( !doc.isDirty() ) {
          confirmed.set( true )
          return false

@@ -36,6 +36,8 @@ import de.sciss.synth.Model
 import java.awt.EventQueue
 import java.io.{ File, IOException }
 import scala.xml.{ Node, XML }
+import collection.JavaConversions
+import de.sciss.kontur.gui.{SessionFrame, SessionTreeFrame}
 
 object Session {
     def newEmpty = new Session( None )
@@ -126,11 +128,29 @@ extends BasicDocument with Model {
 		process.start()
 	}
 
-	def closeDocument( force: Boolean, wasClosed: Flag ) : ProcessingThread = {
-//		return frame.closeDocument( force, wasClosed );	// XXX should be in here not frame!!!
-      wasClosed.set( true )
-	  AbstractApplication.getApplication.getDocumentHandler.removeDocument( this, this )
+	def closeDocument( force: Boolean, confirmed: Flag ) : ProcessingThread = {
+      import JavaConversions._
+      AbstractApplication.getApplication.getWindowHandler.getWindows.collect({
+         case sf: SessionFrame if( sf.doc == this ) => sf
+      }).toList.headOption match {
+         case Some( sf ) =>
+//println( ">>>>> CONFIRM" )
+//            val saved = sf.confirmUnsaved( "Close", confirmed )
+//println( "<<<<< CONFIRM " + saved )
+//            if( saved ) confirmed.set( true )   // tricky disco
+//
+            sf.closeDocument( force, confirmed )
+
+         case None =>
+            println( "Wooop -- no document frame found ?!" )
+            confirmed.set( true )
+      }
       null
+
+////		return frame.closeDocument( force, wasClosed );	// XXX should be in here not frame!!!
+//      wasClosed.set( true )
+//	  AbstractApplication.getApplication.getDocumentHandler.removeDocument( this, this )
+//      null
 	}
 
     def path = pathVar

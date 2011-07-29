@@ -116,7 +116,19 @@ class SuperColliderClient extends Model {
 
 	def quit() {
 //		Server.quitAll
-        serverVar.foreach( _.quit )
+//        serverVar.foreach( _.quit )
+      serverVar.foreach { s =>
+         Runtime.getRuntime.addShutdownHook( new Thread {
+            override def run() {
+               if( s.condition != Server.Offline ) {
+                  s.quit
+               }
+               bootingVar.foreach { booting =>
+                  booting.abort
+               }
+            }
+         })
+      }
 	}
 
 	def reboot() {

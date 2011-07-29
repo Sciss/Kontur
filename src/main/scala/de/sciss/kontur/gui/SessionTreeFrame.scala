@@ -34,7 +34,7 @@ import java.awt.BorderLayout
 import java.awt.event.{ MouseAdapter, MouseEvent }
 import javax.swing.{ DropMode, JScrollPane, JTree, ScrollPaneConstants }
 
-class SessionTreeFrame( protected val doc: Session )
+class SessionTreeFrame( val doc: Session )
 extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
    frame =>
 
