@@ -159,7 +159,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
       mr.putMimic( "actions.showInEisK", this, new ActionShowInEisK )
 
-      makeUnifiedLook
+      makeUnifiedLook()
       init()
 //  	  updateTitle
 //      documentUpdate
@@ -180,14 +180,14 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
    
    protected def elementName = Some( tl.name )
 
-   protected def windowClosing { dispose }
+   protected def windowClosing() { invokeDispose() }
 
    def nudgeFrames : Long = ActionNudgeAmount.numFrames
 
 	private def initBounds {
-		val cp	= getClassPrefs()
-		val bwh	= getWindowHandler()
-		val sr	= bwh.getWindowSpace()
+		val cp	= getClassPrefs
+		val bwh	= getWindowHandler
+		val sr	= bwh.getWindowSpace
       val dt	= /* AppWindow.*/ stringToDimension( cp.get( TimelineFrame.KEY_TRACKSIZE, null ))
 		val d	= if( dt == null ) new Dimension() else dt
 		val hf	= 1f // Math.sqrt( Math.max( 1, waveView.getNumChannels() )).toFloat
@@ -677,9 +677,9 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
          ggCancel.setFocusable( false )
          val options = Array[ AnyRef]( ggCancel )
          val op = new JOptionPane( ggProgress, JOptionPane.INFORMATION_MESSAGE, 0, null, options )
-         def fDispose() { val w = SwingUtilities.getWindowAncestor( op ); if( w != null ) w.dispose }
+         def fDispose() { val w = SwingUtilities.getWindowAncestor( op ); if( w != null ) w.dispose() }
          ggCancel.addActionListener( new ActionListener {
-            def actionPerformed( e: ActionEvent ) { fDispose }
+            def actionPerformed( e: ActionEvent ) { fDispose() }
          })
          var done = false
          try {
@@ -689,14 +689,14 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 //               case _ => println( "received: " + msg ) 
             })
             BasicWindowHandler.showDialog( op, getWindow, name )
-            if( !done ) process.cancel
+            if( !done ) process.cancel()
          }
          catch { case e: Exception =>
             fDispose()
             BasicWindowHandler.showErrorDialog( frame.getWindow, e, name )}
       }
 
-      def query: Option[ Tuple4[ List[ Track ], Span, File, AudioFileSpec ]] = {
+      def query: Option[ (List[ Track ], Span, File, AudioFileSpec) ] = {
          val trackElems    = tracksPanel.toList
          val numTracks     = trackElems.size
          val selTrackElems = trackElems.filter( _.selected )

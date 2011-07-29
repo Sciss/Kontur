@@ -56,7 +56,7 @@ trait SessionFrame {
 
    private val winListener = new AbstractWindow.Adapter() {
         override def windowClosing( e: AbstractWindow.Event ) {
-            frame.windowClosing
+            frame.windowClosing()
         }
 
         override def windowActivated( e: AbstractWindow.Event ) {
@@ -69,8 +69,8 @@ trait SessionFrame {
     }
 
    private val docListener: Model.Listener = {
-      case Session.DirtyChanged( _ ) => updateTitle
-      case Session.PathChanged( _, _ ) => updateTitle
+      case Session.DirtyChanged( _ ) => updateTitle()
+      case Session.PathChanged( _, _ ) => updateTitle()
    }
 
    private var disposed   = false;  // compiler problem, we cannot name it disposed
@@ -86,10 +86,10 @@ trait SessionFrame {
       mr.putMimic( "edit.undo", this, doc.getUndoManager.getUndoAction )
       mr.putMimic( "edit.redo", this, doc.getUndoManager.getRedoAction )
       
-      updateTitle
+      updateTitle()
       doc.addListener( docListener )
 
-      app.getMenuFactory().addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
+      app.getMenuFactory.addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
       setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE )
       addListener( winListener )
    }
@@ -98,7 +98,16 @@ trait SessionFrame {
 
    protected def elementName: Option[ String ]
 
-   protected def windowClosing(): Unit
+   protected def windowClosing() : Unit
+
+   protected def invokeDispose() {
+      disposed = true	// important to avoid "too late window messages" to be processed; fucking swing doesn't kill them despite listener being removed
+      removeListener( winListener )
+      doc.removeListener( docListener )
+      app.getMenuFactory.removeFromWindowMenu( actionShowWindow )
+      actionShowWindow.dispose()
+      dispose()
+   }
 
 	/**
 	 *  Recreates the main frame's title bar
@@ -126,18 +135,18 @@ trait SessionFrame {
 		}
 	}
 
+//   override def dispose() {
+//      frame.dispose()
+//   }
+
    protected def documentClosed() {
-      disposed = true	// important to avoid "too late window messages" to be processed; fucking swing doesn't kill them despite listener being removed
-      removeListener( winListener )
-      doc.removeListener( docListener )
-      actionShowWindow.dispose()
       app.getDocumentHandler.removeDocument( this, doc )	// XXX
-      dispose()
+      invokeDispose() // dispose()
    }
 
    private def closeDocument( force: Boolean, wasClosed: Flag ) {
 //      doc.getTransport().stop();
-      if( !force ) {
+      val okToClose = force || {
          val name = getResourceString( "menuClose" )
 //         if( !confirmCancel( name )) {
 //            wasClosed.set( false );
@@ -156,9 +165,10 @@ trait SessionFrame {
 //            });
 //            return pt;
 //         }
+         saved || wasClosed.isSet  // aka confirmed.isSet
       }
-println( "wasClosed : " + wasClosed.isSet )
-      if( wasClosed.isSet ) {
+//println( "wasClosed : " + wasClosed.isSet )
+      if( okToClose ) {
          documentClosed()
       }
 //      return null;
@@ -264,7 +274,7 @@ println( "wasClosed : " + wasClosed.isSet )
    }
 
    protected class ActionClose extends MenuAction {
-      def actionPerformed( e: ActionEvent ) { perform }
+      def actionPerformed( e: ActionEvent ) { perform() }
 
       def perform() {
          closeDocument( false, new Flag( false ))
