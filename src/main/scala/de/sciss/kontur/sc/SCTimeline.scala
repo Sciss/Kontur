@@ -28,16 +28,14 @@
 
 package de.sciss.kontur.sc
 
-import scala.collection.mutable.{ ArrayBuffer }
+import scala.collection.mutable.ArrayBuffer
 import java.awt.event.{ ActionEvent, ActionListener }
 import javax.swing.{ Timer => SwingTimer }
-import de.sciss.util.{ Disposable }
-import de.sciss.synth.{ EnvSeg => S, _ }
-import de.sciss.synth.ugen._
-import de.sciss.kontur.session.{ AudioRegion, AudioTrack, Diffusion, MatrixDiffusion,
-                                 Session, Stake, Timeline, Track, Transport }
-import de.sciss.io.{ Span }
-import scala.math._
+import de.sciss.synth.Model
+
+//import de.sciss.synth._
+import de.sciss.kontur.session.{ AudioTrack, Timeline, Track, Transport }
+import de.sciss.io.Span
 import SynthContext._
 
 class SCTimeline( val scDoc: SCSession, val tl: Timeline )
@@ -67,7 +65,7 @@ extends ActionListener {
 
    private val transportListener: Model.Listener = {
       case Transport.Play( from, rate ) => context.perform { play( from, rate )}
-      case Transport.Stop( pos ) => context.perform { stop }
+      case Transport.Stop( pos ) => context.perform { stop() }
    }
 
    // ---- constructor ----
@@ -83,8 +81,8 @@ extends ActionListener {
       }
    }
 
-   def dispose {
-      stop
+   def dispose() {
+      stop()
       tracks.foreach( t => removeTrack( 0, t ))
       if( realtime ) {
          tl.transport.foreach( _.removeListener( transportListener ))
@@ -132,7 +130,7 @@ if( verbose ) println( "| | | | | timer " + currentPos )
          mapPlayers -= t
          val player = players.remove( idx )
          assert( ptest == player )
-         player.dispose
+         player.dispose()
       })
    }
 
@@ -142,13 +140,13 @@ if( verbose ) println( "play ; deltaFrames = " + deltaFrames )
       startTime = System.currentTimeMillis // sucky swing timer is imprecise
       currentPos = start
 //      if( realtime ) context.timebase = 0.0
-      players.foreach( _.play )
+      players.foreach( _.play() )
       if( realtime ) timer.start()
    }
 
-   def stop {
+   def stop() {
 if( verbose ) println( "stop" )
-players.foreach( _.stop )
+players.foreach( _.stop() )
       if( realtime ) timer.stop()
    }
 }

@@ -29,12 +29,11 @@
 package de.sciss.kontur.sc
 
 import de.sciss.kontur.session.{ ConvolutionDiffusion, Diffusion, MatrixDiffusion }
-import de.sciss.synth.{ Bus }
 
 trait DiffusionSynth {
-   def play : Unit
-   def stop : Unit
-   def dispose : Unit
+   def play() : Unit
+   def stop() : Unit
+   def dispose() : Unit
    def inBus: RichBus
    def outBus: RichBus
    def diffusion: Diffusion

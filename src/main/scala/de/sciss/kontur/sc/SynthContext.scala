@@ -28,20 +28,18 @@
 
 package de.sciss.kontur.sc
 
-import scala.collection.immutable.{ Queue }
-import scala.collection.mutable.{ ListBuffer }
+import scala.collection.immutable.Queue
 import java.io.{ File, IOException }
-import java.net.{ SocketAddress }
 import de.sciss.synth._
 import osc._
 import de.sciss.osc.{ OSCBundle, OSCMessage }
-import de.sciss.util.{ Disposable }
+import de.sciss.util.Disposable
 
 /**
  *    @version 0.11, 21-May-10
  */
 trait AsyncAction {
-   def asyncDone : Unit
+   def asyncDone() : Unit
 }
 
 trait AsyncModel extends AsyncAction {
@@ -50,7 +48,7 @@ trait AsyncModel extends AsyncAction {
    private var isOnlineVar = false
    private var wasOnline = false
 
-   def asyncDone { isOnline = true }
+   def asyncDone() { isOnline = true }
 
    def isOnline: Boolean = isOnlineVar
    def isOnline_=( newState: Boolean ) {
@@ -60,11 +58,11 @@ trait AsyncModel extends AsyncAction {
             wasOnline = true
             val cpy = collWhenOnline
             collWhenOnline = Queue[ () => Unit ]()
-            cpy.foreach( _.apply )
+            cpy.foreach( _.apply() )
          } else {
             val cpy = collWhenOffline
             collWhenOffline = Queue[ () => Unit ]()
-            cpy.foreach( _.apply )
+            cpy.foreach( _.apply() )
          }
       }
    }
@@ -102,7 +100,7 @@ extends AsyncModel {
 trait RichNode extends AsyncModel {
    def node: Node
 
-   def free {
+   def free() {
       whenOnline {
          SynthContext.current.add( node.freeMsg )
       }
@@ -136,17 +134,17 @@ extends AsyncAction {
    def id : Int
    def numChannels : Int
 
-   def free : Unit
+   def free() : Unit
 
    def whenReady( thunk: => Unit ) {
       val fun = () => thunk
       collWhenReady = collWhenReady.enqueue( fun )
    }
 
-   def asyncDone {
+   def asyncDone() {
       val cpy = collWhenReady
       collWhenReady = Queue[ () => Unit ]()
-      cpy.foreach( _.apply )
+      cpy.foreach( _.apply() )
    }
 
    def read( path: File, fileStartFrame: Long = 0L, numFrames: Int = -1, bufStartFrame: Int = 0,
@@ -179,7 +177,7 @@ extends RichBuffer {
          buffer.readMsg( path, offsetI, numFrames, bufStartFrame, leaveOpen ), this )
    }
 
-   def free {
+   def free() {
       if( wasOpened ) {
          SynthContext.current.addAsync( buffer.closeMsg )
          wasOpened = false
@@ -205,7 +203,7 @@ extends RichBuffer {
       ch += 1 })
    }
 
-   def free {
+   def free() {
       whenReady {
          buffers.foreach( buf => {
             if( wasOpened ) SynthContext.current.addAsync( buf.closeMsg )
@@ -217,7 +215,7 @@ extends RichBuffer {
 }
 
 class RichBus( val bus: Bus ) {
-   def free {
+   def free() {
       bus.free // XXX
    }
 
@@ -237,8 +235,7 @@ object SynthContext {
    def audioBus( numChannels: Int ) : RichBus =
       current.audioBus( numChannels )
 
-   def group() : RichGroup =
-      current.group
+   def group : RichGroup = current.group
 
    def groupAfter( n: RichNode ) : RichGroup =
       current.groupAfter( n )
@@ -257,10 +254,11 @@ object SynthContext {
    def sampleRate : Double = current.sampleRate
 
    def timebase : Double = current.timebase
-   def timebase_=( newVal: Double ) : Unit = current.timebase_=( newVal )
+   def timebase_=( newVal: Double ) { current.timebase_=( newVal )}
 
-   def delayed( tb: Double, delay: Double )( thunk: => Unit ) : Unit =
+   def delayed( tb: Double, delay: Double )( thunk: => Unit ) {
       current.delayed( tb, delay )( thunk )
+   }
 
    def invalidate( obj: AnyRef ) {
       current.dispatch( Invalidation( obj ))
@@ -296,7 +294,7 @@ extends Model with Disposable {
          initBundle( time )
          SynthContext.current = this
          thunk
-         sendBundle
+         sendBundle()
       }
       finally {
          SynthContext.current = savedContext
@@ -304,11 +302,11 @@ extends Model with Disposable {
       }
    }
 
-   private def sendBundle {
+   private def sendBundle() {
       try {
-         bundle.send // sendBundle( bundle )
+         bundle.send() // sendBundle( bundle )
       }
-      catch { case e: IOException => e.printStackTrace }
+      catch { case e: IOException => e.printStackTrace() }
       finally {
          bundle = null
       }
@@ -316,7 +314,7 @@ extends Model with Disposable {
 
    def sampleRate : Double = server.counts.sampleRate
 
-   def group() : RichGroup = {
+   def group : RichGroup = {
       val group = new Group( server )
       val rg    = new RichGroup( group )
       bundle.add( group.newMsg( currentTarget.group, addToHead ))
@@ -429,7 +427,7 @@ extends Model with Disposable {
       private var hasAsyncVar = false
 
       @throws( classOf[ IOException ])
-      def send: Unit
+      def send(): Unit
 
       def add( msg: OSCMessage ) {
          msgs = msgs.enqueue( msg )
@@ -454,8 +452,8 @@ extends Model with Disposable {
 
       def messages: Seq[ OSCMessage ] = msgs
 
-      def doAsync {
-         asyncs.foreach( _.asyncDone )
+      def doAsync() {
+         asyncs.foreach( _.asyncDone() )
       }
    }
 }
@@ -465,7 +463,7 @@ extends SynthContext( s, true ) {
    private val resp = OSCResponder({
       case OSCSyncedMessage( id ) => syncWait.get( id ).foreach( bundle => {
          syncWait -= id
-         perform { bundle.doAsync } // we could use 'delayed', but we might want bundle 'immediate' times
+         perform { bundle.doAsync() } // we could use 'delayed', but we might want bundle 'immediate' times
       })
    }, server )
    private var timebaseSysRef = System.currentTimeMillis
@@ -476,7 +474,7 @@ extends SynthContext( s, true ) {
    // ---- constructor ----
    resp.add
 
-   def dispose {
+   def dispose() {
       resp.remove
    }
 
@@ -499,7 +497,7 @@ extends SynthContext( s, true ) {
    private class Bundle( count: Int, ref: Long )
    extends AbstractBundle {
       @throws( classOf[ IOException ])
-      def send {
+      def send() {
          val cpy = if( hasAsync ) {
             syncWait += count -> this
             msgs.enqueue( new OSCSyncMessage( count ))

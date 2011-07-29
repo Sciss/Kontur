@@ -29,14 +29,14 @@
 package de.sciss.kontur.sc
 
 import de.sciss.app.{ AbstractApplication, DocumentEvent, DocumentListener }
-import de.sciss.kontur.session.{ Session }
+import de.sciss.kontur.session.Session
 import de.sciss.kontur.util.PrefsUtil
-import de.sciss.util.{ Param }
+import de.sciss.util.Param
 import java.awt.EventQueue
-import java.io.{ IOException }
+import java.io.IOException
 import java.net.{ DatagramSocket, ServerSocket }
 import de.sciss.osc.{UDP, TCP, OSCChannel}
-import de.sciss.synth.{ServerConnection, ServerOptionsBuilder, Model, Server, ServerOptions}
+import de.sciss.synth.{ServerConnection, ServerOptionsBuilder, Model, Server}
 
 object SuperColliderClient {
    lazy val instance = new SuperColliderClient
@@ -51,7 +51,7 @@ object SuperColliderClient {
 class SuperColliderClient extends Model {
     import SuperColliderClient._
 
-    private val app         = AbstractApplication.getApplication()
+    private val app         = AbstractApplication.getApplication
     private val audioPrefs  = app.getUserPrefs.node( PrefsUtil.NODE_AUDIO )
     private val so          = new ServerOptionsBuilder
     private var bootingVar: Option[ ServerConnection ] = None
@@ -65,7 +65,7 @@ class SuperColliderClient extends Model {
 
     // ---- constructor ----
     {
-		val userPrefs	= app.getUserPrefs
+//		val userPrefs	= app.getUserPrefs
 		
 //		oCfgListener = new PreferenceChangeListener() {
 //			public void preferenceChange( PreferenceChangeEvent e )
@@ -74,7 +74,7 @@ class SuperColliderClient extends Model {
 //			}
 //		};
       
-        app.getDocumentHandler().addDocumentListener( new DocumentListener {
+        app.getDocumentHandler.addDocumentListener( new DocumentListener {
         	def documentAdded( e: DocumentEvent ) {
                e.getDocument match {
                   case doc: Session => {
@@ -104,7 +104,7 @@ class SuperColliderClient extends Model {
    def getPlayer( doc: Session ) : Option[ SuperColliderPlayer ] = players.get( doc )
 
    private def defer( thunk: => Unit ) {
-      EventQueue.invokeLater( new Runnable { def run = thunk })
+      EventQueue.invokeLater( new Runnable { def run() { thunk }})
    }
 
    def dumpOSC( mode: Int ) {
@@ -114,14 +114,14 @@ class SuperColliderClient extends Model {
       }
    }
 
-	def quit {
+	def quit() {
 //		Server.quitAll
         serverVar.foreach( _.quit )
 	}
 
-	def reboot {
+	def reboot() {
 		shouldReboot = true
-		stop
+		stop()
 	}
 
     def serverCondition : AnyRef = {
@@ -131,16 +131,16 @@ class SuperColliderClient extends Model {
     def server = serverVar
 
     private def printError( name: String, t: Throwable ) {
-		System.err.println( name + " : " + t.getClass().getName() + " : " + t.getLocalizedMessage() )
+		System.err.println( name + " : " + t.getClass.getName + " : " + t.getLocalizedMessage )
 	}
 
-	def stop {
+	def stop() {
       bootingVar.foreach( _.abort )
       serverVar.foreach( s => try { s.quit } catch { case e1: IOException => printError( "stop", e1 )})
 	}
 
 	// @synchronization	must be called in the event thread!
-	private def dispose {
+	private def dispose() {
 //		if( !EventQueue.isDispatchThread() ) throw new IllegalMonitorStateException();
 
 //		grpLimiter = null;
@@ -176,7 +176,7 @@ class SuperColliderClient extends Model {
 //		if( !EventQueue.isDispatchThread() ) throw new IllegalMonitorStateException();
        if( bootingVar.isDefined || serverVar.map( _.isRunning ) == Some( true )) return false
 
-		dispose
+		dispose()
 
 //		final String			abCfgID		= audioPrefs.get( PrefsUtil.KEY_AUDIOBOX, AudioBoxConfig.ID_DEFAULT );
 //		final AudioBoxConfig	abCfg		= new AudioBoxConfig( audioPrefs.node( PrefsUtil.NODE_AUDIOBOXES ).node( abCfgID ));
@@ -220,11 +220,11 @@ so.memorySize = 64 << 10
 			if( serverPort == 0 ) {
 				if( so.transport == TCP ) {
 					val ss = new ServerSocket( 0 )
-					serverPort = ss.getLocalPort()
+					serverPort = ss.getLocalPort
 					ss.close()
 				} else if( so.transport == UDP ) {
 					val ds = new DatagramSocket()
-					serverPort = ds.getLocalPort()
+					serverPort = ds.getLocalPort
 					ds.close()
 				} else {
 					throw new IllegalArgumentException( "Illegal protocol : " + so.transport )

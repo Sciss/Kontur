@@ -111,7 +111,7 @@ extends SCTrackPlayer {
       })
    }
 
-   def play {
+   def play() {
       if( !playing ) {
          playing = true
       } else {
@@ -119,7 +119,7 @@ extends SCTrackPlayer {
       }
    }
 
-   def stop {
+   def stop() {
       if( playing ) {
          playing = false
          synths.foreach( _.free )
@@ -127,7 +127,7 @@ extends SCTrackPlayer {
       }
    }
 
-   def dispose {
-       stop
+   def dispose() {
+       stop()
    }
 }

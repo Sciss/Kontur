@@ -28,11 +28,9 @@
 
 package de.sciss.kontur.sc
 
-import de.sciss.kontur.session.{ Session }
-import de.sciss.util.{ Disposable }
-import de.sciss.synth._
-import scala.math._
-import SynthContext._
+import de.sciss.kontur.session.Session
+import de.sciss.util.Disposable
+import de.sciss.synth.{Server, Model}
 
 //import Track.Tr
 
@@ -43,9 +41,9 @@ extends Disposable {
     private var online: Option[ SCSession ] = None
 
     private val clientListener: Model.Listener = {
-       case SuperColliderClient.ServerRunning( _ ) => serverRunning
+       case SuperColliderClient.ServerRunning( _ ) => serverRunning()
 //       case Server.Running => serverRunning
-       case Server.Offline => serverOffline
+       case Server.Offline => serverOffline()
     }
 
     // ---- constructor ----
@@ -57,7 +55,7 @@ extends Disposable {
 
    override def toString = "SuperColliderPlayer(" + doc.name.getOrElse( "<Untitled>" ) + ")"
 
-    private def serverRunning {
+    private def serverRunning() {
       client.server.foreach( s => {
          val context = new RealtimeSynthContext( s )
          context.perform {
@@ -66,20 +64,20 @@ extends Disposable {
       })
     }
 
-    private def serverOffline {
+    private def serverOffline() {
        online.foreach( ol => {
           ol.context.perform {
-             ol.dispose
+             ol.dispose()
           }
           online = None
        })
     }
 
-    def dispose {
+    def dispose() {
        client.removeListener( clientListener )
        online.foreach( ol => {
           ol.context.perform {
-             ol.dispose
+             ol.dispose()
          }
          online = None
       })

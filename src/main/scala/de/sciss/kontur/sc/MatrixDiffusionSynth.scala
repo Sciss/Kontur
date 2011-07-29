@@ -59,13 +59,13 @@ extends DiffusionSynth {
        diffusion.addListener( diffusionListener )
    }
 
-   def play {
+   def play() {
       val d    = diffusion
       val syn  = graph( "diff_matrix", d.numInputChannels, d.numOutputChannels, d.matrix ) {
          val in      = "in".ir
          val out     = "out".ir
          val inSig   = In.ar( in, d.numInputChannels )
-         var outSig: Array[ GE ] = Array.fill( d.numOutputChannels )( 0 )
+         val outSig  = Array.fill[ GE ]( d.numOutputChannels )( 0: GE )
          for( inCh <- (0 until d.numInputChannels) ) {
             for( outCh <- (0 until d.numOutputChannels) ) {
                val w = d.matrix( inCh, outCh )
@@ -78,14 +78,14 @@ extends DiffusionSynth {
       synth = Some( syn )
    }
 
-   def stop {
+   def stop() {
       synth.foreach( _.free )
       synth = None
    }
 
-   def dispose {
+   def dispose() {
       diffusion.removeListener( diffusionListener )
-      stop
+      stop()
       inBus.free
       outBus.free
    }

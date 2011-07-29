@@ -83,7 +83,7 @@ extends DiffusionSynth {
 //         val dlyFrames  = dlySec * SampleRate.ir
          val inSig      = In.ar( in, d.numInputChannels )
          val delayed    = DelayN.ar( inSig, dly, dly )
-         var outSig: Array[ GE ] = Array.fill( d.numOutputChannels )( 0 )
+         val outSig     = Array.fill[ GE ]( d.numOutputChannels )( 0: GE )
          val trig       = Impulse.kr( 0 )
          val bufNum     = "buf".ir
          val bufFrames  = BufFrames.ir( bufNum ) 

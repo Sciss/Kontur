@@ -28,17 +28,9 @@
 
 package de.sciss.kontur.sc
 
-import scala.collection.mutable.{ ArrayBuffer }
-import java.awt.event.{ ActionEvent, ActionListener }
-import javax.swing.{ Timer => SwingTimer }
-import de.sciss.util.{ Disposable }
-import de.sciss.synth.{ EnvSeg => S, _ }
-import de.sciss.synth.ugen._
-import de.sciss.kontur.session.{ AudioRegion, AudioTrack, Diffusion, MatrixDiffusion,
-                                 Session, Stake, Timeline, Track, Transport }
-import de.sciss.io.{ Span }
-import scala.math._
+import de.sciss.kontur.session.{ Diffusion, Session, Timeline }
 import SynthContext._
+import de.sciss.synth.Model
 
 class SCSession( val doc: Session ) {
    online =>
@@ -47,7 +39,7 @@ class SCSession( val doc: Session ) {
    var timelines  = Map[ Timeline, SCTimeline ]()
    var diffusions = Map[ Diffusion, DiffusionSynth ]()
 
-   val diskGroup  = group()
+   val diskGroup  = group
    val panGroup   = groupAfter( diskGroup )
 
    private val diffListener: Model.Listener = {
@@ -92,20 +84,20 @@ class SCSession( val doc: Session ) {
 //
 //      }
 
-  def dispose {
+  def dispose() {
      if( realtime ) {
         doc.timelines.removeListener( timeListener )
         doc.diffusions.removeListener( diffListener )
      }
      timelines.keysIterator.foreach( tl => removeTimeline( tl ))
      diffusions.keysIterator.foreach( diff => removeDiffusion( diff ))
-     group.free; panGroup.free
+     group.free(); panGroup.free()
   }
 
    private def addDiffusion( diff: Diffusion ) {
       DiffusionSynthFactory.get( diff ).foreach( dsf => {
          val ds = dsf.create
-         ds.play
+         ds.play()
          diffusions += diff -> ds
       })
    }
@@ -113,7 +105,7 @@ class SCSession( val doc: Session ) {
    private def removeDiffusion( diff: Diffusion ) {
       val odiff = diffusions( diff )
       diffusions -= diff
-      odiff.dispose
+      odiff.dispose()
    }
 
    def addTimeline( sctl: SCTimeline ) {
@@ -123,7 +115,7 @@ class SCSession( val doc: Session ) {
    private def removeTimeline( tl: Timeline ) {
       val otl = timelines( tl )
       timelines -= tl
-      otl.dispose
+      otl.dispose()
    }
 
 //       private def diffusionChanged( diff: Diffusion ) {

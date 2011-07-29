@@ -1,11 +1,10 @@
 package de.sciss.kontur.sc
 
-import scala.collection.mutable.{ PriorityQueue }
+import scala.collection.mutable.PriorityQueue
 import java.io.{ BufferedReader, File, InputStreamReader, IOException, RandomAccessFile }
-import java.nio.{ ByteBuffer }
-import javax.swing.{ SwingWorker }
-import scala.math._
-import de.sciss.io.{ IOUtil }
+import java.nio.ByteBuffer
+import javax.swing.SwingWorker
+import de.sciss.io.IOUtil
 import de.sciss.osc.{ OSCBundle, OSCPacket, OSCPacketCodec }
 import de.sciss.synth._
 
@@ -39,7 +38,7 @@ extends SynthContext( s, false ) {
    private var fileOpen    = true
    private val codec       = new OSCPacketCodec( OSCPacketCodec.MODE_GRACEFUL )
    private val bb          = ByteBuffer.allocateDirect( 65536 )
-   private val fch         = oscFile.getChannel()
+   private val fch         = oscFile.getChannel;
 
    // ---- constructor ----
    {
@@ -66,7 +65,7 @@ extends SynthContext( s, false ) {
       while( keepGoing ) {
          keepGoing = bundleQueue.headOption.map( b => {
             if( b.time <= newTime ) {
-               bundleQueue.dequeue
+               bundleQueue.dequeue()
                timebaseVar = b.time // important because write calls doAsync
                write( b )
                true
@@ -77,13 +76,13 @@ extends SynthContext( s, false ) {
    }
 
    protected def initBundle( delta: Double ) {
-      bundle = new Bundle( timebase + max( 0.0, delta ))
+      bundle = new Bundle( timebase + math.max( 0.0, delta ))
    }
 
    @throws( classOf[ IOException ])
    def render: SwingWorker[ _, _ ] = {
-      flush
-      close
+      flush()
+      close()
 
       val dur = timebaseVar // in seconds
       val program = server.options.programPath // .value
@@ -99,8 +98,8 @@ extends SynthContext( s, false ) {
 
       val w = new SwingWorker[ Int, Unit ]() {
          main =>
-         override def doInBackground: Int = {
-            var pRunning   = true
+         override def doInBackground(): Int = {
+//            var pRunning   = true
 //println( "PROC WORKER STARTED" )
             val p          = pb.start
 //            val inStream	= new BufferedInputStream( p.getInputStream )
@@ -108,7 +107,7 @@ extends SynthContext( s, false ) {
             // we used a SwingWorker before here, but it never ran on Scala 2.8.0...
             // might be connected to the actor starvation problem (using the same thread pool??)
             val printWorker   = new Thread {
-               override def run {
+               override def run() {
 //println( "PRINT WORKER STARTED" )
                   try {
                      var lastProg = 0
@@ -159,9 +158,9 @@ extends SynthContext( s, false ) {
    }
 
    @throws( classOf[ IOException ])
-   private def close {
+   private def close() {
       if( fileOpen ) {
-         oscFile.close
+         oscFile.close()
          fileOpen = false
       }
    }
@@ -172,12 +171,12 @@ extends SynthContext( s, false ) {
       rs
    }
 
-   def dispose {
+   def dispose() {
       try {
-         close
+         close()
          if( !oscPath.delete ) oscPath.deleteOnExit()
       }
-      catch { case e: IOException => e.printStackTrace }
+      catch { case e: IOException => e.printStackTrace() }
    }
 
    override def endsAfter( rn: RichNode, dur: Double ) {
@@ -217,9 +216,9 @@ extends SynthContext( s, false ) {
    }
 
    @throws( classOf[ IOException ])
-   private def flush {
+   private def flush() {
       while( bundleQueue.nonEmpty ) {
-         val b = bundleQueue.dequeue
+         val b = bundleQueue.dequeue()
          if( b.time <= timebaseVar ) {
             timebaseVar = b.time // important because write calls doAsync
             write( b )
