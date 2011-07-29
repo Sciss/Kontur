@@ -54,8 +54,8 @@ extends DragSourceAdapter with DragGestureListener {
 
 //    // ---- constructor ----
 //    {
-//       val dgr = DragSource.getDefaultDragSource.createDefaultDragGestureRecognizer(
-//          tree, actions, this )
+       /* val dgr = */ DragSource.getDefaultDragSource.createDefaultDragGestureRecognizer(
+          tree, actions, this )
 //    }
 
     // ---- DragGestureListener ----
