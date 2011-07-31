@@ -200,7 +200,7 @@ with HasContextMenu {
    }
 
   protected def wrap( elem: Timeline ): DynamicTreeNode =
-    new TimelineTreeIndex( model, elem ) // with UniqueCount
+    new TimelineTreeIndex( model, timelines, elem ) // with UniqueCount
 }
 
 class AudioFilesTreeIndex( model: SessionTreeModel, audioFiles: AudioFileSeq )
@@ -380,7 +380,7 @@ extends DynamicTreeNode( model, elem, canExpand ) {
   override def toString = elem.name
 }
 
-class TimelineTreeIndex( model: SessionTreeModel, tl: Timeline )
+class TimelineTreeIndex( model: SessionTreeModel, timelines: SessionElementSeq[ Timeline ], tl: Timeline )
 extends SessionElementTreeNode( model, tl, true )
 with HasContextMenu {
 
@@ -391,16 +391,23 @@ with HasContextMenu {
    addDyn( tracks )
 
    def createContextMenu() : Option[ PopupRoot ] = {
-      tl.editor.map( ed => {
+      var items = IndexedSeq.empty[ MenuItem ]
+      tl.editor.foreach { ed =>
          tl match {
             case r: Renameable => {
-               val root = new PopupRoot()
-               root.add( new MenuItem( "rename", new EditRenameAction( r, ed )))
-               Some( root )
+               items :+= new MenuItem( "rename", new EditRenameAction( r, ed ))
             }
-            case _ => None
+            case _ =>
          }
-      }) getOrElse None
+      }
+      timelines.editor.foreach { ed =>
+         items :+= new MenuItem( "remove", new EditRemoveSessionElementAction( tl, ed, "Remove timeline" ))
+      }
+      if( items.isEmpty ) None else {
+         val root = new PopupRoot()
+         items.foreach( root.add( _ ))
+         Some( root )
+      }
    }
 }
 
