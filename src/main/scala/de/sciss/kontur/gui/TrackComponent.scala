@@ -518,7 +518,7 @@ with SonagramPaintController {
     import DefaultTrackComponent._
 
     private var dropPos : Option[ Long ] = None
-    private var visualBoost = 1f
+    private var visualBoost = 1f // 22.627417f // XXX cheesy way to reflect the tracktoolspanel default ; 1f
 
     // ---- constructor ----
     {
@@ -649,6 +649,7 @@ with SonagramPaintController {
 
    override def registerTools( tools: TrackTools ) {
       visualBoost = tools.visualBoost
+println( "REGISTER TOOLS " + visualBoost )
       super.registerTools( tools )
    }
 

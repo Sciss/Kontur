@@ -54,7 +54,7 @@ extends JPanel with TrackTools {
 
     private var currentToolVar: TrackTool = tools.head
     private val ggCombo = new JComboBox()
-    private var visualBoostVar = 1f;
+    private var visualBoostVar = slidToBoost( 64 ); // 1f;
 
     // ---- constructor ----
     {
@@ -88,7 +88,7 @@ extends JPanel with TrackTools {
         ggVisualBoost.putClientProperty( "JComponent.sizeVariant", "small" )
         ggVisualBoost.addChangeListener( new ChangeListener {
            def stateChanged( e: ChangeEvent ) {
-              val newVisualBoost = linexp( ggVisualBoost.getValue, 0, 128, 1, 512 ).toFloat
+              val newVisualBoost = slidToBoost( ggVisualBoost.getValue )
               if( newVisualBoost != visualBoostVar ) {
                  val change = VisualBoostChanged( visualBoostVar, newVisualBoost )
                  visualBoostVar = newVisualBoost
@@ -103,6 +103,8 @@ extends JPanel with TrackTools {
         add( ggVisualBoost )
         add( Box.createHorizontalGlue )
     }
+
+   private def slidToBoost( v: Int ) = linexp( v, 0, 128, 1, 512 ).toFloat
 
     private def changeTool( newTool: TrackTool ) {
         if( newTool != currentToolVar ) {

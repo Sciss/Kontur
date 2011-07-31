@@ -149,7 +149,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 		mr.putMimic( "timeline.insertSpan", this, ActionInsertSpan )
 		mr.putMimic( "timeline.clearSpan", this, ActionClearSpan )
 		mr.putMimic( "timeline.removeSpan", this, ActionRemoveSpan )
-//      mr.putMimic( "timeline.dupSpanToPos", this, ActionDupSpanToPos )
+      mr.putMimic( "timeline.dupSpanToPos", this, ActionDupSpanToPos )
 
       mr.putMimic( "timeline.nudgeAmount", this, ActionNudgeAmount )
       mr.putMimic( "timeline.nudgeLeft", this, new ActionNudge( -1 ))
@@ -482,6 +482,76 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
                         }
                         case _ => Seq( s )
                      })
+                     tvCast.trail.editor.foreach( _.editAdd( ce, newStakes: _* ))
+                     ed2.editSelect( ce, newStakes: _* )
+                  }
+               }
+               ed.editEnd( ce )
+            }
+            catch {
+               case e => { ed.editCancel( ce ); throw e }
+            }
+         })
+      }
+   }
+
+   private object ActionDupSpanToPos extends MenuAction {
+      def actionPerformed( e: ActionEvent ) { perform() }
+
+      private def editName = getValue( Action.NAME ).toString
+
+      def perform() {
+         val srcSpan = timelineView.selection.span
+         val delta   = timelineView.cursor.position - srcSpan.start
+         val dstSpan = srcSpan.shift( delta )
+         val tlSpan  = tl.span
+         if( srcSpan.isEmpty ) return
+         tl.editor.foreach( ed => {
+            val ce = ed.editBegin( editName )
+            try {
+               tracksPanel.filter( _.selected ).foreach { elem =>
+                  val t = elem.track // "stable"
+                  val tvCast = elem.trailView.asInstanceOf[ TrailView[ t.T ]]
+                  tvCast.editor.foreach { ed2 =>
+                     val stakes              = tvCast.trail.getRange( srcSpan )
+                     val (toMove, stakes0)   = stakes.partition( s => srcSpan.contains( s.span ))
+                     val toSplit             = stakes0.filter( _.span.overlaps( srcSpan ))
+                     val obsolete            = toMove ++ toSplit
+                     ed2.editDeselect( ce, obsolete: _* )
+//                     tvCast.trail.editor.foreach( _.editRemove( ce, obsolete: _* ))
+                     val split: Seq[ t.T ] = toSplit.map( s => (s match {
+                        case rs0: ResizableStake[ _ ] => {
+                           val rs = rs0.asInstanceOf[ ResizableStake[ t.T ]]
+//                           val rsCast = rs.asInstanceOf[ t.T wit hResizableStake[ _ ]] // ouch
+                           if( rs.span.contains( srcSpan.start )) {
+                              val (_, b0) = rs.split( srcSpan.start)
+                              if( b0.span.contains( srcSpan.stop )) {
+                                 b0 match {
+                                    case b1: ResizableStake[ _ ] =>
+                                       val (b, _) = b1.asInstanceOf[ ResizableStake[ t.T ]].split( srcSpan.stop )
+                                       b
+                                    case _ =>
+                                       b0
+                                 }
+                              } else b0
+
+                           } else {
+                              if( rs.span.contains( srcSpan.stop )) {
+                                 val (b, _) = rs.split( srcSpan.stop )
+                                 b
+                              } else s
+                           }
+                        }
+                        case _ => s
+                     }).move( delta ))
+
+                     val moved: Seq[ t.T ] = toMove.map( _.move( delta ))
+                     val newStakes = split ++ moved
+                     val newMax = if( newStakes.isEmpty ) tlSpan.stop else newStakes.map( _.span.stop ).max
+
+                     if( newMax > tlSpan.stop ) {
+                        ed.editSpan( ce, tlSpan.replaceStop( newMax ))
+                     }
                      tvCast.trail.editor.foreach( _.editAdd( ce, newStakes: _* ))
                      ed2.editSelect( ce, newStakes: _* )
                   }
