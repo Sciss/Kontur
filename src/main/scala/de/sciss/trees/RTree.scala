@@ -57,12 +57,14 @@ class RTree[ U, V <: Shaped[ U ]]( val dim: Int, val capacity: Int = 10, val min
 
 
 	// constructor
-	clear
+	clear()
 
-	def clear {
+	def clear() {
 //		root.set( new Leaf( this, Nil )( view, mgr ))
 		root = new Leaf( this, Nil )( view, mgr )
 	}
+
+   def isEmpty : Boolean = root.numChildren == 0
 
 	def insert( v: V ) {
 //		val rootID = root.get()
@@ -92,7 +94,7 @@ class RTree[ U, V <: Shaped[ U ]]( val dim: Int, val capacity: Int = 10, val min
 	  			val p = path.head
 	  			p.remove( leaf )
 	  			p.insert( leaf1 )
-	  			p.updateBounds
+	  			p.updateBounds()
 		  		adjustTree( path, leaf2 )
 	  		}
 	  	}
@@ -106,22 +108,22 @@ class RTree[ U, V <: Shaped[ U ]]( val dim: Int, val capacity: Int = 10, val min
 		if( leaf == null ) return
 
 		leaf.remove( v )
-		leaf.updateBounds
+		leaf.updateBounds()
 		condenseTree( path, leaf )
 	}
 
-	def findOverlapping( shape: Shape[ U ], visitor: (V) => Unit ) : Unit = {
+	def findOverlapping( shape: Shape[ U ], visitor: (V) => Unit ) {
 		root.findOverlapping( shape, visitor )
 	}
 
 	def getRoot: Node = root
 
-	def debugDump {
+	def debugDump() {
 		root.debugDump( 0 )
 	}
 
  	private def adjustTree( path: Seq[ Index ]) {
-		path.foreach(_.updateBounds)
+		path.foreach( _.updateBounds() )
  	}
 
 	@tailrec
@@ -143,7 +145,7 @@ class RTree[ U, V <: Shaped[ U ]]( val dim: Int, val capacity: Int = 10, val min
  			val pp = tail.head
  			pp.remove( p )
  			pp.insert( idx1 )
- 			pp.updateBounds
+ 			pp.updateBounds()
  	 		adjustTree( tail, idx2 )
  		}
  	}
@@ -154,18 +156,18 @@ class RTree[ U, V <: Shaped[ U ]]( val dim: Int, val capacity: Int = 10, val min
 		path.foreach( p => {
 			if( n.numChildren < minFill ) {
 				p.remove( n )
-				p.updateBounds
+				p.updateBounds()
 				q ::= n
 			}
 			if( p.numChildren >= minFill ) { // only if it won't be removed in the next iteration
-				p.updateBounds
+				p.updateBounds()
 			}
 			n = p
 		})
 
 		if( (root.numChildren < minFill) && !root.isLeaf ) {
 			q ::= root
-			clear
+			clear()
 		}
 
 		while( q.nonEmpty ) {
@@ -199,7 +201,7 @@ extends Shaped[ U ] {
 	protected var children: List[ C ] = c
 
 	// constructor
-	updateBounds
+	updateBounds()
 
 //	def getChildren : List[ C ] = children.get.value
     def getChildren : List[ C ] = children
@@ -236,7 +238,7 @@ extends Shaped[ U ] {
 		bValid = false
 	}
 
-	def updateBounds : Unit
+	def updateBounds() : Unit
 // OOO
 //	def updateBounds {
 //		b.set( if( children.isEmpty ) {
@@ -250,8 +252,8 @@ extends Shaped[ U ] {
 	def shape: Shape[ U ] = bounds
     def debugDump( level: Int ) : Unit
 
-    def chooseLeaf( v: V ) : Tuple2[ Seq[ tree.Index ], tree.Leaf ]
-   	def findLeaf( v: V ) : Tuple2[ Seq[ tree.Index ], tree.Leaf ]
+    def chooseLeaf( v: V ) : (Seq[ tree.Index ], tree.Leaf)
+   	def findLeaf( v: V ) : (Seq[ tree.Index ], tree.Leaf)
 
     def findOverlapping( shape: Shape[ U ], visitor: (V) => Unit ) : Unit
 
@@ -265,7 +267,7 @@ extends Shaped[ U ] {
 
     @tailrec
 	protected final def chooseLeaf( path: List[ tree.Index ], shape: Shape[ U ]) :
-		Tuple2[ Seq[ tree.Index ], tree.Leaf ] = {
+		(Seq[ tree.Index ], tree.Leaf) = {
 
 	  	val n = path.head.children.foldLeft( Tuple2[ tree.Node, U ]( null, max ))(
 	  		(best, child) => {
@@ -284,7 +286,7 @@ extends Shaped[ U ] {
 	}
 
 	protected final def findLeaf( path: List[ tree.Index ], v: V ) :
-		Tuple2[ Seq[ tree.Index ], tree.Leaf ] = {
+		(Seq[ tree.Index ], tree.Leaf) = {
 
 		path.head.children.foreach( child => {
 			if( child.isLeaf ) {
@@ -302,7 +304,7 @@ extends Shaped[ U ] {
 	}
 
 	protected final def linearSplit[ A <: Shaped[ U ]]( seq: List[ A ]) :
-		Tuple2[ List[ A ], List[ A ]] = {
+		(List[ A ], List[ A ]) = {
 
 		var entries = seq
 		val result = pickSeeds( entries )
@@ -345,7 +347,7 @@ extends Shaped[ U ] {
 		Tuple2( g1, g2 )
 	}
 
-	protected final def pickSeeds[ A <: Shaped[ U ]]( entries: List[ A ]) : Tuple3[ A, A, List[ A ]] = {
+	protected final def pickSeeds[ A <: Shaped[ U ]]( entries: List[ A ]) : (A, A, List[ A ]) = {
 		var maxSeparation : U = min // zero
 		var e1: A = null.asInstanceOf[ A ]
         var e2: A = null.asInstanceOf[ A ]
@@ -383,7 +385,7 @@ extends RTreeNode[ U, V, RTreeNode[ U, V, _ ]]( t, c, false )( view, mgr ) {
 
 	import mgr._
 
-	def updateBounds {
+	def updateBounds() {
 		b = if( children.isEmpty ) {
 			Rect( Vector.fill( tree.dim )( Interval( zero, zero )))
 		} else {
@@ -392,7 +394,7 @@ extends RTreeNode[ U, V, RTreeNode[ U, V, _ ]]( t, c, false )( view, mgr ) {
 		bValid = true
 	}
 
- 	def splitNode( n: RTreeNode[ U, V, _ ]) : Tuple2[ RTreeNode[ U, V, _ ], RTreeNode[ U, V, _ ]] = {
+ 	def splitNode( n: RTreeNode[ U, V, _ ]) : (RTreeNode[ U, V, _ ], RTreeNode[ U, V, _ ]) = {
 		val (g1, g2 ) = linearSplit( n :: children )
 		val n1 = newInstance( g1 )
 		val n2 = newInstance( g2 )
@@ -412,10 +414,10 @@ extends RTreeNode[ U, V, RTreeNode[ U, V, _ ]]( t, c, false )( view, mgr ) {
 	def asLeaf: tree.Leaf = throw new UnsupportedOperationException
     def newInstance( c: List[ tree.Node ]) : RTreeNode[ U, V, tree.Node ] = new tree.Index( tree, c )( view, mgr )
 
-	def chooseLeaf( v: V ) : Tuple2[ Seq[ tree.Index ], tree.Leaf ] =
+	def chooseLeaf( v: V ) : (Seq[ tree.Index ], tree.Leaf) =
 		chooseLeaf( List( this ), v.shape )
 
-	def findLeaf( v: V ) : Tuple2[ Seq[ tree.Index ], tree.Leaf ] =
+	def findLeaf( v: V ) : (Seq[ tree.Index ], tree.Leaf) =
 		findLeaf( List( this ), v )
 
 	def findOverlapping( shape: Shape[ U ], visitor: (V) => Unit ) {
@@ -437,7 +439,7 @@ extends RTreeNode[ U, V, V ]( t, c, true )( view, mgr ) {
 
 	import mgr._
 
-	def updateBounds {
+	def updateBounds() {
 		b = if( children.isEmpty ) {
 			Rect( Vector.fill( tree.dim )( Interval( zero, zero )))
 		} else {
@@ -446,7 +448,7 @@ extends RTreeNode[ U, V, V ]( t, c, true )( view, mgr ) {
 		bValid = true
 	}
 
- 	def splitNode( n: V ) : Tuple2[ RTreeNode[ U, V, _ ], RTreeNode[ U, V, _ ]] = {
+ 	def splitNode( n: V ) : (RTreeNode[ U, V, _ ], RTreeNode[ U, V, _ ]) = {
 		val (g1, g2 ) = linearSplit( n :: children )
 		val n1 = newInstance( g1 )
 		val n2 = newInstance( g2 )
@@ -465,8 +467,8 @@ extends RTreeNode[ U, V, V ]( t, c, true )( view, mgr ) {
     def asLeaf: tree.Leaf = this
     def newInstance( c: List[ V ]) : RTreeNode[ U, V, V ] = new tree.Leaf( tree, c )( view, mgr )
 
-	def chooseLeaf( v: V ) : Tuple2[ Seq[ tree.Index ], tree.Leaf ] = (Nil -> this)
-	def findLeaf( v: V ) : Tuple2[ Seq[ tree.Index ], tree.Leaf ] =
+	def chooseLeaf( v: V ) : (Seq[ tree.Index ], tree.Leaf) = (Nil -> this)
+	def findLeaf( v: V ) : (Seq[ tree.Index ], tree.Leaf) =
 		(Nil -> (if( children.contains( v )) this else null) )
 
     def findOverlapping( shape: Shape[ U ], visitor: (V) => Unit ) {

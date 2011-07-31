@@ -94,6 +94,7 @@ extends Disposable with Model {
 //	public boolean contains( Stake stake );
    def editor: Option[ TrailEditor[ T ]]
 // def newEmpty: Trail[ T ]
+   def isEmpty : Boolean
 
    case class StakesAdded( span: Span, stakes: T* )
    case class StakesRemoved( span: Span, stakes: T* )

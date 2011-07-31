@@ -63,6 +63,8 @@ with TrailEditor[ T ] {
       })
     }
 
+   def isEmpty : Boolean = tree.isEmpty
+
     def visitAll( byStart: Boolean = true )( f: (T) => Unit ) {
       // XXX is this the most efficient approach?
       tree.findOverlapping( tree.getRoot.bounds, (ss: StoredStake) => {

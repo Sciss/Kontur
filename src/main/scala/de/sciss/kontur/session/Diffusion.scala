@@ -91,6 +91,25 @@ extends BasicSessionElementSeq[ Diffusion ]( doc, "Diffusions" ) {
            null
         }
      }).filter( _ != null )
+
+   /**
+    *  Smart detection across tracks
+    */
+   def unused: Seq[ Diffusion ] = {
+      val diffSet = toList.toSet
+      if( diffSet.isEmpty ) return Seq.empty
+
+      val used = doc.timelines.toList.flatMap { tl =>
+         tl.tracks.toList.collect({
+            case at: AudioTrack => at.diffusion
+         }).collect({
+            case Some( diff ) => diff
+         })
+      }
+
+      val unused = diffSet.diff( used.toSet )
+      unused.toSeq
+   }
 }
 
 abstract class BasicDiffusion( doc: Session )

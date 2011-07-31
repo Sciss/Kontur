@@ -149,7 +149,7 @@ with SessionElementSeqEditor[ T ] {
   def editRemove( ce: AbstractCompoundEdit, elem: T ) {
       val edit = new SimpleEdit( "editAddSessionElement" ) {
         lazy val idx = indexOf( elem )
-        def apply() { remove( elem )}
+        def apply() { idx; remove( elem )}
         def unapply() { insert( idx, elem )}
       }
       ce.addPerform( edit )

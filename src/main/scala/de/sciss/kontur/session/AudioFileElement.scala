@@ -149,7 +149,7 @@ extends BasicSessionElementSeq[ AudioFileElement ]( doc, "Audio Files" ) {
    /**
     *  Smart detection across tracks
     */
-   def unused: List[ AudioFileElement ] = {
+   def unused: Seq[ AudioFileElement ] = {
       var trails  = Set[ Trail[ _ ]]()
       var fileSet = toList.toSet
       if( fileSet.isEmpty ) return Nil
@@ -174,6 +174,6 @@ extends BasicSessionElementSeq[ AudioFileElement ]( doc, "Audio Files" ) {
             }
          })
       })
-      fileSet.toList
+      fileSet.toSeq
    }
 }
