@@ -147,8 +147,10 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
 //		mr.putMimic( "timeline.trimToSelection", this, doc.getTrimAction() )
 		mr.putMimic( "timeline.insertSpan", this, ActionInsertSpan )
-//		mr.putMimic( "timeline.clearSpan", this, new ActionClearSpan )
-//		mr.putMimic( "timeline.removeSpan", this, new ActionRemoveSpan )
+		mr.putMimic( "timeline.clearSpan", this, ActionClearSpan )
+		mr.putMimic( "timeline.removeSpan", this, ActionRemoveSpan )
+//      mr.putMimic( "timeline.dupSpanToPos", this, ActionDupSpanToPos )
+
       mr.putMimic( "timeline.nudgeAmount", this, ActionNudgeAmount )
       mr.putMimic( "timeline.nudgeLeft", this, new ActionNudge( -1 ))
       mr.putMimic( "timeline.nudgeRight", this, new ActionNudge( 1 ))
@@ -296,7 +298,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
          val pos     = timelineView.cursor.position
          val span = new Span( pos, pos + delta )
 
-    		val tl      = timeline //
+    		val tl      = timeline
 
 			require( (pos >= tl.span.start) && (pos <= tl.span.stop), span.toString )
 
@@ -316,10 +318,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
                   val t = elem.track // "stable"
                   val tvCast = elem.trailView.asInstanceOf[ TrailView[ t.T ]] // que se puede...
                   tvCast.editor.foreach( ed2 => {
-//                   val stakes = tvCast.selectedStakes.toList
-//                   val moed = stakes.map( _.move( ))
                      val stakes = tvCast.trail.getRange( affectedSpan )
-//                   val toDeselect = stakes.filter( tvCast.isSelected( _ ))
                      ed2.editDeselect( ce, stakes: _* )
                      tvCast.trail.editor.foreach( ed3 => {
                         ed3.editRemove( ce, stakes: _* )
@@ -347,15 +346,164 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
       }
    }
 
+   private object ActionRemoveSpan extends MenuAction {
+      def actionPerformed( e: ActionEvent ) { perform() }
+
+      private def editName = getValue( Action.NAME ).toString
+
+      def perform() {
+         val span          = timelineView.selection.span
+         val tlSpan        = tl.span
+         val affectedSpan  = new Span( span.start, tlSpan.stop )
+         if( span.isEmpty ) return
+         val delta         = -span.getLength
+
+         tl.editor.foreach( ed => {
+            val ce = ed.editBegin( editName )
+            try {
+               val (selTracksE, unselTracksE) = tracksPanel.toList.partition( _.selected )
+               val newTlStop = unselTracksE.foldLeft( math.max( tlSpan.start, tlSpan.stop - span.getLength )) { (mx, tr) =>
+                  val st = tr.track.trail.getRange( affectedSpan )
+                  if( st.isEmpty ) mx else math.max( mx, st.map( _.span.stop ).max )
+               }
+
+               selTracksE.foreach { elem =>
+                  val t = elem.track // "stable"
+                  val tvCast = elem.trailView.asInstanceOf[ TrailView[ t.T ]]
+                  tvCast.editor.foreach { ed2 =>
+                     val stakes              = tvCast.trail.getRange( affectedSpan )
+                     val (toErase, stakes0)  = stakes.partition( s => span.contains( s.span ))
+                     val (toSplit, toMove)   = stakes0.partition( _.span.overlaps( affectedSpan ))
+                     val obsolete            = toErase ++ toSplit ++ toMove
+                     ed2.editDeselect( ce, obsolete: _* )
+                     tvCast.trail.editor.foreach( _.editRemove( ce, obsolete: _* ))
+                     val split: Seq[ t.T ] = toSplit.flatMap( s => s match {
+                        case rs0: ResizableStake[ _ ] => {
+                           val rs = rs0.asInstanceOf[ ResizableStake[ t.T ]]
+//                           val rsCast = rs.asInstanceOf[ t.T wit hResizableStake[ _ ]] // ouch
+                           if( rs.span.contains( span.start )) {
+                              val (a, b0) = rs.split( span.start)
+                              if( b0.span.contains( span.stop )) {
+                                 b0 match {
+                                    case b1: ResizableStake[ _ ] =>
+                                       val (_, b) = b1.asInstanceOf[ ResizableStake[ t.T ]].split( span.stop )
+                                       Seq( a, b.move( delta ))
+                                    case _ =>
+                                       Seq( s )
+                                 }
+                              } else {
+                                 Seq( a )
+                              }
+                           } else {
+                              if( rs.span.contains( span.stop )) {
+                                 val (_, b) = rs.split( span.stop )
+                                 Seq( b.move( delta ))
+                              } else Seq( rs.move( delta )) // Seq.empty
+                           }
+                        }
+                        case _ => Seq( s )
+                     })
+                     val moved: Seq[ t.T ] = toMove.map( _.move( delta ))
+                     val newStakes  = split ++ moved
+
+//println( "in " + stakes.size + "; split before = " + toSplit.size + "; after = " + split.size + "; erased " + toErase.size + "; moved = " + moved.size )
+
+                     tvCast.trail.editor.foreach( _.editAdd( ce, newStakes: _* ))
+                     ed2.editSelect( ce, newStakes: _* )
+                  }
+               }
+
+               timelineView.editPosition( ce, span.start )
+               timelineView.editSelect( ce, new Span )
+
+               if( newTlStop != tlSpan.stop ) {
+                  tl.editor.foreach { ed =>
+                     val vSpan = timelineView.span
+                     if( newTlStop < vSpan.stop ) {
+                        timelineView.editScroll( ce, new Span( math.max( tlSpan.start, vSpan.start + delta ), newTlStop ))
+                     }
+                     ed.editSpan( ce, tlSpan.replaceStop( newTlStop ))
+                  }
+               }
+
+               ed.editEnd( ce )
+            }
+            catch {
+               case e => { ed.editCancel( ce ); throw e }
+            }
+         })
+      }
+   }
+
+   private object ActionClearSpan extends MenuAction {
+      def actionPerformed( e: ActionEvent ) { perform() }
+
+      private def editName = getValue( Action.NAME ).toString
+
+      def perform() {
+         val span = timelineView.selection.span
+         if( span.isEmpty ) return
+         tl.editor.foreach( ed => {
+            val ce = ed.editBegin( editName )
+            try {
+               tracksPanel.filter( _.selected ).foreach { elem =>
+                  val t = elem.track // "stable"
+                  val tvCast = elem.trailView.asInstanceOf[ TrailView[ t.T ]]
+                  tvCast.editor.foreach { ed2 =>
+                     val stakes              = tvCast.trail.getRange( span )
+                     val (erased, stakes0)   = stakes.partition( s => span.contains( s.span ))
+                     val split               = stakes0.filter( _.span.overlaps( span ))
+                     val obsolete            = erased ++ split
+                     ed2.editDeselect( ce, obsolete: _* )
+                     tvCast.trail.editor.foreach( _.editRemove( ce, obsolete: _* ))
+                     val newStakes: Seq[ t.T ] = split.flatMap( s => s match {
+                        case rs0: ResizableStake[ _ ] => {
+                           val rs = rs0.asInstanceOf[ ResizableStake[ t.T ]]
+//                           val rsCast = rs.asInstanceOf[ t.T wit hResizableStake[ _ ]] // ouch
+                           if( rs.span.contains( span.start )) {
+                              val (a, b0) = rs.split( span.start)
+                              if( b0.span.contains( span.stop )) {
+                                 b0 match {
+                                    case b1: ResizableStake[ _ ] =>
+                                       val (_, b) = b1.asInstanceOf[ ResizableStake[ t.T ]].split( span.stop )
+                                       Seq( a, b )
+                                    case _ =>
+                                       Seq( s )
+                                 }
+                              } else {
+                                 Seq( a )
+                              }
+                           } else {
+                              if( rs.span.contains( span.stop )) {
+                                 val (_, b) = rs.split( span.stop )
+                                 Seq( b )
+                              } else Seq.empty
+                           }
+                        }
+                        case _ => Seq( s )
+                     })
+                     tvCast.trail.editor.foreach( _.editAdd( ce, newStakes: _* ))
+                     ed2.editSelect( ce, newStakes: _* )
+                  }
+               }
+               ed.editEnd( ce )
+            }
+            catch {
+               case e => { ed.editCancel( ce ); throw e }
+            }
+         })
+      }
+   }
+
 	/**
 	 *  Increase or decrease the width
 	 *  of the visible time span
 	 */
 	private class ActionSpanWidth( factor: Double )
 	extends AbstractAction {
-		def actionPerformed( e: ActionEvent ) : Unit = perform
+		def actionPerformed( e: ActionEvent ) { perform() }
 
-        def perform {
+        def perform() {
 			val visiSpan	= timelineView.span
 			val visiLen		= visiSpan.getLength
 			val pos			= timelineView.cursor.position
@@ -579,9 +727,9 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
    private class ActionNudge( factor: Double )
    extends MenuAction {
-      def actionPerformed( e: ActionEvent ) : Unit = perform
+      def actionPerformed( e: ActionEvent ) { perform }
 
-      def perform {
+      def perform() {
          val pos	      = timelineView.cursor.position
          val delta      = (factor * nudgeFrames + 0.5).toLong
          transformSelectedStakes( getValue( Action.NAME ).toString, stake => Some( List( stake.move( delta ))))
@@ -590,9 +738,9 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
     private class ActionSplitObjects
     extends MenuAction {
-        def actionPerformed( e: ActionEvent ) : Unit = perform
+        def actionPerformed( e: ActionEvent ) { perform() }
 
-    	def perform {
+    	def perform() {
         	val pos	= timelineView.cursor.position
          transformSelectedStakes( getValue( Action.NAME ).toString, stake => stake match {
             case rStake: ResizableStake[ _ ] if( stake.span.contains( pos )) => {
@@ -606,9 +754,9 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
    private class ActionSelectFollowingObjects
    extends MenuAction {
-      def actionPerformed( e: ActionEvent ) : Unit = perform
+      def actionPerformed( e: ActionEvent ) { perform() }
 
-      def perform {
+      def perform() {
          val pos	= timelineView.cursor.position
          val stop = timelineView.timeline.span.getLength
          val span = new Span( pos, stop )
