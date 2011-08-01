@@ -36,15 +36,15 @@ import de.sciss.kontur.session.{ Session, Timeline }
 import de.sciss.synth.Model
 
 object TimelineView {
-  case class SpanChanged( oldSpan: Span, newSpan: Span )
+   case class SpanChanged( oldSpan: Span, newSpan: Span )
 }
 
 trait TimelineView extends Model {
-  def timeline: Timeline
-  def span: Span
-  def cursor: TimelineCursor
-  def selection: TimelineSelection
-  def editor: Option[ TimelineViewEditor ]
+   def timeline: Timeline
+   def span: Span
+   def cursor: TimelineCursor
+   def selection: TimelineSelection
+   def editor: Option[ TimelineViewEditor ]
 }
 
 trait TimelineViewEditor extends Editor {
@@ -64,6 +64,7 @@ extends TimelineView with TimelineViewEditor {
       if( newSpan != spanVar ) {
         val change = SpanChanged( spanVar, newSpan )
         spanVar = newSpan
+//println( "dispatch " + change )
         dispatch( change )
       }
   }
@@ -101,9 +102,15 @@ extends TimelineView with TimelineViewEditor {
    }
 
   def editScroll( ce: AbstractCompoundEdit, newSpan: Span ) {
+//     println( "editScroll " + newSpan )
+//     (new Throwable).printStackTrace()
+
     val edit = new SimpleEdit( "editTimelineScroll", false ) {
        lazy val oldSpan = span
-       def apply() { oldSpan; span = newSpan }
+       def apply() {
+          oldSpan
+          span = newSpan
+       }
        def unapply() { span = oldSpan }
     }
     ce.addPerform( edit )

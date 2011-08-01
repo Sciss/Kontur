@@ -108,6 +108,7 @@ with TopPaintable {
       case TimelineView.SpanChanged( _, newSpan ) => {
         if( timelineVis != newSpan ) {
            timelineVis = newSpan // XXX correct?
+//println( "panel : span changed " + timelineVis )
           updateTransformsAndRepaint( false )
         }
       }

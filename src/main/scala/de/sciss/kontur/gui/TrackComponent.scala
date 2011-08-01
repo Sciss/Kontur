@@ -649,7 +649,6 @@ with SonagramPaintController {
 
    override def registerTools( tools: TrackTools ) {
       visualBoost = tools.visualBoost
-println( "REGISTER TOOLS " + visualBoost )
       super.registerTools( tools )
    }
 

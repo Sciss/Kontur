@@ -569,54 +569,51 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 	 *  Increase or decrease the width
 	 *  of the visible time span
 	 */
-	private class ActionSpanWidth( factor: Double )
+   private class ActionSpanWidth( factor: Double )
 	extends AbstractAction {
-		def actionPerformed( e: ActionEvent ) { perform() }
+	   def actionPerformed( e: ActionEvent ) { perform() }
 
-        def perform() {
-			val visiSpan	= timelineView.span
+      def perform() {
+		   val visiSpan	= timelineView.span
 			val visiLen		= visiSpan.getLength
 			val pos			= timelineView.cursor.position
-            val timelineLen = timelineView.timeline.span.getLength
+         val timelineLen = timelineView.timeline.span.getLength
 
-//			if( factor == 0.0 ) {				// to sample level
-//				start	= Math.max( 0, pos - (wavePanel.getWidth() >> 1) );
-//				stop	= Math.min( timelineLen, start + wavePanel.getWidth() );
-//			} else
-            val newVisiSpan = if( factor < 1.0 ) {		// zoom in
-				if( visiLen < 4 ) new Span()
-                else {
-                  // if timeline pos visible -> try to keep it's relative position constant
-                  if( visiSpan.contains( pos )) {
-					val start	= pos - ((pos - visiSpan.start) * factor + 0.5).toLong
-                  	val stop    = start + (visiLen * factor + 0.5).toLong
-                    new Span( start, stop )
-                  // if timeline pos before visible span, zoom left hand
-                  } else if( visiSpan.start > pos ) {
-                     val start	= visiSpan.start
-					 val stop    = start + (visiLen * factor + 0.5).toLong
-                     new Span( start, stop )
-                  // if timeline pos after visible span, zoom right hand
-                  } else {
-					val stop	= visiSpan.stop
-					val start   = stop - (visiLen * factor + 0.5).toLong
-                    new Span( start, stop )
-				}
-                }
+         val newVisiSpan = if( factor < 1.0 ) {		// zoom in
+            if( visiLen < 4 ) new Span()
+            else {
+               // if timeline pos visible -> try to keep it's relative position constant
+               if( visiSpan.contains( pos )) {
+                  val start   = pos - ((pos - visiSpan.start) * factor + 0.5).toLong
+                  val stop    = start + (visiLen * factor + 0.5).toLong
+                  new Span( start, stop )
+               // if timeline pos before visible span, zoom left hand
+               } else if( visiSpan.start > pos ) {
+                  val start   = visiSpan.start
+                  val stop    = start + (visiLen * factor + 0.5).toLong
+                  new Span( start, stop )
+               // if timeline pos after visible span, zoom right hand
+               } else {
+                  val stop    = visiSpan.stop
+                  val start   = stop - (visiLen * factor + 0.5).toLong
+                  new Span( start, stop )
+               }
+            }
 			} else {			// zoom out
-				val start   = max( 0, visiSpan.start - (visiLen * factor/4 + 0.5).toLong )
-				val stop    = min( timelineLen, start + (visiLen * factor + 0.5).toLong )
-                new Span( start, stop )
-			}
-			if( !newVisiSpan.isEmpty ) {
-                timelineView.editor.foreach( ed => {
-                    val ce = ed.editBegin( "scroll" )
-                    ed.editScroll( ce, newVisiSpan )
-                    ed.editEnd( ce )
-                })
-			}
+            val start   = max( 0, visiSpan.start - (visiLen * factor/4 + 0.5).toLong )
+            val stop    = min( timelineLen, start + (visiLen * factor + 0.5).toLong )
+            new Span( start, stop )
+         }
+         if( !newVisiSpan.isEmpty ) {
+            timelineView.editor.foreach { ed =>
+               val ce = ed.editBegin( "scroll" )
+//println( "NEW VISI SPAN " + newVisiSpan )
+               ed.editScroll( ce, newVisiSpan )
+               ed.editEnd( ce )
+            }
+         }
 		}
-	} // class actionSpanWidthClass
+   } // class actionSpanWidthClass
 
 	/*
 	 *	@warning	have to keep an eye on this. with weight as float

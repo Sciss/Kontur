@@ -102,6 +102,7 @@ if( verbose ) println( "old.x" + p.x + "; old.w " + d.width + "; new.x " + x + "
     super.setExtentSize( newExtent )
   }
 
+// OOO
   override def setViewPosition( p: Point ) {
 //     println( "---VP: setViewPosition( new Point( " + p.x + ", " + p.y + " ))" )
       val tlSpan  = timelineView.timeline.span
