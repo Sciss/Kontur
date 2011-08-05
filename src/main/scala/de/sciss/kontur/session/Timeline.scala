@@ -69,82 +69,77 @@ object BasicTimeline {
 }
 
 class BasicTimeline( doc: Session )
-extends Timeline with Renameable with TimelineEditor {
-  import Timeline._
+extends Timeline with Renamable with TimelineEditor {
+   import Timeline._
 
-  private var spanVar = new Span()
-  private var rateVar = 44100.0
-  protected var nameVar = "Timeline"
-//  private val sync = new AnyRef
-  private val transportVar = new BasicTransport( this )
+   private var spanVar = new Span()
+   private var rateVar = 44100.0
+   protected var nameVar = "Timeline"
+   private val transportVar = new BasicTransport( this )
 
-  def undoManager: UndoManager = doc.getUndoManager
+   def undoManager: UndoManager = doc.getUndoManager
 
-  def transport: Option[ Transport ] = Some( transportVar )
-  
-  val tracks = new Tracks( doc )
-//  val audioTrail  = new AudioTrail
+   def transport: Option[ Transport ] = Some( transportVar )
 
-  def toXML( c: SerializerContext ) = <timeline id={c.id( this ).toString}>
-  <name>{name}</name>
-  <span start={spanVar.start.toString} stop={spanVar.stop.toString}/>
-  <rate>{rate}</rate>
-  {tracks.toXML( c )}
+   val tracks = new Tracks( doc )
+
+   def toXML( c: SerializerContext ) = <timeline id={c.id( this ).toString}>
+   <name>{name}</name>
+   <span start={spanVar.start.toString} stop={spanVar.stop.toString}/>
+   <rate>{rate}</rate>
+   {tracks.toXML( c )}
 </timeline>
 
-  def fromXML( c: SerializerContext, node: Node ) {
+   def fromXML( c: SerializerContext, node: Node ) {
       nameVar   = (node \ "name").text
       val spanN = node \ "span"
       spanVar   = new Span( (spanN \ "@start").text.toLong, (spanN \ "@stop").text.toLong )
       rateVar   = (node \ "rate").text.toDouble
       tracks.fromXML( c, node )
-  }
+   }
 
-  def span: Span = spanVar
-  def span_=( newSpan: Span ) {
-//    sync.synchronized {
+   def span: Span = spanVar
+   def span_=( newSpan: Span ) {
       if( newSpan != spanVar ) {
-        val change = SpanChanged( spanVar, newSpan )
-        spanVar = newSpan
-        dispatch( change )
+         val change = SpanChanged( spanVar, newSpan )
+         spanVar = newSpan
+         dispatch( change )
       }
-//    }
-  }
+   }
 
-  def rate: Double = // sync.synchronized {
-    rateVar
-  // } // sync necessary?
+   def rate: Double = rateVar
 
-  def rate_=( newRate: Double ) {
-//    sync.synchronized {
+   def rate_=( newRate: Double ) {
       if( newRate != rateVar ) {
-        val change = RateChanged( rateVar, newRate )
-        rateVar = newRate
-        dispatch( change )
+         val change = RateChanged( rateVar, newRate )
+         rateVar = newRate
+         dispatch( change )
       }
-//    }
-  }
+   }
 
-  def editor: Option[ TimelineEditor ] = Some( this )
+   def editor: Option[ TimelineEditor ] = Some( this )
 
-  // ---- TimelineEditor ----
-  def editSpan( ce: AbstractCompoundEdit, newSpan: Span ) {
-    val edit = new SimpleEdit( "editTimelineSpan" ) {
-       lazy val oldSpan = span
-       def apply() { oldSpan; span = newSpan }
-       def unapply() { span = oldSpan }
-    }
-    ce.addPerform( edit )
-  }
+   // ---- TimelineEditor ----
 
-  def editRate( ce: AbstractCompoundEdit, newRate: Double ) {
-    val edit = new SimpleEdit( "editTimelineRate" ) {
-       lazy val oldRate = rate
-       def apply() { oldRate; rate = newRate }
-       def unapply() { rate = oldRate }
-    }
-    ce.addPerform( edit )
-  }
+   protected def editRenameName = "editRenameTimeline"
+
+   def editSpan( ce: AbstractCompoundEdit, newSpan: Span ) {
+      val edit = new SimpleEdit( "editTimelineSpan" ) {
+         lazy val oldSpan = span
+         def apply() { oldSpan; span = newSpan }
+         def unapply() { span = oldSpan }
+      }
+      ce.addPerform( edit )
+   }
+
+   def editRate( ce: AbstractCompoundEdit, newRate: Double ) {
+      val edit = new SimpleEdit( "editTimelineRate" ) {
+         lazy val oldRate = rate
+         def apply() { oldRate; rate = newRate }
+         def unapply() { rate = oldRate }
+      }
+      ce.addPerform( edit )
+   }
 }
 
 class Timelines( doc: Session )

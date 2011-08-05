@@ -39,7 +39,7 @@ import javax.swing.table.{ AbstractTableModel, DefaultTableColumnModel, TableCel
 import scala.math._
 import de.sciss.app.{ AbstractCompoundEdit, Document, DynamicAncestorAdapter, DynamicListening }
 import de.sciss.gui.{ ParamField => PF }
-import de.sciss.kontur.session.{ Diffusion, DiffusionEditor, DiffusionFactory, MatrixDiffusion, Renameable, Session }
+import de.sciss.kontur.session.{ Diffusion, DiffusionEditor, DiffusionFactory, MatrixDiffusion, Renamable, Session }
 import de.sciss.kontur.util.Matrix2D
 import de.sciss.util.{ Param, ParamSpace }
 import de.sciss.synth.Model
@@ -75,7 +75,7 @@ extends JPanel with ObserverPage with DynamicListening {
 
    private val diffListener: Model.Listener = {
       // XXX the updates could be more selective
-      case Renameable.NameChanged( _, _ )             => updateGadgets()
+      case Renamable.NameChanged( _, _ )             => updateGadgets()
       case Diffusion.NumInputChannelsChanged( _, _ )  => updateGadgets()
       case Diffusion.NumOutputChannelsChanged( _, _ ) => updateGadgets()
       case MatrixDiffusion.MatrixChanged( _, _ )      => updateGadgets()

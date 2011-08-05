@@ -34,6 +34,7 @@ import scala.xml.Node
 import de.sciss.io.Span
 import de.sciss.kontur.edit.Editor
 import de.sciss.kontur.util.SerializerContext
+import de.sciss.app.AbstractCompoundEdit
 
 object Track {
    val flavor = new DataFlavor( classOf[ Track ], "Track" )
@@ -46,7 +47,7 @@ trait Track extends SessionElement {
 }
 
 trait TrackEditor extends Editor {
-  
+   def editRename( ce: AbstractCompoundEdit, newName: String ) : Unit
 }
 
 class Tracks( doc: Session )

@@ -29,13 +29,15 @@
 package de.sciss.kontur.session
 
 import de.sciss.synth.Model
+import de.sciss.kontur.edit.SimpleEdit
+import de.sciss.app.AbstractCompoundEdit
 
-object Renameable {
+object Renamable {
   case class NameChanged( oldName: String, newName: String )
 }
 
-trait Renameable { self: Model =>
-  import Renameable._
+trait Renamable { self: Model =>
+  import Renamable._
 
   protected var nameVar: String
   def name: String = nameVar
@@ -48,4 +50,15 @@ trait Renameable { self: Model =>
       }
 //    }
   }
+
+   protected def editRenameName: String
+
+   def editRename( ce: AbstractCompoundEdit, newName: String ) {
+      val edit = new SimpleEdit( editRenameName ) {
+         lazy val oldName = name
+         def apply() { oldName; name = newName }
+         def unapply() { name = oldName }
+      }
+      ce.addPerform( edit )
+   }
 }

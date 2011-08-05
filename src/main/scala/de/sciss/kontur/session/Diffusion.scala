@@ -113,22 +113,14 @@ extends BasicSessionElementSeq[ Diffusion ]( doc, "Diffusions" ) {
 }
 
 abstract class BasicDiffusion( doc: Session )
-extends Diffusion with DiffusionEditor with Renameable {
-//    import Diffusion._
+extends Diffusion with DiffusionEditor with Renamable {
+   protected var nameVar = "Diffusion"
 
-    protected var nameVar = "Diffusion"
+   def undoManager: UndoManager = doc.getUndoManager
 
-    def undoManager: UndoManager = doc.getUndoManager
+   def editor: Option[ DiffusionEditor ] = Some( this )
 
-    def editor: Option[ DiffusionEditor ] = Some( this )
-    // ---- DiffusionEditor ----
+   // ---- DiffusionEditor ----
 
-    def editRename( ce: AbstractCompoundEdit, newName: String ) {
-        val edit = new SimpleEdit( "editRenameDiffusion" ) {
-           lazy val oldName = name
-           def apply() { oldName; name = newName }
-           def unapply() { name = oldName }
-        }
-        ce.addPerform( edit )
-    }
+   protected def editRenameName = "editRenameDiffusion"
 }

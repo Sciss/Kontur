@@ -38,7 +38,7 @@ import SwingConstants._
 import de.sciss.app.{ AbstractCompoundEdit, DynamicAncestorAdapter, DynamicListening }
 import de.sciss.dsp.MathUtil
 import de.sciss.synth.io.AudioFile
-import de.sciss.kontur.session.{ Diffusion, DiffusionEditor, DiffusionFactory, ConvolutionDiffusion, Renameable, Session }
+import de.sciss.kontur.session.{ Diffusion, DiffusionEditor, DiffusionFactory, ConvolutionDiffusion, Renamable, Session }
 import de.sciss.util.ParamSpace
 import de.sciss.gui.{ ParamField => ParamF, PathEvent, PathField => PathF, PathListener}
 import de.sciss.synth.Model
@@ -74,7 +74,7 @@ extends JPanel with DynamicListening with FilenameFilter {
 
    private val diffListener: Model.Listener = {
       // XXX the updates could be more selective
-      case Renameable.NameChanged( _, _ )             => updateGadgets()
+      case Renamable.NameChanged( _, _ )             => updateGadgets()
       case ConvolutionDiffusion.PathChanged( _, _ )   => updateGadgets()
    }
 

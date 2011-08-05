@@ -38,7 +38,7 @@ import de.sciss.gui.GradientPanel
 import de.sciss.app.{ AbstractApplication, DynamicAncestorAdapter,
                      DynamicListening, GraphicsHandler }
 import de.sciss.util.Disposable
-import de.sciss.kontur.session.{ AudioTrack, Diffusion, Renameable, Track }
+import de.sciss.kontur.session.{ AudioTrack, Diffusion, Renamable, Track }
 import de.sciss.synth.Model
 
 //import Track.Tr
@@ -259,7 +259,7 @@ with DynamicListening with Disposable {
       case TrackList.SelectionChanged( mod @ _* ) => {
           if( mod.contains( trackListElement )) repaint()
       }
-      case Renameable.NameChanged( _, newName ) => checkTrackName()
+      case Renamable.NameChanged( _, newName ) => checkTrackName()
     }
 
     def startListening() {

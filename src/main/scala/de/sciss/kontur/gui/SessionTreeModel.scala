@@ -29,18 +29,18 @@
 package de.sciss.kontur.gui
 
 import de.sciss.app.DynamicListening
-import de.sciss.common.{ BasicWindowHandler }
-import de.sciss.gui.{ MenuGroup, MenuItem }
+import de.sciss.common.BasicWindowHandler
+import de.sciss.gui.{MenuGroup, MenuItem}
 import de.sciss.synth.Model
-import java.awt.{ BorderLayout, FileDialog, Frame }
+import java.awt.{FileDialog, Frame}
 import java.awt.datatransfer.DataFlavor
 import java.awt.dnd.DnDConstants
 import java.awt.event.ActionEvent
-import java.io.{ File, FilenameFilter, IOException }
-import javax.swing.{ AbstractAction, Action, DefaultListSelectionModel, JLabel, JList, JPanel, JOptionPane, JScrollPane }
-import javax.swing.tree.{ DefaultMutableTreeNode, DefaultTreeModel }
+import java.io.{File, FilenameFilter, IOException}
+import javax.swing.{AbstractAction, Action, JOptionPane}
+import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel}
 import de.sciss.synth.io.AudioFile
-import de.sciss.kontur.session.{Diffusions, AudioFileElement, AudioFileSeq, AudioTrack, BasicTimeline, Diffusion, Renameable, Session, SessionElement, SessionElementSeq, Timeline, Track}
+import de.sciss.kontur.session.{Diffusions, AudioFileElement, AudioFileSeq, AudioTrack, BasicTimeline, Diffusion, Renamable, Session, SessionElement, SessionElementSeq, Timeline, Track}
 
 abstract class DynamicTreeNode( model: SessionTreeModel, obj: AnyRef, canExpand: Boolean )
 extends DefaultMutableTreeNode( obj, canExpand )
@@ -369,7 +369,7 @@ with HasContextMenu {
       var items = IndexedSeq.empty[ MenuItem ]
       tl.editor.foreach { ed =>
          tl match {
-            case r: Renameable => {
+            case r: Renamable => {
                items :+= new MenuItem( "rename", new EditRenameAction( r, ed ))
             }
             case _ =>
@@ -457,7 +457,7 @@ with HasContextMenu with CanBeDragSource {
       var items = IndexedSeq.empty[ MenuItem ]
       t.editor.foreach { ed =>
          t match {
-            case r: Renameable => items :+= new MenuItem( "rename", new EditRenameAction( r, ed ))
+            case r: Renamable => items :+= new MenuItem( "rename", new EditRenameAction( r, ed ))
             case _ =>
          }
       }
@@ -563,7 +563,7 @@ with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
 
 class DiffusionTreeLeaf( model: SessionTreeModel, diff: Diffusion )
 extends SessionElementTreeNode( model, diff, false )
-with HasDoubleClickAction with CanBeDragSource {
+with HasContextMenu with HasDoubleClickAction with CanBeDragSource {
     def doubleClickAction() {
 /*
         val page      = DiffusionObserverPage.instance
@@ -572,6 +572,22 @@ with HasDoubleClickAction with CanBeDragSource {
         page.setObjects( diff )
         observer.selectPage( page.id )
 */
+   }
+
+   def createContextMenu() : Option[ PopupRoot ] = {
+      var items = IndexedSeq.empty[ MenuItem ]
+      diff.editor.foreach { ed =>
+         diff match {
+            case r: Renamable => items :+= new MenuItem( "rename", new EditRenameAction( r, ed ))
+            case _ =>
+         }
+      }
+
+      if( items.isEmpty ) None else {
+         val root = new PopupRoot()
+         items.foreach( root.add( _ ))
+         Some( root )
+      }
    }
 
    // ---- CanBeDragSource ----
