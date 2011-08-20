@@ -32,6 +32,9 @@ import java.awt.event.{ ActionEvent, ActionListener, KeyEvent }
 import javax.swing.{ AbstractAction, Box, BoxLayout, JComboBox, JComponent, JPanel, JSlider, KeyStroke }
 import javax.swing.event.{ ChangeEvent, ChangeListener }
 import de.sciss.common.{ BasicMenuFactory }
+import de.sciss.kontur.util.PrefsUtil
+import de.sciss.app.{AbstractApplication, DynamicPrefChangeManager, DynamicAncestorAdapter, DynamicListening}
+import java.util.prefs.{PreferenceChangeEvent, PreferenceChangeListener}
 
 object TrackToolsPanel {
    private def linexp( x: Double, inLo: Double, inHi: Double, outLo: Double, outHi: Double ) =
@@ -39,7 +42,7 @@ object TrackToolsPanel {
 }
 
 class TrackToolsPanel( trackList: TrackList, timelineView: TimelineView )
-extends JPanel with TrackTools {
+extends JPanel with TrackTools with PreferenceChangeListener {
    import TrackTools._
    import TrackToolsPanel._
 
@@ -52,78 +55,115 @@ extends JPanel with TrackTools {
                              new TrackMuteTool( trackList, timelineView )
    )
 
-    private var currentToolVar: TrackTool = tools.head
-    private val ggCombo = new JComboBox()
-    private var visualBoostVar = slidToBoost( 64 ); // 1f;
+   private var currentToolVar: TrackTool                    = tools.head
+   private val ggCombo                                      = new JComboBox()
+   private var visualBoostVar                               = slidToBoost( 64 ) // 1f;
+   private var fadeViewModeVar: FadeViewMode                = FadeViewMode.Curve
+   private var stakeBorderViewModeVar: StakeBorderViewMode  = StakeBorderViewMode.TitledBox;
 
-    // ---- constructor ----
-    {
-        val imap	= ggCombo.getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW )
-        val amap    = ggCombo.getActionMap
-        val meta    = BasicMenuFactory.MENU_SHORTCUT
+   // ---- constructor ----
+   {
+      val imap	= ggCombo.getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW )
+      val amap    = ggCombo.getActionMap
+      val meta    = BasicMenuFactory.MENU_SHORTCUT
 
-        var i = 1; tools.foreach( t => {
-            val key = "tool" + i
-            imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_0 + i, meta ), key )
-            val action = new ToolAction( t )
-            amap.put( key, action )
-            ggCombo.addItem( action )
-            i += 1
-        })
+      var i = 1; tools.foreach { t =>
+         val key = "tool" + i
+         imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_0 + i, meta ), key )
+         val action = new ToolAction( t )
+         amap.put( key, action )
+         ggCombo.addItem( action )
+         i += 1
+      }
 
-        ggCombo.addActionListener( new ActionListener {
-            def actionPerformed( e: ActionEvent ) {
-                ggCombo.getSelectedItem match {
-                    case t: ToolAction => t.perform()
-                    case _ =>
-                }
+      ggCombo.addActionListener( new ActionListener {
+         def actionPerformed( e: ActionEvent ) {
+            ggCombo.getSelectedItem match {
+               case t: ToolAction => t.perform()
+               case _ =>
             }
-        })
-        ggCombo.setFocusable( false )
-        ggCombo.putClientProperty( "JComboBox.isSquare", java.lang.Boolean.TRUE )
-        ggCombo.putClientProperty( "JComponent.sizeVariant", "small" )
+         }
+      })
+      ggCombo.setFocusable( false )
+      ggCombo.putClientProperty( "JComboBox.isSquare", java.lang.Boolean.TRUE )
+      ggCombo.putClientProperty( "JComponent.sizeVariant", "small" )
 
-        val ggVisualBoost = new JSlider( 0, 128 )
-        ggVisualBoost.setFocusable( false )
-        ggVisualBoost.putClientProperty( "JComponent.sizeVariant", "small" )
-        ggVisualBoost.addChangeListener( new ChangeListener {
-           def stateChanged( e: ChangeEvent ) {
-              val newVisualBoost = slidToBoost( ggVisualBoost.getValue )
-              if( newVisualBoost != visualBoostVar ) {
-                 val change = VisualBoostChanged( visualBoostVar, newVisualBoost )
-                 visualBoostVar = newVisualBoost
-                 dispatch( change )
-              }
-           }
-        })
+      val ggVisualBoost = new JSlider( 0, 128 )
+      ggVisualBoost.setFocusable( false )
+      ggVisualBoost.putClientProperty( "JComponent.sizeVariant", "small" )
+      ggVisualBoost.addChangeListener( new ChangeListener {
+         def stateChanged( e: ChangeEvent ) {
+            visualBoost = slidToBoost( ggVisualBoost.getValue )
+         }
+      })
 
-        setLayout( new BoxLayout( this, BoxLayout.X_AXIS ))
-        add( Box.createHorizontalGlue )
-        add( ggCombo )
-        add( ggVisualBoost )
-        add( Box.createHorizontalGlue )
-    }
+      setLayout( new BoxLayout( this, BoxLayout.X_AXIS ))
+      add( Box.createHorizontalGlue )
+      add( ggCombo )
+      add( ggVisualBoost )
+      add( Box.createHorizontalGlue )
+
+      new DynamicAncestorAdapter( new DynamicPrefChangeManager(
+         AbstractApplication.getApplication.getUserPrefs,
+         Array( PrefsUtil.KEY_FADEVIEWMODE, PrefsUtil.KEY_STAKEBORDERVIEWMODE ), this
+      )).addTo( this )
+   }
 
    private def slidToBoost( v: Int ) = linexp( v, 0, 128, 1, 512 ).toFloat
 
-    private def changeTool( newTool: TrackTool ) {
-        if( newTool != currentToolVar ) {
-            val change = ToolChanged( currentToolVar, newTool )
-            currentToolVar = newTool
-            dispatch( change )
-        }
-    }
+   def currentTool = currentToolVar
+   private def currentTool_=( newTool: TrackTool ) {
+       if( newTool != currentToolVar ) {
+           val change = ToolChanged( currentToolVar, newTool )
+           currentToolVar = newTool
+           dispatch( change )
+       }
+   }
 
-    def currentTool: TrackTool = currentToolVar
-    def visualBoost: Float = visualBoostVar
+   def visualBoost = visualBoostVar
+   def visualBoost_=( value: Float ) {
+      if( visualBoostVar != value ) {
+         val change = VisualBoostChanged( visualBoostVar, value )
+         visualBoostVar = value
+         dispatch( change )
+      }
+   }
+   def fadeViewMode = fadeViewModeVar
+   def fadeViewMode_=( mode: FadeViewMode ) {
+//println( "fadeViewMode : " + mode )
+      if( fadeViewModeVar != mode ) {
+         val change = FadeViewModeChanged( fadeViewModeVar, mode )
+         fadeViewModeVar = mode
+         dispatch( change )
+      }
+   }
+   def stakeBorderViewMode = stakeBorderViewModeVar
+   def stakeBorderViewMode_=( mode: StakeBorderViewMode ) {
+//println( "stakeBorderViewMode : " + mode )
+      if( stakeBorderViewModeVar != mode ) {
+         val change = StakeBorderViewModeChanged( stakeBorderViewModeVar, mode )
+         stakeBorderViewModeVar = mode
+         dispatch( change )
+      }
+   }
 
-    private class ToolAction( t: TrackTool ) extends AbstractAction( t.name ) {
-        def actionPerformed( e: ActionEvent ) {
-            ggCombo.setSelectedItem( this )
-        }
+// ---------------- PreferenceChangeListener interface ----------------
 
-        def perform() { changeTool( t )}
+   def preferenceChange( e: PreferenceChangeEvent ) {
+      e.getKey match {
+         case PrefsUtil.KEY_FADEVIEWMODE        => fadeViewMode         = FadeViewMode(        e.getNewValue.toInt )
+         case PrefsUtil.KEY_STAKEBORDERVIEWMODE => stakeBorderViewMode  = StakeBorderViewMode( e.getNewValue.toInt )
+         case _ =>
+      }
+   }
 
-        override def toString = t.name
-    }
+   private class ToolAction( t: TrackTool ) extends AbstractAction( t.name ) {
+      def actionPerformed( e: ActionEvent ) {
+         ggCombo.setSelectedItem( this )
+      }
+
+      def perform() { currentTool = t }
+
+      override def toString = t.name
+   }
 }

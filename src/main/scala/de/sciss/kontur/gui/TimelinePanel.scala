@@ -125,11 +125,11 @@ with TopPaintable {
       }
     }
 
-    private val trackListListener: Model.Listener = {
-      case TrackList.ElementAdded( idx, elem ) => updateSelectionAndRepaint()
-      case TrackList.ElementRemoved( idx, elem ) => updateSelectionAndRepaint()
-      case TrackList.SelectionChanged( elems @ _* ) => updateSelectionAndRepaint()
-    }
+   private val trackListListener: Model.Listener = {
+      case TrackList.ElementAdded(   idx, elem )      => updateSelectionAndRepaint()
+      case TrackList.ElementRemoved( idx, elem )      => updateSelectionAndRepaint()
+      case TrackList.SelectionChanged( elems @ _* )   => updateSelectionAndRepaint()
+   }
 
    // ---- constructor ----
 	{
@@ -361,7 +361,7 @@ with TopPaintable {
 	/**
 	 *  Only call in the Swing thread!
 	 */
-	protected def updateSelectionAndRepaint() {
+   protected def updateSelectionAndRepaint() {
 		val r = new Rectangle( 0, 0, getWidth, getHeight )
 
 		vpUpdateRect.setBounds( vpSelectionRect )

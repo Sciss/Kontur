@@ -30,7 +30,6 @@ package de.sciss.kontur.gui
 
 import de.sciss.app.AbstractWindow
 import de.sciss.common.{ BasicApplication, BasicMenuFactory, BasicWindowHandler }
-import de.sciss.gui.{ BooleanPrefsMenuAction, MenuAction, MenuCheckItem, MenuGroup, MenuItem }
 import de.sciss.kontur.Main
 import de.sciss.kontur.util.PrefsUtil
 import de.sciss.kontur.session.Session
@@ -41,6 +40,7 @@ import javax.swing.{ Action, KeyStroke }
 import javax.xml.parsers.SAXParserFactory
 import org.xml.sax.{ Attributes, InputSource, SAXException }
 import org.xml.sax.helpers.DefaultHandler
+import de.sciss.gui.{MenuRadioGroup, MenuRadioItem, IntPrefsMenuAction, BooleanPrefsMenuAction, MenuAction, MenuCheckItem, MenuGroup, MenuItem}
 
 class MenuFactory( app: BasicApplication )
 extends BasicMenuFactory( app ) {
@@ -107,6 +107,9 @@ extends BasicMenuFactory( app ) {
       mgTimeline.add( new MenuItem( "alignObjStartToPos", getResourceString( "menuAlignObjStartToPos" ), null ))
 		mgTimeline.add( new MenuItem( "splitObjects", getResourceString( "menuSplitObjects" ),
 							  KeyStroke.getKeyStroke( KeyEvent.VK_Y, myCtrl )))
+      mgTimeline.addSeparator()
+      mgTimeline.add( new MenuItem( "selStopToStart", getResourceString( "menuSelStopToStart" ), null ))
+      mgTimeline.add( new MenuItem( "selStartToStop", getResourceString( "menuSelStartToStop" ), null ))
 		add( mgTimeline, indexOf( "edit" ) + 1 )
 
       // --- actions menu ---
@@ -123,6 +126,42 @@ extends BasicMenuFactory( app ) {
       actionLinkObjTimelineSel.setPreferences( prefs, PrefsUtil.KEY_LINKOBJTIMELINESEL )
       mgOperation.add( miLinkObjTimelineSel )
       add( mgOperation, indexOf( "actions" ) + 1 )
+
+      // --- view menu ---
+      val mgView = new MenuGroup( "view", getResourceString( "menuView" ))
+      val smgViewFadeMode = new MenuGroup( "fademode", getResourceString( "menuViewFadeMode" ));
+      val aViewFadeModeNone = new IntPrefsMenuAction( getResourceString( "menuViewFadeModeNone" ), null, FadeViewMode.None.id )
+      val rgViewFadeMode = new MenuRadioGroup()
+      smgViewFadeMode.add( new MenuRadioItem( rgViewFadeMode, "none", aViewFadeModeNone ))   // crucial reihenfolge : erst item erzeugen, dann gruppe setzen, dann prefs
+      aViewFadeModeNone.setRadioGroup( rgViewFadeMode )
+      aViewFadeModeNone.setPreferences( prefs, PrefsUtil.KEY_FADEVIEWMODE )
+      val aViewFadeModeCurve = new IntPrefsMenuAction( getResourceString( "menuViewFadeModeCurve" ), null, FadeViewMode.Curve.id )
+      smgViewFadeMode.add( new MenuRadioItem( rgViewFadeMode, "curve", aViewFadeModeCurve ))
+      aViewFadeModeCurve.setRadioGroup( rgViewFadeMode )
+      aViewFadeModeCurve.setPreferences( prefs, PrefsUtil.KEY_FADEVIEWMODE )
+      val aViewFadeModeSonogram = new IntPrefsMenuAction( getResourceString( "menuViewFadeModeSonogram" ), null, FadeViewMode.Sonogram.id )
+      smgViewFadeMode.add( new MenuRadioItem( rgViewFadeMode, "sonogram", aViewFadeModeSonogram ))
+      aViewFadeModeSonogram.setRadioGroup( rgViewFadeMode )
+      aViewFadeModeSonogram.setPreferences( prefs, PrefsUtil.KEY_FADEVIEWMODE )
+      mgView.add( smgViewFadeMode )
+
+      val smgViewStakeBorderMode = new MenuGroup( "stakebordermode", getResourceString( "menuViewStakeBorderMode" ));
+      val aViewStakeBorderModeNone = new IntPrefsMenuAction( getResourceString( "menuViewStakeBorderModeNone" ), null, StakeBorderViewMode.None.id )
+      val rgViewStakeBorderMode = new MenuRadioGroup()
+      smgViewStakeBorderMode.add( new MenuRadioItem( rgViewStakeBorderMode, "none", aViewStakeBorderModeNone ))
+      aViewStakeBorderModeNone.setRadioGroup( rgViewStakeBorderMode )
+      aViewStakeBorderModeNone.setPreferences( prefs, PrefsUtil.KEY_STAKEBORDERVIEWMODE )
+      val aViewStakeBorderModeBox = new IntPrefsMenuAction( getResourceString( "menuViewStakeBorderModeBox" ), null, StakeBorderViewMode.Box.id )
+      smgViewStakeBorderMode.add( new MenuRadioItem( rgViewStakeBorderMode, "box", aViewStakeBorderModeBox ))
+      aViewStakeBorderModeBox.setRadioGroup( rgViewStakeBorderMode )
+      aViewStakeBorderModeBox.setPreferences( prefs, PrefsUtil.KEY_STAKEBORDERVIEWMODE )
+      val aViewStakeBorderModeTitledBox = new IntPrefsMenuAction( getResourceString( "menuViewStakeBorderModeTitledBox" ), null, StakeBorderViewMode.TitledBox.id )
+      smgViewStakeBorderMode.add( new MenuRadioItem( rgViewStakeBorderMode, "titledbox", aViewStakeBorderModeTitledBox ))
+      aViewStakeBorderModeTitledBox.setRadioGroup( rgViewStakeBorderMode )
+      aViewStakeBorderModeTitledBox.setPreferences( prefs, PrefsUtil.KEY_STAKEBORDERVIEWMODE )
+      mgView.add( smgViewStakeBorderMode )
+
+      add( mgView, indexOf( "operation" ) + 1 )
 
   		// --- window menu ---
 		val mgWindow  = get( "window" ).asInstanceOf[ MenuGroup ]

@@ -159,6 +159,9 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
       mr.putMimic( "timeline.selFollowingObj", this, new ActionSelectFollowingObjects )
       mr.putMimic( "timeline.alignObjStartToPos", this, new ActionAlignObjectsStartToTimelinePosition )
 
+      mr.putMimic( "timeline.selStopToStart", this, new ActionSelect( ActionSelect.SELECT_BWD_BY_LEN ))
+      mr.putMimic( "timeline.selStartToStop", this, new ActionSelect( ActionSelect.SELECT_FWD_BY_LEN ))
+
       mr.putMimic( "actions.showInEisK", this, new ActionShowInEisK )
 
       makeUnifiedLook()
@@ -622,9 +625,9 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 	 */
 	private class ActionSelToPos( weight: Double, deselect: Boolean )
 	extends AbstractAction {
-		def actionPerformed( e: ActionEvent ) : Unit = perform
+		def actionPerformed( e: ActionEvent ) { perform() }
 
-		private def perform {
+		private def perform() {
 			val selSpan = timelineView.selection.span
 			if( selSpan.isEmpty ) return
 
@@ -638,104 +641,112 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 		}
 	} // class actionSelToPosClass
 
-    private object ActionScroll {
+   private object ActionScroll {
       val SCROLL_SESSION_START    = 0
       val SCROLL_SELECTION_START  = 1
       val SCROLL_SELECTION_STOP   = 2
       val SCROLL_FIT_TO_SELECTION = 3
       val SCROLL_ENTIRE_SESSION   = 4
-    }
+   }
 
-	private class ActionScroll( mode: Int )
-	extends AbstractAction {
-        import ActionScroll._
+   private class ActionScroll( mode: Int )
+   extends AbstractAction {
+      import ActionScroll._
 
-		def actionPerformed( e: ActionEvent ) : Unit = perform
+      def actionPerformed( e: ActionEvent ) { perform() }
 
-		def perform {
-            timelineView.editor.foreach( ed => {
-                val pos       = timelineView.cursor.position
-                val visiSpan  = timelineView.span
-                val wholeSpan = timelineView.timeline.span
-                if( mode == SCROLL_SESSION_START ) {
-//                if( transport.isRunning ) transport.stop
-                  val posNotZero = pos != wholeSpan.start
-                  val zeroNotVisi = !visiSpan.contains( wholeSpan.start )
-                  if( posNotZero || zeroNotVisi ) {
-                    val ce = ed.editBegin( "scroll" )
-                    if( posNotZero ) ed.editPosition( ce, wholeSpan.start )
-                    if( zeroNotVisi ) {
-                      ed.editScroll( ce, new Span( wholeSpan.start, wholeSpan.start + visiSpan.getLength ))
-                    }
-          			ed.editEnd( ce )
+      def perform() {
+         timelineView.editor.foreach { ed =>
+            val pos       = timelineView.cursor.position
+            val visiSpan  = timelineView.span
+            val wholeSpan = timelineView.timeline.span
+            if( mode == SCROLL_SESSION_START ) {
+//             if( transport.isRunning ) transport.stop
+               val posNotZero = pos != wholeSpan.start
+               val zeroNotVisi = !visiSpan.contains( wholeSpan.start )
+               if( posNotZero || zeroNotVisi ) {
+                  val ce = ed.editBegin( "scroll" )
+                  if( posNotZero ) ed.editPosition( ce, wholeSpan.start )
+                  if( zeroNotVisi ) {
+                     ed.editScroll( ce, new Span( wholeSpan.start, wholeSpan.start + visiSpan.getLength ))
                   }
-                } else {
-        		  val selSpan = timelineView.selection.span
-                  val newSpan = mode match {
-        			case SCROLL_SELECTION_START => {
-                		val selSpanStart = if( selSpan.isEmpty ) pos else selSpan.start
-                        val start = max( wholeSpan.start, selSpanStart - (visiSpan.getLength >>
-                          (if( visiSpan.contains( selSpanStart )) 1 else 3)) )
-                        val stop = min( wholeSpan.stop, start + visiSpan.getLength )
-                        new Span( start, stop )
-                    }
-        			case SCROLL_SELECTION_STOP => {
-                		val selSpanStop = if( selSpan.isEmpty ) pos else selSpan.stop
+                  ed.editEnd( ce )
+               }
+            } else {
+               val selSpan = timelineView.selection.span
+               val newSpan = mode match {
+                  case SCROLL_SELECTION_START =>
+                     val selSpanStart = if( selSpan.isEmpty ) pos else selSpan.start
+                     val start = max( wholeSpan.start, selSpanStart - (visiSpan.getLength >>
+                        (if( visiSpan.contains( selSpanStart )) 1 else 3)) )
+                     val stop = min( wholeSpan.stop, start + visiSpan.getLength )
+                     new Span( start, stop )
+
+                     case SCROLL_SELECTION_STOP =>
+                        val selSpanStop = if( selSpan.isEmpty ) pos else selSpan.stop
                         val stop = min( wholeSpan.stop, selSpanStop + (visiSpan.getLength >>
-                          (if( visiSpan.contains( selSpanStop )) 1 else 3)) )
+                           (if( visiSpan.contains( selSpanStop )) 1 else 3)) )
                         val start = max( wholeSpan.start, stop - visiSpan.getLength )
                         new Span( start, stop )
-                    }
-          			case SCROLL_FIT_TO_SELECTION => selSpan
-        			case SCROLL_ENTIRE_SESSION => timelineView.timeline.span
-            		case _ => throw new IllegalArgumentException( mode.toString )
-	            }
-				if( (visiSpan != newSpan) && !newSpan.isEmpty ) {
-                    val ce = ed.editBegin( "scroll" )
-					ed.editScroll( ce, newSpan )
-          			ed.editEnd( ce )
-                }
-            }
-            })
-		}
-	} // class actionScrollClass
 
-    private object ActionSelect {
+                  case SCROLL_FIT_TO_SELECTION => selSpan
+                  case SCROLL_ENTIRE_SESSION => timelineView.timeline.span
+                  case _ => sys.error( mode.toString )
+               }
+               if( (visiSpan != newSpan) && !newSpan.isEmpty ) {
+                  val ce = ed.editBegin( "scroll" )
+                  ed.editScroll( ce, newSpan )
+                  ed.editEnd( ce )
+               }
+            }
+         }
+      }
+   } // class actionScrollClass
+
+   private object ActionSelect {
       val SELECT_TO_SESSION_START	= 0
       val SELECT_TO_SESSION_END		= 1
       val SELECT_ALL                = 2
+      val SELECT_BWD_BY_LEN         = 3
+      val SELECT_FWD_BY_LEN         = 4
     }
 
-	private class ActionSelect( mode: Int )
-	extends AbstractAction {
-		import ActionSelect._
+   private class ActionSelect( mode: Int )
+   extends AbstractAction {
+      import ActionSelect._
 
-		def actionPerformed( e: ActionEvent ) : Unit = perform
+      def actionPerformed( e: ActionEvent ) { perform() }
 
-        def perform {
-          timelineView.editor.foreach( ed => {
+      def perform() {
+         timelineView.editor.foreach { ed =>
             val pos = timelineView.cursor.position
-			val selSpan = if( timelineView.selection.span.isEmpty ) {
-              new Span( pos, pos )
+            val selSpan = if( timelineView.selection.span.isEmpty ) {
+               new Span( pos, pos )
             } else {
-              timelineView.selection.span
+               timelineView.selection.span
             }
 
             val wholeSpan = timelineView.timeline.span
             val newSpan = mode match {
-			case SELECT_TO_SESSION_START => new Span( wholeSpan.start, selSpan.stop )
-			case SELECT_TO_SESSION_END => new Span( selSpan.start, wholeSpan.stop )
-            case SELECT_ALL => wholeSpan
-            case _ => throw new IllegalArgumentException( mode.toString )
-			}
-			if( newSpan != selSpan ) {
-              val ce = ed.editBegin( "select" )
-              ed.editSelect( ce, newSpan )
-              ed.editEnd( ce )
-			}
-          })
-		}
-	} // class actionSelectClass
+               case SELECT_TO_SESSION_START  => new Span( wholeSpan.start, selSpan.stop )
+               case SELECT_TO_SESSION_END    => new Span( selSpan.start, wholeSpan.stop )
+               case SELECT_ALL               => wholeSpan
+               case SELECT_BWD_BY_LEN        =>
+                  val delta = -math.min( selSpan.start - wholeSpan.start, selSpan.getLength )
+                  selSpan.shift( delta )
+               case SELECT_FWD_BY_LEN        =>
+                  val delta = math.min( wholeSpan.stop - selSpan.stop, selSpan.getLength )
+                  selSpan.shift( delta )
+               case _ => sys.error( mode.toString )
+            }
+            if( newSpan != selSpan ) {
+               val ce = ed.editBegin( "select" )
+               ed.editSelect( ce, newSpan )
+               ed.editEnd( ce )
+            }
+         }
+      }
+   } // class actionSelectClass
 
 //    private class ActionDebugGenerator
 //    extends MenuAction( "Debug Generator" ) {

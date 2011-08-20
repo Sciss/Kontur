@@ -56,6 +56,13 @@ object PrefsUtil {
 
    val KEY_LINKOBJTIMELINESEL = "linkobjtimelinesel"
 
+   val KEY_FADEVIEWMODE             = "fadeviewmode"
+//   val VALUE_FADEVIEWMODE_NONE      = 0
+//   val VALUE_FADEVIEWMODE_CURVE     = 1
+//   val VALUE_FADEVIEWMODE_SONOGRAM  = 2
+
+   val KEY_STAKEBORDERVIEWMODE             = "stakeborderviewmode"
+
 	/**
 	 *  Child node of root prefs
 	 */

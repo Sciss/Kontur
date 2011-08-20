@@ -45,13 +45,49 @@ import de.sciss.dsp.MathUtil
 import de.sciss.synth.Model
 
 object TrackTools {
-    case class ToolChanged( oldTool: TrackTool, newTool: TrackTool )
-    case class VisualBoostChanged( oldBoost: Float, newBoost: Float ) // XXX this should really be somewhere else
+   case class ToolChanged( oldTool: TrackTool, newTool: TrackTool )
+   case class VisualBoostChanged( oldBoost: Float, newBoost: Float )                // XXX this should really be somewhere else
+   case class FadeViewModeChanged( oldMode: FadeViewMode, newMode: FadeViewMode )   // XXX this should really be somewhere else
+   case class StakeBorderViewModeChanged( oldMode: StakeBorderViewMode, newMode: StakeBorderViewMode )   // XXX this should really be somewhere else
 }
 
+object StakeBorderViewMode {
+   /** No visual indicator for stake borders */
+   case object None  extends StakeBorderViewMode { val id = 0 }
+   /** Rounded box for stake borders */
+   case object Box extends StakeBorderViewMode { val id = 1 }
+   /** Rounded box with region name for stake borders */
+   case object TitledBox extends StakeBorderViewMode { val id = 2 }
+
+   def apply( id: Int ) : StakeBorderViewMode = id match {
+      case None.id      => None
+      case Box.id       => Box
+      case TitledBox.id => TitledBox
+   }
+}
+sealed trait StakeBorderViewMode { def id: Int }
+
+object FadeViewMode {
+   /** No visual indicator for fades */
+   case object None  extends FadeViewMode { val id = 0 }
+   /** Curve overlays to indicate fades */
+   case object Curve extends FadeViewMode { val id = 1 }
+   /** Gain adjustments to sonogram to indicate fades */
+   case object Sonogram extends FadeViewMode { val id = 2 }
+
+   def apply( id: Int ) : FadeViewMode = id match {
+      case None.id      => None
+      case Curve.id     => Curve
+      case Sonogram.id  => Sonogram
+   }
+}
+sealed trait FadeViewMode { def id: Int }
+
 trait TrackTools extends Model {
-    def currentTool: TrackTool
-    def visualBoost: Float // XXX this should really be somewhere else
+   def currentTool: TrackTool
+   def visualBoost: Float                       // XXX this should really be somewhere else
+   def fadeViewMode: FadeViewMode               // XXX this should really be somewhere else
+   def stakeBorderViewMode: StakeBorderViewMode // XXX this should really be somewhere else
 }
 
 //class DummyTrackTools extends TrackTools {
