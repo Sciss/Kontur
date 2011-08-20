@@ -169,7 +169,16 @@ case class SonagramFileSpec( sona: SonagramSpec, lastModified: Long, audioPath: 
 
 trait SonagramPaintController {
    def imageObserver: ImageObserver
-   def adjustGain( amp: Float, pos: Double ) : Float
+//   def adjustGain( amp: Float, pos: Double ) : Float
+   /**
+    * Return the gain factor for a given frame position
+    * in the painted stake
+    *
+    * @pos  the (possibly fractional) frame position currently painted,
+    *       i.e. a value between `spanStart` and `spanStop` in the
+    *       `paint` method
+    */
+   def sonogramGain( pos: Double ) : Float
 }
 
 object SonagramOverview {
@@ -451,6 +460,10 @@ class SonagramOverview @throws( classOf[ IOException ]) private (
 
       var windowsRead   = 0L
       val imgW          = imgSpec.dim.width
+      // offset in the image's pixel buffer go from left to right, top to down.
+      // in the file we have the low frequencies first in each frame.
+      // thus we need to start in the 'bottom-left' corner of the image
+      // and walk rows up then columns right
       val iOffStart     = (numVFull - 1) * imgW
       val l10           = log10
       val c             = IntensityColorScheme.colors
@@ -493,13 +506,16 @@ class SonagramOverview @throws( classOf[ IOException ]) private (
                   fOff = 0
                   x = xReset; while( x < chunkLen ) {
                      iOff = iOffStart + x
+                     val frameD = (xOff + x + startD) * in.totalDecim
+                     val gainFactor = ctrl.sonogramGain( frameD )
                      v = 0; while( v < numVFull ) {
                         sum = fBuf( fOff )
                         i = 0; while( i < vDecim ) {
                            sum += fBuf( fOff )
                            fOff += 1; i += 1
                         }
-                        val amp = ctrl.adjustGain( sum / vDecim, (iOff + xOff) / scaleW )
+//                        val amp = ctrl.adjustGain( sum / vDecim, frameD ) // (iOff + xOff) / scaleW )
+                        val amp = sum / vDecim * gainFactor
                         iBuf( iOff ) = c( max( 0, min( 1072,
                            ((l10.calc( max( 1.0e-9f, amp )) + pixOff) * pixScale).toInt )))
                         v += 1; iOff -= imgW

@@ -740,16 +740,25 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
       }
 
    // ---- SonagramPaintController ----
-   private class SonoPaint( val boost: Float ) extends SonagramPaintController {
+   private class SonoPaint( boost: Float ) extends SonagramPaintController {
       def imageObserver: ImageObserver = component
-      def adjustGain( amp: Float, pos: Double ) = amp * boost
+      def sonogramGain( pos: Double ) = boost
    }
 
-   private class SonoFadePaint( val boost: Float, fadeIn: FadeSpec, fadeOut: FadeSpec ) extends SonagramPaintController {
+   private class SonoFadePaint( boost: Float, numFrames: Long, fadeIn: FadeSpec, fadeOut: FadeSpec )
+   extends SonagramPaintController {
       def imageObserver: ImageObserver = component
-      def adjustGain( amp: Float, pos: Double ) = {
-//         if( pos > 1.0 ) println( "pos = " + pos )
-         amp * boost
+      def sonogramGain( pos: Double ) = {
+         var gain = boost
+         if( fadeIn  != null ) {
+            val f = (pos / fadeIn.numFrames).toFloat
+            if( f < 1f ) gain *= fadeIn.shape.levelAt( math.max( 0f, f ), 0f, 1f )
+         }
+         if( fadeOut != null ) {
+            val f = ((pos - (numFrames - fadeOut.numFrames)) / fadeOut.numFrames).toFloat
+            if( f > 0f ) gain *= fadeOut.shape.levelAt( math.min( 1f, f ), 1f, 0f )
+         }
+         gain
       }
    }
 
@@ -909,7 +918,7 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
                      val stopC   = pc.screenToVirtualD( x2C )
                      val boost   = ar.gain * visualBoost
                      val ctl     = if( fadeViewMode == FadeViewMode.Sonogram ) {
-                        new SonoFadePaint( boost, ar.fadeIn.orNull, ar.fadeOut.orNull )
+                        new SonoFadePaint( boost, ar.span.getLength, ar.fadeIn.orNull, ar.fadeOut.orNull )
                      } else {
                         new SonoPaint( boost )
                      }
