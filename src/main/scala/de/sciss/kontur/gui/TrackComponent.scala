@@ -76,6 +76,9 @@ object DefaultTrackComponent {
    val MIN_SPAN_LEN = 64  // XXX somewhat arbitrary (one control block in default scsynth)
    val colrBg     = new Color( 0x68, 0x68, 0x68 )
    val colrBgSel  = Color.blue
+
+   val hndlExtent        = 15
+   val hndlBaseline      = 12
 }
 
 class DefaultTrackComponent( doc: Session, protected val track: Track, trackList: TrackList,
@@ -341,7 +344,7 @@ extends JComponent with TrackToolsListener with DynamicListening {
                   val clipOrig = g2.getClip
                   g2.clipRect( x + 2, 2, width - 4, pc.height - 4 )
                   g2.setColor( Color.white )
-                  g2.drawString( reg.name, x + 4, 12 )
+                  g2.drawString( reg.name, x + 4, hndlBaseline )
                   g2.setClip( clipOrig )
                }
                case _ =>
@@ -525,8 +528,8 @@ object AudioTrackComponent {
       ), 0, 4 )
 		new TexturePaint( img, new Rectangle( 0, 0, 4, 2 ))
    }
-   private val hndlExtent        = 15
-   private val hndlBaseline      = 12
+//   private val hndlExtent        = 15
+//   private val hndlBaseline      = 12
 //   private val cmpMuted          = AlphaComposite.getInstance( AlphaComposite.SRC_OVER, 0.5f )
    private val colrBgMuted      = new Color( 0xFF, 0xFF, 0xFF, 0x60 )
 }
@@ -745,17 +748,19 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
       def sonogramGain( pos: Double ) = boost
    }
 
-   private class SonoFadePaint( boost: Float, numFrames: Long, fadeIn: FadeSpec, fadeOut: FadeSpec )
+   private class SonoFadePaint( boost: Float, offset: Long, numFrames: Long, fadeIn: FadeSpec, fadeOut: FadeSpec )
    extends SonagramPaintController {
+      private val doFadeIn    = fadeIn  != null && fadeIn.numFrames > 0
+      private val doFadeOut   = fadeOut != null && fadeOut.numFrames > 0
       def imageObserver: ImageObserver = component
       def sonogramGain( pos: Double ) = {
          var gain = boost
-         if( fadeIn  != null ) {
-            val f = (pos / fadeIn.numFrames).toFloat
+         if( doFadeIn ) {
+            val f = ((pos - offset) / fadeIn.numFrames).toFloat
             if( f < 1f ) gain *= fadeIn.shape.levelAt( math.max( 0f, f ), 0f, 1f )
          }
-         if( fadeOut != null ) {
-            val f = ((pos - (numFrames - fadeOut.numFrames)) / fadeOut.numFrames).toFloat
+         if( doFadeOut ) {
+            val f = ((pos - offset - (numFrames - fadeOut.numFrames)) / fadeOut.numFrames).toFloat
             if( f > 0f ) gain *= fadeOut.shape.levelAt( math.min( 1f, f ), 1f, 0f )
          }
          gain
@@ -909,7 +914,13 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
                   }
 
                   val clipOrig = g2.getClip
-                  g2.clipRect( x + 1, hndlExtent, width - 1, pc.height - hndlExtent - 1 )
+                  val hndl = stakeBorderViewMode match {
+                     case StakeBorderViewMode.None       => 0
+                     case StakeBorderViewMode.Box        => 1
+                     case StakeBorderViewMode.TitledBox  => hndlExtent
+                  }
+                  val innerH     = pc.height - (hndl + 1)
+                  g2.clipRect( x + 1, hndl, width - 1, innerH )
                   
                   // --- sonagram ---
                   ar.audioFile.sona.foreach { sona =>
@@ -918,22 +929,21 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
                      val stopC   = pc.screenToVirtualD( x2C )
                      val boost   = ar.gain * visualBoost
                      val ctl     = if( fadeViewMode == FadeViewMode.Sonogram ) {
-                        new SonoFadePaint( boost, ar.span.getLength, ar.fadeIn.orNull, ar.fadeOut.orNull )
+                        new SonoFadePaint( boost, ar.offset, ar.span.getLength, ar.fadeIn.orNull, ar.fadeOut.orNull )
                      } else {
                         new SonoPaint( boost )
                      }
-                     sona.paint( startC + dStart, stopC + dStart, g2, x1C, 15, x2C - x1C, pc.height - 16, ctl )
+                     sona.paint( startC + dStart, stopC + dStart, g2, x1C, hndl, x2C - x1C, innerH, ctl )
                   }
                
                   // --- fades ---
                   if( fadeViewMode == FadeViewMode.Curve ) {
                      ar.fadeIn.foreach( f => {
-                        paintFade( f, pc, f.floor, 1f, x, hndlExtent, pc.height - 1 - hndlExtent, x )
+                        paintFade( f, pc, f.floor, 1f, x, hndl, innerH, x )
                      })
                      ar.fadeOut.foreach( f => {
                         val px = (f.numFrames * pc.p_scale).toFloat
-                        paintFade( f, pc, 1f, f.floor, x + width - 1 - px, hndlExtent,
-                                   pc.height - 1 - hndlExtent, x + width - 1 )
+                        paintFade( f, pc, 1f, f.floor, x + width - 1 - px, hndl, innerH, x + width - 1 )
                      })
                   }
                   g2.setClip( clipOrig )
