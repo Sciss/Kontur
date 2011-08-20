@@ -43,7 +43,7 @@ trait TrackRendererFactory {
 
 trait TrackRenderer {
     def trackHeaderComponent : JComponent
-    def trackComponent : JComponent
+    def trackComponent : JComponent with TrackComponent
 //    def trackGUIEditor: Option[ TrackGUIEditor ]
 }
 /*
@@ -62,15 +62,13 @@ extends TrackRendererFactory {
 class DefaultTrackRenderer( doc: Session, t: Track, trackList: TrackList,
                             timelineView: TimelineView )
 extends TrackRenderer {
-  val trackHeaderComponent = new DefaultTrackHeaderComponent( t, trackList )
-  val trackComponent       = new DefaultTrackComponent( doc, t, trackList,
-                                                        timelineView )
+   val trackHeaderComponent = new DefaultTrackHeaderComponent( t, trackList )
+   val trackComponent       = new DefaultTrackComponent( doc, t, trackList, timelineView )
 }
 
 class AudioTrackRenderer( doc: Session, t: AudioTrack, trackList: TrackList,
                           timelineView: TimelineView )
 extends TrackRenderer {
-  val trackHeaderComponent = new AudioTrackHeaderComponent( t, trackList )
-  val trackComponent       = new AudioTrackComponent( doc, t, trackList,
-                                                      timelineView )
+   val trackHeaderComponent = new AudioTrackHeaderComponent( t, trackList )
+   val trackComponent       = new AudioTrackComponent( doc, t, trackList, timelineView )
 }

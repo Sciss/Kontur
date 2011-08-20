@@ -182,7 +182,7 @@ trait SonagramPaintController {
 }
 
 object SonagramOverview {
-   var verbose = true
+   var verbose = false // true
    private val APPCODE  = "Ttm "
 
    private var constQCache    = Map[ SonagramSpec, ConstQCache ]()
@@ -535,6 +535,8 @@ class SonagramOverview @throws( classOf[ IOException ]) private (
 */
                   x += 1 }
 //                  g2.drawImage( sonaImg.img, xOff, yOff, observer )
+if( verbose ) println( "drawImage( img<" + sonaImg.img.getWidth + "," + sonaImg.img.getHeight + ">, " + xOff +
+   ", " + yOff + ", " + (xOff + chunkLen) + ", " + (yOff + numVFull) + ", 0, 0, " + chunkLen + ", " + numVFull + " ) ; tx = " + (tx + transX) + ", ty = " + ty )
                   g2.drawImage( sonaImg.img, xOff, yOff, xOff + chunkLen, yOff + numVFull,
                                              0, 0, chunkLen, numVFull, ctrl.imageObserver )
                ch += 1; yOff += numVFull }

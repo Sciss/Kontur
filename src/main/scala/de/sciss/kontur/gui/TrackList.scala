@@ -123,7 +123,7 @@ extends TrackList with TrackListEditor {
 
   private var following = false
   private var everAdded = Set[ Track ]()
-  private var mapElem   = Map[ Track, TrackListElement  ]()
+  private var mapElem   = Map[ Track, TrackListElement ]()
   private val elements  = new ArrayBuffer[ TrackListElement ]()
   private val tracks    = timelineView.timeline.tracks
 

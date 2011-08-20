@@ -48,7 +48,7 @@ import de.sciss.kontur.io.{ SonagramPaintController }
 import de.sciss.kontur.session.{ AudioFileElement, AudioRegion, AudioTrack,
                                 BasicTrail, FadeSpec, Region, RegionTrait,
                                 ResizableStake, Session, SlidableStake, Stake,
-                                Track, Trail }
+                                Timeline, Track, Trail }
 import de.sciss.app.{ AbstractApplication, AbstractCompoundEdit,
                       DynamicAncestorAdapter,DynamicListening, GraphicsHandler }
 import de.sciss.dsp.{ MathUtil }
@@ -59,14 +59,13 @@ import de.sciss.synth.io.AudioFile
 //import Track.Tr
 
 object DefaultTrackComponent {
-   protected[gui] case class PaintContext( g2: Graphics2D, p_off: Long,
-                                   p_scale: Double, height: Int,
-                                   viewSpan: Span, clip: Rectangle ) {
+   protected[gui] case class PaintContext( g2: Graphics2D, x: Int, y: Int, p_off: Long, p_scale: Double, height: Int,
+                                           viewSpan: Span, clip: Rectangle ) {
 
-      def virtualToScreen( pos: Long ) = ((pos + p_off) * p_scale + 0.5).toInt
-      def virtualToScreenD( pos: Long )= (pos + p_off) * p_scale
-      def screenToVirtual( loc: Int )  = (loc / p_scale - p_off + 0.5).toLong
-      def screenToVirtualD( loc: Int ) = loc / p_scale - p_off
+      def virtualToScreen( pos: Long ) = ((pos + p_off) * p_scale + 0.5).toInt + x
+      def virtualToScreenD( pos: Long )= (pos + p_off) * p_scale + x
+      def screenToVirtual( loc: Int )  = ((loc - x) / p_scale - p_off + 0.5).toLong
+      def screenToVirtualD( loc: Int ) = (loc - x) / p_scale - p_off
    }
 
    protected[gui] trait Painter {
@@ -79,11 +78,17 @@ object DefaultTrackComponent {
 
    val hndlExtent        = 15
    val hndlBaseline      = 12
+
+   var forceFullPaint   = false
 }
 
-class DefaultTrackComponent( doc: Session, protected val track: Track, trackList: TrackList,
-                             timelineView: TimelineView )
-extends JComponent with TrackToolsListener with DynamicListening {
+trait TrackComponent {
+   def track: Track
+   def paintTrack( g2: Graphics2D, x: Int, y: Int, width: Int, height: Int, span: Span ) : Unit
+}
+
+class DefaultTrackComponent( doc: Session, val track: Track, trackList: TrackList, timelineView: TimelineView )
+extends JComponent with TrackComponent with TrackToolsListener with DynamicListening {
 
    import DefaultTrackComponent._
 
@@ -297,54 +302,60 @@ extends JComponent with TrackToolsListener with DynamicListening {
         repaint( tm, x1 - outcode, 0, x2 - x1 + outcode + outcode, getHeight )
     }
 
-    override def getPreferredSize() : Dimension = {
-       val dim = super.getPreferredSize()
+    override def getPreferredSize : Dimension = {
+       val dim = super.getPreferredSize
        dim.height = 64
        dim
     }
 
-    override def getMinimumSize() : Dimension = {
-       val dim = super.getMinimumSize()
+    override def getMinimumSize : Dimension = {
+       val dim = super.getMinimumSize
        dim.height = 64
        dim
     }
 
-    override def getMaximumSize() : Dimension = {
-       val dim = super.getMaximumSize()
+    override def getMaximumSize : Dimension = {
+       val dim = super.getMaximumSize
        dim.height = 64
        dim
     }
 
-    private val clipRect = new Rectangle // avoid re-allocation
-    override def paintComponent( g: Graphics ) {
-        super.paintComponent( g )
+   private val clipRect = new Rectangle // avoid re-allocation
+   override def paintComponent( g: Graphics ) {
+      super.paintComponent( g )
+      val span = if( forceFullPaint ) {
+         timelineView.timeline.span
+      } else {
+         timelineView.span
+      }
+      paintTrack( g.asInstanceOf[ Graphics2D ], 0, 0, getWidth, getHeight, span )
+   }
 
-        val g2 = g.asInstanceOf[ Graphics2D ]
-        g2.getClipBounds( clipRect )
-        val pc = PaintContext( g2, -timelineView.timeline.span.start,
-                               getWidth.toDouble / timelineView.timeline.span.getLength,
-                               getHeight, timelineView.span, clipRect )
-
-        g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON )
-        painter.paint( pc )
-    }
+   def paintTrack( g2: Graphics2D, x: Int, y: Int, width: Int, height: Int, viewSpan: Span ) {
+      val tlSpan = timelineView.timeline.span
+      g2.getClipBounds( clipRect )
+      val pc = PaintContext( g2, x, y, -tlSpan.start, width.toDouble / tlSpan.getLength, height, viewSpan, clipRect )
+      g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON )
+      painter.paint( pc )
+   }
 
 //   protected class DefaultPainter extends DefaultPainterTrait
 
    protected trait DefaultPainterTrait extends Painter {
       def paintStake( pc: PaintContext, stake: track.T, selected: Boolean ) {
          val x = pc.virtualToScreen( stake.span.start )
+         val y = pc.y
          val width = ((stake.span.stop + pc.p_off) * pc.p_scale + 0.5).toInt - x
          val g2 = pc.g2
          g2.setColor( if( selected ) colrBgSel else colrBg )
          if( stakeBorderViewMode != StakeBorderViewMode.None ) {
-            g2.fillRoundRect( x, 0, width, pc.height, 5, 5 )
+            g2.fillRoundRect( x, y, width, pc.height, 5, 5 )
             if( stakeBorderViewMode == StakeBorderViewMode.TitledBox ) stake match {
                case reg: RegionTrait[ _ ] => {
                   val clipOrig = g2.getClip
-                  g2.clipRect( x + 2, 2, width - 4, pc.height - 4 )
+                  g2.clipRect( x + 2, y + 2, width - 4, pc.height - 4 )
                   g2.setColor( Color.white )
-                  g2.drawString( reg.name, x + 4, hndlBaseline )
+                  g2.drawString( reg.name, x + 4, y + hndlBaseline )
                   g2.setClip( clipOrig )
                }
                case _ =>
@@ -901,6 +912,7 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
          stake match {
             case ar: AudioRegion => { // man, no chance to skip this matching??
                val x = pc.virtualToScreen( ar.span.start )
+               val y = pc.y
 //               val width = ((ar.span.stop + pc.p_off) * pc.p_scale + 0.5).toInt - x
                val width = (ar.span.getLength * pc.p_scale + 0.5).toInt
 //             val x1C = max( x, pc.clip.x - 2 )
@@ -910,7 +922,7 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
                   val g2 = pc.g2
                   if( stakeBorderViewMode != StakeBorderViewMode.None ) {
                      g2.setColor( if( selected ) colrBgSel else colrBg )
-                     g2.fillRoundRect( x, 0, width, pc.height, 5, 5 )
+                     g2.fillRoundRect( x, y, width, pc.height, 5, 5 )
                   }
 
                   val clipOrig = g2.getClip
@@ -920,7 +932,7 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
                      case StakeBorderViewMode.TitledBox  => hndlExtent
                   }
                   val innerH     = pc.height - (hndl + 1)
-                  g2.clipRect( x + 1, hndl, width - 1, innerH )
+                  g2.clipRect( x + 1, y + hndl, width - 1, innerH )
                   
                   // --- sonagram ---
                   ar.audioFile.sona.foreach { sona =>
@@ -933,37 +945,37 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
                      } else {
                         new SonoPaint( boost )
                      }
-                     sona.paint( startC + dStart, stopC + dStart, g2, x1C, hndl, x2C - x1C, innerH, ctl )
+                     sona.paint( startC + dStart, stopC + dStart, g2, x1C, y + hndl, x2C - x1C, innerH, ctl )
                   }
                
                   // --- fades ---
                   if( fadeViewMode == FadeViewMode.Curve ) {
                      ar.fadeIn.foreach( f => {
-                        paintFade( f, pc, f.floor, 1f, x, hndl, innerH, x )
+                        paintFade( f, pc, f.floor, 1f, x, y + hndl, innerH, x )
                      })
                      ar.fadeOut.foreach( f => {
                         val px = (f.numFrames * pc.p_scale).toFloat
-                        paintFade( f, pc, 1f, f.floor, x + width - 1 - px, hndl, innerH, x + width - 1 )
+                        paintFade( f, pc, 1f, f.floor, x + width - 1 - px, y + hndl, innerH, x + width - 1 )
                      })
                   }
                   g2.setClip( clipOrig )
                   
                   // --- label ---
                   if( stakeBorderViewMode == StakeBorderViewMode.TitledBox ) {
-                     g2.clipRect( x + 2, 2, width - 4, pc.height - 4 )
+                     g2.clipRect( x + 2, y + 2, width - 4, pc.height - 4 )
                      g2.setColor( Color.white )
                      // possible unicodes: 2327 23DB 24DC 25C7 2715 29BB
-                     g2.drawString( if( ar.muted ) "\u23DB " + ar.name else ar.name, x + 4, hndlBaseline )
+                     g2.drawString( if( ar.muted ) "\u23DB " + ar.name else ar.name, x + 4, y + hndlBaseline )
                      stakeInfo( ar ).foreach( info => {
                         g2.setColor( Color.yellow )
-                        g2.drawString( info, x + 4, hndlBaseline + hndlExtent )
+                        g2.drawString( info, x + 4, y + hndlBaseline + hndlExtent )
                      })
                      g2.setClip( clipOrig )
                   }
 
                   if( ar.muted ) {
                      g2.setColor( colrBgMuted )
-                     g2.fillRoundRect( x, 0, width, pc.height, 5, 5 )
+                     g2.fillRoundRect( x, y, width, pc.height, 5, 5 )
                   }
                }
             }
