@@ -3,8 +3,8 @@ package de.sciss.kontur.sc
 import scala.math._
 import de.sciss.io.{ Span }
 import de.sciss.kontur.session.{ AudioRegion, AudioTrack }
-import de.sciss.synth.{ EnvSeg => S, _ }
-import de.sciss.synth.ugen._
+import de.sciss.synth.{ osc => scosc, _ }
+import ugen._
 import SynthContext._
 
 class SCAudioTrackPlayer( val scDoc: SCSession, val track: AudioTrack )
@@ -55,6 +55,8 @@ extends SCTrackPlayer {
                      val i_foutFloor   = "i_foutFloor".ir( 0 )
 
                      val frameIndex     = Line.ar( i_frameOff, i_frames, (i_frames - i_frameOff) * smpDur, freeSelf )
+
+                     import Env.{ Seg => S }
 
                      val env = new IEnv( i_finFloor, List(
                         S( i_fadeIn, 1, varShape( i_finShape, i_finCurve )),

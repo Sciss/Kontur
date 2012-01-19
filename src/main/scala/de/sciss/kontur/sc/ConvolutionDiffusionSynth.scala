@@ -75,7 +75,7 @@ extends DiffusionSynth {
 
       d.path.foreach( p => buf.read( p ))
 
-      val syn     = graph( "diff_conv", d.numInputChannels, d.numOutputChannels, d.path ) {
+      val syn = graph( "diff_conv", d.numInputChannels, d.numOutputChannels, d.path ) {
          val in         = "in".ir
          val out        = "out".ir
          val amp        = "amp".kr( 1 )

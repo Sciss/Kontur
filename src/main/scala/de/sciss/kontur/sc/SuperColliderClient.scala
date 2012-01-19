@@ -35,8 +35,8 @@ import de.sciss.util.Param
 import java.awt.EventQueue
 import java.io.IOException
 import java.net.{ DatagramSocket, ServerSocket }
-import de.sciss.osc.{UDP, TCP, OSCChannel}
-import de.sciss.synth.{ServerConnection, ServerOptionsBuilder, Model, Server}
+import de.sciss.osc
+import de.sciss.synth.{ServerConnection, Model, Server}
 
 object SuperColliderClient {
    lazy val instance = new SuperColliderClient
@@ -49,19 +49,19 @@ object SuperColliderClient {
 }
 
 class SuperColliderClient extends Model {
-    import SuperColliderClient._
+   import SuperColliderClient._
 
-    private val app         = AbstractApplication.getApplication
-    private val audioPrefs  = app.getUserPrefs.node( PrefsUtil.NODE_AUDIO )
-    private val so          = new ServerOptionsBuilder
-    private var bootingVar: Option[ ServerConnection ] = None
-	 private var serverVar: Option[ Server ] = None
-    private var serverIsReady = false
-    private var shouldReboot = false
-    private var dumpMode = OSCChannel.DUMP_OFF
+   private val app            = AbstractApplication.getApplication
+   private val audioPrefs     = app.getUserPrefs.node( PrefsUtil.NODE_AUDIO )
+   private val so             = Server.Config()
+   private var bootingVar     = Option.empty[ ServerConnection ]
+	 private var serverVar      = Option.empty[ Server ]
+   private var serverIsReady  = false
+   private var shouldReboot   = false
+   private var dumpMode       = osc.Dump.Off: osc.Dump
 
-    private var players = Map[ Session, SuperColliderPlayer ]()
-    private val forward: Model.Listener = { case msg => defer( dispatch( msg ))}
+   private var players = Map[ Session, SuperColliderPlayer ]()
+   private val forward: Model.Listener = { case msg => defer( dispatch( msg ))}
 
     // ---- constructor ----
     {
@@ -107,7 +107,7 @@ class SuperColliderClient extends Model {
       EventQueue.invokeLater( new Runnable { def run() { thunk }})
    }
 
-   def dumpOSC( mode: Int ) {
+   def dumpOSC( mode: osc.Dump ) {
       if( mode != dumpMode ) {
          dumpMode = mode
          serverVar.foreach( _.dumpOSC( mode ))
@@ -181,70 +181,53 @@ class SuperColliderClient extends Model {
 		serverIsReady = false
 	}
 
-  	private def getResourceString( key: String ) = app.getResourceString( key )
+   private def getResourceString( key: String ) = app.getResourceString( key )
 
-    def boot : Boolean = {
+   def boot() : Boolean = {
+      if( bootingVar.isDefined || serverVar.map( _.isRunning ) == Some( true )) return false
 
-//		if( !EventQueue.isDispatchThread() ) throw new IllegalMonitorStateException();
-       if( bootingVar.isDefined || serverVar.map( _.isRunning ) == Some( true )) return false
+		  dispose()
 
-		dispose()
+		  val pRate = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_AUDIORATE, null )
+		  if( pRate != null ) so.sampleRate = pRate.`val`.toInt
+      so.memorySize = 64 << 10
 
-//		final String			abCfgID		= audioPrefs.get( PrefsUtil.KEY_AUDIOBOX, AudioBoxConfig.ID_DEFAULT );
-//		final AudioBoxConfig	abCfg		= new AudioBoxConfig( audioPrefs.node( PrefsUtil.NODE_AUDIOBOXES ).node( abCfgID ));
+		  val pBlockSize = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCBLOCKSIZE, null )
+		  if( pBlockSize != null ) so.blockSize = pBlockSize.`val`.toInt
+   		so.loadSynthDefs  = false
+	 	  so.zeroConf       = audioPrefs.getBoolean( PrefsUtil.KEY_SCZEROCONF, true )
 
-		val pRate = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_AUDIORATE, null )
-		if( pRate != null ) so.sampleRate = pRate.`val`.toInt
-//		so.setNumInputBusChannels( abCfg.numInputChannels )
-//		so.setNumOutputBusChannels( abCfg.numOutputChannels )
-//		val pBusses = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_AUDIOBUSSES, null )
-//		if( pBusses != null ) so.setNumAudioBusChannels( max( abCfg.numInputChannels + abCfg.numOutputChannels, (int) p.val ));
-
-//		val pMemSize = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCMEMSIZE, null )
-//		if( pMemSize != null ) so.memSize.value = pMemSize.`val`.toInt << 10
-so.memorySize = 64 << 10
-
-		val pBlockSize = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCBLOCKSIZE, null )
-		if( pBlockSize != null ) so.blockSize = pBlockSize.`val`.toInt
-//		if( !abCfg.name.equals( "Default" )) so.setDevice( abCfg.name );
-		so.loadSynthDefs  = false
-		so.zeroConf       = audioPrefs.getBoolean( PrefsUtil.KEY_SCZEROCONF, true )
-
-		val pPort = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCPORT, null )
-		var serverPort = if( pPort == null ) DEFAULT_PORT else pPort.`val`.toInt
-		val proto = audioPrefs.get( PrefsUtil.KEY_SCPROTOCOL, "udp" ) match {
-         case "udp" => UDP
-         case "tcp" => TCP
+		  val pPort = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCPORT, null )
+		  var serverPort = if( pPort == null ) DEFAULT_PORT else pPort.`val`.toInt
+		  val proto = audioPrefs.get( PrefsUtil.KEY_SCPROTOCOL, "udp" ) match {
+         case "udp" => osc.UDP
+         case "tcp" => osc.TCP
       }
-		so.transport = proto
+		  so.transport = proto
 
-//		so.setEnv( "SC_JACK_NAME", "Eisenkraut" )
+		  val appPath = audioPrefs.get( PrefsUtil.KEY_SUPERCOLLIDERAPP, null )
+		  if( appPath == null ) {
+			   println( getResourceString( "errSCSynthAppNotFound" ))
+			   return false
+		  }
+		  so.programPath = appPath
 
-		val appPath = audioPrefs.get( PrefsUtil.KEY_SUPERCOLLIDERAPP, null )
-		if( appPath == null ) {
-			println( getResourceString( "errSCSynthAppNotFound" ))
-			return false
-		}
-		so.programPath = appPath
+		  try {
+			   // check for automatic port assignment
+			   if( serverPort == 0 ) {
+				    if( so.transport == osc.TCP ) {
+					     val ss = new ServerSocket( 0 )
+					     serverPort = ss.getLocalPort
+					     ss.close()
+				    } else if( so.transport == osc.UDP ) {
+					     val ds = new DatagramSocket()
+					     serverPort = ds.getLocalPort
+					     ds.close()
+				    } else {
+					     throw new IllegalArgumentException( "Illegal protocol : " + so.transport )
+				    }
+			   }
 
-		try {
-			// check for automatic port assignment
-			if( serverPort == 0 ) {
-				if( so.transport == TCP ) {
-					val ss = new ServerSocket( 0 )
-					serverPort = ss.getLocalPort
-					ss.close()
-				} else if( so.transport == UDP ) {
-					val ds = new DatagramSocket()
-					serverPort = ds.getLocalPort
-					ds.close()
-				} else {
-					throw new IllegalArgumentException( "Illegal protocol : " + so.transport )
-				}
-			}
-
-			// loopback is sufficient here
-//println( "CALLING BOOT" )
          val b = Server.boot( app.getName, so.build ) {
             case ServerConnection.Aborted =>
 defer {
@@ -264,20 +247,14 @@ defer {
          }
          bootingVar = Some( b )
 
-//			if( dumpMode != kDumpOff ) dumpOSC( dumpMode )
-//			nw	= NodeWatcher.newFrom( server )
-//
-//            serverVar = Some( s )
-//            dispatch( ServerChanged( serverVar ))
-//			s.boot
          dispatch( ServerBooting( b ))
-			true
-		}
-		catch { case e1: IOException => {
-			printError( "boot", e1 )
-            false
-		}}
-    }
+			   true
+		  }
+		  catch { case e1: IOException =>
+			   printError( "boot", e1 )
+         false
+      }
+   }
 
    override protected def dispatch( change: AnyRef ) {
 //println( "DISPATCH >>>>>>> " + change )

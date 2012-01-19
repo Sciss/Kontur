@@ -40,7 +40,7 @@ import de.sciss.gui.{ GUIUtil, TimeFormat }
 import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }
 import de.sciss.kontur.session.{ Timeline, Transport }
 import de.sciss.synth.Model
-import de.sciss.osc.{UDP, OSCMessage, OSCTransmitter}
+import de.sciss.osc
 
 // temporary hack to get osc synced video
 class TransportPanel( tlv: TimelineView )
@@ -55,10 +55,9 @@ extends SegmentedButtonPanel with DynamicListening {
    private var isPlaying= false
 
    // temporary hack to get osc synced video
-   private lazy val osc  = {
-      val t = OSCTransmitter( UDP )
-      t.target = new java.net.InetSocketAddress( "127.0.0.1", 57120 )
-      t.connect
+   private lazy val oscClient = {
+      val t = osc.UDP.Transmitter( new java.net.InetSocketAddress( "127.0.0.1", 57120 ))
+      t.connect()
       t
    }
    private var oscEngaged  = false
@@ -191,14 +190,14 @@ extends SegmentedButtonPanel with DynamicListening {
          playTimer.stop()
       }
 
-      if( oscEngaged ) osc ! OSCMessage( "/kontur", "transport", oscID, if( isPlaying ) "play" else "stop" )
+      if( oscEngaged ) oscClient ! osc.Message( "/kontur", "transport", oscID, if( isPlaying ) "play" else "stop" )
    }
 
    private def updateTimeLabel( sendOSC: Boolean ) {
       val pos  = if( isPlaying ) transport.map( _.currentPos ) getOrElse 0L else tlv.cursor.position
       val secs = pos / tlv.timeline.rate
       lbTime.setSeconds( secs )
-      if( sendOSC && oscEngaged ) osc ! OSCMessage( "/kontur", "transport", oscID, "pos", secs )
+      if( sendOSC && oscEngaged ) oscClient ! osc.Message( "/kontur", "transport", oscID, "pos", secs )
    }
 
   def startListening() {

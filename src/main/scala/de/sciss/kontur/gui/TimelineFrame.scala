@@ -37,7 +37,6 @@ import de.sciss.kontur.session.{ AudioRegion, AudioTrack, Session, SessionUtil, 
                                  ResizableStake, Timeline, Track }
 import de.sciss.kontur.util.{ PrefsUtil }
 import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }
-import de.sciss.synth.{ ServerOptions }
 import java.awt.event.{ ActionEvent, ActionListener, InputEvent, KeyEvent }
 import java.awt.{ BorderLayout, Component, Dimension, Point, Rectangle }
 import java.io.{ File }

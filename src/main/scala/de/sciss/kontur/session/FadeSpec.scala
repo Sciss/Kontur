@@ -54,7 +54,7 @@ object FadeSpec {
    }
 }
 
-case class FadeSpec( numFrames: Long, shape: ConstEnvShape = linShape, floor: Float = 0f ) {
+case class FadeSpec( numFrames: Long, shape: Env.ConstShape = linShape, floor: Float = 0f ) {
   def toXML = <fade>
   <numFrames>{numFrames}</numFrames>
   {if( shape != linShape )

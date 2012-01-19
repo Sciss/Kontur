@@ -5,12 +5,13 @@ import java.io.{ BufferedReader, File, InputStreamReader, IOException, RandomAcc
 import java.nio.ByteBuffer
 import javax.swing.SwingWorker
 import de.sciss.io.IOUtil
-import de.sciss.osc.{ OSCBundle, OSCPacket, OSCPacketCodec }
-import de.sciss.synth._
+import de.sciss.osc
+import de.sciss.synth.{ osc => scosc, _}
+import de.sciss.osc.PacketCodec
 
 object BounceSynthContext {
    @throws( classOf[ IOException ])
-   def apply( so: ServerOptionsBuilder ) : BounceSynthContext = {
+   def apply( so: Server.ConfigBuilder ) : BounceSynthContext = {
 //      val appPath = audioPrefs.get( PrefsUtil.KEY_SUPERCOLLIDERAPP, null )
 //      if( appPath == null ) {
 //         throw new IOException( AbstractApplication.getApplication.getResourceString( "errSCSynthAppNotFound" ))
@@ -36,16 +37,14 @@ extends SynthContext( s, false ) {
    private var timebaseVar = 0.0
    private val bundleQueue = new PriorityQueue[ Bundle ]()( BundleOrdering )
    private var fileOpen    = true
-   private val codec       = new OSCPacketCodec( OSCPacketCodec.MODE_GRACEFUL )
+   private val codec       = osc.PacketCodec().scsynth().build
    private val bb          = ByteBuffer.allocateDirect( 65536 )
-   private val fch         = oscFile.getChannel;
+   private val fch         = oscFile.getChannel
 
    // ---- constructor ----
-   {
-      // XXX initTree missing at the moment
-      perform {
-         add( server.defaultGroup.newMsg( server.rootNode, addToHead ))
-      }
+   // XXX initTree missing at the moment
+   perform {
+      add( server.defaultGroup.newMsg( server.rootNode, addToHead ))
    }
 
    def timebase = timebaseVar
@@ -58,7 +57,7 @@ extends SynthContext( s, false ) {
 
    override def toString = "Offline"
 
-   override val sampleRate : Double = server.options.sampleRate.value
+   override val sampleRate : Double = server.config.sampleRate // .value
 
    private def advanceTo( newTime: Double ) {
       var keepGoing = true
@@ -85,12 +84,12 @@ extends SynthContext( s, false ) {
       close()
 
       val dur = timebaseVar // in seconds
-      val program = server.options.programPath // .value
+      val program = server.config.programPath // .value
 //      println( "Booting '" + program + "'" )
       val appPath = new File( program )
       // -N cmd-filename input-filename output-filename sample-rate header-format sample-format -o numOutChans
 //      server.options.nrtOutputPath.value = descr.file.getCanonicalPath
-      val processArgs = server.options.toNonRealtimeArgs.toArray
+      val processArgs = server.config.toNonRealtimeArgs.toArray
       println( processArgs.mkString( " " ))
       val pb = new ProcessBuilder( processArgs: _* )
         .directory( appPath.getParentFile )
@@ -193,16 +192,16 @@ extends SynthContext( s, false ) {
 
    @throws( classOf[ IOException ])
    private def write( b: Bundle ) {
-      val bndl = OSCBundle.secs( b.time, b.messages: _* )
+      val bndl = osc.Bundle.secs( b.time, b.messages: _* )
       bb.clear
       bndl.encode( codec, bb )
       bb.flip
       oscFile.writeInt( bb.limit() )   // a little bit strange to use both RandomAccessFile...
       fch.write( bb )                  // ...and FileChannel... but neither has both writeInt and write( bb )
       if( verbose ) {
-         OSCPacket.printTextOn( codec, System.out, bndl )
+         osc.Packet.printTextOn( bndl, codec, System.out )
       }
-      if( b.hasAsync ) perform { b.doAsync } // important to check hasAsync, as we create an infinite loop otherwise
+      if( b.hasAsync ) perform { b.doAsync() } // important to check hasAsync, as we create an infinite loop otherwise
    }
 
    @throws( classOf[ IOException ])

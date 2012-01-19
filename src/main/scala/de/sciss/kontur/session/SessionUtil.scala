@@ -35,9 +35,9 @@ import de.sciss.io.Span
 import de.sciss.util.Param
 import de.sciss.kontur.sc.{ BounceSynthContext, SCSession, SCTimeline }
 import de.sciss.kontur.util.PrefsUtil
-import de.sciss.synth.ServerOptionsBuilder
 import de.sciss.synth.io.AudioFileSpec
 import java.io.{File, IOException}
+import de.sciss.synth.Server
 
 object SessionUtil {
    private def getResourceString( key: String ) =
@@ -47,7 +47,7 @@ object SessionUtil {
    def bounce( doc: Session, tl: Timeline, tracks: List[ Track ], span: Span, path: File, spec: AudioFileSpec,
                upd: AnyRef => Unit = _ => () ) : { def cancel(): Unit } = {
       
-      val so                        = new ServerOptionsBuilder
+      val so                        = Server.Config()
       so.nrtOutputPath              = path.getCanonicalPath
       so.outputBusChannels          = spec.numChannels // 2   // XXX
       so.nrtHeaderFormat            = spec.fileType

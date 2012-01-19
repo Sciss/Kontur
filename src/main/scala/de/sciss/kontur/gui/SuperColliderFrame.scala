@@ -31,19 +31,20 @@ package de.sciss.kontur.gui
 import de.sciss.app.AbstractWindow
 import de.sciss.kontur.sc.{ SuperColliderClient }
 import de.sciss.synth.{ Model, Server }
-import de.sciss.synth.swing.{ ServerStatusPanel }
 import java.awt.BorderLayout
 import java.awt.event.{ ActionEvent, InputEvent, KeyEvent }
 import javax.swing.{ AbstractAction, JComponent, KeyStroke }
+import de.sciss.osc
+import de.sciss.synth.swing.j.JServerStatusPanel
 
 // note: should be PALETTE, but then we loose the key actions...
 class SuperColliderFrame extends AppWindow( AbstractWindow.SUPPORT /* PALETTE */ ) {
    private val superCollider = SuperColliderClient.instance
-   private val serverPanel = new ServerStatusPanel(
-     ServerStatusPanel.COUNTS | ServerStatusPanel.BOOT_BUTTON ) {
+   private val serverPanel = new JServerStatusPanel(
+      JServerStatusPanel.COUNTS | JServerStatusPanel.BOOT_BUTTON ) {
 
-     override protected def bootServer { superCollider.boot }
-     override protected def stopServer { superCollider.stop }
+     override protected def bootServer { superCollider.boot() }
+     override protected def stopServer { superCollider.stop() }
      override protected def couldBoot: Boolean = true
    }
 
@@ -94,7 +95,7 @@ class SuperColliderFrame extends AppWindow( AbstractWindow.SUPPORT /* PALETTE */
       def actionPerformed( e: ActionEvent ) {
          dumping = !dumping
          println( "Dumping is " + (if( dumping ) "on" else "off") ) // XXX resource
-         superCollider.dumpOSC( if( dumping ) 1 else 0 )
+         superCollider.dumpOSC( if( dumping ) osc.Dump.Text else osc.Dump.Off )
       }
    }
 }

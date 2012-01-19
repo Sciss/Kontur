@@ -30,14 +30,11 @@ package de.sciss.kontur.sc
 
 import scala.collection.immutable.Queue
 import java.io.{ File, IOException }
-import de.sciss.synth._
-import osc._
-import de.sciss.osc.{ OSCBundle, OSCMessage }
+import de.sciss.synth.{ osc => scosc, _}
+import de.sciss.osc
 import de.sciss.util.Disposable
+import collection.immutable.{IndexedSeq => IIdxSeq}
 
-/**
- *    @version 0.11, 21-May-10
- */
 trait AsyncAction {
    def asyncDone() : Unit
 }
@@ -236,7 +233,7 @@ object SynthContext {
       current.inGroup( g )( thunk )
    }
 
-   def graph( definingParams: Any* )( ugenThunk: => GE ) : RichSynthDef =
+   def graph( definingParams: Any* )( ugenThunk: => Unit ) : RichSynthDef =
       current.graph( definingParams :_* )( ugenThunk )
 
    def audioBus( numChannels: Int ) : RichBus =
@@ -381,7 +378,7 @@ extends Model with Disposable {
       }
    }
 
-   def graph( definingParams: Any* )( ugenThunk: => GE ) : RichSynthDef = {
+   def graph( definingParams: Any* )( ugenThunk: => Unit ) : RichSynthDef = {
       val defList = definingParams.toList
       defMap.get( defList ) getOrElse {
          val name = (if( definingParams.nonEmpty ) definingParams else List[ Any ]( new AnyRef )).foldLeft( "" )(
@@ -419,38 +416,40 @@ extends Model with Disposable {
       bundleVar.addAsync( async )
    }
 
-   def addAsync( msg: OSCMessage ) {
+   def addAsync( msg: osc.Message ) {
       bundleVar.addAsync( msg )
    }
 
-   def addAsync( msg: OSCMessage, async: AsyncAction ) {
+   def addAsync( msg: osc.Message, async: AsyncAction ) {
       bundleVar.addAsync( msg, async )
    }
 
-   def add( msg: OSCMessage ) {
+   def add( msg: osc.Message ) {
       bundleVar.add( msg )
    }
 
    def endsAfter( rn: RichNode, dur: Double ) {}
 
    trait AbstractBundle {
-      protected var msgs     = Queue[ OSCMessage ]()
-      protected var asyncs   = Queue[ AsyncAction ]()
+//      protected var msgs     = Queue[ osc.Message ]()
+      protected var msgs      = IIdxSeq.empty[ osc.Message ]
+      protected var asyncs    = Queue[ AsyncAction ]()
       private var hasAsyncVar = false
 
       @throws( classOf[ IOException ])
       def send(): Unit
 
-      def add( msg: OSCMessage ) {
-         msgs = msgs.enqueue( msg )
+      def add( msg: osc.Message ) {
+//         msgs = msgs.enqueue( msg )
+         msgs :+= msg
       }
 
-      def addAsync( msg: OSCMessage ) {
+      def addAsync( msg: osc.Message ) {
          hasAsyncVar = true
          add( msg )
       }
 
-      def addAsync( msg: OSCMessage, async: AsyncAction ) {
+      def addAsync( msg: osc.Message, async: AsyncAction ) {
          addAsync( async )
          add( msg )
       }
@@ -462,7 +461,7 @@ extends Model with Disposable {
 
       def hasAsync = hasAsyncVar
 
-      def messages: Seq[ OSCMessage ] = msgs
+      def messages: Seq[ osc.Message ] = msgs
 
       def doAsync() {
          asyncs.foreach( _.asyncDone() )
@@ -472,8 +471,8 @@ extends Model with Disposable {
 
 class RealtimeSynthContext( s: Server )
 extends SynthContext( s, true ) {
-   private val resp = OSCResponder({
-      case OSCSyncedMessage( id ) => syncWait.get( id ).foreach( bundle => {
+   private val resp = scosc.Responder({
+      case scosc.SyncedMessage( id ) => syncWait.get( id ).foreach( bundle => {
          syncWait -= id
          perform { bundle.doAsync() } // we could use 'delayed', but we might want bundle 'immediate' times
       })
@@ -513,12 +512,13 @@ extends SynthContext( s, true ) {
       def send() {
          val cpy = if( hasAsync ) {
             syncWait += count -> this
-            msgs.enqueue( new OSCSyncMessage( count ))
+//            msgs.enqueue( new scosc.SyncedMessage( count ))
+            msgs :+ new scosc.SyncMessage( count )
          } else {
             msgs
          }
          if( cpy.nonEmpty ) {
-            val bndl = if( ref == 0L ) OSCBundle( cpy: _* ) else OSCBundle.millis( ref, cpy: _* )
+            val bndl = if( ref == 0L ) osc.Bundle.now( cpy: _* ) else osc.Bundle.millis( ref, cpy: _* )
             server ! bndl
          }
       }

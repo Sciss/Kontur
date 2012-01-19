@@ -35,7 +35,7 @@ import de.sciss.io.Span
 import de.sciss.app.AbstractApplication
 import de.sciss.kontur.util.PrefsUtil
 import scala.actors.{ Actor, TIMEOUT }
-import de.sciss.osc.{UDP, TCP, OSCClient, OSCMessage}
+import de.sciss.osc
 
 object EisenkrautClient {
    val verbose = true
@@ -45,7 +45,7 @@ object EisenkrautClient {
 class EisenkrautClient {
    import EisenkrautClient._ 
 
-   private var oscVar: Option[ OSCClient ]   = None
+   private var oscVar: Option[ osc.Client ]  = None
    private var actorVar: Option[ OSCActor ]  = None
    private val prefs                         = AbstractApplication.getApplication.getUserPrefs.node( PrefsUtil.NODE_IO )
    private var queryIDCount                  = 0
@@ -58,8 +58,9 @@ class EisenkrautClient {
       }}
    }
 
-   private val receiveAction = (msg: OSCMessage, addr: SocketAddress, when: Long ) => {
-      actorVar.foreach( _ ! msg )
+   private val receiveAction = (p: osc.Packet) => p match {
+      case m: osc.Message => actorVar.foreach( _ ! m )
+      case b: osc.Bundle  => actorVar.foreach { a => b.foreach( a ! _ )}
    }
 
    // ---- constructor ----
@@ -107,7 +108,7 @@ class EisenkrautClient {
 //      println( "AQUI 5" )
       val a = Actor.self.asInstanceOf[ OSCActor ]
 //      println( "AQUI 6 " + a.c )
-      val msg = OSCMessage( path, args: _* )
+      val msg = osc.Message( path, args: _* )
 //      println( "AQUI 7 " + msg )
       a.c ! msg // .send( msg )
 //      println( "AQUI 8" )
@@ -139,7 +140,7 @@ class EisenkrautClient {
        while( keepGoing ) {
           val t2 = System.currentTimeMillis
           result = Actor.receiveWithin[ Option[ Seq[ Any ]]]( math.max( 0L, timeOut - (t2 - t1) )) {
-             case OSCMessage( "/query.reply", `queryID`, objects @ _* ) => {
+             case osc.Message( "/query.reply", `queryID`, objects @ _* ) => {
                 keepGoing = false; Some( objects )
              }
              case TIMEOUT => { println( "TIMEOUT" ); keepGoing = false; None }
@@ -154,7 +155,7 @@ class EisenkrautClient {
          println( "ACTOR BUSY!" )
          return
       }
-      osc.foreach( c => {
+      oscClient.foreach( c => {
          val a = new OSCActor( c, body )
          actorVar = Some( a )
          a.start()
@@ -163,38 +164,46 @@ class EisenkrautClient {
 
    private def shutDown() {
       oscVar.foreach( c => {
-         c.dispose
+         c.close()
          oscVar = None
          actorVar = None // XXX ?
       })
    }
 
-   private def osc: Option[ OSCClient ] = {
+   private def oscClient: Option[ osc.Client ] = {
       if( oscVar.isEmpty ) {
          // tcp is actual default, but scalaosc does not support it yet
          val proto = prefs.get( PrefsUtil.KEY_EISKOSCPROTOCOL, "udp" ) match {
-            case "udp" => UDP
-            case "tcp" => TCP
+            case "udp" => osc.UDP
+            case "tcp" => osc.TCP
          }
          val port  = prefs.getInt( PrefsUtil.KEY_EISKOSCPORT, 0x4549 )
          try {
-            val c = OSCClient( proto )
+            val target = new InetSocketAddress( "127.0.0.1", port )
+            val c = proto match {
+               case osc.UDP => osc.UDP.Client( target )
+               case osc.TCP => osc.TCP.Client( target )
+            }
+            var success = false
             try {
-               if( verbose ) c.dumpOSC()
-               val target = new InetSocketAddress( "127.0.0.1", port )
-               c.target = target
+               if( verbose ) c.dump()
                println( "OSC Client talking " + proto.name + " to " + target.getHostName + ":" + target.getPort )
-               c.start
+               c.connect()
                c.action = receiveAction
-            } catch { case e: IOException => { c.dispose; throw e }}
-            oscVar = Some( c )
+               oscVar = Some( c )
+               success = true
+            } finally {
+               if( !success ) c.close()
+            }
          }
-         catch { case e: IOException => e.printStackTrace() }
+         catch {
+            case e: IOException => e.printStackTrace()
+         }
       }
       oscVar
    }
 
-   private class OSCActor( val c: OSCClient, body: => Unit ) extends Actor {
+   private class OSCActor( val c: osc.Client, body: => Unit ) extends Actor {
       def act() {
          body
          if( actorVar == Some( Actor.self )) actorVar = None
