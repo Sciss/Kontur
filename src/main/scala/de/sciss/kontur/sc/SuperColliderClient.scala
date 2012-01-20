@@ -186,72 +186,68 @@ class SuperColliderClient extends Model {
    def boot() : Boolean = {
       if( bootingVar.isDefined || serverVar.map( _.isRunning ) == Some( true )) return false
 
-		  dispose()
+		dispose()
 
-		  val pRate = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_AUDIORATE, null )
-		  if( pRate != null ) so.sampleRate = pRate.`val`.toInt
+		val pRate = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_AUDIORATE, null )
+		if( pRate != null ) so.sampleRate = pRate.`val`.toInt
       so.memorySize = 64 << 10
 
-		  val pBlockSize = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCBLOCKSIZE, null )
-		  if( pBlockSize != null ) so.blockSize = pBlockSize.`val`.toInt
-   		so.loadSynthDefs  = false
-	 	  so.zeroConf       = audioPrefs.getBoolean( PrefsUtil.KEY_SCZEROCONF, true )
+		val pBlockSize = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCBLOCKSIZE, null )
+		if( pBlockSize != null ) so.blockSize = pBlockSize.`val`.toInt
+   	so.loadSynthDefs  = false
+	 	so.zeroConf       = audioPrefs.getBoolean( PrefsUtil.KEY_SCZEROCONF, true )
 
-		  val pPort = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCPORT, null )
-		  var serverPort = if( pPort == null ) DEFAULT_PORT else pPort.`val`.toInt
-		  val proto = audioPrefs.get( PrefsUtil.KEY_SCPROTOCOL, "udp" ) match {
+		val pPort = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCPORT, null )
+		var serverPort = if( pPort == null ) DEFAULT_PORT else pPort.`val`.toInt
+		val proto = audioPrefs.get( PrefsUtil.KEY_SCPROTOCOL, "udp" ) match {
          case "udp" => osc.UDP
          case "tcp" => osc.TCP
       }
-		  so.transport = proto
+		so.transport = proto
 
-		  val appPath = audioPrefs.get( PrefsUtil.KEY_SUPERCOLLIDERAPP, null )
-		  if( appPath == null ) {
-			   println( getResourceString( "errSCSynthAppNotFound" ))
-			   return false
-		  }
-		  so.programPath = appPath
+		val appPath = audioPrefs.get( PrefsUtil.KEY_SUPERCOLLIDERAPP, null )
+		if( appPath == null ) {
+		   println( getResourceString( "errSCSynthAppNotFound" ))
+			return false
+		}
+		so.programPath = appPath
 
-		  try {
-			   // check for automatic port assignment
-			   if( serverPort == 0 ) {
-				    if( so.transport == osc.TCP ) {
-					     val ss = new ServerSocket( 0 )
-					     serverPort = ss.getLocalPort
-					     ss.close()
-				    } else if( so.transport == osc.UDP ) {
-					     val ds = new DatagramSocket()
-					     serverPort = ds.getLocalPort
-					     ds.close()
-				    } else {
-					     throw new IllegalArgumentException( "Illegal protocol : " + so.transport )
-				    }
-			   }
-
-         val b = Server.boot( app.getName, so.build ) {
+		try {
+//		   // check for automatic port assignment
+//			if( serverPort == 0 ) {
+//			   if( so.transport == osc.TCP ) {
+//				   val ss = new ServerSocket( 0 )
+//					serverPort = ss.getLocalPort
+//					ss.close()
+//            } else if( so.transport == osc.UDP ) {
+//				   val ds = new DatagramSocket()
+//					serverPort = ds.getLocalPort
+//					ds.close()
+//		      } else {
+//               throw new IllegalArgumentException( "Illegal protocol : " + so.transport )
+//            }
+//         }
+//
+         val b = Server.boot( app.getName, so ) {
             case ServerConnection.Aborted =>
-defer {
-//println( "---ABORTED" )
-               bootingVar = None
-}
+               defer {
+                  bootingVar = None
+               }
             case ServerConnection.Running( s ) =>
-defer {
-//println( "---RUNNING" )
-               bootingVar = None
-               serverVar = Some( s )
-               s.addListener( forward )
-               s.dumpOSC( dumpMode )
-//               dispatch( ServerChanged( serverVar ))
-               dispatch( ServerRunning( s ))
-}
+               defer {
+                  bootingVar = None
+                  serverVar = Some( s )
+                  s.addListener( forward )
+                  s.dumpOSC( dumpMode )
+                  dispatch( ServerRunning( s ))
+               }
          }
          bootingVar = Some( b )
-
          dispatch( ServerBooting( b ))
-			   true
-		  }
-		  catch { case e1: IOException =>
-			   printError( "boot", e1 )
+			true
+	   }
+		catch { case e1: IOException =>
+		   printError( "boot", e1 )
          false
       }
    }

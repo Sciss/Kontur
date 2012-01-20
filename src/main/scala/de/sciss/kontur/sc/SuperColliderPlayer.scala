@@ -79,7 +79,7 @@ extends Disposable {
 
     private def serverOffline() {
        online.foreach( ol => {
-          ol.context.perform {
+          ol.context.consume {
              ol.dispose()
           }
           online = None

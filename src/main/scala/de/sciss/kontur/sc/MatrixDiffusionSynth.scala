@@ -31,6 +31,8 @@ package de.sciss.kontur.sc
 import de.sciss.synth._
 import de.sciss.synth.ugen._
 import de.sciss.kontur.session.{ Diffusion, MatrixDiffusion }
+import de.sciss.kontur.util.Matrix2D
+import ugens.MatrixOut
 
 class MatrixDiffusionSynthFactory( diff: MatrixDiffusion )
 extends DiffusionSynthFactory {
@@ -42,7 +44,7 @@ extends DiffusionSynth {
    diffSynth =>
 
    import SynthContext._
-   
+
    val inBus   = audioBus( diffusion.numInputChannels )
    val outBus  = audioBus( diffusion.numOutputChannels )
 
@@ -61,32 +63,38 @@ extends DiffusionSynth {
 
    def play() {
       val d    = diffusion
-      val syn  = graph( "diff_matrix", d.numInputChannels, d.numOutputChannels, d.matrix ) {
+      val df   = graph( "diff_matrix", d.numInputChannels, d.numOutputChannels, d.matrix ) {
          val in      = "in".ir
          val out     = "out".ir
          val inSig   = In.ar( in, d.numInputChannels )
-         val outSig  = Array.fill[ GE ]( d.numOutputChannels )( 0: GE )
-         for( inCh <- (0 until d.numInputChannels) ) {
-            for( outCh <- (0 until d.numOutputChannels) ) {
-               val w = d.matrix( inCh, outCh )
-               outSig( outCh ) += inSig \ inCh * w
-            }
-         }
-         Out.ar( out, outSig.toList )
-      } play( "in" -> inBus.index ) // XXX out bus
+         Out.ar( out, MatrixOut( inSig, d.matrix ))
+
+//         val outSig  = Array.fill[ GE ]( d.numOutputChannels )( 0: GE )
+//         for( inCh <- (0 until d.numInputChannels) ) {
+//            for( outCh <- (0 until d.numOutputChannels) ) {
+//               val w = d.matrix( inCh, outCh )
+//               outSig( outCh ) += inSig \ inCh * w
+//            }
+//         }
+//         Out.ar( out, outSig.toList )
+      }
+
+//df.synthDef.write( "/Users/hhrutz/Desktop/gaga/" )
+
+      val syn = df.play( "in" -> inBus.index ) // XXX out bus
 
       synth = Some( syn )
    }
 
    def stop() {
-      synth.foreach( _.free )
+      synth.foreach( _.free() )
       synth = None
    }
 
    def dispose() {
       diffusion.removeListener( diffusionListener )
       stop()
-      inBus.free
-      outBus.free
+      inBus.free()
+      outBus.free()
    }
 }

@@ -98,13 +98,13 @@ extends DiffusionSynth {
          Out.ar( out, outSig.toList )
       } play( "in" -> inBus.index, "amp" -> d.gain, "dly" -> d.delay, "buf" -> buf.id ) // XXX out bus
 
-      syn.whenOffline { buf.free }
+      syn.whenOffline { buf.free() }
 
       synth = Some( syn )
    }
 
    def stop {
-      synth.foreach( _.free )
+      synth.foreach( _.free() )
       synth = None
    }
 

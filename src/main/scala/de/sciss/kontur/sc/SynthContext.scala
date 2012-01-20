@@ -286,14 +286,21 @@ extends Model with Disposable {
    protected def initBundle( delta: Double ) : AbstractBundle
 
    def perform( thunk: => Unit ) {
-      perform( thunk, -1 )
+      perform( thunk, -1, true )
+   }
+
+   /**
+    * Like perform but ignores the messages silently. Use this to clean up after the server shut down.
+    */
+   def consume( thunk: => Unit ) {
+      perform( thunk, -1, false )
    }
 
    def delayed( tb: Double, delay: Double )( thunk: => Unit ) {
-      perform( thunk, (tb - timebase) + delay )
+      perform( thunk, (tb - timebase) + delay, true )
    }
    
-   private def perform( thunk: => Unit, time: Double ) {
+   private def perform( thunk: => Unit, time: Double, send: Boolean ) {
       val savedContext  = SynthContext.current
       val savedBundle   = bundleVar
 //println( " context perform >>>>> " + hashCode() )
@@ -301,7 +308,7 @@ extends Model with Disposable {
          bundleVar = initBundle( time )
          SynthContext.currentVar = this
          thunk
-         bundleVar.send()
+         if( send ) bundleVar.send()
       }
       catch { case e: IOException => e.printStackTrace() }
       finally {
