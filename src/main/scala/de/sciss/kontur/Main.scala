@@ -2,7 +2,7 @@
  *  Main.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2011 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -21,9 +21,6 @@
  *
  *	For further information, please contact Hanns Holger Rutz at
  *	contact@sciss.de
- *
- *
- *  Changelog:
  */
 
 package de.sciss.kontur
@@ -53,9 +50,6 @@ import sc.SuperColliderClient
  *  The <code>Main</code> class extends the <code>Application</code>
  *  class from the <code>de.sciss.app</code> package.
  *
- *  @author		Hanns Holger Rutz
- *  @version	0.12, 11-Oct-10
- *
  *	@todo		OSC /main/quit doesn't work repeatedly
  *				; seems to be a problem of menuFactory.closeAll!
  */
@@ -69,7 +63,7 @@ object Main {
 	 *
 	 *  @todo   should be saved in the session file as well
 	 */
-	private val APP_VERSION		= 0.16
+	private val APP_VERSION		= 0.17
 
 	/**
 	 *  Enables / disables event dispatching debugging

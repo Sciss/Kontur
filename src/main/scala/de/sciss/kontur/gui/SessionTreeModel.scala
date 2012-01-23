@@ -2,7 +2,7 @@
  *  SessionTreeModel.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2011 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -21,9 +21,6 @@
  *
  *	For further information, please contact Hanns Holger Rutz at
  *	contact@sciss.de
- *
- *
- *  Changelog:
  */
 
 package de.sciss.kontur.gui
@@ -40,7 +37,7 @@ import java.io.{File, FilenameFilter, IOException}
 import javax.swing.{AbstractAction, Action, JOptionPane}
 import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel}
 import de.sciss.synth.io.AudioFile
-import de.sciss.kontur.session.{Diffusions, AudioFileElement, AudioFileSeq, AudioTrack, BasicTimeline, Diffusion, Renamable, Session, SessionElement, SessionElementSeq, Timeline, Track}
+import de.sciss.kontur.session.{MatrixDiffusion, Diffusions, AudioFileElement, AudioFileSeq, AudioTrack, BasicTimeline, Diffusion, Renamable, Session, SessionElement, SessionElementSeq, Timeline, Track}
 
 abstract class DynamicTreeNode( model: SessionTreeModel, obj: AnyRef, canExpand: Boolean )
 extends DefaultMutableTreeNode( obj, canExpand )
@@ -485,7 +482,7 @@ class AudioFileTreeLeaf( model: SessionTreeModel, coll: SessionElementSeq[ Audio
 extends SessionElementTreeNode( model, afe, false )
 with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
     def doubleClickAction() {
-      println( "DANG" )
+//      println( "DANG" )
    }
 
    def createContextMenu() : Option[ PopupRoot ] = {
@@ -565,13 +562,7 @@ class DiffusionTreeLeaf( model: SessionTreeModel, diff: Diffusion )
 extends SessionElementTreeNode( model, diff, false )
 with HasContextMenu with HasDoubleClickAction with CanBeDragSource {
     def doubleClickAction() {
-/*
-        val page      = DiffusionObserverPage.instance
-        val observer  = AbstractApplication.getApplication()
-          .getComponent( Main.COMP_OBSERVER ).asInstanceOf[ ObserverFrame ]
-        page.setObjects( diff )
-        observer.selectPage( page.id )
-*/
+
    }
 
    def createContextMenu() : Option[ PopupRoot ] = {
@@ -579,6 +570,22 @@ with HasContextMenu with HasDoubleClickAction with CanBeDragSource {
       diff.editor.foreach { ed =>
          diff match {
             case r: Renamable => items :+= new MenuItem( "rename", new EditRenameAction( r, ed ))
+            case _ =>
+         }
+
+         diff match {
+            case md: MatrixDiffusion =>
+               val strEdit    = "Edit"
+               val fullName   = strEdit + " " + MatrixDiffusion.humanReadableName + " " + diff.name
+               val miEdit     = new MenuItem( "edit", new AbstractAction( strEdit + "..." ) {
+                  def actionPerformed( a: ActionEvent ) {
+                     val panel   = new MatrixDiffusionGUI()
+                     panel.setObjects( diff )
+                     val op      = new JOptionPane( panel, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION )
+                     /* val result = */ BasicWindowHandler.showDialog( op, null, fullName )
+                  }
+               })
+               items :+= miEdit
             case _ =>
          }
       }

@@ -2,7 +2,7 @@
  *  PrefCacheManager.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2011 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -21,9 +21,6 @@
  *
  *	For further information, please contact Hanns Holger Rutz at
  *	contact@sciss.de
- *
- *
- *  Changelog:
  *		16-Jul-05	created
  *		23-Sep-05	fixes a problem of cache folder not automatically been generated
  *		28-Jul-07	refactored from de.sciss.eisenkraut.io.CacheManager
