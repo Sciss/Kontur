@@ -171,7 +171,7 @@ trait SonagramPaintController {
     * Return the gain factor for a given frame position
     * in the painted stake
     *
-    * @pos  the (possibly fractional) frame position currently painted,
+    * @param   pos  the (possibly fractional) frame position currently painted,
     *       i.e. a value between `spanStart` and `spanStop` in the
     *       `paint` method
     */

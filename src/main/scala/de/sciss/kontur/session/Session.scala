@@ -105,7 +105,7 @@ extends BasicDocument with Model {
 	 * 	can exist at a time. To ensure that no other thread is running,
 	 * 	call <code>checkProcess()</code>.
 	 *
-	 * 	@param	pt	the thread to launch
+	 * 	@param	process	the thread to launch
 	 * 	@throws	IllegalMonitorStateException	if called from outside the event thread
 	 * 	@throws	IllegalStateException			if another process is still running
 	 * 	@see	#checkProcess()

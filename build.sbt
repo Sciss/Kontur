@@ -1,8 +1,6 @@
 import AssemblyKeys._
 
-name           := "kontur"
-
-appbundleName  := "Kontur"
+name           := "Kontur"
 
 version        := "0.17-SNAPSHOT"
 
@@ -45,4 +43,8 @@ seq( assemblySettings: _* )
 
 test in assembly := {}
 
-seq( appbundleSettings: _* )
+seq( appbundle.settings: _* )
+
+appbundle.icon := Some( file( "application.icns" ))
+
+appbundle.javaOptions += "-ea"

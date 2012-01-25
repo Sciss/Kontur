@@ -298,9 +298,9 @@ extends BasicMenuFactory( app ) {
 		 *  a <code>ProcessingThread</code>
 		 *  started which loads the new session.
 		 *
+       *  synchronization: this method must be called in event thread
+       *
 		 *  @param  path	the file of the document to be loaded
-		 *
-		 *  @synchronization	this method must be called in event thread
 		 */
 		def perform( path: File ) {
 //			Session	doc;
