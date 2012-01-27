@@ -2,14 +2,22 @@ import AssemblyKeys._
 
 name           := "Kontur"
 
-version        := "0.17-SNAPSHOT"
+version        := "0.17"
 
 organization   := "de.sciss"
 
 scalaVersion   := "2.9.1"
 
+description := "An extensible multitrack audio editor based on ScalaCollider"
+
+homepage := Some( url( "https://github.com/Sciss/ScalaColliderSwing" ))
+
+licenses := Seq( "GPL v2+" -> url( "http://www.gnu.org/licenses/gpl-2.0.txt" ))
+
+resolvers += "Clojars Repository" at "http://clojars.org/repo"  // for jsyntaxpane
+
 libraryDependencies ++= Seq(
-   "de.sciss" %% "scalacolliderswing" % "0.32-SNAPSHOT"
+   "de.sciss" %% "scalacolliderswing" % "0.32"
 // crappy sbt kriegt es nicht gebacken
 //   "de.sciss" % "scissdsp" % "0.11" from "https://github.com/downloads/Sciss/ScissDSP/scissdsp-0.11.jar"
 )
@@ -48,3 +56,16 @@ seq( appbundle.settings: _* )
 appbundle.icon := Some( file( "application.icns" ))
 
 appbundle.javaOptions += "-ea"
+
+// ---- ls.implicit.ly ----
+
+seq( lsSettings :_* )
+
+(LsKeys.tags in LsKeys.lsync) := Seq( "audio", "multitrack", "music", "daw" )
+
+(LsKeys.ghUser in LsKeys.lsync) := Some( "Sciss" )
+
+(LsKeys.ghRepo in LsKeys.lsync) := Some( "Kontur" )
+
+// bug in ls -- doesn't find the licenses from global scope
+(licenses in LsKeys.lsync) := Seq( "GPL v2+" -> url( "http://www.gnu.org/licenses/gpl-2.0.txt" ))

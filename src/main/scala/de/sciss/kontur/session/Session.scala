@@ -104,12 +104,13 @@ extends BasicDocument with Model {
 	 * 	Starts a <code>ProcessingThread</code>. Only one thread
 	 * 	can exist at a time. To ensure that no other thread is running,
 	 * 	call <code>checkProcess()</code>.
+    *
+    * 	__synchronization__: must be called in the event thread
 	 *
 	 * 	@param	process	the thread to launch
 	 * 	@throws	IllegalMonitorStateException	if called from outside the event thread
 	 * 	@throws	IllegalStateException			if another process is still running
 	 * 	@see	#checkProcess()
-	 * 	@synchronization	must be called in the event thread
 	 */
 	def start( process: ProcessingThread ) {
 		if( !EventQueue.isDispatchThread ) throw new IllegalMonitorStateException()
