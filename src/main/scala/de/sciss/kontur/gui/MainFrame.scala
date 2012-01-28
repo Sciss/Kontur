@@ -27,7 +27,7 @@ package de.sciss.kontur.gui
 
 import de.sciss.app.AbstractWindow
 import de.sciss.gui.LogTextArea
-import de.sciss.kontur.Main
+import de.sciss.kontur.Kontur
 import java.awt.{ BorderLayout, Color, Font }
 import java.awt.geom.Point2D
 import javax.swing.{ BorderFactory, JInternalFrame, WindowConstants }
@@ -91,7 +91,7 @@ class MainFrame extends AppWindow( AbstractWindow.REGULAR ) {
       setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE )
 
       init()
-  	  app.addComponent( Main.COMP_MAIN, this )
+  	  app.addComponent( Kontur.COMP_MAIN, this )
 	  setVisible( true )
 
 //      println( "Testin one two")
@@ -100,7 +100,7 @@ class MainFrame extends AppWindow( AbstractWindow.REGULAR ) {
    override protected def getPreferredLocation: Point2D = new Point2D.Float( 0f, 0f )
 
    override def dispose() {
-		app.removeComponent( Main.COMP_MAIN )
+		app.removeComponent( Kontur.COMP_MAIN )
 		super.dispose()
 	}
 }

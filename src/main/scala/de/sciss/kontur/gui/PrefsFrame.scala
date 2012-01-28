@@ -31,7 +31,7 @@ import de.sciss.gui.{ ComboBoxEditorBorder, CoverGrowBox, PathField => PathF,
                      StringItem, TreeExpanderButton }
 import de.sciss.common.{ BasicWindowHandler, BasicPathField }
 import de.sciss.util.{ Param, ParamSpace }
-import de.sciss.kontur.Main
+import de.sciss.kontur.Kontur
 import de.sciss.kontur.util.PrefsUtil
 import de.sciss.kontur.io.PrefCacheManager
 import PrefsUtil._
@@ -101,7 +101,7 @@ class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
 
 	   setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE )
 	   init()
-	   app.addComponent( Main.COMP_PREFS, this )
+	   app.addComponent( Kontur.COMP_PREFS, this )
     }
 
     private def createAudioBoxGUI( prefs: Preferences ) : JComponent = {
@@ -122,7 +122,7 @@ class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
     }
 
     override def dispose() {
-        app.removeComponent( Main.COMP_PREFS )
+        app.removeComponent( Kontur.COMP_PREFS )
         super.dispose()
     }
     

@@ -26,9 +26,9 @@
 package de.sciss.kontur.session
 
 import de.sciss.app.AbstractDocumentHandler
-import de.sciss.kontur.Main
+import de.sciss.kontur.Kontur
                         
-class DocumentHandler( root: Main )
+class DocumentHandler( root: Kontur )
 extends AbstractDocumentHandler( true ) {
 //  	private val mapIDs = Map
 /*

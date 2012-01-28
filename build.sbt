@@ -2,7 +2,7 @@ import AssemblyKeys._
 
 name           := "Kontur"
 
-version        := "0.17"
+version        := "0.18-SNAPSHOT"
 
 organization   := "de.sciss"
 

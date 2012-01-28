@@ -31,7 +31,6 @@ import de.sciss.kontur.util.PrefsUtil
 import de.sciss.util.Param
 import java.awt.EventQueue
 import java.io.IOException
-import java.net.{ DatagramSocket, ServerSocket }
 import de.sciss.osc
 import de.sciss.synth.{ServerConnection, Model, Server}
 
@@ -52,7 +51,7 @@ class SuperColliderClient extends Model {
    private val audioPrefs     = app.getUserPrefs.node( PrefsUtil.NODE_AUDIO )
    private val so             = Server.Config()
    private var bootingVar     = Option.empty[ ServerConnection ]
-	 private var serverVar      = Option.empty[ Server ]
+   private var serverVar      = Option.empty[ Server ]
    private var serverIsReady  = false
    private var shouldReboot   = false
    private var dumpMode       = osc.Dump.Off: osc.Dump
@@ -86,7 +85,7 @@ class SuperColliderClient extends Model {
                   case doc: Session => {
                      val player = players( doc )
                      players -= doc
-                     player.dispose
+                     player.dispose()
                   }
                   case _ =>
                }
@@ -195,7 +194,8 @@ class SuperColliderClient extends Model {
 	 	so.zeroConf       = audioPrefs.getBoolean( PrefsUtil.KEY_SCZEROCONF, true )
 
 		val pPort = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCPORT, null )
-		var serverPort = if( pPort == null ) DEFAULT_PORT else pPort.`val`.toInt
+		val serverPort = if( pPort == null ) DEFAULT_PORT else pPort.`val`.toInt
+      so.port = serverPort
 		val proto = audioPrefs.get( PrefsUtil.KEY_SCPROTOCOL, "udp" ) match {
          case "udp" => osc.UDP
          case "tcp" => osc.TCP

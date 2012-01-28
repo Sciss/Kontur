@@ -54,16 +54,26 @@ import sc.SuperColliderClient
  *				; seems to be a problem of menuFactory.closeAll!
  */
 
-object Main {
-    private val APP_NAME	= "Kontur"
+object Kontur {
+   val name          = "Kontur"
+   val version       = 0.18
+   val copyright     = "(C)opyright 2004-2012 Hanns Holger Rutz"
+   val isSnapshot    = true
 
-	/*
-	 *  Current version of the application. This is stored
-	 *  in the preferences file.
-	 *
-	 *  @todo   should be saved in the session file as well
-	 */
-	private val APP_VERSION		= 0.17
+   def versionString = {
+      val s = (version + 0.001).toString.substring( 0, 4 )
+      if( isSnapshot ) s + "-SNAPSHOT" else s
+   }
+
+//    private val APP_NAME	= "Kontur"
+
+//	/*
+//	 *  Current version of the application. This is stored
+//	 *  in the preferences file.
+//	 *
+//	 *  @todo   should be saved in the session file as well
+//	 */
+//	private val APP_VERSION		= 0.17
 
 	/**
 	 *  Enables / disables event dispatching debugging
@@ -113,14 +123,14 @@ object Main {
 		// creating and showing this application's GUI.
 		EventQueue.invokeLater( new Runnable() {
 			def run() {
-				new Main( args )
+				new Kontur( args )
 			}
 		})
 	}
 }
 
-class Main( args: Array[ String ])
-extends BasicApplication( classOf[ Main ], Main.APP_NAME ) {
+class Kontur( args: Array[ String ])
+extends BasicApplication( classOf[ Kontur ], Kontur.name ) {
    	private val quitAfterSaveListener = new ProcessingThread.Listener {
 		def processStarted( e: ProcessingThread.Event ) { /* empty */ }
 
@@ -283,6 +293,6 @@ extends BasicApplication( classOf[ Main ], Main.APP_NAME ) {
 
 // ------------ Application interface ------------
 
-	def getMacOSCreator : String = Main.CREATOR
-	def getVersion: Double = Main.APP_VERSION
+	def getMacOSCreator : String = Kontur.CREATOR
+	def getVersion: Double = Kontur.version
 }

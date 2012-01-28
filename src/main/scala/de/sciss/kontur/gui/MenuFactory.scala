@@ -27,7 +27,7 @@ package de.sciss.kontur.gui
 
 import de.sciss.app.AbstractWindow
 import de.sciss.common.{ BasicApplication, BasicMenuFactory, BasicWindowHandler }
-import de.sciss.kontur.Main
+import de.sciss.kontur.Kontur
 import de.sciss.kontur.util.PrefsUtil
 import de.sciss.kontur.session.Session
 import java.awt.{ FileDialog, Frame }
@@ -54,7 +54,7 @@ extends BasicMenuFactory( app ) {
 	}
 
 	def showPreferences() {
-		var prefsFrame = app.getComponent( Main.COMP_PREFS ).asInstanceOf[ PrefsFrame ]
+		var prefsFrame = app.getComponent( Kontur.COMP_PREFS ).asInstanceOf[ PrefsFrame ]
 
 		if( prefsFrame == null ) {
 			prefsFrame = new PrefsFrame()
@@ -212,7 +212,7 @@ extends BasicMenuFactory( app ) {
 		}
 
       private def queryFile() : Option[ File ] = {
-			val w = app.getComponent( Main.COMP_MAIN ).asInstanceOf[ AbstractWindow ]
+			val w = app.getComponent( Kontur.COMP_MAIN ).asInstanceOf[ AbstractWindow ]
 			val frame	= w.getWindow match {
                case f: Frame => f
                case _ => null
@@ -329,7 +329,7 @@ extends BasicMenuFactory( app ) {
 	private class ActionObserver( text: String, shortcut: KeyStroke )
 	extends MenuAction( text, shortcut ) {
 		def actionPerformed( e: ActionEvent ) {
-         val f = app.getComponent( Main.COMP_OBSERVER ) match {
+         val f = app.getComponent( Kontur.COMP_OBSERVER ) match {
             case fr: ObserverFrame => fr
             case _ => new ObserverFrame()
          }

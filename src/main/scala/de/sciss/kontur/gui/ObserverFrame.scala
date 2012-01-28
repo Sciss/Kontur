@@ -26,7 +26,7 @@
 package de.sciss.kontur.gui
 
 import de.sciss.app.{ AbstractWindow, Document, DocumentEvent, DocumentListener }
-import de.sciss.kontur.Main
+import de.sciss.kontur.Kontur
 import java.awt.{ BorderLayout, Dimension }
 import javax.swing.{ JComponent, JTabbedPane, WindowConstants }
 import javax.swing.event.{ ChangeEvent, ChangeListener }
@@ -64,7 +64,7 @@ with DocumentListener {
         setDefaultCloseOperation( HIDE_ON_CLOSE )
         init()
         setSize( new Dimension( 300, 300 ))
-        app.addComponent( Main.COMP_OBSERVER, this )
+        app.addComponent( Kontur.COMP_OBSERVER, this )
     }
 
     override protected def autoUpdatePrefs = true
