@@ -188,6 +188,13 @@ class SuperColliderClient extends Model {
 		if( pRate != null ) so.sampleRate = pRate.`val`.toInt
       so.memorySize = 64 << 10
 
+      val pAudioBuses = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_AUDIOBUSSES, null )
+      if( pAudioBuses != null ) {
+         so.audioBusChannels = pAudioBuses.`val`.toInt
+      } else {
+         so.audioBusChannels = 512  // XXX hack around the missing prefs GUI
+      }
+
 		val pBlockSize = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCBLOCKSIZE, null )
 		if( pBlockSize != null ) so.blockSize = pBlockSize.`val`.toInt
    	so.loadSynthDefs  = false
