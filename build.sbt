@@ -17,9 +17,8 @@ licenses := Seq( "GPL v2+" -> url( "http://www.gnu.org/licenses/gpl-2.0.txt" ))
 resolvers += "Clojars Repository" at "http://clojars.org/repo"  // for jsyntaxpane
 
 libraryDependencies ++= Seq(
-   "de.sciss" %% "scalacolliderswing" % "0.32"
-// crappy sbt kriegt es nicht gebacken
-//   "de.sciss" % "scissdsp" % "0.11" from "https://github.com/downloads/Sciss/ScissDSP/scissdsp-0.11.jar"
+   "de.sciss" %% "scalacolliderswing" % "0.32",
+   "de.sciss" % "scissdsp" % "0.11" from "http://scala-tools.org/repo-releases/de/sciss/scissdsp/0.11/scissdsp-0.11.jar"
 )
 
 retrieveManaged := true
