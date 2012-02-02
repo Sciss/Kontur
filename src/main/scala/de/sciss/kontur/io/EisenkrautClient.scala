@@ -170,7 +170,7 @@ class EisenkrautClient {
    private def oscClient: Option[ osc.Client ] = {
       if( oscVar.isEmpty ) {
          // tcp is actual default, but scalaosc does not support it yet
-         val proto = prefs.get( PrefsUtil.KEY_EISKOSCPROTOCOL, "udp" ) match {
+         val proto = prefs.get( PrefsUtil.KEY_EISKOSCPROTOCOL, "tcp" ) match {
             case "udp" => osc.UDP
             case "tcp" => osc.TCP
          }
@@ -178,8 +178,14 @@ class EisenkrautClient {
          try {
             val target = new InetSocketAddress( "127.0.0.1", port )
             val c = proto match {
-               case osc.UDP => osc.UDP.Client( target )
-               case osc.TCP => osc.TCP.Client( target )
+               case osc.UDP =>
+                  val cfg = osc.UDP.Config()
+                  cfg.codec = osc.PacketCodec().longs()
+                  osc.UDP.Client( target, cfg )
+               case osc.TCP =>
+                  val cfg = osc.TCP.Config()
+                  cfg.codec = osc.PacketCodec().longs()
+                  osc.TCP.Client( target, cfg )
             }
             var success = false
             try {
