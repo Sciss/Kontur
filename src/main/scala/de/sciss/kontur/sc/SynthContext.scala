@@ -31,6 +31,7 @@ import de.sciss.synth.{ osc => scosc, _}
 import de.sciss.osc
 import de.sciss.util.Disposable
 import collection.immutable.{IndexedSeq => IIdxSeq}
+import java.awt.EventQueue
 
 trait AsyncAction {
    def asyncDone() : Unit
@@ -476,11 +477,16 @@ extends Model with Disposable {
 class RealtimeSynthContext( s: Server )
 extends SynthContext( s, true ) {
    private val resp = scosc.Responder({
-      case scosc.SyncedMessage( id ) => syncWait.get( id ).foreach( bundle => {
-         syncWait -= id
-         perform { bundle.doAsync() } // we could use 'delayed', but we might want bundle 'immediate' times
-      })
-   }, server )
+      // Warning: code is not thread safe, and Responder
+      // is on an arbitrary thread, so defer to AWT
+      // thread to conincide with the Swing Timer in
+      // SCTimeline!
+      case scosc.SyncedMessage( id ) => defer {
+         syncWait.get( id ).foreach { bundle =>
+            syncWait -= id
+            perform { bundle.doAsync() } // we could use 'delayed', but we might want bundle 'immediate' times
+         }
+   }}, server )
    private var timebaseSysRef = System.currentTimeMillis
    private var timebaseVar = 0.0
    private var syncWait    = Map[ Int, Bundle ]()
@@ -491,6 +497,12 @@ extends SynthContext( s, true ) {
 
    def dispose() {
       resp.remove
+   }
+
+   private def defer( thunk: => Unit ) {
+      EventQueue.invokeLater( new Runnable {
+         def run() { thunk }
+      })
    }
 
    override def toString = "Realtime(" + s.toString + ")"
