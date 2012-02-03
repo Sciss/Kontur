@@ -158,13 +158,13 @@ extends JPanel with TrackTools with PreferenceChangeListener {
       }
    }
 
-   private class ToolAction( t: TrackTool, strokeText: String ) extends AbstractAction( t.name + " " + strokeText ) {
+   private class ToolAction( t: TrackTool, strokeText: String ) extends AbstractAction( t.name ) {
       def actionPerformed( e: ActionEvent ) {
          ggCombo.setSelectedItem( this )
       }
 
       def perform() { currentTool = t }
 
-      override def toString = t.name
+      override def toString = t.name + " " + strokeText
    }
 }
