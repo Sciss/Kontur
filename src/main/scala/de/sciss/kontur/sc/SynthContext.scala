@@ -305,7 +305,7 @@ extends Model with Disposable {
    }
    
    private def perform( thunk: => Unit, time: Double, send: Boolean ) {
-require( EventQueue.isDispatchThread, "Invoked 'perform' outside dispatch thread" )
+      require( EventQueue.isDispatchThread, "Invoked 'perform' outside dispatch thread" )
       val savedContext  = SynthContext.current
       val savedBundle   = bundleVar
 //println( " context perform >>>>> " + hashCode() )

@@ -25,21 +25,20 @@
 
 package de.sciss.kontur.gui
 
-import java.awt.{ Cursor, Insets, Point, Toolkit }
-import java.awt.event.{ ActionEvent, KeyEvent, KeyListener, MouseEvent }
-import javax.swing.{ AbstractAction, AbstractButton, Box, BoxLayout, ImageIcon,
-                     JButton, JLabel, JOptionPane, JPanel, JToggleButton, SwingUtilities }
+import java.awt.{ Cursor, Point, Toolkit }
+import javax.swing.{ Box, JLabel, JOptionPane, SwingUtilities }
 import javax.swing.event.{ MouseInputAdapter }
-import scala.math._
 import de.sciss.app.{ AbstractApplication, AbstractCompoundEdit }
 import de.sciss.common.{ BasicWindowHandler }
+import de.sciss.dsp.MathUtil
 import de.sciss.gui.{ GUIUtil }
 import de.sciss.io.{ Span }
-import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }
-import de.sciss.kontur.session.{ MuteableStake, Stake, Track, Trail }
+import de.sciss.util.{ DefaultUnitTranslator, ParamSpace }
 import de.sciss.kontur.util.PrefsUtil
-import de.sciss.dsp.MathUtil
 import de.sciss.synth.Model
+import de.sciss.kontur.session.{Session, AudioTrack, AudioRegion, MuteableStake, Stake}
+import de.sciss.kontur.sc.{SCAudioTrackPlayer, SuperColliderClient}
+import java.awt.event.{MouseAdapter, KeyEvent, KeyListener, MouseEvent}
 
 object TrackTools {
    case class ToolChanged( oldTool: TrackTool, newTool: TrackTool )
@@ -125,26 +124,8 @@ object TrackStakeTool {
 trait TrackStakeTool extends TrackTool {
    tool =>
 
-   import TrackStakeTool._
-
    protected def trackList: TrackList
    protected def timelineView: TimelineView
-
-//   private def spanMinus( recalc: Boolean, union: Span, single: Span ) : Boolean = {
-//      if( recalc || ((single.start > union.start) && (single.stop < union.stop)) ) {
-//         recalc
-//      } else {
-//         true
-//      }
-//   }
-//
-//   private def spanPlus( recalc: Boolean, union: Span, single: Span ) : Span = {
-//      if( recalc || single.isEmpty ) {
-//         union
-//      } else {
-//         union.union( single )
-//      }
-//   }
 
    def handleSelect( e: MouseEvent, tle: TrackListElement, pos: Long, stakeO: Option[ Stake[ _ ]]) {
       val track      = tle.track // "stable"
@@ -188,7 +169,7 @@ trait TrackStakeTool extends TrackTool {
       // handle linked timeline selection
       if( AbstractApplication.getApplication.getUserPrefs.getBoolean( PrefsUtil.KEY_LINKOBJTIMELINESEL, false )) {
          val oldSel     = timelineView.selection.span
-         var newSel     = trackList.foldLeft( new Span() )( (union, elem) =>
+         val newSel     = trackList.foldLeft( new Span() )( (union, elem) =>
             elem.trailView.selectedStakes.foldLeft( union )( (union, stake) =>
                if( union.isEmpty ) stake.span else union.union( stake.span )))
          if( newSel != oldSel ) {
@@ -225,7 +206,7 @@ extends TrackStakeTool {
 
    protected def dragToParam( d: Drag ) : P
 
-   protected def dragEnd {
+   protected def dragEnd() {
       // XXX it becomes a little arbitrary which editor
       // to use to initiate an edit... should change this somehow
       timelineView.timeline.editor.foreach( ed => {
@@ -241,14 +222,14 @@ extends TrackStakeTool {
    
    protected def handleSelect( e: MouseEvent, tle: TrackListElement, pos: Long, stake: Stake[ _ ]) {
       if( e.getClickCount == 2 ) {
-         handleDoubleClick
+         handleDoubleClick()
       } else {
          new Drag( e, tle, pos, stake )
       }
    }
 
    protected def dragStarted( d: this.Drag ) : Boolean =
-      d.currentEvent.getPoint().distanceSq( d.firstEvent.getPoint() ) > 16
+      d.currentEvent.getPoint.distanceSq( d.firstEvent.getPoint ) > 16
    
    protected def dragBegin( d: this.Drag ) {
        val p = dragToParam( d )
@@ -269,7 +250,7 @@ extends TrackStakeTool {
 
    protected def dialog: Option[ P ]
 
-   protected def handleDoubleClick {
+   protected def handleDoubleClick() {
       dialog.foreach( p => {
          timelineView.timeline.editor.foreach( ed => {
 //println( "GOT " + p )
@@ -300,24 +281,24 @@ extends TrackStakeTool {
       def currentTLE = currentTLEFVar
 
       private var currentPosVar = firstPos
-      def currentPos = currentPosVar
+      def currentPos = currentPosVar;
 
       // ---- constructor ----
       {
-         val comp = firstEvent.getComponent()
+         val comp = firstEvent.getComponent
          comp.addMouseListener( this )
          comp.addMouseMotionListener( this )
 //       comp.addKeyListener( this )
-         comp.requestFocus
+         comp.requestFocus()
       }
 
       override def mouseReleased( e: MouseEvent ) {
-         unregister
-         if( started ) dragEnd
+         unregister()
+         if( started ) dragEnd()
       }
 
-      private def unregister {
-         val comp = firstEvent.getComponent()
+      private def unregister() {
+         val comp = firstEvent.getComponent
          comp.removeMouseListener( this )
          comp.removeMouseMotionListener( this )
          comp.removeKeyListener( this )
@@ -346,7 +327,7 @@ extends TrackStakeTool {
          if( !started ) {
             started = dragStarted( this )
             if( !started ) return
-            e.getComponent().addKeyListener( this )
+            e.getComponent.addKeyListener( this )
             dragBegin( this )
          }
          dragAdjust( this )
@@ -354,7 +335,7 @@ extends TrackStakeTool {
 
       def keyPressed( e: KeyEvent ) {
          if( e.getKeyCode == KeyEvent.VK_ESCAPE ) {
-            unregister
+            unregister()
             dragCancel( this )
          }
       }
@@ -418,8 +399,8 @@ extends BasicTrackStakeTool[ TrackResizeTool.Resize ]( trackList, timelineView )
 
    protected def dragToParam( d: Drag ) : Resize = {
       val (deltaStart, deltaStop ) =
-         if( abs( d.firstPos - d.firstStake.span.start ) <
-             abs( d.firstPos - d.firstStake.span.stop )) {
+         if( math.abs( d.firstPos - d.firstStake.span.start ) <
+             math.abs( d.firstPos - d.firstStake.span.stop )) {
 
             (d.currentPos - d.firstPos, 0L)
          } else {
@@ -470,8 +451,8 @@ extends BasicTrackStakeTool[ TrackFadeTool.Fade ]( trackList, timelineView ) {
    protected def dialog: Option[ Fade ] = None // not yet supported
 
    protected def dragToParam( d: Drag ) : Fade = {
-      val leftHand = abs( d.firstPos - d.firstStake.span.start ) <
-                     abs( d.firstPos - d.firstStake.span.stop )
+      val leftHand = math.abs( d.firstPos - d.firstStake.span.start ) <
+                     math.abs( d.firstPos - d.firstStake.span.stop )
       val (deltaTime, deltaCurve) = if( curvature ) {
          val dc = (d.firstEvent.getY - d.currentEvent.getY) * 0.1f
          (0L, if( leftHand ) -dc else dc)
@@ -485,8 +466,8 @@ extends BasicTrackStakeTool[ TrackFadeTool.Fade ]( trackList, timelineView ) {
    override protected def dragStarted( d: this.Drag ) : Boolean = {
       val result = super.dragStarted( d )
       if( result ) {
-         curvature = abs( d.currentEvent.getX - d.firstEvent.getX ) <
-                     abs( d.currentEvent.getY - d.firstEvent.getY )
+         curvature = math.abs( d.currentEvent.getX - d.firstEvent.getX ) <
+                     math.abs( d.currentEvent.getY - d.firstEvent.getY )
       }
       result
    }
@@ -524,7 +505,7 @@ object TrackMuteTool {
    }
 }
 
-class TrackMuteTool (
+class TrackMuteTool(
    protected val trackList: TrackList, protected val timelineView: TimelineView )
 extends TrackStakeTool {
    import TrackMuteTool._
@@ -544,4 +525,41 @@ extends TrackStakeTool {
 
    val defaultCursor = TrackMuteTool.cursor
    val name = "Mute"
+}
+
+object TrackAuditionTool {
+   private lazy val cursor = {
+      val tk   = Toolkit.getDefaultToolkit
+      val img  = tk.createImage( classOf[ TrackMuteTool ].getResource( "cursor-audition.png" ))
+      tk.createCustomCursor( img, new Point( 4, 4 ), "Audition" )
+   }
+}
+
+class TrackAuditionTool( doc: Session,
+   protected val trackList: TrackList, protected val timelineView: TimelineView )
+extends TrackStakeTool {
+   protected def handleSelect( e: MouseEvent, tle: TrackListElement, pos: Long, stake: Stake[ _ ]) {
+      val trackPlayerO = SuperColliderClient.instance.getPlayer( doc ).flatMap( _.session )
+         .map( _.timeline( timelineView.timeline ).track( tle.track ))
+      (stake, trackPlayerO) match {
+         case (ar: AudioRegion, Some( atp: SCAudioTrackPlayer )) =>
+            val frameOffset   = if( e.isAltDown ) 0L else {
+               ar.span.clip( pos - (ar.audioFile.sampleRate * 0.1).toLong ) - ar.span.start
+            }
+            val stopper       = atp.play( ar, frameOffset )
+            val comp          = e.getComponent
+            comp.addMouseListener( new MouseAdapter {
+               override def mouseReleased( e2: MouseEvent ) {
+                  stopper.stop()
+                  comp.removeMouseListener( this )
+               }
+            })
+            comp.requestFocus()
+
+         case _ =>
+      }
+   }
+
+   val name = "Audition"
+   val defaultCursor = TrackAuditionTool.cursor
 }

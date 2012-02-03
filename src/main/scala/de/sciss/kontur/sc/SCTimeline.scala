@@ -103,6 +103,8 @@ if( verbose ) println( "| | | | | timer " + currentPos )
       currentPos = stopFrame
    }
 
+   def track( t: Track ) : SCTrackPlayer = mapPlayers( t )
+
    def step( currentPos: Long, span: Span ) {
       inGroup( scDoc.diskGroup ) {
          players.foreach( _.step( currentPos, span ))

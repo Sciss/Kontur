@@ -34,8 +34,8 @@ class SCSession( val doc: Session ) {
 
    val context    = current
 //println( "SESSION >>>>> " + context )
-   var timelines  = Map[ Timeline, SCTimeline ]()
-   var diffusions = Map[ Diffusion, DiffusionSynth ]()
+   private var timelines  = Map[ Timeline, SCTimeline ]()
+   private var diffusions = Map[ Diffusion, DiffusionSynth ]()
 
    val diskGroup  = group
    val panGroup   = groupAfter( diskGroup )
@@ -52,17 +52,16 @@ class SCSession( val doc: Session ) {
       case doc.timelines.ElementRemoved( idx, tl ) => context.perform { removeTimeline( tl )}
    }
 
-  // ---- constructor2 ----
-  {
-     inGroup( panGroup ) {
-        doc.diffusions.foreach( diff => addDiffusion( diff ))
-     }
-     if( realtime ) {
-        doc.timelines.foreach( tl => addTimeline( new SCTimeline( this, tl )))
-        doc.timelines.addListener( timeListener )
-        doc.diffusions.addListener( diffListener )
-     }
-  }
+   // ---- constructor2 ----
+   inGroup( panGroup ) {
+      doc.diffusions.foreach( diff => addDiffusion( diff ))
+   }
+   if( realtime ) {
+      doc.timelines.foreach( tl => addTimeline( new SCTimeline( this, tl )))
+      doc.timelines.addListener( timeListener )
+      doc.diffusions.addListener( diffListener )
+   }
+
 //println( "SESSION <<<<<< " )
 
   // ---- SynthContext ----
@@ -83,15 +82,18 @@ class SCSession( val doc: Session ) {
 //
 //      }
 
-  def dispose() {
-     if( realtime ) {
-        doc.timelines.removeListener( timeListener )
-        doc.diffusions.removeListener( diffListener )
-     }
-     timelines.keysIterator.foreach( tl => removeTimeline( tl ))
-     diffusions.keysIterator.foreach( diff => removeDiffusion( diff ))
-     group.free(); panGroup.free()
-  }
+   def diffusion( diff: Diffusion ) : DiffusionSynth = diffusions( diff )
+   def timeline( tl: Timeline ) : SCTimeline = timelines( tl )
+
+   def dispose() {
+      if( realtime ) {
+         doc.timelines.removeListener( timeListener )
+         doc.diffusions.removeListener( diffListener )
+      }
+      timelines.keysIterator.foreach( tl => removeTimeline( tl ))
+      diffusions.keysIterator.foreach( diff => removeDiffusion( diff ))
+      group.free(); panGroup.free()
+   }
 
    private def addDiffusion( diff: Diffusion ) {
       DiffusionSynthFactory.get( diff ).foreach( dsf => {

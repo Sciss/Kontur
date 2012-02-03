@@ -88,7 +88,7 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 //         in.bind( "s", classOf[ Server ].getName, s )
 //      })
 
-      val lp = new LogPane
+      val lp = new LogPane()
       lp.init()
       ip.out = Some( lp.writer )
       Console.setOut( lp.outputStream )

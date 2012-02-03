@@ -46,7 +46,7 @@ class MainFrame extends AppWindow( AbstractWindow.REGULAR ) {
 		setTitle( app.getName + " : " + strMain )
 	  }
 
-      val lta       = new LogTextArea( 16, 40, false, null )
+      val lta       = new LogTextArea( 32, 60, false, null )
       lta.makeSystemOutput()
       lta.setFont( new Font( "Menlo", Font.PLAIN, 10 ))
       lta.setForeground( Color.white )

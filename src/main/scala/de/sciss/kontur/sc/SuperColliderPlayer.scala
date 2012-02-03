@@ -74,6 +74,8 @@ extends Disposable {
       })
     }
 
+   def session: Option[ SCSession ] = online
+
     private def serverOffline() {
        online.foreach( ol => {
           ol.context.consume {

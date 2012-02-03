@@ -132,8 +132,16 @@ class SuperColliderClient extends Model {
 		stop()
 	}
 
+   /**
+    * Queries the current state of the SuperCollider server.
+    *
+    * @return  the current condition of the server, either of `ServerConnectino.Running` or `Server.Offline`
+    */
     def serverCondition : AnyRef = {
-      serverVar.map( _.condition ) getOrElse Server.Offline
+      serverVar.map( s => s.condition match {
+         case Server.Running => ServerConnection.Running( s )
+         case other => other
+      }).getOrElse( Server.Offline )
     }
 
     def server = serverVar

@@ -30,15 +30,16 @@ import javax.swing.{ AbstractAction, Box, BoxLayout, JComboBox, JComponent, JPan
 import javax.swing.event.{ ChangeEvent, ChangeListener }
 import de.sciss.common.{ BasicMenuFactory }
 import de.sciss.kontur.util.PrefsUtil
-import de.sciss.app.{AbstractApplication, DynamicPrefChangeManager, DynamicAncestorAdapter, DynamicListening}
+import de.sciss.app.{AbstractApplication, DynamicPrefChangeManager, DynamicAncestorAdapter}
 import java.util.prefs.{PreferenceChangeEvent, PreferenceChangeListener}
+import de.sciss.kontur.session.Session
 
 object TrackToolsPanel {
    private def linexp( x: Double, inLo: Double, inHi: Double, outLo: Double, outHi: Double ) =
       math.pow( outHi / outLo, (x - inLo) / (inHi - inLo) ) * outLo
 }
 
-class TrackToolsPanel( trackList: TrackList, timelineView: TimelineView )
+class TrackToolsPanel( doc: Session, trackList: TrackList, timelineView: TimelineView )
 extends JPanel with TrackTools with PreferenceChangeListener {
    import TrackTools._
    import TrackToolsPanel._
@@ -49,7 +50,8 @@ extends JPanel with TrackTools with PreferenceChangeListener {
                              new TrackGainTool( trackList, timelineView ),
                              new TrackFadeTool( trackList, timelineView ),
                              new TrackSlideTool( trackList, timelineView ),
-                             new TrackMuteTool( trackList, timelineView )
+                             new TrackMuteTool( trackList, timelineView ),
+                             new TrackAuditionTool( doc, trackList, timelineView )
    )
 
    private var currentToolVar: TrackTool                    = tools.head
@@ -66,8 +68,10 @@ extends JPanel with TrackTools with PreferenceChangeListener {
 
       var i = 1; tools.foreach { t =>
          val key = "tool" + i
-         imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_0 + i, meta ), key )
-         val action = new ToolAction( t )
+         val stroke = KeyStroke.getKeyStroke( KeyEvent.VK_0 + i, meta )
+         imap.put( stroke, key )
+         val strokeText = KeyEvent.getKeyModifiersText( stroke.getModifiers ) + KeyEvent.getKeyText( stroke.getKeyCode )
+         val action = new ToolAction( t, strokeText )
          amap.put( key, action )
          ggCombo.addItem( action )
          i += 1
@@ -154,7 +158,7 @@ extends JPanel with TrackTools with PreferenceChangeListener {
       }
    }
 
-   private class ToolAction( t: TrackTool ) extends AbstractAction( t.name ) {
+   private class ToolAction( t: TrackTool, strokeText: String ) extends AbstractAction( t.name + " " + strokeText ) {
       def actionPerformed( e: ActionEvent ) {
          ggCombo.setSelectedItem( this )
       }

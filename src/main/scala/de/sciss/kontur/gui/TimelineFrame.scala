@@ -61,7 +61,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 // private val trailView      = new javax.swing.JLabel( "Trail" )
 // private val trailsView     = new BasicTrailsView( doc, tl.tracks )
    val tracksPanel            = new TracksPanel( doc, timelinePanel )
-   private val trackTools     = new TrackToolsPanel( tracksPanel, timelineView )
+   private val trackTools     = new TrackToolsPanel( doc, tracksPanel, timelineView )
 
    // ---- constructor ----
    {
