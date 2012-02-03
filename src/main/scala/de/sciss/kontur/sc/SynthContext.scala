@@ -283,6 +283,12 @@ extends Model with Disposable {
 
    protected def initBundle( delta: Double ) : AbstractBundle
 
+   protected def deferIfNeeded( thunk: => Unit ) {
+      if( EventQueue.isDispatchThread ) thunk else EventQueue.invokeLater( new Runnable {
+         def run() { thunk }
+      })
+   }
+
    def perform( thunk: => Unit ) {
       perform( thunk, -1, true )
    }
@@ -299,6 +305,7 @@ extends Model with Disposable {
    }
    
    private def perform( thunk: => Unit, time: Double, send: Boolean ) {
+require( EventQueue.isDispatchThread, "Invoked 'perform' outside dispatch thread" )
       val savedContext  = SynthContext.current
       val savedBundle   = bundleVar
 //println( " context perform >>>>> " + hashCode() )
@@ -411,8 +418,10 @@ extends Model with Disposable {
       val tgt   = currentTarget  // freeze
       rsd.whenOnline {
          add( synth.newMsg( rsd.synthDef.name, tgt.node, args ))
-         rs.node.onGo  { perform { rs.isOnline = true }}
-         rs.node.onEnd { perform { rs.isOnline = false }}
+//         rs.node.onGo  { perform { rs.isOnline = true }}
+//         rs.node.onEnd { perform { rs.isOnline = false }}
+         rs.node.onGo  { deferIfNeeded { perform { rs.isOnline = true }}}
+         rs.node.onEnd { deferIfNeeded { perform { rs.isOnline = false }}}
       }
       rs
    }
@@ -481,7 +490,7 @@ extends SynthContext( s, true ) {
       // is on an arbitrary thread, so defer to AWT
       // thread to conincide with the Swing Timer in
       // SCTimeline!
-      case scosc.SyncedMessage( id ) => defer {
+      case scosc.SyncedMessage( id ) => deferIfNeeded {
          syncWait.get( id ).foreach { bundle =>
             syncWait -= id
             perform { bundle.doAsync() } // we could use 'delayed', but we might want bundle 'immediate' times
@@ -497,12 +506,6 @@ extends SynthContext( s, true ) {
 
    def dispose() {
       resp.remove
-   }
-
-   private def defer( thunk: => Unit ) {
-      EventQueue.invokeLater( new Runnable {
-         def run() { thunk }
-      })
    }
 
    override def toString = "Realtime(" + s.toString + ")"

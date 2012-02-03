@@ -56,6 +56,10 @@ appbundle.icon := Some( file( "application.icns" ))
 
 appbundle.javaOptions += "-ea"
 
+// ---- disable scaladoc generation during development phase ----
+
+// publishArtifact in (Compile, packageDoc) := false
+
 // ---- ls.implicit.ly ----
 
 seq( lsSettings :_* )
