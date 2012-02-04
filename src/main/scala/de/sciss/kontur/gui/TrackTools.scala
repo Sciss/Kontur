@@ -539,11 +539,19 @@ class TrackAuditionTool( doc: Session,
    protected val trackList: TrackList, protected val timelineView: TimelineView )
 extends TrackStakeTool {
    protected def handleSelect( e: MouseEvent, tle: TrackListElement, pos: Long, stake: Stake[ _ ]) {
+      val fromStart = e.isAltDown
+      if( !fromStart ) {
+         timelineView.editor.foreach { ed =>
+            val ce = ed.editBegin( "Adjust timeline position" )
+            ed.editPosition( ce, pos )
+            ed.editEnd( ce )
+         }
+      }
       val trackPlayerO = SuperColliderClient.instance.getPlayer( doc ).flatMap( _.session )
          .map( _.timeline( timelineView.timeline ).track( tle.track ))
       (stake, trackPlayerO) match {
          case (ar: AudioRegion, Some( atp: SCAudioTrackPlayer )) =>
-            val frameOffset   = if( e.isAltDown ) 0L else {
+            val frameOffset   = if( fromStart ) 0L else {
                ar.span.clip( pos - (ar.audioFile.sampleRate * 0.1).toLong ) - ar.span.start
             }
             val stopper       = atp.play( ar, frameOffset )
