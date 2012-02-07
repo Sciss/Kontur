@@ -196,7 +196,8 @@ object SonagramOverview {
    @throws( classOf[ IOException ])
    def fromPath( path: File ) : SonagramOverview = {
       sync.synchronized {
-         val af            = AudioFile.openAsRead( path )
+         val cPath         = path.getCanonicalFile
+         val af            = AudioFile.openAsRead( cPath )
          val afDescr       = af.getDescr
          af.close // render loop will re-open it if necessary...
          val sampleRate    = afDescr.rate
@@ -206,7 +207,7 @@ object SonagramOverview {
          val decim         = List( 1, 6, 6, 6, 6 )
          val fileSpec      = new SonagramFileSpec( sonaSpec, afDescr.file.lastModified, afDescr.file,
                              afDescr.length, afDescr.channels, sampleRate, decim )
-         val cachePath     = fileCache.createCacheFileName( path )
+         val cachePath     = fileCache.createCacheFileName( cPath )
 
          // try to retrieve existing overview file from cache
          val decimAFO      = if( cachePath.isFile ) {
