@@ -31,8 +31,7 @@ import java.nio.ByteBuffer
 import javax.swing.SwingWorker
 import de.sciss.io.IOUtil
 import de.sciss.osc
-import de.sciss.synth.{ osc => scosc, _}
-import de.sciss.osc.PacketCodec
+import de.sciss.synth.{ osc => _, _}
 
 object BounceSynthContext {
    @throws( classOf[ IOException ])
@@ -53,10 +52,22 @@ object BounceSynthContext {
       val context = new BounceSynthContext( s, oscPath, oscFile )
       context
    }
+
+   /*
+    * There is a problem with buffers being repeated in NRT when they are freed exactly at
+    * the end of the region playing synth. We are heuristically applying a 100 ms delay
+    * for the buffer freeing which solves this problem.
+    *
+    * Still, we should investigate what exact value is needed (as this might change
+    * with sampling rate and block size).
+    */
+   private val SECURITY_BOUND = 0.10
 }
 
 class BounceSynthContext private( s: Server, oscPath: File, oscFile: RandomAccessFile )
 extends SynthContext( s, false ) {
+   import BounceSynthContext._
+
    private val verbose =  false
 
    private var timebaseVar = 0.0
@@ -205,7 +216,7 @@ extends SynthContext( s, false ) {
 
    override def endsAfter( rn: RichNode, dur: Double ) {
 //println( "endsAfter " + dur + ": " + rn.node )
-      delayed( timebase, dur ) {
+      delayed( timebase, dur + SECURITY_BOUND ) {
 //println( "endsAfter really " + dur + ": " + rn.node )
 //         add( rn.node.freeMsg )
 //         rn.isOnline = false
