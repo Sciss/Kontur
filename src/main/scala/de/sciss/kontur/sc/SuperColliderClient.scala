@@ -31,8 +31,8 @@ import de.sciss.kontur.util.PrefsUtil
 import de.sciss.util.Param
 import java.awt.EventQueue
 import java.io.IOException
-import de.sciss.osc
-import de.sciss.synth.{ServerConnection, Model, Server}
+import de.sciss.{synth, osc}
+import synth.{ControlBus, ServerConnection, Model, Server}
 
 object SuperColliderClient {
    lazy val instance = new SuperColliderClient
@@ -59,6 +59,11 @@ class SuperColliderClient extends Model {
    private var players = Map[ Session, SuperColliderPlayer ]()
    private val forward: Model.Listener = { case msg => defer( dispatch( msg ))}
 
+   private var volumeVar      = 1.0f
+   private var volumeBus      = Option.empty[ ControlBus ]
+   private var limiterVar     = false
+   private var limiterBus     = Option.empty[ ControlBus ];
+
     // ---- constructor ----
     {
 //		val userPrefs	= app.getUserPrefs
@@ -70,7 +75,7 @@ class SuperColliderClient extends Model {
 //			}
 //		};
       
-        app.getDocumentHandler.addDocumentListener( new DocumentListener {
+      app.getDocumentHandler.addDocumentListener( new DocumentListener {
         	def documentAdded( e: DocumentEvent ) {
                e.getDocument match {
                   case doc: Session => {
@@ -92,12 +97,28 @@ class SuperColliderClient extends Model {
             }
             
         	def documentFocussed( e: DocumentEvent ) {}
-        })
-    }
+      })
+   }
 
    override def toString = "SuperColliderClient"
 
    def getPlayer( doc: Session ) : Option[ SuperColliderPlayer ] = players.get( doc )
+
+   def volume: Float = volumeVar
+   def volume_=( value: Float ) {
+      if( volumeVar != value ) {
+         volumeVar = value
+         volumeBus.foreach( _.set( value ))
+      }
+   }
+
+   def limiter: Boolean = limiterVar
+   def limiter_=( onOff: Boolean ) {
+      if( limiterVar != onOff ) {
+         limiterVar = onOff
+         limiterBus.foreach( _.set( if( onOff ) 1f else 0f ))
+      }
+   }
 
    private def defer( thunk: => Unit ) {
       EventQueue.invokeLater( new Runnable { def run() { thunk }})
@@ -170,6 +191,9 @@ class SuperColliderClient extends Model {
 //			nw.dispose();
 //			nw		= null;
 //		}
+
+      volumeBus   = None
+      limiterBus  = None
 
 		serverVar.foreach( s => {
             s.removeListener( forward )
@@ -248,6 +272,7 @@ class SuperColliderClient extends Model {
                   serverVar = Some( s )
                   s.addListener( forward )
                   s.dumpOSC( dumpMode )
+                  initMaster( s )
                   dispatch( ServerRunning( s ))
                }
          }
@@ -259,6 +284,29 @@ class SuperColliderClient extends Model {
 		   printError( "boot", e1 )
          false
       }
+   }
+
+   private def initMaster( s: Server ) {
+      import synth._
+      import ugen._
+
+      val volBus  = Bus.control( s, 1 )
+      val limBus  = Bus.control( s, 1 )
+      volBus.set( volumeVar )
+      limBus.set( if( limiterVar ) 1f else 0f )
+
+      val df = SynthDef( "kontur-master" ) {
+         val vol     = LagIn.kr( volBus.index )
+         val limPos  = LagIn.kr( limBus.index ) * 2 - 1
+         val in      = In.ar( 0, s.config.outputBusChannels ) * vol
+         val lim     = Limiter.ar( in, -0.2.ampdb, 0.1 )
+         val sig     = LinXFade2.ar( in, lim, limPos )
+         ReplaceOut.ar( 0, sig )
+      }
+      df.play( s, addAction = addToTail )
+
+      volumeBus   = Some( volBus )
+      limiterBus  = Some( limBus )
    }
 
    override protected def dispatch( change: AnyRef ) {

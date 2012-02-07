@@ -110,6 +110,8 @@ object Kontur {
 	 */
 	val COMP_HELP  		= "Help"
 
+   val COMP_CTRLROOM    = "ControlRoom"
+
     /**
 	 *  java VM starting method. does some
 	 *  static initializations and then creates

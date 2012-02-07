@@ -163,6 +163,7 @@ extends BasicMenuFactory( app ) {
   		// --- window menu ---
 		val mgWindow  = get( "window" ).asInstanceOf[ MenuGroup ]
   		mgWindow.add( new MenuItem( "observer", new ActionObserver( getResourceString( "paletteObserver" ), KeyStroke.getKeyStroke( KeyEvent.VK_NUMPAD3, MENU_SHORTCUT ))), 3 )
+      mgWindow.add( new MenuItem( "ctrlRoom", new ActionCtrlRoom( getResourceString( "paletteCtrlRoom" ), KeyStroke.getKeyStroke( KeyEvent.VK_NUMPAD2, MENU_SHORTCUT ))), 4 )
   }
 
    // ---- internal classes ----
@@ -322,6 +323,19 @@ extends BasicMenuFactory( app ) {
 			catch { case e1: IOException =>
 				BasicWindowHandler.showErrorDialog( null, e1, getValue( Action.NAME ).toString )
 			}
+		}
+	}
+
+   // action for the Control Room menu item
+	private class ActionCtrlRoom( text: String, shortcut: KeyStroke )
+	extends MenuAction( text, shortcut ) {
+		def actionPerformed( e: ActionEvent ) {
+			var f = getApplication.getComponent( Kontur.COMP_CTRLROOM ).asInstanceOf[ ControlRoomFrame ]
+			if( f == null ) {
+				f = new ControlRoomFrame()	// automatically adds component
+			}
+			f.setVisible( true )
+			f.toFront()
 		}
 	}
 
