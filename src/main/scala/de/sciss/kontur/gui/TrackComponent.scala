@@ -21,36 +21,27 @@
  *
  *	For further information, please contact Hanns Holger Rutz at
  *	contact@sciss.de
- *    26-Jan-10   fiddled around with scalac crashes
  */
 
 package de.sciss.kontur.gui
 
-import java.awt.{ AlphaComposite, Color, Dimension, Graphics, Graphics2D, Point, Rectangle,
-                 RenderingHints, TexturePaint }
-import java.awt.datatransfer.{ DataFlavor, Transferable }
-import java.awt.dnd.{ DnDConstants, DropTarget, DropTargetAdapter,
-                     DropTargetDragEvent, DropTargetDropEvent, DropTargetEvent,
-                     DropTargetListener }
-import java.awt.event.{ MouseAdapter, MouseEvent }
-import java.awt.geom.{ Path2D }
-import java.awt.image.{ BufferedImage, ImageObserver }
-import java.beans.{ PropertyChangeListener, PropertyChangeEvent }
-import java.io.{ File, IOException }
-import java.nio.{ CharBuffer }
-import javax.swing.{ JComponent, Spring, SpringLayout, TransferHandler }
-import javax.swing.event.{ MouseInputAdapter }
-import scala.collection.{ IterableLike }
-import de.sciss.kontur.io.{ SonagramPaintController }
-import de.sciss.kontur.session.{ AudioFileElement, AudioRegion, AudioTrack,
-                                BasicTrail, FadeSpec, Region, RegionTrait,
-                                ResizableStake, Session, SlidableStake, Stake,
-                                Timeline, Track, Trail }
-import de.sciss.app.{ AbstractApplication, AbstractCompoundEdit,
-                      DynamicAncestorAdapter,DynamicListening, GraphicsHandler }
-import de.sciss.dsp.{ MathUtil }
-import de.sciss.io.{ Span }
-import de.sciss.synth.{ curveShape, linShape, Model }
+import java.awt.{Color, Dimension, Graphics, Graphics2D, Rectangle, RenderingHints, TexturePaint}
+import java.awt.datatransfer.{DataFlavor}
+import java.awt.dnd.{DnDConstants, DropTarget, DropTargetAdapter, DropTargetDragEvent, DropTargetDropEvent, DropTargetEvent}
+import java.awt.event.{MouseAdapter, MouseEvent}
+import java.awt.geom.Path2D
+import java.awt.image.{BufferedImage, ImageObserver}
+import java.io.{File, IOException}
+import javax.swing.JComponent
+import collection.IterableLike
+import de.sciss.kontur.io.SonagramPaintController
+import de.sciss.kontur.session.{AudioFileElement, AudioRegion, AudioTrack,
+                                BasicTrail, FadeSpec, RegionTrait,
+                                ResizableStake, Session, SlidableStake, Stake, Track}
+import de.sciss.app.{AbstractApplication, AbstractCompoundEdit, DynamicAncestorAdapter,DynamicListening, GraphicsHandler}
+import de.sciss.dsp.MathUtil
+import de.sciss.io.Span
+import de.sciss.synth.{curveShape, linShape, Model}
 import de.sciss.synth.io.AudioFile
 
 //import Track.Tr
@@ -756,24 +747,24 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
       def sonogramGain( pos: Double ) = boost
    }
 
-   private class SonoFadePaint( boost: Float, offset: Long, numFrames: Long, fadeIn: FadeSpec, fadeOut: FadeSpec )
-   extends SonagramPaintController {
-      private val doFadeIn    = fadeIn  != null && fadeIn.numFrames > 0
-      private val doFadeOut   = fadeOut != null && fadeOut.numFrames > 0
-      def imageObserver: ImageObserver = component
-      def sonogramGain( pos: Double ) = {
-         var gain = boost
-         if( doFadeIn ) {
-            val f = ((pos - offset) / fadeIn.numFrames).toFloat
-            if( f < 1f ) gain *= fadeIn.shape.levelAt( math.max( 0f, f ), 0f, 1f )
-         }
-         if( doFadeOut ) {
-            val f = ((pos - offset - (numFrames - fadeOut.numFrames)) / fadeOut.numFrames).toFloat
-            if( f > 0f ) gain *= fadeOut.shape.levelAt( math.min( 1f, f ), 1f, 0f )
-         }
-         gain
-      }
-   }
+//   private class SonoFadePaint( boost: Float, offset: Long, numFrames: Long, fadeIn: FadeSpec, fadeOut: FadeSpec )
+//   extends SonagramPaintController {
+//      private val doFadeIn    = fadeIn  != null && fadeIn.numFrames > 0
+//      private val doFadeOut   = fadeOut != null && fadeOut.numFrames > 0
+//      def imageObserver: ImageObserver = component
+//      def sonogramGain( pos: Double ) = {
+//         var gain = boost
+//         if( doFadeIn ) {
+//            val f = ((pos - offset) / fadeIn.numFrames).toFloat
+//            if( f < 1f ) gain *= fadeIn.shape.levelAt( math.max( 0f, f ), 0f, 1f )
+//         }
+//         if( doFadeOut ) {
+//            val f = ((pos - offset - (numFrames - fadeOut.numFrames)) / fadeOut.numFrames).toFloat
+//            if( f > 0f ) gain *= fadeOut.shape.levelAt( math.min( 1f, f ), 1f, 0f )
+//         }
+//         gain
+//      }
+//   }
 
    protected class MutePainter( protected val initialUnion: Span, protected val oldPainter: Painter,
                                 ce: AbstractCompoundEdit, dragMute: Boolean )
@@ -936,10 +927,11 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
                      val dStart  = ar.offset - ar.span.start
                      val startC  = max( 0.0, pc.screenToVirtualD( x1C ))
                      val stopC   = pc.screenToVirtualD( x2C )
-                     val boost   = ar.gain * visualBoost
                      val ctl     = if( fadeViewMode == FadeViewMode.Sonogram ) {
-                        new SonoFadePaint( boost, ar.offset, ar.span.getLength, ar.fadeIn.orNull, ar.fadeOut.orNull )
+                        SonogramFadePaint( component, ar, visualBoost )
+//                        new SonoFadePaint( boost, ar.offset, ar.span.getLength, ar.fadeIn.orNull, ar.fadeOut.orNull )
                      } else {
+                        val boost   = ar.gain * visualBoost
                         new SonoPaint( boost )
                      }
                      sona.paint( startC + dStart, stopC + dStart, g2, x1C, y + hndl, x2C - x1C, innerH, ctl )
