@@ -25,7 +25,6 @@
 
 package de.sciss.kontur.gui
 
-import java.awt.{ Color, Component, Cursor, Graphics, Insets, SystemColor }
 import java.awt.event.{ ActionEvent, ActionListener, MouseEvent }
 import javax.swing.{ AbstractCellEditor, Box, GroupLayout, JButton, JComponent, JLabel, JPanel, JScrollPane, JTable,
    JTextField, SwingConstants }
@@ -34,12 +33,13 @@ import javax.swing.border.Border
 import javax.swing.event.MouseInputAdapter
 import javax.swing.table.{ AbstractTableModel, DefaultTableColumnModel, TableCellEditor, TableCellRenderer, TableColumn }
 import scala.math._
-import de.sciss.app.{ AbstractCompoundEdit, Document, DynamicAncestorAdapter, DynamicListening }
 import de.sciss.gui.{ ParamField => PF }
 import de.sciss.kontur.session.{ Diffusion, DiffusionEditor, DiffusionFactory, MatrixDiffusion, Renamable, Session }
 import de.sciss.kontur.util.Matrix2D
 import de.sciss.util.{ Param, ParamSpace }
 import de.sciss.synth.Model
+import java.awt.{RenderingHints, BasicStroke, Graphics2D, Color, Component, Cursor, Graphics, Insets}
+import de.sciss.app.{GraphicsHandler, AbstractApplication, AbstractCompoundEdit, Document, DynamicAncestorAdapter, DynamicListening}
 
 object MatrixDiffusionGUI extends DiffusionGUIFactory {
    type T = MatrixDiffusionGUI
@@ -61,10 +61,7 @@ extends JPanel with ObserverPage with DynamicListening {
    private val ggName              = new JTextField( 16 )
    private val ggNumInputChannels  = new ParamField()
    private val ggNumOutputChannels = new ParamField()
-   private val matrixModel         = new MatrixModel()
-   private val matrixRenderer      = new MatrixCellRenderer
-   private val matrixEditor        = new MatrixCellEditor
-   private val tabMatrix           = new JTable( matrixModel )
+   private val tabMatrix           = new JTable( MatrixModel )
    private val scrollMatrix        = new JScrollPane( tabMatrix )
    private val ggMatrix            = Box.createVerticalBox() // new JPanel()
    private val ggMatrixApply       = new JButton( "Apply" )
@@ -93,14 +90,15 @@ extends JPanel with ObserverPage with DynamicListening {
       ggNumOutputChannels.addSpace( spcChannels )
 
       tabMatrix.setShowGrid( true )
-      tabMatrix.setDefaultRenderer( classOf[ java.lang.Object ], matrixRenderer )
-      tabMatrix.setDefaultEditor( classOf[ java.lang.Object ], matrixEditor )
+      tabMatrix.setDefaultRenderer( classOf[ java.lang.Object ], MatrixCellRenderer )
+      tabMatrix.setDefaultEditor( classOf[ java.lang.Object ], MatrixCellEditor )
       tabMatrix.setAutoResizeMode( JTable.AUTO_RESIZE_OFF )
       tabMatrix.getTableHeader.setReorderingAllowed( false )
       tabMatrix.getTableHeader.setResizingAllowed( false )
-      tabMatrix.setColumnModel( new MatrixColumnModel )
-      scrollMatrix.getViewport.setBackground( SystemColor.control )
+      tabMatrix.setColumnModel( MatrixColumnModel )
+      scrollMatrix.getViewport.setBackground( Color.black /* SystemColor.control */)
       ggMatrix.add( scrollMatrix )
+      ggMatrix.setBorder( MatrixBorder )
       ggMatrixApply.putClientProperty( "JButton.buttonType", "bevel" )
       ggMatrixApply.addActionListener( new ActionListener {
          def actionPerformed( e: ActionEvent ) { applyMatrixChanges() }
@@ -246,15 +244,15 @@ extends JPanel with ObserverPage with DynamicListening {
 
         objects match {
            case List( bdiff: MatrixDiffusion ) => {
-              matrixModel.matrix   = bdiff.matrix
-              matrixModel.editable = bdiff.editor.isDefined
+              MatrixModel.matrix   = bdiff.matrix
+              MatrixModel.editable = bdiff.editor.isDefined
               ggMatrixApply.setEnabled( false )
               ggMatrix.setVisible( true )
            }
            case _ => {
                ggMatrix.setVisible( false )
-               matrixModel.editable = false
-               matrixModel.matrix = matrixModel.emptyMatrix
+              MatrixModel.editable = false
+              MatrixModel.matrix = MatrixModel.emptyMatrix
            }
         }
     }
@@ -286,7 +284,7 @@ extends JPanel with ObserverPage with DynamicListening {
 
     private def applyMatrixChanges() {
        ggMatrixApply.setEnabled( false )
-       editSetMatrix( matrixModel.matrix )
+       editSetMatrix( MatrixModel.matrix )
     }
 
     // ---- ObserverPage interface ----+
@@ -299,13 +297,39 @@ extends JPanel with ObserverPage with DynamicListening {
     def documentChanged( newDoc: Document ) {}
 
     // ---- internal clases ----
-    private class MatrixModel extends AbstractTableModel {
+   private object MatrixBorder extends Border {
+      private val fnt = AbstractApplication.getApplication.getGraphicsHandler.getFont( GraphicsHandler.FONT_SMALL )
+
+      def isBorderOpaque   = false
+      def getBorderInsets( c: Component ) = new Insets( 20, 20, 0, 0 )
+
+      def paintBorder( c: Component, g: Graphics, x: Int, y: Int, w: Int, h: Int ) {
+         val g2 = g.asInstanceOf[ Graphics2D ]
+         g2.setColor( Color.black )
+         g2.drawLine( x, y, x + 19, y + 19 )
+         g2.setFont( fnt )
+         val fm = g2.getFontMetrics
+         g2.drawString( "Outputs \u2192", 24, 18 - fm.getDescent )
+         val atOrig = g2.getTransform
+         val txtInputs = "\u2190 Inputs"
+         val iw = fm.stringWidth( txtInputs )
+         g2.rotate( math.Pi * -0.5, 20, 20 )
+         g2.drawString( txtInputs, 16 - iw, 18 - fm.getDescent )
+         g2.setTransform( atOrig )
+      }
+   }
+
+    private object MatrixModel extends AbstractTableModel {
         val emptyMatrix = Matrix2D.fill( 0, 0, 0.0f )
         private var matrixVar = emptyMatrix
         var editable = false
 
         def matrix = matrixVar
         def matrix_=( newMatrix: Matrix2D[ Float ]) {
+
+//println( "GOT MATRIX:" )
+//newMatrix.toSeq.foreach( row => println( row.mkString( "," )))
+
             val colsChanged = newMatrix.numColumns != matrixVar.numColumns
             matrixVar = newMatrix
             if( colsChanged ) {
@@ -317,8 +341,10 @@ extends JPanel with ObserverPage with DynamicListening {
 
         def getRowCount : Int = matrixVar.numRows
         def getColumnCount : Int = matrixVar.numColumns
-        def getValueAt( row: Int, column: Int ) : AnyRef =
+        def getValueAt( row: Int, column: Int ) : AnyRef = {
+//println( "getValueAt row = " + row + "; col = " + column + " -> " + matrix( row, column ))
            MatrixCellValue( matrix( row, column ))
+        }
 
         override def getColumnName( column: Int ) = (column + 1).toString
 
@@ -337,40 +363,56 @@ extends JPanel with ObserverPage with DynamicListening {
         }
     }
 
-    private class MatrixColumnModel extends DefaultTableColumnModel {
+    private object MatrixColumnModel extends DefaultTableColumnModel {
         override def addColumn( tc: TableColumn ) {
-           tc.setCellRenderer( matrixRenderer )
+           tc.setCellRenderer( MatrixCellRenderer )
            tc.setPreferredWidth( 24 ) // XXX
            super.addColumn( tc )
         }
     }
 
-    private class MatrixCellRenderer extends JComponent with TableCellRenderer {
-        override def getTableCellRendererComponent(
-            tab: JTable, value: AnyRef, isSelected: Boolean, hasFocus: Boolean,
-            row: Int, column: Int ) : Component = {
+   private object MatrixCellRenderer extends JComponent with TableCellRenderer {
+      private var muted = false
 
-            value match {
-               case cell @ MatrixCellValue( _ ) => setCellValue( cell )
-               case _ =>
-            }
-            this
-        }
+      override def getTableCellRendererComponent(
+         tab: JTable, value: AnyRef, isSelected: Boolean, hasFocus: Boolean,
+         row: Int, column: Int ) : Component = {
 
-        def setCellValue( cell: MatrixCellValue ) {
-            setBackground( IntensityColorScheme.getColor( cell.decibelsNorm() ))
-            repaint()
-        }
+         value match {
+            case cell @ MatrixCellValue( _ ) => setCellValue( cell )
+            case _ =>
+         }
+         this
+      }
 
-        override def paintComponent( g: Graphics ) {
-            g.setColor( getBackground )
-            g.fillRect( 0, 0, getWidth, getHeight )
-        }
-    }
+      def setCellValue( cell: MatrixCellValue ) {
+         setBackground( IntensityColorScheme.getColor( cell.decibelsNorm() ))
+         muted = cell.f == 0f
+         repaint()
+      }
 
-    private class MatrixCellEditor extends AbstractCellEditor
+      override def paintComponent( g: Graphics ) {
+         val g2 = g.asInstanceOf[ Graphics2D ]
+         g2.setColor( getBackground )
+         val w = getWidth
+         val h = getHeight
+         g2.fillRect( 0, 0, w, h )
+         if( muted ) {
+            g2.setColor( new Color( 0xC0, 0, 0 ))
+            val ext = math.min( w, h ) - 10
+            val strkOrig = g2.getStroke
+            g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON )
+            g2.setStroke( new BasicStroke( 2f ))
+            g2.drawLine( (w - ext) >> 1, (h - ext) >> 1, (w + ext) >> 1, (h + ext) >> 1 )
+            g2.drawLine( (w - ext) >> 1, (h + ext) >> 1, (w + ext) >> 1, (h - ext) >> 1 )
+            g2.setStroke( strkOrig )
+         }
+      }
+   }
+
+    private object MatrixCellEditor extends AbstractCellEditor
     with TableCellEditor with Border {
-        private val comp    = new MatrixCellRenderer
+        private val comp    = MatrixCellRenderer
         private var editVal: Option[ MatrixCellValue ] = None
         private var lastClickCol  = -1
         private var lastClickRow  = -1
