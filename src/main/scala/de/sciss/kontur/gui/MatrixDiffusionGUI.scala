@@ -89,9 +89,10 @@ extends JPanel with ObserverPage with DynamicListening {
       ggNumInputChannels.addSpace( spcChannels )
       ggNumOutputChannels.addSpace( spcChannels )
 
+      val cellEditor = new MatrixCellEditor
       tabMatrix.setShowGrid( true )
       tabMatrix.setDefaultRenderer( classOf[ java.lang.Object ], MatrixCellRenderer )
-      tabMatrix.setDefaultEditor( classOf[ java.lang.Object ], MatrixCellEditor )
+      tabMatrix.setDefaultEditor( classOf[ java.lang.Object ], cellEditor )
       tabMatrix.setAutoResizeMode( JTable.AUTO_RESIZE_OFF )
       tabMatrix.getTableHeader.setReorderingAllowed( false )
       tabMatrix.getTableHeader.setResizingAllowed( false )
@@ -410,111 +411,113 @@ extends JPanel with ObserverPage with DynamicListening {
       }
    }
 
-    private object MatrixCellEditor extends AbstractCellEditor
-    with TableCellEditor with Border {
-        private val comp    = MatrixCellRenderer
-        private var editVal: Option[ MatrixCellValue ] = None
-        private var lastClickCol  = -1
-        private var lastClickRow  = -1
-        private var lastClickTime = 0L
-        private var editCol = -1
-        private var editRow = -1;
+   /**
+    * WARNING: Fucking scalac error 'IllegalAccessError' -- java interop problem.
+    * This cannot be an object, must be a class!!!
+    */
+   private class MatrixCellEditor extends AbstractCellEditor
+   with TableCellEditor with Border {
+      private val comp           = MatrixCellRenderer
+      private var editVal        = Option.empty[ MatrixCellValue ]
+      private var lastClickCol   = -1
+      private var lastClickRow   = -1
+      private var lastClickTime  = 0L
+      private var editCol        = -1
+      private var editRow        = -1;
 
-        // ---- constructor ----
-        {
-           comp.setCursor( Cursor.getPredefinedCursor( Cursor.N_RESIZE_CURSOR ))
-           val mia = new MouseInputAdapter {
-              private var dragStartEvent : Option[ MouseEvent ] = None
-              private var dragStartVal : Option[ MatrixCellValue ] = None
-              private var dragCurrentVal : Option[ MatrixCellValue ] = None
-              override def mousePressed( e: MouseEvent ) {
-                 if( isDoubleClick ) {
-                    lastClickTime = 0 // prevent triple click
-                    editVal.foreach( cell => {
-                        val newCell = cell.copy( if( cell.f == 0f || (cell.f > 0.5f && cell.f < 1f) ) 1f else 0f )
-                        editVal = Some( newCell )
-                        comp.setCellValue( newCell )
-                        fireEditingStopped()
-                    })
-                 } else {
-                    dragStartVal    = editVal
-                    dragCurrentVal  = dragStartVal
-                    dragStartEvent  = Some( e )
-                 }
+      // ---- constructor ----
+      {
+         comp.setCursor( Cursor.getPredefinedCursor( Cursor.N_RESIZE_CURSOR ))
+         val mia = new MouseInputAdapter {
+            private var dragStartEvent = Option.empty[ MouseEvent ]
+            private var dragStartVal   = Option.empty[ MatrixCellValue ]
+            private var dragCurrentVal = Option.empty[ MatrixCellValue ]
 
-                 lastClickTime = System.currentTimeMillis()
-                 lastClickRow  = editRow
-                 lastClickCol  = editCol
-              }
+            override def mousePressed( e: MouseEvent ) {
+               if( isDoubleClick ) {
+                  lastClickTime = 0 // prevent triple click
+                  editVal.foreach { cell =>
+                     val newCell = cell.copy( if( cell.f == 0f || (cell.f > 0.5f && cell.f < 1f) ) 1f else 0f )
+                     editVal = Some( newCell )
+                     comp.setCellValue( newCell )
+                     fireEditingStopped()
+                  }
+               } else {
+                  dragStartVal    = editVal
+                  dragCurrentVal  = dragStartVal
+                  dragStartEvent  = Some( e )
+               }
 
-              private def isDoubleClick =
-                 (lastClickRow == editRow) && (lastClickCol == editCol) &&
-                 ((System.currentTimeMillis() - lastClickTime) < 666L)
-
-              override def mouseDragged( e: MouseEvent ) {
-                  updateDrag( e )
-              }
-
-              override def mouseReleased( e: MouseEvent ) {
-                  dragStartEvent.foreach( e => {
-                      editVal = dragCurrentVal
-                      dragStartEvent = None
-                      fireEditingStopped()
-                  })
-              }
-
-              private def updateDrag( e: MouseEvent ) {
-                  dragStartEvent.foreach( startE => {
-                      dragStartVal.foreach( startCell => {
-                          val newDB = max( -60f, min( 0f, max( -60f, startCell.decibels ) + (startE.getY - e.getY) * 0.25f ))
-                          val newCell = MatrixCellValue.fromDecibels( if( newDB > -60f ) newDB else Float.NegativeInfinity )
-                          val dragNewVal = Some( newCell )
-                          if( dragNewVal != dragCurrentVal ) {
-                              println( "Gain : " + newCell.decibels )
-                              dragCurrentVal = Some( newCell )
-                              comp.setCellValue( newCell )
-                          }
-                      })
-                  })
-              }
-           }
-           comp.addMouseListener( mia )
-           comp.addMouseMotionListener( mia )
-        }
-
-        def getTableCellEditorComponent( tab: JTable, value: AnyRef,
-            isSelected: Boolean, row: Int, col: Int ) : Component = {
-
-            comp.getTableCellRendererComponent( tab, value, isSelected, true,
-                                               row, col )
-            editVal = value match {
-               case cell @ MatrixCellValue( _ ) => Some( cell )
-               case _ => None
+               lastClickTime = System.currentTimeMillis()
+               lastClickRow  = editRow
+               lastClickCol  = editCol
             }
-            editRow = row
-            editCol = col
-            comp
-        }
 
-        def getCellEditorValue : AnyRef = editVal getOrElse null
+            private def isDoubleClick =
+               (lastClickRow == editRow) && (lastClickCol == editCol) &&
+               ((System.currentTimeMillis() - lastClickTime) < 666L)
 
-        def getBorderInsets( c: Component ) = new Insets( 0, 0, 0, 0 )
+            override def mouseDragged( e: MouseEvent ) {
+               updateDrag( e )
+            }
 
-        def isBorderOpaque = true
+            override def mouseReleased( e: MouseEvent ) {
+               dragStartEvent.foreach { e =>
+                  editVal = dragCurrentVal
+                  dragStartEvent = None
+                  fireEditingStopped()
+               }
+            }
 
-        def paintBorder( c: Component, g:  Graphics, x: Int, y: Int, w: Int, h: Int ) {
-            g.setColor( Color.red )
-            g.drawLine( x, y, x + w, y + h )
-            g.drawLine( x + w, y, x, y + h )
-        }
-    }
+            private def updateDrag( e: MouseEvent ) {
+               dragStartEvent.foreach { startE =>
+                  dragStartVal.foreach { startCell =>
+                     val newDB = max( -60f, min( 0f, max( -60f, startCell.decibels ) + (startE.getY - e.getY) * 0.25f ))
+                     val newCell = MatrixCellValue.fromDecibels( if( newDB > -60f ) newDB else Float.NegativeInfinity )
+                     val dragNewVal = Some( newCell )
+                     if( dragNewVal != dragCurrentVal ) {
+                        println( "Gain : " + newCell.decibels )
+                        dragCurrentVal = Some( newCell )
+                        comp.setCellValue( newCell )
+                     }
+                  }
+               }
+            }
+         }
+         comp.addMouseListener( mia )
+         comp.addMouseMotionListener( mia )
+      }
 
-    object MatrixCellValue {
-       def fromDecibels( db: Float ) = MatrixCellValue( pow( 10, db / 20 ).toFloat )
-    }
+      def getTableCellEditorComponent( tab: JTable, value: AnyRef, isSelected: Boolean,
+                                       row: Int, col: Int ) : Component = {
+         comp.getTableCellRendererComponent( tab, value, isSelected, true, row, col )
+         editVal = value match {
+            case cell: MatrixCellValue => Some( cell )
+            case _ => None
+         }
+         editRow = row
+         editCol = col
+         comp
+      }
 
-    case class MatrixCellValue( f: Float ) {
-        def decibels = (20 * log10( f )).toFloat
-        def decibelsNorm( floor: Float = -60f ) = 1 - max( floor, decibels ) / floor
-    }
+      def getCellEditorValue : AnyRef = editVal.orNull
+
+      def getBorderInsets( c: Component ) = new Insets( 0, 0, 0, 0 )
+
+      def isBorderOpaque = true
+
+      def paintBorder( c: Component, g: Graphics, x: Int, y: Int, w: Int, h: Int ) {
+         g.setColor( Color.red )
+         g.drawLine( x, y, x + w, y + h )
+         g.drawLine( x + w, y, x, y + h )
+      }
+   }
+
+   object MatrixCellValue {
+      def fromDecibels( db: Float ) = MatrixCellValue( pow( 10, db / 20 ).toFloat )
+   }
+   case class MatrixCellValue( f: Float ) {
+      def decibels = (20 * log10( f )).toFloat
+      def decibelsNorm( floor: Float = -60f ) = 1 - max( floor, decibels ) / floor
+   }
 }
