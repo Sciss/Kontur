@@ -54,7 +54,7 @@ seq( appbundle.settings: _* )
 
 appbundle.icon := Some( file( "application.icns" ))
 
-appbundle.javaOptions += "-ea"
+appbundle.javaOptions ++= Seq( "-ea", "-Xmx2048m" )
 
 // ---- disable scaladoc generation during development phase ----
 
