@@ -25,20 +25,19 @@
 
 package de.sciss.kontur.io
 
-import java.awt.{ Dimension, Graphics2D }
-import java.awt.image.{ BufferedImage, DataBufferInt, ImageObserver }
-import java.beans.{ PropertyChangeEvent, PropertyChangeListener }
-import java.io.{ ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream, File, IOException }
-import java.util.{ Arrays }
-import javax.swing.{ SwingWorker }
-import scala.collection.immutable.{ Queue, Vector }
-import scala.collection.mutable.{ ListBuffer }
+import java.awt.{Dimension, Graphics2D}
+import java.awt.image.{BufferedImage, DataBufferInt, ImageObserver}
+import java.beans.{PropertyChangeEvent, PropertyChangeListener}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream, File, IOException}
+import java.util.Arrays
+import javax.swing.SwingWorker
+import scala.collection.immutable.Queue
 import scala.math._
-import de.sciss.app.{ AbstractApplication }
-import de.sciss.io.{ AudioFile, AudioFileDescr, AudioFileCacheInfo, CacheManager, IOUtil, Span }
-import de.sciss.kontur.gui.{ IntensityColorScheme }
-import de.sciss.kontur.util.{ PrefsUtil }
-import de.sciss.dsp.{ ConstQ, FastLog }
+import de.sciss.app.AbstractApplication
+import de.sciss.io.{AudioFile, AudioFileDescr}
+import de.sciss.kontur.gui.IntensityColorScheme
+import de.sciss.kontur.util.PrefsUtil
+import de.sciss.dsp.{ConstQ, FastLog}
 
 object SonagramSpec {
    def decode( dis: DataInputStream ) : Option[ SonagramSpec ] = {
@@ -83,7 +82,7 @@ object SonagramFileSpec {
       val bais    = new ByteArrayInputStream( blob )
       val dis     = new DataInputStream( bais )
       val result  = decode( dis )
-      bais.close
+      bais.close()
       result
    }
 
@@ -127,7 +126,7 @@ case class SonagramFileSpec( sona: SonagramSpec, lastModified: Long, audioPath: 
       })
    }
 
-   def makeAllAvailable {
+   def makeAllAvailable() {
       decimSpecs.foreach( d => d.windowsReady = d.numWindows )
    }
 
@@ -147,7 +146,7 @@ case class SonagramFileSpec( sona: SonagramSpec, lastModified: Long, audioPath: 
       val baos = new ByteArrayOutputStream()
       val dos  = new DataOutputStream( baos )
       encode( dos )
-      baos.close
+      baos.close()
       baos.toByteArray
    }
 
@@ -155,7 +154,7 @@ case class SonagramFileSpec( sona: SonagramSpec, lastModified: Long, audioPath: 
       dos.writeInt( COOKIE )
       sona.encode( dos )
       dos.writeLong( lastModified )
-      dos.writeUTF( audioPath.getCanonicalPath() )
+      dos.writeUTF( audioPath.getCanonicalPath )
       dos.writeLong( numFrames )
       dos.writeInt( numChannels )
       dos.writeDouble( sampleRate )
@@ -179,7 +178,8 @@ trait SonagramPaintController {
 }
 
 object SonagramOverview {
-   var verbose = false // true
+   var verbose = false  // true
+   var maxSize = 10240  // XXX 10 GB
    private val APPCODE  = "Ttm "
 
    private var constQCache    = Map[ SonagramSpec, ConstQCache ]()
@@ -190,7 +190,7 @@ object SonagramOverview {
       val app = AbstractApplication.getApplication 
       new PrefCacheManager(
          app.getUserPrefs.node( PrefsUtil.NODE_IO ).node( PrefsUtil.NODE_SONACACHE ),
-         true, new File( System.getProperty( "java.io.tmpdir" ), app.getName ), 10240 ) // XXX 10 GB
+         true, new File( System.getProperty( "java.io.tmpdir" ), app.getName ), maxSize )
    }
 
    @throws( classOf[ IOException ])
@@ -199,7 +199,7 @@ object SonagramOverview {
          val cPath         = path.getCanonicalFile
          val af            = AudioFile.openAsRead( cPath )
          val afDescr       = af.getDescr
-         af.close // render loop will re-open it if necessary...
+         af.close() // render loop will re-open it if necessary...
          val sampleRate    = afDescr.rate
          val stepSize      = max( 64, (sampleRate * 0.0116 + 0.5).toInt ) // 11.6ms spacing
          val sonaSpec      = SonagramSpec( sampleRate, 32, min( 16384, sampleRate / 2 ).toFloat, 24,
@@ -219,15 +219,15 @@ object SonagramOverview {
                   val blob       = cacheDescr.getProperty( AudioFileDescr.KEY_APPCODE ).asInstanceOf[ Array[ Byte ]]
                   if( (cacheDescr.appCode == APPCODE) && (blob != null) && (SonagramFileSpec.decode( blob ) == Some( fileSpec ))
                       && (cacheDescr.length == fileSpec.expectedDecimNumFrames) ) {
-                     af.cleanUp // do not need it anymore for reading
-                     fileSpec.makeAllAvailable
+                     af.cleanUp() // do not need it anymore for reading
+                     fileSpec.makeAllAvailable()
                      Some( cacheAF )
                   } else {
-                     cacheAF.cleanUp
+                     cacheAF.cleanUp()
                      None
                   }
                }
-               catch { case e: IOException => { cacheAF.cleanUp; None }}
+               catch { case e: IOException => { cacheAF.cleanUp(); None }}
             }
             catch { case e: IOException => { None }}
          } else None
@@ -355,7 +355,7 @@ object SonagramOverview {
    private def queue( sona: SonagramOverview ) {
       sync.synchronized {
          workerQueue = workerQueue.enqueue( new WorkingSonagram( sona ))
-         checkRun
+         checkRun()
       }
    }
 
@@ -364,11 +364,11 @@ object SonagramOverview {
          val (s, q) = workerQueue.dequeue
          workerQueue = q
          assert( ws == s )
-         checkRun
+         checkRun()
       }
    }
 
-   private[this] def checkRun {
+   private[this] def checkRun() {
       sync.synchronized {
          if( runningWorker.isEmpty ) {
             workerQueue.headOption.foreach( next => {
@@ -404,11 +404,11 @@ if( verbose ) println( "WorkingSonagram got in : " + e.getPropertyName + " / " +
 
    private class WorkingSonagram( val sona: SonagramOverview )
    extends SwingWorker[ Unit, Unit ] {
-      override protected def doInBackground() : Unit = {
+      override protected def doInBackground() {
          try {
             sona.render( this )
          }
-         catch { case e => e.printStackTrace }
+         catch { case e => e.printStackTrace() }
       }
    }
 
@@ -427,7 +427,7 @@ class SonagramOverview @throws( classOf[ IOException ]) private (
    private val numKernels        = fileSpec.sona.numKernels
    private val imgSpec           = SonagramImageSpec( numChannels, new Dimension( 128, numKernels ))
    private val sonaImg           = allocateSonaImage( imgSpec )
-   private val imgData           = sonaImg.img.getRaster.getDataBuffer.asInstanceOf[ DataBufferInt ].getData()
+   private val imgData           = sonaImg.img.getRaster.getDataBuffer.asInstanceOf[ DataBufferInt ].getData
 
    // caller must have sync
    private def seekWindow( decim: SonagramDecimSpec, idx: Long ) {
@@ -549,7 +549,7 @@ if( verbose ) println( "drawImage( img<" + sonaImg.img.getWidth + "," + sonaImg.
 
    protected def render( ws: WorkingSonagram ) {
       val constQ = allocateConstQ( fileSpec.sona )
-      val fftSize = constQ.getFFTSize
+//      val fftSize = constQ.getFFTSize
       val t1 = System.currentTimeMillis
       try {
          val af = AudioFile.openAsRead( fileSpec.audioPath )
@@ -557,7 +557,7 @@ if( verbose ) println( "drawImage( img<" + sonaImg.img.getWidth + "," + sonaImg.
             primaryRender( ws, constQ, af )
          }
          finally {
-            af.cleanUp
+            af.cleanUp()
          }
       }
       finally {
@@ -669,7 +669,7 @@ if( verbose ) println( "drawImage( img<" + sonaImg.img.getWidth + "," + sonaImg.
    }
 
    private var disposed = false
-   def dispose {
+   def dispose() {
       if( !disposed ) {
          disposed = true
          releaseSonaImage( imgSpec )
