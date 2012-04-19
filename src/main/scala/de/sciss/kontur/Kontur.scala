@@ -56,7 +56,7 @@ import sc.SuperColliderClient
 
 object Kontur {
    val name          = "Kontur"
-   val version       = 0.18
+   val version       = 0.19
    val copyright     = "(C)opyright 2004-2012 Hanns Holger Rutz"
    val isSnapshot    = false
 

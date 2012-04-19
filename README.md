@@ -6,7 +6,7 @@ Kontur is (C)opyright by 2004-2012 Hanns Holger. All rights reserved. It is rele
 
 ### requirements / installation
 
-Builds with sbt 0.11 and compiles against Scala 2.9.1 and Java 1.6. Depends on ScalaCollider-Swing. sbt should be able to pull these dependencies from the net or your local ivy2 folder. Three libraries (ScissDSP, ScissLib and MRJAdapter) are now included as binaries in `lib` for simplicity.
+Builds with sbt 0.11 and compiles against Scala 2.9.2 and Java 1.6. Depends on ScalaCollider-Swing. sbt should be able to pull these dependencies from the net or your local ivy2 folder. Three libraries (ScissDSP, ScissLib and MRJAdapter) are now included as binaries in `lib` for simplicity.
 
 `sbt compile` will then build the project, and `sbt appbundle` will update the OS X application bundle, while `sbt assembly` creates a self-contained double-clickable jar (which you can use on platforms other than OS X)
 
