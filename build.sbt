@@ -10,7 +10,7 @@ scalaVersion   := "2.9.1"
 
 description := "An extensible multitrack audio editor based on ScalaCollider"
 
-homepage := Some( url( "https://github.com/Sciss/ScalaColliderSwing" ))
+homepage := Some( url( "https://github.com/Sciss/Kontur" ))
 
 licenses := Seq( "GPL v2+" -> url( "http://www.gnu.org/licenses/gpl-2.0.txt" ))
 
