@@ -25,23 +25,52 @@
 
 package de.sciss.kontur.gui;
 
-import java.io.PrintStream
+import java.io.{File, FileInputStream, PrintStream}
 import javax.swing.{ JSplitPane, SwingConstants }
-import de.sciss.app.AbstractWindow
+import de.sciss.app.{AbstractWindow, AbstractCompoundEdit}
 import de.sciss.kontur.sc.{ SuperColliderClient, SuperColliderPlayer, SynthContext }
 import de.sciss.kontur.session.Session
+import de.sciss.kontur.edit.Editor
 import de.sciss.synth.Server
 import de.sciss.scalainterpreter.{ LogPane, ScalaInterpreterPane }
 import tools.nsc.interpreter.NamedParam
 import de.sciss.common.BasicApplication
+import de.sciss.io.Span
 
 object ScalaInterpreterFrame {
+   final class ProvideEditing private[ScalaInterpreterFrame] ( e: Editor ) {
+      def edit( name: String )( fun: AbstractCompoundEdit => Unit ) { defer {
+         val ce = e.editBegin( name )
+         var succ = false
+         try {
+            fun( ce )
+            succ = true
+         } finally {
+            if( succ ) e.editEnd( ce ) else e.editCancel( ce )
+         }
+      }}
+   }
+
+   def defer(thunk: => Unit) {
+      java.awt.EventQueue.invokeLater(
+         new Runnable() {
+            def run() { thunk }
+         }
+      )
+   }
+
    class REPLSupport( val app: BasicApplication ) {
       def doc : Session             = app.getDocumentHandler.getActiveDocument.asInstanceOf[ Session ]
       def sc : SuperColliderClient  = SuperColliderClient.instance
       def scp : SuperColliderPlayer = { val d = doc; (if( d != null ) sc.getPlayer( d ) else None).orNull }
       def con : SynthContext        = { val p = scp; (if( p != null ) p.context else None).orNull }
       def s : Server                = sc.server.orNull
+
+      def Span( start: Long, stop: Long ) = new Span( start, stop )
+
+      def defer(thunk: => Unit) { ScalaInterpreterFrame.defer( thunk )}
+
+      implicit def provideEditing( e: Editor ) : ProvideEditing = new ProvideEditing( e )
    }
 }
 class ScalaInterpreterFrame
@@ -60,6 +89,19 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 //         import math._
 //"""
 //      )
+
+      val replFile = new File( "interpreter.txt" )
+      if( replFile.exists() ) try {
+         val fin = new FileInputStream( replFile )
+         val i   = fin.available()
+         val arr = new Array[ Byte ]( i )
+         fin.read( arr )
+         val txt = new String( arr, "UTF-8" )
+         ip.initialText += txt
+
+      } catch {
+         case e => e.printStackTrace()
+      }
 
       val support = new REPLSupport( app )
       ip.customBindings = Seq(

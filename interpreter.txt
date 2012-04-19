@@ -1,0 +1,20 @@
+
+val tl = doc.timelines.toList.find(_.name == "TestTL").get
+val af = doc.audioFiles.toList.find(_.name == "Raubtier-13.aif").get
+val at = tl.tracks.toList.collect({ case t: AudioTrack => t }).head
+val tr = at.trail
+val rnd = new util.Random()
+
+def secsToFrames( secs: Double ) = (secs * 44100).toLong
+
+val regions = (1 to 10).map { i =>
+  val start = secsToFrames( rnd.nextDouble() * 100 )
+  val len   = secsToFrames( rnd.nextDouble() * 12 + 2 )
+  val stop  = start + len
+  val off   = (rnd.nextDouble() * af.numFrames - len).toLong
+  AudioRegion(Span(start, stop), "Region #" + i, af, off)
+}
+
+tr.edit("Add some regions") { ce =>
+  tr.editAdd(ce, regions: _*)
+}
