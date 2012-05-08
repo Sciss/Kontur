@@ -11,6 +11,6 @@ resolvers += "sbt-idea-repo" at "http://mpeltonen.github.com/maven/"
 
 addSbtPlugin( "me.lessis" % "ls-sbt" % "0.1.1" )
 
-addSbtPlugin( "com.eed3si9n" % "sbt-assembly" % "0.7.4" )
+addSbtPlugin( "com.eed3si9n" % "sbt-assembly" % "0.8.1" )
 
 addSbtPlugin( "de.sciss" % "sbt-appbundle" % "0.13" )
