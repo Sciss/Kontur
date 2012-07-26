@@ -88,6 +88,8 @@ extends SCTrackPlayer {
          }
       }
    }
+   
+   private def L( elems: ControlSetMap* ) : List[ ControlSetMap ] = List( elems: _* )
 
    private def play( diff: Diffusion, ar: AudioRegion, frameOffset: Long, delay: Double, force: Boolean )
                    ( whenReady: Option[ RichSynth ] => Unit ) {
@@ -99,7 +101,7 @@ extends SCTrackPlayer {
          return
       }
 
-      val L    = List[ ControlSetMap ] _
+//      val L    = List[ ControlSetMap ] _
       val sd   = graph( "disk", numChannels, monoMix ) {
          val out           = "out".kr
          val i_buf         = "i_buf".ir

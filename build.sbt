@@ -6,7 +6,7 @@ version        := "0.19"
 
 organization   := "de.sciss"
 
-scalaVersion   := "2.9.2"
+scalaVersion   := "2.10.0-M6"
 
 description := "An extensible multitrack audio editor based on ScalaCollider"
 
@@ -66,6 +66,8 @@ seq( appbundle.settings: _* )
 appbundle.icon := Some( file( "application.icns" ))
 
 appbundle.javaOptions ++= Seq( "-ea", "-Xmx2048m" )
+
+appbundle.target := file( "." )
 
 // ---- disable scaladoc generation during development phase ----
 
