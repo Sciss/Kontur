@@ -29,7 +29,7 @@ import java.awt.{ FileDialog, Frame }
 import java.awt.event.{ ActionEvent, KeyEvent }
 import java.io.{ File, IOException }
 import javax.swing.{ AbstractAction, Action, JComponent, JOptionPane, KeyStroke, WindowConstants }
-import de.sciss.app.{ AbstractWindow }
+import de.sciss.app.AbstractWindow
 import de.sciss.common.{ BasicMenuFactory, BasicWindowHandler, ShowWindowAction }
 import de.sciss.gui.MenuAction
 import de.sciss.kontur.session.Session
@@ -261,11 +261,11 @@ trait SessionFrame {
             doc.path
          }
          path.map( p => {
-            actionSave.perform( actionSave.getValue( Action.NAME ).toString, p, false, false )
+            actionSave.perform( actionSave.getValue( Action.NAME ).toString, p, asCopy = false, openAfterSave = false )
          }) getOrElse false
       }
       case _ => {
-         assert( false )
+         assert( assertion = false )
          false
       }}
    }
@@ -274,7 +274,7 @@ trait SessionFrame {
       def actionPerformed( e: ActionEvent ) { perform() }
 
       def perform() {
-         closeDocument( false, new Flag( false ))
+         closeDocument( force = false, new Flag( false ))
       }
    }
 
@@ -289,7 +289,7 @@ trait SessionFrame {
       def actionPerformed( e: ActionEvent ) {
          val name = getValue( Action.NAME ).toString
          (doc.path orElse actionSaveAs.query( name )).foreach( f =>
-            perform( name, f, false, false ))
+            perform( name, f, asCopy = false, openAfterSave = false ))
       }
 
       protected[gui] def perform( name: String, file: File, asCopy: Boolean, openAfterSave: Boolean ) : Boolean = {

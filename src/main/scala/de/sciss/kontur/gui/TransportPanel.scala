@@ -61,17 +61,17 @@ extends SegmentedButtonPanel with DynamicListening {
    private val oscID       = 0 // tlv.timeline.id.toInt 
 
    private val transportListener: Model.Listener = {
-      case Play( pos, rate ) => trnspChanged( true )
-      case Stop( pos ) => trnspChanged( false )
+      case Play( pos, rate ) => trnspChanged( newIsPlaying = true )
+      case Stop( pos ) => trnspChanged( newIsPlaying = false )
    }
 
    private val timelineViewListener: Model.Listener = {
-      case TimelineCursor.PositionChanged( _, _ ) => if( !isPlaying ) updateTimeLabel( true )
-      case Timeline.RateChanged( _, _ ) => updateTimeLabel( true )
+      case TimelineCursor.PositionChanged( _, _ ) => if( !isPlaying ) updateTimeLabel( sendOSC = true )
+      case Timeline.RateChanged( _, _ ) => updateTimeLabel( sendOSC = true )
    }
 
    private val playTimer = new Timer( 27, new ActionListener {
-      def actionPerformed( e: ActionEvent ) { updateTimeLabel( false )}
+      def actionPerformed( e: ActionEvent ) { updateTimeLabel( sendOSC = false )}
    })
 
    // ---- constructor ----
@@ -180,7 +180,7 @@ extends SegmentedButtonPanel with DynamicListening {
          butPlay.setEnabled( !isPlaying )
          butPlay.setSelected( isPlaying )
 //      }
-      updateTimeLabel( false )
+      updateTimeLabel( sendOSC = false )
       if( isPlaying ) {
          playTimer.restart()
       } else {
@@ -222,7 +222,7 @@ extends SegmentedButtonPanel with DynamicListening {
 
    private class ActionStop extends AbstractAction {
       def actionPerformed( e: ActionEvent ) {
-        transport.foreach( _.stop )
+        transport.foreach( _.stop() )
       }
    }
 

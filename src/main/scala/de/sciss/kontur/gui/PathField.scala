@@ -26,7 +26,7 @@
 package de.sciss.kontur.gui
 
 import java.beans.{ PropertyChangeEvent, PropertyChangeListener }
-import de.sciss.common.{ BasicPathField }
+import de.sciss.common.BasicPathField
 
 class PathField( typ: Int, title: String )
 extends BasicPathField( typ, title ) {

@@ -25,13 +25,13 @@
 
 package de.sciss.kontur.sc
 
-import scala.collection.mutable.PriorityQueue
 import java.io.{ BufferedReader, File, InputStreamReader, IOException, RandomAccessFile }
 import java.nio.ByteBuffer
 import javax.swing.SwingWorker
 import de.sciss.io.IOUtil
 import de.sciss.osc
 import de.sciss.synth.{ osc => _, _}
+import collection.mutable
 
 object BounceSynthContext {
    @throws( classOf[ IOException ])
@@ -71,7 +71,7 @@ extends SynthContext( s, false ) {
    private val verbose =  false
 
    private var timebaseVar = 0.0
-   private val bundleQueue = new PriorityQueue[ Bundle ]()( BundleOrdering )
+   private val bundleQueue = new mutable.PriorityQueue[ Bundle ]()( BundleOrdering )
    private var fileOpen    = true
    private val codec       = osc.PacketCodec().scsynth().build
    private val bb          = ByteBuffer.allocateDirect( 65536 )
@@ -221,7 +221,7 @@ extends SynthContext( s, false ) {
 //         add( rn.node.freeMsg )
 //         rn.isOnline = false
          addAsync( new AsyncAction {
-            def asyncDone { rn.isOnline = false }
+            def asyncDone() { rn.isOnline = false }
          })
       } // simulate n_end
    }
@@ -264,7 +264,7 @@ extends SynthContext( s, false ) {
    private class Bundle( val time: Double )
    extends AbstractBundle {
       @throws( classOf[ IOException ])
-      def send {
+      def send() {
          enqueue( this )
       }
    }

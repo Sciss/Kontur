@@ -26,7 +26,7 @@
 package de.sciss.kontur.gui
 
 import de.sciss.app.AbstractWindow
-import de.sciss.kontur.sc.{ SuperColliderClient }
+import de.sciss.kontur.sc.SuperColliderClient
 import de.sciss.synth.{ Model, Server }
 import java.awt.BorderLayout
 import java.awt.event.{ ActionEvent, InputEvent, KeyEvent }
@@ -40,8 +40,8 @@ class SuperColliderFrame extends AppWindow( AbstractWindow.SUPPORT /* PALETTE */
    private val serverPanel = new JServerStatusPanel(
       JServerStatusPanel.COUNTS | JServerStatusPanel.BOOT_BUTTON ) {
 
-     override protected def bootServer { superCollider.boot() }
-     override protected def stopServer { superCollider.stop() }
+     override protected def bootServer() { superCollider.boot() }
+     override protected def stopServer() { superCollider.stop() }
      override protected def couldBoot: Boolean = true
    }
 

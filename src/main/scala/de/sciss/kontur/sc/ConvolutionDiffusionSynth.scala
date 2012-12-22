@@ -25,7 +25,7 @@
 
 package de.sciss.kontur.sc
 
-import de.sciss.dsp.MathUtil
+import de.sciss.dsp.Util.nextPowerOfTwo
 import de.sciss.synth._
 import de.sciss.synth.ugen._
 import de.sciss.kontur.session.{ Diffusion, ConvolutionDiffusion }
@@ -64,10 +64,10 @@ extends DiffusionSynth {
        diffusion.addListener( diffusionListener )
    }
 
-   def play {
+   def play() {
       val d       = diffusion
 //      val bufSize = MathUtil.nextPowerOfTwo( min( 32768, d.numFrames ).toInt )
-      val bufSize = MathUtil.nextPowerOfTwo( d.numFrames.toInt )  // u should know what u are doing
+      val bufSize = nextPowerOfTwo( d.numFrames.toInt )  // u should know what u are doing
       val buf     = emptyMultiBuffer( bufSize, d.numOutputChannels )
 
       d.path.foreach( p => buf.read( p ))
@@ -100,15 +100,15 @@ extends DiffusionSynth {
       synth = Some( syn )
    }
 
-   def stop {
+   def stop() {
       synth.foreach( _.free() )
       synth = None
    }
 
-   def dispose {
+   def dispose() {
       diffusion.removeListener( diffusionListener )
-      stop
-      inBus.free
-      outBus.free
+      stop()
+      inBus.free()
+      outBus.free()
    }
 }

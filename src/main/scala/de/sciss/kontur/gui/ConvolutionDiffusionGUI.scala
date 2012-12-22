@@ -33,7 +33,7 @@ import javax.swing.{ GroupLayout, JLabel, JPanel, JTextField, SwingConstants }
 import SwingConstants._
 //import scala.math._
 import de.sciss.app.{ AbstractCompoundEdit, DynamicAncestorAdapter, DynamicListening }
-import de.sciss.dsp.MathUtil
+import de.sciss.dsp.Util.nextPowerOfTwo
 import de.sciss.synth.io.AudioFile
 import de.sciss.kontur.session.{ Diffusion, DiffusionEditor, DiffusionFactory, ConvolutionDiffusion, Renamable, Session }
 import de.sciss.util.ParamSpace
@@ -71,7 +71,7 @@ extends JPanel with DynamicListening with FilenameFilter {
 
    private val diffListener: Model.Listener = {
       // XXX the updates could be more selective
-      case Renamable.NameChanged( _, _ )             => updateGadgets()
+      case Renamable.NameChanged( _, _ )              => updateGadgets()
       case ConvolutionDiffusion.PathChanged( _, _ )   => updateGadgets()
    }
 
@@ -223,7 +223,7 @@ extends JPanel with DynamicListening with FilenameFilter {
             ggPath.setPath( path getOrElse new File( "" ))
             ggPath.setFormat( path.map( p => {
                val millis  = (cdiff.numFrames / cdiff.sampleRate * 1000 + 0.5).toInt
-               val fftSize = MathUtil.nextPowerOfTwo( cdiff.numFrames.toInt ) << 1
+               val fftSize = nextPowerOfTwo( cdiff.numFrames.toInt ) << 1
                msgForm.format( Array( int2Integer( cdiff.numOutputChannels ),
                   long2Long( cdiff.numFrames ), int2Integer( fftSize ),
                   float2Float( (cdiff.sampleRate / 1000).toFloat ),

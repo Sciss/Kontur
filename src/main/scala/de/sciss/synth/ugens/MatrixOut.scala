@@ -42,7 +42,7 @@ final case class MatrixOut( in: GE, m: Matrix2D[ Float ]) extends GE.Lazy {
       val ins     = _in.outputs
       val numIns  = ins.size
       require( numIns == m.numRows )
-      val outs = Seq.tabulate[ GE ]( m.numColumns )( outCh => Mix.mono( ins * Seq.tabulate( numIns )( inCh => m( inCh, outCh ))).expand )
+      val outs = Seq.tabulate[ GE ]( m.numColumns )( outCh => Mix.mono( (ins: GE) * Seq.tabulate( numIns )( inCh => m( inCh, outCh ))).expand )
       outs.expand
    }
 }

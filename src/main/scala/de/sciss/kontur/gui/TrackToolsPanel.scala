@@ -28,7 +28,7 @@ package de.sciss.kontur.gui
 import java.awt.event.{ ActionEvent, ActionListener, KeyEvent }
 import javax.swing.{ AbstractAction, Box, BoxLayout, JComboBox, JComponent, JPanel, JSlider, KeyStroke }
 import javax.swing.event.{ ChangeEvent, ChangeListener }
-import de.sciss.common.{ BasicMenuFactory }
+import de.sciss.common.BasicMenuFactory
 import de.sciss.kontur.util.PrefsUtil
 import de.sciss.app.{AbstractApplication, DynamicPrefChangeManager, DynamicAncestorAdapter}
 import java.util.prefs.{PreferenceChangeEvent, PreferenceChangeListener}
@@ -58,7 +58,7 @@ extends JPanel with TrackTools with PreferenceChangeListener {
    private val ggCombo                                      = new JComboBox()
    private var visualBoostVar                               = slidToBoost( 64 ) // 1f;
    private var fadeViewModeVar: FadeViewMode                = FadeViewMode.Curve
-   private var stakeBorderViewModeVar: StakeBorderViewMode  = StakeBorderViewMode.TitledBox;
+   private var stakeBorderViewModeVar: StakeBorderViewMode  = StakeBorderViewMode.TitledBox
 
    // ---- constructor ----
    {
@@ -163,7 +163,7 @@ extends JPanel with TrackTools with PreferenceChangeListener {
          ggCombo.setSelectedItem( this )
       }
 
-      def perform() { currentTool = t }
+      def perform() { currentTool_=( t )}
 
       override def toString = t.name + " " + strokeText
    }

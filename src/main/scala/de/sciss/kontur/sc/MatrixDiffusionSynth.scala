@@ -28,7 +28,6 @@ package de.sciss.kontur.sc
 import de.sciss.synth._
 import de.sciss.synth.ugen._
 import de.sciss.kontur.session.{ Diffusion, MatrixDiffusion }
-import de.sciss.kontur.util.Matrix2D
 import ugens.MatrixOut
 
 class MatrixDiffusionSynthFactory( diff: MatrixDiffusion )

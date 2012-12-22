@@ -211,7 +211,7 @@ extends RichBuffer {
 
 class RichBus( val bus: Bus ) {
    def free() {
-      bus.free // XXX
+      bus.free() // XXX
    }
 
    def index: Int = bus.index
@@ -290,18 +290,18 @@ extends Model with Disposable {
    }
 
    def perform( thunk: => Unit ) {
-      perform( thunk, -1, true )
+      perform( thunk, -1, send = true )
    }
 
    /**
     * Like perform but ignores the messages silently. Use this to clean up after the server shut down.
     */
    def consume( thunk: => Unit ) {
-      perform( thunk, -1, false )
+      perform( thunk, -1, send = false )
    }
 
    def delayed( tb: Double, delay: Double )( thunk: => Unit ) {
-      perform( thunk, (tb - timebase) + delay, true )
+      perform( thunk, (tb - timebase) + delay, send = true )
    }
    
    private def perform( thunk: => Unit, time: Double, send: Boolean ) {
@@ -369,7 +369,7 @@ extends Model with Disposable {
    }
 
    def emptyMultiBuffer( numFrames: Int, numChannels: Int ) : RichBuffer = {
-      val id    = server.buffers.alloc( numChannels )
+      val id    = server.allocBuffer( numChannels )
       val bufs  = (0 until numChannels).map( ch => Buffer( server, id + ch ))
       val rb = new RichMultiBuffer( bufs )
       bufs.foreach( buf => {
@@ -485,7 +485,7 @@ extends Model with Disposable {
 
 class RealtimeSynthContext( s: Server )
 extends SynthContext( s, true ) {
-   private val resp = scosc.Responder({
+   private val resp = scosc.Responder( server ) {
       // Warning: code is not thread safe, and Responder
       // is on an arbitrary thread, so defer to AWT
       // thread to conincide with the Swing Timer in
@@ -495,17 +495,18 @@ extends SynthContext( s, true ) {
             syncWait -= id
             perform { bundle.doAsync() } // we could use 'delayed', but we might want bundle 'immediate' times
          }
-   }}, server )
-   private var timebaseSysRef = System.currentTimeMillis
+      }
+   }
+   private var timebaseSysRef = System.currentTimeMillis()
    private var timebaseVar = 0.0
    private var syncWait    = Map[ Int, Bundle ]()
    private var bundleCount = 0
 
    // ---- constructor ----
-   resp.add
+   resp.add()
 
    def dispose() {
-      resp.remove
+      resp.remove()
    }
 
    override def toString = "Realtime(" + s.toString + ")"

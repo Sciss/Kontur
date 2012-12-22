@@ -42,7 +42,7 @@ with DynamicListening {
    private val ggLimiter   = new MultiStateButton()
    private val pmg	      = new PeakMeterPanel()
    private val b1          = new SpringPanel( 2, 4, 2, 4 )
-   private var isListening = false;
+   private var isListening = false
 
    // ---- constructor ----
    {
@@ -61,13 +61,13 @@ with DynamicListening {
  		ggLimiter.addItem( "Limiter" )
  // NOTE: BUG WITH CUSTOM COMPOSITE ON WIN-XP!!!
  //		ggLimiter.addItem( "Limiter", null, new Color( 0xFF, 0xFA, 0x9D ), new Color( 0xFA, 0xE7, 0x9D ));
- ggLimiter.addItem( "Limiter", null, new Color( 0xFF, 0xFA, 0x9D ));
+ ggLimiter.addItem( "Limiter", null, new Color( 0xFF, 0xFA, 0x9D ))
  		ggLimiter.addActionListener( new ActionListener {
  			def actionPerformed( e: ActionEvent ) {
 // 				superCollider.setLimiter( ggLimiter.getSelectedIndex() == 1 );
              superCollider.limiter = ggLimiter.getSelectedIndex == 1
  			}
- 		});
+ 		})
  		if( superCollider.limiter ) ggLimiter.setSelectedIndex( 1 )
 
  		pmg.setBorder( true )
@@ -177,9 +177,9 @@ with DynamicListening {
 //  		lmm.clearInputs()
 //  	}
 
-   private def printError( name: String, t: Throwable ) {
-  		Console.err.println( name + " : " + t.getClass.getName + " : " + t.getLocalizedMessage )
-   }
+//   private def printError( name: String, t: Throwable ) {
+//  		Console.err.println( name + " : " + t.getClass.getName + " : " + t.getLocalizedMessage )
+//   }
 
   	private def rebuildMeters() {
 //  		val oCfg = superCollider.getOutputConfig

@@ -23,19 +23,18 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui;
+package de.sciss.kontur.gui
 
-import java.io.{File, FileInputStream, PrintStream}
-import javax.swing.{ JSplitPane, SwingConstants }
+import java.io.{File, FileInputStream}
 import de.sciss.app.{AbstractWindow, AbstractCompoundEdit}
 import de.sciss.kontur.sc.{ SuperColliderClient, SuperColliderPlayer, SynthContext }
 import de.sciss.kontur.session.Session
 import de.sciss.kontur.edit.Editor
 import de.sciss.synth.Server
-import de.sciss.scalainterpreter.{ LogPane, ScalaInterpreterPane }
 import tools.nsc.interpreter.NamedParam
 import de.sciss.common.BasicApplication
 import de.sciss.io.Span
+import de.sciss.scalainterpreter.{SplitPane, CodePane, Interpreter, InterpreterPane}
 
 object ScalaInterpreterFrame {
    final class ProvideEditing private[ScalaInterpreterFrame] ( e: Editor ) {
@@ -82,7 +81,10 @@ extends AppWindow( AbstractWindow.REGULAR ) {
       setTitle( getResourceString( "frameScalaInterpreter" ))
       val cp = getContentPane
 
-      val ip = new ScalaInterpreterPane
+      val ipc  = InterpreterPane.Config()
+      val ic   = Interpreter.Config()
+      val cpc  = CodePane.Config()
+
 //      ip.initialCode = Some(
 //"""
 //         import de.sciss.kontur.session._
@@ -97,20 +99,20 @@ extends AppWindow( AbstractWindow.REGULAR ) {
          val arr = new Array[ Byte ]( i )
          fin.read( arr )
          val txt = new String( arr, "UTF-8" )
-         ip.initialText += txt
+         cpc.text += txt
 
       } catch {
-         case e => e.printStackTrace()
+         case e: Throwable => e.printStackTrace()
       }
 
       val support = new REPLSupport( app )
-      ip.customBindings = Seq(
+      ic.bindings = Seq(
 //         NamedParam( "app", app ),
          NamedParam( "replsupport", support )
 //         NamedParam( "sc", SuperColliderClient.instance )
       )
 
-      ip.customImports = Seq(
+      ic.imports = Seq(
          "de.sciss.kontur.session._",
          "math._",
          "replsupport._"
@@ -130,25 +132,31 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 //         in.bind( "s", classOf[ Server ].getName, s )
 //      })
 
-      val lp = new LogPane()
-      lp.init()
-      ip.out = Some( lp.writer )
-      Console.setOut( lp.outputStream )
-      Console.setErr( lp.outputStream )
-      System.setErr( new PrintStream( lp.outputStream ))
+//      val ip   = InterpreterPane( ipc, ic )
 
-      ip.init()
-      val sp = new JSplitPane( SwingConstants.HORIZONTAL )
-      sp.setTopComponent( ip )
-      sp.setBottomComponent( lp )
-      cp.add( sp )
+      val sp   = SplitPane( ipc, ic, cpc )
+//      val ip   = sp.interpreter
+
+//      val lp   = new LogPane()
+//      lp.init()
+//      ip.out = Some( lp.writer )
+//      Console.setOut( lp.outputStream )
+//      Console.setErr( lp.outputStream )
+//      System.setErr( new PrintStream( lp.outputStream ))
+
+//      ip.init()
+
+//      val sp = new JSplitPane( SwingConstants.HORIZONTAL )
+//      sp.setTopComponent( ip )
+//      sp.setBottomComponent( lp )
+      cp.add( sp.component )
 //      val b = GraphicsEnvironment.getLocalGraphicsEnvironment.getMaximumWindowBounds
 //      setSize( b.width / 2, b.height * 7 / 8 )
 //      sp.setDividerLocation( b.height * 2 / 3 )
 //      setLocationRelativeTo( null )
 
       init()
-      sp.setDividerLocation( cp.getHeight * 2 / 3 )
+//      sp.setDividerLocation( cp.getHeight * 2 / 3 )
       setVisible( true )
       toFront()
    }

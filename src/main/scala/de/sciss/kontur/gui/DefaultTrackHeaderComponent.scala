@@ -86,8 +86,6 @@ with DynamicListening with Disposable {
 			 *  Alt+Click   = Toggle item & set all others to same new state
 			 *  Meta+Click  = Toggle item & set all others to opposite state
 			 *	</pre>
-			 *
-			 *	@synchronization	attempts exclusive on TRNS + GRP
 			 */
 			override def mousePressed( e: MouseEvent ) {
 //				val id = editor.editBegin( this, getResourceString( "editTrackSelection" ))
@@ -149,7 +147,7 @@ with DynamicListening with Disposable {
 
 		// --- Listener ---
       addMouseListener( ml )
-      new DynamicAncestorAdapter( this ).addTo( this );
+      new DynamicAncestorAdapter( this ).addTo( this )
 
 /*
 		trackListener = new MapManager.Listener() {

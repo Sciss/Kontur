@@ -47,7 +47,7 @@ extends Transport {
    private var playing = false
    private var startPos = 0L
    private var startTime = 0L
-   private var stopPos = 0L
+   private val stopPos = 0L
 
    def play( from: Long, rate: Double = 1.0 ) {
       stop()

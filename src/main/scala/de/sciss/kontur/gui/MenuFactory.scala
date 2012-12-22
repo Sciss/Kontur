@@ -225,7 +225,7 @@ extends BasicMenuFactory( app ) {
          val accept = try {
             Some( new Acceptor )
          }
-         catch { case _ => None }
+         catch { case _: Throwable => None }
          accept.foreach( a => fDlg.setFilenameFilter( a ))
 			fDlg.setVisible( true )
             accept.foreach( _.dispose() )
@@ -266,10 +266,10 @@ extends BasicMenuFactory( app ) {
                }
                catch {
                   case e: SessionFoundException => true
-                  case _ => false
+                  case _: Throwable => false
                }
                finally {
-                  try { reader.close() } catch { case e => }
+                  try { reader.close() } catch { case e: Throwable => }
                }
             }
             catch { case e1: IOException => false }

@@ -26,7 +26,7 @@
 package de.sciss.kontur.gui
 
 import java.awt.{Color, Dimension, Graphics, Graphics2D, Rectangle, RenderingHints, TexturePaint}
-import java.awt.datatransfer.{DataFlavor}
+import java.awt.datatransfer.DataFlavor
 import java.awt.dnd.{DnDConstants, DropTarget, DropTargetAdapter, DropTargetDragEvent, DropTargetDropEvent, DropTargetEvent}
 import java.awt.event.{MouseAdapter, MouseEvent}
 import java.awt.geom.Path2D
@@ -39,10 +39,9 @@ import de.sciss.kontur.session.{AudioFileElement, AudioRegion, AudioTrack,
                                 BasicTrail, FadeSpec, RegionTrait,
                                 ResizableStake, Session, SlidableStake, Stake, Track}
 import de.sciss.app.{AbstractApplication, AbstractCompoundEdit, DynamicAncestorAdapter,DynamicListening, GraphicsHandler}
-import de.sciss.dsp.MathUtil
+import de.sciss.dsp.Util.ampdb
 import de.sciss.io.Span
 import de.sciss.synth.{curveShape, linShape, Model}
-import de.sciss.synth.io.AudioFile
 
 //import Track.Tr
 
@@ -126,7 +125,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
               val stakes = trail.getRange( span )
               val stakeO = stakes.headOption
               tt.currentTool.handleSelect( e, trackListElement, pos, stakeO )
-              if( (e.getClickCount == 2) && !stakes.isEmpty ) showObserverPage
+              if( (e.getClickCount == 2) && !stakes.isEmpty ) showObserverPage()
           })
       }
    }
@@ -141,21 +140,21 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
         case TrackMoveTool.Move( deltaTime, deltaVertical, copy ) => painter match {
            case mrp: MoveResizePainter => {
                  mrp.adjustMove( deltaTime, deltaVertical, copy )
-                 mrp.adjusted
+                 mrp.adjusted()
            }
            case _ =>
         }
         case TrackResizeTool.Resize( deltaStart, deltaStop ) => painter match {
            case mrp: MoveResizePainter => {
                  mrp.adjustResize( deltaStart, deltaStop )
-                 mrp.adjusted
+                 mrp.adjusted()
            }
            case _ =>
         }
         case TrackSlideTool.Slide( deltaOuter, deltaInner ) => painter match {
            case mrp: MoveResizePainter => {
                  mrp.adjustSlide( deltaOuter, deltaInner )
-                 mrp.adjusted
+                 mrp.adjusted()
            }
            case _ =>
         }
@@ -420,13 +419,13 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
             return
          }
 
-         val tlSpan = timelineView.timeline.span
+//         val tlSpan = timelineView.timeline.span
          val vwSpan = pc.viewSpan
          trail.visitRange( vwSpan )( stake => {
-            if( copyTransform || !trailView.isSelected( stake )) paintStake( pc, stake, false )
+            if( copyTransform || !trailView.isSelected( stake )) paintStake( pc, stake, selected = false )
          })
          dragTrail.foreach( _.visitRange( vwSpan )( stake =>
-            paintStake( pc, stake, true )
+            paintStake( pc, stake, selected = true )
          ))
       }
    }
@@ -542,7 +541,7 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
     import AudioTrackComponent._
     import DefaultTrackComponent._
 
-    private var dropPos : Option[ Long ] = None;
+    private var dropPos : Option[ Long ] = None
 
     // ---- constructor ----
     {
@@ -678,10 +677,10 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
 
       private def pasteExtern( path: File, fileSpan: Span, insPos: Long ) {
          try {
-            val spec = AudioFile.readSpec( path )
+//            val spec = AudioFile.readSpec( path )
 
             doc.audioFiles.editor.foreach( aed => {
-                var afe = doc.audioFiles.find( afe => afe.path == path ) getOrElse {
+                val afe = doc.audioFiles.find( afe => afe.path == path ) getOrElse {
                    val afeNew = AudioFileElement.fromPath( doc, path )
                    val ce = aed.editBegin( "editAddAudioFile" )
                    aed.editInsert( ce, doc.audioFiles.size, afeNew )
@@ -800,7 +799,7 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
       }
 
       override protected def stakeInfo( stake: AudioRegion ) : Option[ String ] = {
-         val db = MathUtil.linearToDB( stake.gain ) // * dragGain
+         val db = ampdb( stake.gain ) // * dragGain
          val cb = (math.abs( db ) * 10 + 0.5).toInt
          Some( (if( db > 0 ) "+" else if( db < 0) "-" else "") + (cb/10) + "." + (cb%10) + " dB" )
       }
@@ -834,7 +833,7 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
                   val newShape = if( dragFdInCurve != 0f ) fadeInSpec.shape match {
                      case `linShape` => curveShape( dragFdInCurve )
                      case `curveShape`( curvature ) => curveShape( max( -20, min( 20, curvature + dragFdInCurve )))
-                     case x => x
+                     case other => other
                   } else fadeInSpec.shape
                   fadeInSpec = FadeSpec(
                      max( 0L, min( ar.span.getLength - fadeOutSpec.numFrames,
@@ -845,7 +844,7 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
                   val newShape = if( dragFdOutCurve != 0f ) fadeOutSpec.shape match {
                      case `linShape` => curveShape( dragFdOutCurve )
                      case `curveShape`( curvature ) => curveShape( max( -20, min( 20, curvature + dragFdOutCurve )))
-                     case x => x
+                     case other => other
                   } else fadeOutSpec.shape
                   fadeOutSpec = FadeSpec(
                      max( 0L, min( ar.span.getLength - fadeInSpec.numFrames,

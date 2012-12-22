@@ -76,8 +76,8 @@ object MarkerAxis {
 	private val colrLabel		= Color.white
 	private val colrLabelDrag	= new Color( 0xFF, 0xFF, 0xFF, 0xBF )
 
-	private val pntMarkStick    = new Color( 0x31, 0x50, 0x4D, 0x7F );
-	private val pntMarkStickDrag = new Color( 0x31, 0x50, 0x4D, 0x5F );
+	private val pntMarkStick    = new Color( 0x31, 0x50, 0x4D, 0x7F )
+	private val pntMarkStickDrag = new Color( 0x31, 0x50, 0x4D, 0x5F )
 	private val strkStick       = new BasicStroke( 1.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL,
 		1.0f, Array( 4.0f, 4.0f ), 0.0f )
 
@@ -102,10 +102,10 @@ with DynamicListening with Disposable {
 	img1.setRGB( 0, 0, 1, barExtent, pntBarGradientPixels, 0, 1 )
 	private val pntBackground = new TexturePaint( img1, new Rectangle( 0, 0, 1, barExtent ))
 	private val img2		= new BufferedImage( 1, markExtent, BufferedImage.TYPE_INT_ARGB )
-	img2.setRGB( 0, 0, 1, markExtent, pntMarkGradientPixels, 0, 1 );
+	img2.setRGB( 0, 0, 1, markExtent, pntMarkGradientPixels, 0, 1 )
 	private val pntMarkFlag	= new TexturePaint( img2, new Rectangle( 0, 0, 1, markExtent ))
 	private val img3		= new BufferedImage( 1, markExtent, BufferedImage.TYPE_INT_ARGB )
-	img3.setRGB( 0, 0, 1, markExtent, pntMarkDragPixels, 0, 1 );
+	img3.setRGB( 0, 0, 1, markExtent, pntMarkDragPixels, 0, 1 )
 	private val pntMarkFlagDrag = new TexturePaint( img3, new Rectangle( 0, 0, 1, markExtent ))
 
 	private var isListening	= false
@@ -206,12 +206,9 @@ with DynamicListening with Disposable {
 			}
     }
 
-	/**
+	/*
 	 *  Constructs a new object for
 	 *  displaying the timeline ruler
-	 *
-	 *  @param  root	application root
-	 *  @param  doc		session Session
 	 */
 	{
 		setMaximumSize( new Dimension( getMaximumSize.width, barExtent ))

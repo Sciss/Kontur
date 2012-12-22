@@ -85,7 +85,7 @@ with PreferenceChangeListener {
 		val key = e.getKey
 
 		if( key == KEY_FOLDER ) {
-			val f = new File( e.getNewValue );
+			val f = new File( e.getNewValue )
 			if( (getFolder == null) || (getFolder != f) ) {
 				setFolder( f )
 			}

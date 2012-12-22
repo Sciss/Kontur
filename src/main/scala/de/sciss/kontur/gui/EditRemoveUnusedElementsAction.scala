@@ -30,7 +30,7 @@ import java.awt.BorderLayout
 import java.awt.event.ActionEvent
 import de.sciss.gui.MenuAction
 import de.sciss.kontur.session.SessionElementSeqEditor
-import javax.swing.{Action, JPanel, JLabel, JList, DefaultListSelectionModel, JScrollPane, JOptionPane}
+import javax.swing.{JPanel, JLabel, JList, DefaultListSelectionModel, JScrollPane, JOptionPane}
 
 class EditRemoveUnusedElementsAction[ T ]( elemName: String, ed: SessionElementSeqEditor[ T ],
                                            collect: => Seq[ T ], display: T => String = (e: T) => e.toString,

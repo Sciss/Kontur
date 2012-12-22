@@ -293,8 +293,8 @@ extends JPanel with ObserverPage with DynamicListening {
     def id = DiffusionObserverPage.id
     def title = "Diffusion" // XXX getResourceString
 
-    def pageShown {}
-    def pageHidden {}
+    def pageShown() {}
+    def pageHidden() {}
     def documentChanged( newDoc: Document ) {}
 
     // ---- internal clases ----
@@ -423,7 +423,7 @@ extends JPanel with ObserverPage with DynamicListening {
       private var lastClickRow   = -1
       private var lastClickTime  = 0L
       private var editCol        = -1
-      private var editRow        = -1;
+      private var editRow        = -1
 
       // ---- constructor ----
       {
@@ -490,7 +490,7 @@ extends JPanel with ObserverPage with DynamicListening {
 
       def getTableCellEditorComponent( tab: JTable, value: AnyRef, isSelected: Boolean,
                                        row: Int, col: Int ) : Component = {
-         comp.getTableCellRendererComponent( tab, value, isSelected, true, row, col )
+         comp.getTableCellRendererComponent( tab, value, isSelected, hasFocus = true, row, col )
          editVal = value match {
             case cell: MatrixCellValue => Some( cell )
             case _ => None

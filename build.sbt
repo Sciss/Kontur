@@ -2,11 +2,11 @@ import AssemblyKeys._
 
 name           := "Kontur"
 
-version        := "0.19"
+version        := "1.0.0-SNAPSHOT"
 
 organization   := "de.sciss"
 
-scalaVersion   := "2.10.0-M6"
+scalaVersion   := "2.10.0"
 
 description := "An extensible multitrack audio editor based on ScalaCollider"
 
@@ -17,8 +17,8 @@ licenses := Seq( "GPL v2+" -> url( "http://www.gnu.org/licenses/gpl-2.0.txt" ))
 resolvers += "Clojars Repository" at "http://clojars.org/repo"  // for jsyntaxpane
 
 libraryDependencies ++= Seq(
-   "de.sciss" %% "scalacolliderswing" % "0.34",
-   "de.sciss" % "scissdsp" % "0.11", // from "http://scala-tools.org/repo-releases/de/sciss/scissdsp/0.11/scissdsp-0.11.jar"
+   "de.sciss" %% "scalacolliderswing" % "1.3.+",
+   "de.sciss" %% "scissdsp" % "1.1.+",
    "de.sciss" % "scisslib" % "0.15"
 )
 
@@ -67,7 +67,7 @@ appbundle.icon := Some( file( "application.icns" ))
 
 appbundle.javaOptions ++= Seq( "-ea", "-Xmx2048m" )
 
-appbundle.target := file( "." )
+appbundle.target <<= baseDirectory
 
 // ---- disable scaladoc generation during development phase ----
 

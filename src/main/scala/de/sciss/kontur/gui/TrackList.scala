@@ -115,7 +115,7 @@ extends TrackList with TrackListEditor {
    *  to the list view
    */
   def addAllTracks() {
-      tracks.foreach( t => addTrack( t, true ))
+      tracks.foreach( t => addTrack( t, force = true ))
   }
 
   private var following = false
@@ -191,8 +191,8 @@ extends TrackList with TrackListEditor {
       mapElem   = Map[ Track, TrackListElement ]()
    }
 
-   def select( e: TrackListElement* ) { setSelection( e, true )}
-   def deselect( e: TrackListElement* ) { setSelection( e, false )}
+   def select( e: TrackListElement* ) { setSelection( e, state = true )}
+   def deselect( e: TrackListElement* ) { setSelection( e, state = false )}
 
    private def setSelection( e: Seq[ TrackListElement ], state: Boolean ) {
       val ef = e.filterNot( elem => elem.selected == state )
@@ -218,9 +218,9 @@ extends TrackList with TrackListEditor {
 
    def undoManager: UndoManager = doc.getUndoManager
 
-   def editSelect( ce: AbstractCompoundEdit, e: TrackListElement* ) { editSetSelection( ce, e, true )}
+   def editSelect( ce: AbstractCompoundEdit, e: TrackListElement* ) { editSetSelection( ce, e, state = true )}
 
-   def editDeselect( ce: AbstractCompoundEdit, e: TrackListElement* ) { editSetSelection( ce, e, false )}
+   def editDeselect( ce: AbstractCompoundEdit, e: TrackListElement* ) { editSetSelection( ce, e, state = false )}
 
    private def editSetSelection( ce: AbstractCompoundEdit,
                                  e: Seq[ TrackListElement ], state: Boolean ) {

@@ -25,18 +25,17 @@
 
 package de.sciss.kontur.gui
 
-import de.sciss.app.{ AbstractWindow }
+import de.sciss.app.AbstractWindow
 import de.sciss.common.{ BasicMenuFactory, BasicWindowHandler}
-import de.sciss.gui.{ GUIUtil, MenuAction, PathField => PathF, SpringPanel }
-import de.sciss.kontur.sc.{ BounceSynthContext, SCSession, SCTimeline }
-import de.sciss.kontur.io.{ EisenkrautClient }
+import de.sciss.gui.{GUIUtil, MenuAction, PathField => PathF}
+import de.sciss.kontur.io.EisenkrautClient
 import de.sciss.kontur.session.{ AudioRegion, AudioTrack, Session, SessionUtil, Stake,
                                  ResizableStake, Timeline, Track }
-import de.sciss.kontur.util.{ PrefsUtil }
+import de.sciss.kontur.util.PrefsUtil
 import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }
 import java.awt.event.{ ActionEvent, ActionListener, InputEvent, KeyEvent }
 import java.awt.{ BorderLayout, Component, Dimension, Point, Rectangle }
-import java.io.{ File }
+import java.io.File
 import javax.swing.{ AbstractAction, Action, Box, ButtonGroup, JButton, JComponent, JLabel, JOptionPane, JProgressBar,
                      JRadioButton, KeyStroke, SwingUtilities }
 import scala.math._
@@ -165,7 +164,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 //  	  updateTitle
 //      documentUpdate
 
-      initBounds	// be sure this is after documentUpdate!
+      initBounds()	// be sure this is after documentUpdate!
 
 	  setVisible( true )
 	  toFront()
@@ -185,7 +184,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
    def nudgeFrames : Long = ActionNudgeAmount.numFrames
 
-	private def initBounds {
+	private def initBounds() {
 		val cp	= getClassPrefs
 		val bwh	= getWindowHandler
 		val sr	= bwh.getWindowSpace
@@ -207,11 +206,11 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 //		waveView.setPreferredSize( new Dimension( w, (int) (h * hf + 0.5f) ));
 //		pack();
 		setSize( new Dimension( w, (h * hf + 0.5f).toInt ))
-		val winSize = getSize()
+		val winSize = getSize
 		val wr = new Rectangle( TimelineFrame.lastLeftTop.x + 21, TimelineFrame.lastLeftTop.y + 23,
                                 winSize.width, winSize.height )
 		GUIUtil.wrapWindowBounds( wr, sr )
-		TimelineFrame.lastLeftTop.setLocation( wr.getLocation() )
+		TimelineFrame.lastLeftTop.setLocation( wr.getLocation )
 		setBounds( wr )
 //		waveView.addComponentListener( new ComponentAdapter() {
 //			public void componentResized( ComponentEvent e )
@@ -339,7 +338,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
                ed.editEnd( ce )
             }
             catch {
-               case e => { ed.editCancel( ce ); throw e }
+               case e: Throwable => { ed.editCancel( ce ); throw e }
             }
          })
       }
@@ -428,7 +427,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
                ed.editEnd( ce )
             }
             catch {
-               case e => { ed.editCancel( ce ); throw e }
+               case e: Throwable => { ed.editCancel( ce ); throw e }
             }
          })
       }
@@ -488,7 +487,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
                ed.editEnd( ce )
             }
             catch {
-               case e => { ed.editCancel( ce ); throw e }
+               case e: Throwable => { ed.editCancel( ce ); throw e }
             }
          })
       }
@@ -502,7 +501,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
       def perform() {
          val srcSpan = timelineView.selection.span
          val delta   = timelineView.cursor.position - srcSpan.start
-         val dstSpan = srcSpan.shift( delta )
+//         val dstSpan = srcSpan.shift( delta )
          val tlSpan  = tl.span
          if( srcSpan.isEmpty ) return
          tl.editor.foreach( ed => {
@@ -558,7 +557,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
                ed.editEnd( ce )
             }
             catch {
-               case e => { ed.editCancel( ce ); throw e }
+               case e: Throwable => { ed.editCancel( ce ); throw e }
             }
          })
       }
@@ -751,36 +750,36 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
     private object ActionCut
     extends MenuAction {
-        def actionPerformed( e: ActionEvent ) : Unit = perform
+        def actionPerformed( e: ActionEvent ) { perform() }
 
-        def perform {
+        def perform() {
             println( "CUT NOT YET IMPLEMENTED")
         }
     }
 
     private object ActionCopy
     extends MenuAction {
-        def actionPerformed( e: ActionEvent ) : Unit = perform
+        def actionPerformed( e: ActionEvent ) { perform() }
 
-        def perform {
+        def perform() {
             println( "COPY NOT YET IMPLEMENTED")
         }
     }
 
     private object ActionPaste
     extends MenuAction {
-        def actionPerformed( e: ActionEvent ) : Unit = perform
+        def actionPerformed( e: ActionEvent ) { perform() }
 
-        def perform {
+        def perform() {
             println( "PASTE NOT YET IMPLEMENTED")
         }
     }
 
     private object ActionDelete
     extends MenuAction {
-        def actionPerformed( e: ActionEvent ) : Unit = perform
+        def actionPerformed( e: ActionEvent ) { perform() }
 
-        def perform {
+        def perform() {
             tracksPanel.editor.foreach( ed => {
                 val ce = ed.editBegin( getValue( Action.NAME ).toString )
                 tracksPanel.foreach( elem => {
@@ -801,10 +800,10 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
    private class ActionNudge( factor: Double )
    extends MenuAction {
-      def actionPerformed( e: ActionEvent ) { perform }
+      def actionPerformed( e: ActionEvent ) { perform() }
 
       def perform() {
-         val pos	      = timelineView.cursor.position
+//         val pos	      = timelineView.cursor.position
          val delta      = (factor * nudgeFrames + 0.5).toLong
          transformSelectedStakes( getValue( Action.NAME ).toString, stake => Some( List( stake.move( delta ))))
       }
@@ -842,7 +841,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
                   val tvCast = elem.trailView.asInstanceOf[ TrailView[ track.T ]]
                   tvCast.editor.foreach( ed2 => {
                      val trail      = tvCast.trail
-                     var toSelect   = trail.getRange( span, true, false )
+                     val toSelect   = trail.getRange( span, byStart = true, overlap = false )
                      ed2.editSelect( ce, toSelect: _* )
                   })
                }
@@ -853,9 +852,9 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
    }
 
    private class ActionAlignObjectsStartToTimelinePosition extends MenuAction {
-      def actionPerformed( e: ActionEvent ) : Unit = perform
+      def actionPerformed( e: ActionEvent ) { perform() }
 
-      def perform {
+      def perform() {
          val pos	= timelineView.cursor.position
          transformSelectedStakes( getValue( Action.NAME ).toString, stake => stake match {
             case rStake: ResizableStake[ _ ] if( stake.span.start != pos ) => {
@@ -867,9 +866,9 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
    }
 
    private class ActionShowInEisK extends MenuAction {
-      def actionPerformed( e: ActionEvent ) : Unit = perform
+      def actionPerformed( e: ActionEvent ) { perform() }
 
-      def perform {
+      def perform() {
          tracksPanel.find( _.trailView.selectedStakes.headOption match {
             case Some( ar: AudioRegion ) => {
                val delta      = ar.offset - ar.span.start
@@ -920,7 +919,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
       def query: Option[ (List[ Track ], Span, File, AudioFileSpec) ] = {
          val trackElems    = tracksPanel.toList
-         val numTracks     = trackElems.size
+//         val numTracks     = trackElems.size
          val selTrackElems = trackElems.filter( _.selected )
          val span          = timelineView.timeline.span
          val selSpan       = timelineView.selection.span
@@ -975,7 +974,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
                getResourceString( "warnOverwriteFile" ), JOptionPane.WARNING_MESSAGE, JOptionPane.OK_CANCEL_OPTION,
                null, options )
             op2.setInitialSelectionValue( opCancel )
-            val result2 = BasicWindowHandler.showDialog( op2, getWindow, name )
+            /* val result2 = */ BasicWindowHandler.showDialog( op2, getWindow, name )
             if( op2.getValue != opOverwrite ) return None
          }
 

@@ -37,7 +37,7 @@ import de.sciss.kontur.io.PrefCacheManager
 import PrefsUtil._
 import java.awt.{ BorderLayout, SystemColor }
 import java.awt.event.{ ActionEvent, ActionListener }
-import java.util.prefs.{ Preferences }
+import java.util.prefs.Preferences
 import javax.swing.{ AbstractAction, AbstractButton, ButtonGroup, GroupLayout,
                     JComboBox, JComponent, JLabel, JPanel, JScrollPane,
                     JTable, JToggleButton, JToolBar, ScrollPaneConstants,
@@ -233,7 +233,7 @@ class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
    }
 
     private def audioPanel : JComponent = {
-		val prefs   = app.getUserPrefs.node( NODE_AUDIO );
+		val prefs   = app.getUserPrefs.node( NODE_AUDIO )
 //		val abPrefs	= prefs.node( NODE_AUDIOBOXES );
 
         val (panel, layout) = createPanel

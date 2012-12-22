@@ -25,12 +25,11 @@
 
 package de.sciss.kontur.gui
 
-import java.awt.{ Color, Dimension, Font, FontMetrics, Graphics, Graphics2D,
-                 Paint, Rectangle, RenderingHints, TexturePaint }
-import java.awt.geom.{ GeneralPath, AffineTransform }
-import java.awt.image.{ BufferedImage }
-import java.text.{ MessageFormat }
-import java.util.{ Locale }
+import java.awt.{Color, Dimension, FontMetrics, Graphics, Graphics2D, Rectangle, RenderingHints, TexturePaint}
+import java.awt.geom.{GeneralPath, AffineTransform}
+import java.awt.image.BufferedImage
+import java.text.MessageFormat
+import java.util.Locale
 import javax.swing.{ JComponent, JViewport }
 import scala.math._
 
@@ -115,13 +114,13 @@ with TopPaintable
 	private var recentHeight	= 0
 	private var doRecalc		= true
 
-	private var kPeriod			= 1000.0
+	private val kPeriod			= 1000.0
 	private var labels = new Array[ Label ]( 0 )
 //	private var labelPos		= Array[ Int ]()
 	private val shpTicks		= new GeneralPath()
 
 //	private val fntLabel =
-    setFont(  AbstractApplication.getApplication().getGraphicsHandler()
+    setFont(  AbstractApplication.getApplication.getGraphicsHandler
       .getFont( GraphicsHandler.FONT_LABEL | GraphicsHandler.FONT_MINI ))
 
 	private val msgForm			= new MessageFormat( msgNormalPtrn( 0 ), Locale.US )  // XXX US locale
@@ -141,14 +140,14 @@ with TopPaintable
 
     private val (imgWidth, imgHeight) =
 		if( orient == HORIZONTAL ) {
-			setMaximumSize( new Dimension( getMaximumSize().width, barExtent ))
-			setMinimumSize( new Dimension( getMinimumSize().width, barExtent ))
-			setPreferredSize( new Dimension( getPreferredSize().width, barExtent ))
+			setMaximumSize( new Dimension( getMaximumSize.width, barExtent ))
+			setMinimumSize( new Dimension( getMinimumSize.width, barExtent ))
+			setPreferredSize( new Dimension( getPreferredSize.width, barExtent ))
 			(1, barExtent)
 		} else {
-			setMaximumSize( new Dimension( barExtent, getMaximumSize().height ))
-			setMinimumSize( new Dimension( barExtent, getMinimumSize().height ))
-			setPreferredSize( new Dimension( barExtent, getPreferredSize().height ))
+			setMaximumSize( new Dimension( barExtent, getMaximumSize.height ))
+			setMinimumSize( new Dimension( barExtent, getMinimumSize.height ))
+			setPreferredSize( new Dimension( barExtent, getPreferredSize.height ))
             (barExtent, 1)
 		}
 
@@ -160,7 +159,7 @@ with TopPaintable
 
     // ---- constructor ----
     {
-		flagsUpdated
+		flagsUpdated()
 		setOpaque( true )
   	}
 
@@ -168,10 +167,10 @@ with TopPaintable
 	def flags_=( newFlags: Int ) {
 		if( flagsVar == newFlags ) return
         flagsVar = newFlags
-        flagsUpdated
+        flagsUpdated()
     }
 
-    private def flagsUpdated {
+    private def flagsUpdated() {
 		flMirroir		= (flags & MIRROIR) != 0
 		flTimeFormat	= (flags & TIMEFORMAT) != 0
 		flIntegers		= (flags & INTEGERS) != 0
@@ -186,13 +185,13 @@ with TopPaintable
 		}
 		labelMinRaster	= labelRaster( labelRaster.length - 1 )
 
-		triggerRedisplay
+		triggerRedisplay()
 	}
 
     def space = spaceVar
 	def space_=( newSpace: VectorSpace ) {
         spaceVar = newSpace
-		triggerRedisplay
+		triggerRedisplay()
 	}
 
     protected def setSpaceNoRepaint( newSpace: VectorSpace ) {
@@ -230,8 +229,8 @@ with TopPaintable
 		val g2        = g.asInstanceOf[ Graphics2D ]
 //		val w         = getWidth()
 //		val h         = getHeight()
-		val trnsOrig  = g2.getTransform()
-		val fm        = g2.getFontMetrics()
+		val trnsOrig  = g2.getTransform
+		val fm        = g2.getFontMetrics
 
 //		g2.setFont( fntLabel );
 
@@ -241,7 +240,7 @@ with TopPaintable
 			recentWidth		= r.width
 			recentHeight	= r.height
 			recalcLabels( g )
-			if( orient == VERTICAL ) recalcTransforms
+			if( orient == VERTICAL ) recalcTransforms()
 			doRecalc		= false
 		}
 
@@ -256,9 +255,9 @@ with TopPaintable
 
 		val y = if( orient == VERTICAL ) {
 			g2.transform( trnsVertical )
-			r.width - 3 - fm.getMaxDescent()
+			r.width - 3 - fm.getMaxDescent
 		} else {
-			r.height - 3 - fm.getMaxDescent()
+			r.height - 3 - fm.getMaxDescent
 		}
 		g2.setColor( Color.lightGray )
 		g2.draw( shpTicks )
@@ -274,7 +273,7 @@ with TopPaintable
         paintOnTop( g2 )
     }
 
-	private def recalcTransforms {
+	private def recalcTransforms() {
 		trnsVertical.setToRotation( -Pi / 2, recentHeight.toDouble / 2,
 										     recentHeight.toDouble / 2 )
 	}
@@ -294,7 +293,7 @@ with TopPaintable
 	}
 
 	private def recalcLabels( g: Graphics ) {
-		val fntMetr	= g.getFontMetrics()
+		val fntMetr	= g.getFontMetrics
 //		int					shift, width, height, numTicks, numLabels, ptrnIdx, ptrnIdx2, minLbDist;
 //		double				scale, pixelOff, pixelStep, tickStep, minK, maxK;
 //		long				raster, n;
@@ -308,13 +307,13 @@ with TopPaintable
 
         val (width, height, spcMin, spcMax) = if( orient == HORIZONTAL ) {
 			if( spaceVar.hlog ) {
-				recalcLogLabels
+				recalcLogLabels()
 				return
 			}
 			(recentWidth, recentHeight, spaceVar.hmin, spaceVar.hmax)
 		} else {
 			if( spaceVar.vlog ) {
-				recalcLogLabels
+				recalcLogLabels()
 				return
 			}
 			(recentHeight, recentWidth, spaceVar.vmin, spaceVar.vmax)
@@ -488,7 +487,7 @@ with TopPaintable
 	}
 
 
-	private def recalcLogLabels {
+	private def recalcLogLabels() {
 throw new IllegalStateException( "LOG NOT YET IMPLEMENTED" )
 /*
 		int				numLabels, width, height, numTicks, mult, expon, newPtrnIdx, ptrnIdx;
@@ -576,11 +575,11 @@ throw new IllegalStateException( "LOG NOT YET IMPLEMENTED" )
         */
 	}
 
-	private def triggerRedisplay {
+	private def triggerRedisplay() {
 		doRecalc = true
 		if( host.isDefined ) {
 			host.get.update( this )
-		} else if( isVisible() ) {
+		} else if( isVisible ) {
 			repaint()
 		}
 	}

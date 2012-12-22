@@ -26,8 +26,8 @@
 package de.sciss.kontur.sc
 
 import scala.math._
-import de.sciss.io.{ Span }
-import de.sciss.synth.{ osc => scosc, _ }
+import de.sciss.io.Span
+import de.sciss.synth._
 import ugen._
 import SynthContext._
 import de.sciss.kontur.session.{Diffusion, AudioRegion, AudioTrack}
@@ -62,7 +62,7 @@ extends SCTrackPlayer {
       }
 
       track.diffusion match {
-         case Some( d ) => scDoc.context.perform( play( d, ar, frameOffset, -1.0, true )( res.ready ))
+         case Some( d ) => scDoc.context.perform( play( d, ar, frameOffset, -1.0, force = true )( res.ready ))
          case _ =>
       }
 
@@ -78,7 +78,7 @@ extends SCTrackPlayer {
                val frameOffset   = max( 0L, span.start - ar.span.start )
                val delay         = (span.start - currentPos) / sampleRate
                stakes           += ar
-               play( diff, ar, frameOffset, delay, false ) {
+               play( diff, ar, frameOffset, delay, force = false ) {
                   case Some( syn ) =>
                      syn.whenOffline { stakes -= ar }
                   case _           =>

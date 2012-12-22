@@ -99,8 +99,8 @@ extends TrailView[ T ] with TrailViewEditor[ T ] {
 //     t.trail.removeListener( trailListener )
 //  }
 
-  def select( stakes: T* ) { setSelection( stakes, true )}
-  def deselect( stakes: T* ) { setSelection( stakes, false )}
+  def select(   stakes: T* ) { setSelection( stakes, state = true  )}
+  def deselect( stakes: T* ) { setSelection( stakes, state = false )}
 
   private def unionSpan( stakes: T* ) : Span = {
      var span = stakes.headOption.map( _.span ) getOrElse new Span()
@@ -139,9 +139,9 @@ extends TrailView[ T ] with TrailViewEditor[ T ] {
 
   def undoManager: UndoManager = doc.getUndoManager
 
-  def editSelect( ce: AbstractCompoundEdit, stakes: T* ) { editSetSelection( ce, stakes, true )}
+  def editSelect( ce: AbstractCompoundEdit, stakes: T* ) { editSetSelection( ce, stakes, state = true )}
 
-  def editDeselect( ce: AbstractCompoundEdit, stakes: T* ) { editSetSelection( ce, stakes, false )}
+  def editDeselect( ce: AbstractCompoundEdit, stakes: T* ) { editSetSelection( ce, stakes, state = false )}
 
   private def editSetSelection( ce: AbstractCompoundEdit, stakes: Seq[ T ], state: Boolean ) {
     val sf = stakes.filterNot( stake => isSelected( stake ) == state )

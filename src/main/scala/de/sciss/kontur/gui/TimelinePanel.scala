@@ -80,7 +80,7 @@ with TopPaintable {
 			// hence events already scheduled will be delivered
 			// even if stop is called between firing and delivery(?)
 			if( isPlaying ) {
-   			transport.foreach( t => updatePlayHead( t.currentPos, true ))
+   			transport.foreach( t => updatePlayHead( t.currentPos, oldShown = true ))
          }
       }
    })
@@ -106,7 +106,7 @@ with TopPaintable {
         if( timelineVis != newSpan ) {
            timelineVis = newSpan // XXX correct?
 //println( "panel : span changed " + timelineVis )
-          updateTransformsAndRepaint( false )
+          updateTransformsAndRepaint( verticalSelection = false )
         }
       }
       case TimelineSelection.SpanChanged( oldSpan, newSpan ) => {
@@ -234,7 +234,7 @@ with TopPaintable {
       updatePlayHeadRefreshRate()
 		isPlaying		= true
 		playTimer.restart()
-      updatePlayHead( startPos, false )
+      updatePlayHead( startPos, oldShown = false )
 	}
 /*
 	def setPlayRate( startPos: Long, rate: Double ) {
@@ -344,7 +344,7 @@ with TopPaintable {
 				val x2  = math.min( vpRecentRect.width, vpUpdateRect.x + vpUpdateRect.width )
 				vpUpdateRect.setBounds( x, vpUpdateRect.y, x2 - x, vpUpdateRect.height )
 			} else {
-				val x   = math.max( 0, math.min( vpUpdateRect.x, vpPositionRect.x ));
+				val x   = math.max( 0, math.min( vpUpdateRect.x, vpPositionRect.x ))
 				val x2  = math.min( vpRecentRect.width, math.max( vpUpdateRect.x + vpUpdateRect.width,
 															vpPositionRect.x + vpPositionRect.width ))
 				vpUpdateRect.setBounds( x, vpUpdateRect.y, x2 - x, vpUpdateRect.height )

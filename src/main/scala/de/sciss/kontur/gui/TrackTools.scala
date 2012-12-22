@@ -27,16 +27,16 @@ package de.sciss.kontur.gui
 
 import java.awt.{ Cursor, Point, Toolkit }
 import javax.swing.{ Box, JLabel, JOptionPane, SwingUtilities }
-import javax.swing.event.{ MouseInputAdapter }
+import javax.swing.event.MouseInputAdapter
 import de.sciss.app.{ AbstractApplication, AbstractCompoundEdit }
-import de.sciss.common.{ BasicWindowHandler }
-import de.sciss.dsp.MathUtil
-import de.sciss.gui.{ GUIUtil }
-import de.sciss.io.{ Span }
+import de.sciss.common.BasicWindowHandler
+import de.sciss.dsp.Util.dbamp
+import de.sciss.gui.GUIUtil
+import de.sciss.io.Span
 import de.sciss.util.{ DefaultUnitTranslator, ParamSpace }
 import de.sciss.kontur.util.PrefsUtil
 import de.sciss.synth.Model
-import de.sciss.kontur.session.{Session, AudioTrack, AudioRegion, MuteableStake, Stake}
+import de.sciss.kontur.session.{Session, AudioRegion, MuteableStake, Stake}
 import de.sciss.kontur.sc.{SCAudioTrackPlayer, SuperColliderClient}
 import java.awt.event.{MouseAdapter, KeyEvent, KeyListener, MouseEvent}
 
@@ -281,7 +281,7 @@ extends TrackStakeTool {
       def currentTLE = currentTLEFVar
 
       private var currentPosVar = firstPos
-      def currentPos = currentPosVar;
+      def currentPos = currentPosVar
 
       // ---- constructor ----
       {
@@ -379,7 +379,7 @@ extends BasicTrackStakeTool[ TrackMoveTool.Move ]( trackList, timelineView ) {
       timeTrans.setLengthAndRate( tl.span.getLength, tl.rate )
       if( showDialog( box )) {
          val delta = timeTrans.translate( ggTime.getValue, ParamSpace.spcTimeSmpsD ).`val`.toLong
-         Some( Move( delta, 0, false ))
+         Some( Move( delta, 0, copy = false ))
       } else None
    }
 }
@@ -429,7 +429,7 @@ extends BasicTrackStakeTool[ TrackGainTool.Gain ]( trackList, timelineView ) {
    protected def dragToParam( d: Drag ) : Gain = {
       val dy = d.firstEvent.getY - d.currentEvent.getY
       // use 0.1 dB per pixel. eventually we could use modifier keys...
-      val factor = (MathUtil.dBToLinear( dy / 10 )).toFloat
+      val factor = (dbamp( dy / 10 )).toFloat
       Gain( factor )
    }
 }

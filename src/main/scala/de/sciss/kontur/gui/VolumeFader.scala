@@ -7,7 +7,7 @@ import javax.swing.event.{ChangeListener, ChangeEvent}
 import de.sciss.synth
 
 class VolumeFader extends JSlider( SwingConstants.VERTICAL, -72, 18, 0 ) {
-	protected var isZero = true;
+	protected var isZero = true
 
    // ---- constructor ----
    {

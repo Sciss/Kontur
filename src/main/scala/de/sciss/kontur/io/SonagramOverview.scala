@@ -29,7 +29,6 @@ import java.awt.{Dimension, Graphics2D}
 import java.awt.image.{BufferedImage, DataBufferInt, ImageObserver}
 import java.beans.{PropertyChangeEvent, PropertyChangeListener}
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream, File, IOException}
-import java.util.Arrays
 import javax.swing.SwingWorker
 import scala.collection.immutable.Queue
 import scala.math._
@@ -51,7 +50,7 @@ object SonagramSpec {
          val stepSize      = dis.readInt()
          Some( SonagramSpec( sampleRate, minFreq, maxFreq, bandsPerOct, maxTimeRes, maxFFTSize, stepSize ))
       }
-      catch { case _ => None }
+      catch { case _: Throwable => None }
    }
 }
 
@@ -101,7 +100,7 @@ object SonagramFileSpec {
             SonagramFileSpec( sona, lastModified, audioPath, numFrames, numChannels, sampleRate, decim )
          }) orElse None
       }
-      catch { case _ => None }
+      catch { case _: Throwable => None }
    }
 }
 
@@ -253,10 +252,10 @@ object SonagramOverview {
       }
    }
 
-   private def allocateConstQ( spec: SonagramSpec, createKernels: Boolean = true ) : ConstQ = {
+   private def allocateConstQ( spec: SonagramSpec /*, createKernels: Boolean = true */) : ConstQ = {
       sync.synchronized {
          val entry = constQCache.get( spec ) getOrElse
-            new ConstQCache( constQFromSpec( spec, createKernels ))
+            new ConstQCache( constQFromSpec( spec /*, createKernels */))
          entry.useCount += 1
          constQCache += (spec -> entry)  // in case it was newly created
          entry.constQ
@@ -336,16 +335,17 @@ object SonagramOverview {
 //                    constQ.getBandsPerOct, constQ.getMaxTimeRes,
 //                    constQ.getMaxFFTSize )
 
-   private[this] def constQFromSpec( spec: SonagramSpec, createKernels: Boolean ) : ConstQ = {
-   	val constQ  = new ConstQ
-		constQ.setSampleRate( spec.sampleRate )
-      constQ.setMinFreq( spec.minFreq )
-      constQ.setMaxFreq( spec.maxFreq )
-      constQ.setBandsPerOct( spec.bandsPerOct )
-      constQ.setMaxTimeRes( spec.maxTimeRes )
-      constQ.setMaxFFTSize( spec.maxFFTSize )
+   private[this] def constQFromSpec( spec: SonagramSpec /* , createKernels: Boolean */) : ConstQ = {
+      val cfg           = ConstQ.Config()
+      cfg.sampleRate    = spec.sampleRate
+      cfg.minFreq       = spec.minFreq
+      cfg.maxFreq       = spec.maxFreq
+      cfg.bandsPerOct   = spec.bandsPerOct
+      cfg.maxTimeRes    = spec.maxTimeRes
+      cfg.maxFFTSize    = spec.maxFFTSize
+   	val constQ        = ConstQ( cfg )
 //		println( "Creating ConstQ Kernels..." )
-		if( createKernels ) constQ.createKernels()
+//		if( createKernels ) constQ.createKernels()
       constQ
    }
 
@@ -408,11 +408,11 @@ if( verbose ) println( "WorkingSonagram got in : " + e.getPropertyName + " / " +
          try {
             sona.render( this )
          }
-         catch { case e => e.printStackTrace() }
+         catch { case e: Throwable => e.printStackTrace() }
       }
    }
 
-   private lazy val log10 = new FastLog( 10, 11 )
+   private lazy val log10 = FastLog( base = 10, q = 11 )
 
    private case class SonagramImageSpec( numChannels: Int, dim: Dimension )
 }
@@ -576,7 +576,7 @@ if( verbose ) println( "drawImage( img<" + sonaImg.img.getWidth + "," + sonaImg.
    }
 
    private def primaryRender( ws: WorkingSonagram, constQ: ConstQ, in: AudioFile ) {
-      val fftSize       = constQ.getFFTSize
+      val fftSize       = constQ.fftSize
       val stepSize      = fileSpec.sona.stepSize
       val inBuf         = Array.ofDim[ Float ]( numChannels, fftSize )
       val outBuf        = Array.ofDim[ Float ]( numChannels, numKernels )
@@ -594,12 +594,12 @@ if( verbose ) println( "drawImage( img<" + sonaImg.img.getWidth + "," + sonaImg.
          framesRead += chunkLen
          if( chunkLen < inLen ) {
             { var ch = 0; while( ch < numChannels ) {
-               Arrays.fill( inBuf( ch ), inOff + chunkLen, fftSize, 0f )
+               java.util.Arrays.fill( inBuf( ch ), inOff + chunkLen, fftSize, 0f )
             ch += 1 }}
          }
          { var ch = 0; while( ch < numChannels ) {
             // input, inOff, inLen, output, outOff
-            constQ.transform( inBuf( ch ), 0, fftSize, outBuf( ch ), 0 )
+            constQ.transform( input = inBuf( ch ), inLen = fftSize, output = outBuf( ch ))
          ch += 1 }}
 
          sync.synchronized {
@@ -641,7 +641,7 @@ if( verbose ) println( "drawImage( img<" + sonaImg.img.getWidth + "," + sonaImg.
          windowsRead += chunkLen / numKernels
          if( chunkLen < inLen ) {
             { var ch = 0; while( ch < numChannels ) {
-               Arrays.fill( buf( ch ), inOff + chunkLen, bufSize, 0f )
+               java.util.Arrays.fill( buf( ch ), inOff + chunkLen, bufSize, 0f )
             ch += 1 }}
          }
          { var ch = 0; while( ch < numChannels ) {

@@ -25,9 +25,9 @@
 
 package de.sciss.kontur.gui
 
-import de.sciss.app.{ AbstractWindow }
-import de.sciss.gui.{ MenuGroup }
-import javax.swing.{ Action, JComponent, JPopupMenu }
+import de.sciss.app.AbstractWindow
+import de.sciss.gui.MenuGroup
+import javax.swing.{Action, JComponent, JPopupMenu}
 
 class PopupRoot extends MenuGroup( "root", null.asInstanceOf[ Action ]) {
 

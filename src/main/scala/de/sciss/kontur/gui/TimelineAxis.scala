@@ -100,14 +100,14 @@ with DynamicListening {
         }
 
      private val timelineListener: Model.Listener = {
-        case Timeline.RateChanged( _, _ ) => recalcSpace( true )
+        case Timeline.RateChanged( _, _ ) => recalcSpace( trigger = true )
         // note: viewport does not necessarily repaint when
         // view sizes changes, for whatever reason. so we
         // need to repaint in any case here
         case TimelineView.SpanChanged( _, newSpan ) /* if( viewPort.isEmpty )*/ =>
           if( newSpan != timelineVis ) {
             timelineVis = newSpan
-            recalcSpace( true )
+            recalcSpace( trigger = true )
          }
      }
 
@@ -121,7 +121,7 @@ with DynamicListening {
         val start       = (r.x * scale + 0.5).toLong + tlSpan.start
         val stop        = (r.width * scale + 0.5).toLong + start
         timelineVis = new Span( start, stop )
-        recalcSpace( false )
+        recalcSpace( trigger = false )
     }
 
     // ---- constructor ----
@@ -179,7 +179,7 @@ with DynamicListening {
     		isListening = true
     		view.addListener( timelineListener )
             timelineVis = view.span
-    		recalcSpace( true )
+    		recalcSpace( trigger = true )
     	}
     }
 

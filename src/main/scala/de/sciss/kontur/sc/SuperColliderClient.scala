@@ -32,7 +32,9 @@ import de.sciss.util.Param
 import java.awt.EventQueue
 import java.io.IOException
 import de.sciss.{synth, osc}
-import synth.{ControlBus, ServerConnection, Model, Server}
+import synth._
+import scala.Some
+import synth.ControlBus
 
 object SuperColliderClient {
    lazy val instance = new SuperColliderClient
@@ -62,7 +64,7 @@ class SuperColliderClient extends Model {
    private var volumeVar      = 1.0f
    private var volumeBus      = Option.empty[ ControlBus ]
    private var limiterVar     = false
-   private var limiterBus     = Option.empty[ ControlBus ];
+   private var limiterBus     = Option.empty[ ControlBus ]
 
     // ---- constructor ----
     {
@@ -108,6 +110,7 @@ class SuperColliderClient extends Model {
    def volume_=( value: Float ) {
       if( volumeVar != value ) {
          volumeVar = value
+         import Ops._
          volumeBus.foreach( _.set( value ))
       }
    }
@@ -116,6 +119,7 @@ class SuperColliderClient extends Model {
    def limiter_=( onOff: Boolean ) {
       if( limiterVar != onOff ) {
          limiterVar = onOff
+         import Ops._
          limiterBus.foreach( _.set( if( onOff ) 1f else 0f ))
       }
    }
@@ -138,10 +142,10 @@ class SuperColliderClient extends Model {
          Runtime.getRuntime.addShutdownHook( new Thread {
             override def run() {
                if( s.condition != Server.Offline ) {
-                  s.quit
+                  s.quit()
                }
                bootingVar.foreach { booting =>
-                  booting.abort
+                  booting.abort()
                }
             }
          })
@@ -169,8 +173,8 @@ class SuperColliderClient extends Model {
 	}
 
 	def stop() {
-      bootingVar.foreach( _.abort )
-      serverVar.foreach( s => try { s.quit } catch { case e1: IOException => printError( "stop", e1 )})
+      bootingVar.foreach( _.abort() )
+      serverVar.foreach( s => try { s.quit() } catch { case e1: IOException => printError( "stop", e1 )})
 	}
 
 	// @synchronization	must be called in the event thread!
@@ -288,10 +292,11 @@ class SuperColliderClient extends Model {
 
    private def initMaster( s: Server ) {
       import synth._
-      import ugen._
+      import synth.ugen._
 
       val volBus  = Bus.control( s, 1 )
       val limBus  = Bus.control( s, 1 )
+      import Ops._
       volBus.set( volumeVar )
       limBus.set( if( limiterVar ) 1f else 0f )
 

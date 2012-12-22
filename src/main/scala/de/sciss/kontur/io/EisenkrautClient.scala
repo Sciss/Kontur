@@ -26,7 +26,7 @@
 package de.sciss.kontur.io
 
 import java.io.{ File, IOException }
-import java.net.{ InetSocketAddress, SocketAddress }
+import java.net.InetSocketAddress
 import java.util.prefs.{ PreferenceChangeListener, PreferenceChangeEvent }
 import de.sciss.io.Span
 import de.sciss.app.AbstractApplication

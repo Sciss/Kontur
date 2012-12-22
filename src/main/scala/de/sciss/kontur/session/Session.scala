@@ -34,7 +34,7 @@ import java.awt.EventQueue
 import java.io.{ File, IOException }
 import scala.xml.{ Node, XML }
 import collection.JavaConversions
-import de.sciss.kontur.gui.{SessionFrame, SessionTreeFrame}
+import de.sciss.kontur.gui.SessionFrame
 
 object Session {
     def newEmpty = new Session( None )
@@ -97,7 +97,7 @@ extends BasicDocument with Model {
     @throws( classOf[ IOException ])
     def save( f: File ) {
        val c = new BasicSerializerContext
-       XML.save( f.getAbsolutePath, toXML( c ), "UTF-8", true, null )
+       XML.save( f.getAbsolutePath, toXML( c ), "UTF-8", xmlDecl = true, null )
     }
 
 	/**
