@@ -38,7 +38,7 @@ import synth.ControlBus
 
 object SuperColliderClient {
    lazy val instance = new SuperColliderClient
-   val DEFAULT_PORT = 57108
+//   val DEFAULT_PORT = 57108
 
 //   case class ServerChanged( s: Option[ Server ])
    case class ServerBooting( s: ServerConnection )
@@ -49,14 +49,15 @@ object SuperColliderClient {
 class SuperColliderClient extends Model {
    import SuperColliderClient._
 
+   private final val VERBOSE  = false
+
    private val app            = AbstractApplication.getApplication
    private val audioPrefs     = app.getUserPrefs.node( PrefsUtil.NODE_AUDIO )
-   private val so             = Server.Config()
    private var bootingVar     = Option.empty[ ServerConnection ]
    private var serverVar      = Option.empty[ Server ]
    private var serverIsReady  = false
    private var shouldReboot   = false
-   private var dumpMode       = osc.Dump.Off: osc.Dump
+   private var dumpMode : osc.Dump = if( VERBOSE ) osc.Dump.Text else osc.Dump.Off
 
    private var players = Map[ Session, SuperColliderPlayer ]()
    private val forward: Model.Listener = { case msg => defer( dispatch( msg ))}
@@ -217,6 +218,8 @@ class SuperColliderClient extends Model {
 
 		dispose()
 
+      val so = Server.Config()
+
 		val pRate = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_AUDIORATE, null )
 		if( pRate != null ) so.sampleRate = pRate.`val`.toInt
       so.memorySize = 64 << 10
@@ -231,16 +234,17 @@ class SuperColliderClient extends Model {
 		val pBlockSize = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCBLOCKSIZE, null )
 		if( pBlockSize != null ) so.blockSize = pBlockSize.`val`.toInt
    	so.loadSynthDefs  = false
-	 	so.zeroConf       = audioPrefs.getBoolean( PrefsUtil.KEY_SCZEROCONF, true )
+	 	so.zeroConf       = audioPrefs.getBoolean( PrefsUtil.KEY_SCZEROCONF, false )
 
 		val pPort = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCPORT, null )
-		val serverPort = if( pPort == null ) DEFAULT_PORT else pPort.`val`.toInt
+		val serverPort = if( pPort == null ) 0 else pPort.`val`.toInt
       so.port = serverPort
-		val proto = audioPrefs.get( PrefsUtil.KEY_SCPROTOCOL, "udp" ) match {
+		val proto = audioPrefs.get( PrefsUtil.KEY_SCPROTOCOL, "tcp" ) match {
          case "udp" => osc.UDP
          case "tcp" => osc.TCP
       }
 		so.transport = proto
+      if( serverPort == 0 ) so.pickPort()
 
 		val appPath = audioPrefs.get( PrefsUtil.KEY_SUPERCOLLIDERAPP, null )
 		if( appPath == null ) {
@@ -248,6 +252,16 @@ class SuperColliderClient extends Model {
 			return false
 		}
 		so.programPath = appPath
+
+if( VERBOSE ) {
+println( ":: memorySize        = " + so.memorySize )
+println( ":: audioBusChannels  = " + so.audioBusChannels )
+println( ":: blockSize         = " + so.blockSize )
+println( ":: zeroConf          = " + so.zeroConf )
+println( ":: port              = " + so.port )
+println( ":: transport         = " + so.transport )
+println( ":: programPath       = " + so.programPath )
+}
 
 		try {
 //		   // check for automatic port assignment

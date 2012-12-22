@@ -2,7 +2,7 @@ import AssemblyKeys._
 
 name           := "Kontur"
 
-version        := "1.0.0-SNAPSHOT"
+version        := "1.0.0"
 
 organization   := "de.sciss"
 
@@ -25,6 +25,19 @@ libraryDependencies ++= Seq(
 retrieveManaged := true
 
 scalacOptions ++= Seq( "-deprecation", "-unchecked" )
+
+// ---- build info ----
+
+buildInfoSettings
+
+sourceGenerators in Compile <+= buildInfo
+
+buildInfoKeys := Seq( name, organization, version, scalaVersion, description,
+   BuildInfoKey.map( homepage ) { case (k, opt) => k -> opt.get },
+   BuildInfoKey.map( licenses ) { case (_, Seq( (lic, _) )) => "license" -> lic }
+)
+
+buildInfoPackage := "de.sciss.kontur"
 
 // ---- publishing ----
 
