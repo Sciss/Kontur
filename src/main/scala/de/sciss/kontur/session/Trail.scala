@@ -2,7 +2,7 @@
  *  Trail.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,18 +23,15 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.session
+package de.sciss.kontur
+package session
 
 import de.sciss.app.AbstractCompoundEdit
 import de.sciss.io.Span
 import de.sciss.util.Disposable
-import de.sciss.kontur.edit.Editor
-import de.sciss.synth.Model
+import edit.Editor
+import util.Model
 
-/**
- *	@author		Hanns Holger Rutz
- *	@version	0.13, 10-Jan-10
- */
 abstract sealed class TouchMode( val id: Int )
 
 case object TouchNone   extends TouchMode( 0 )

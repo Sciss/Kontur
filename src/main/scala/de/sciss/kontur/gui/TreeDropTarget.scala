@@ -2,7 +2,7 @@
  *  TreeDropTarget.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,13 +23,15 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
 import java.awt.Point
 import java.awt.datatransfer.DataFlavor
 import java.awt.dnd.{ DnDConstants, DropTarget, DropTargetDragEvent, DropTargetDropEvent }
 import DnDConstants._
 import javax.swing.JTree
+import language.reflectiveCalls
 
 trait CanBeDropTarget {
    def pickImport( flavors: List[ DataFlavor ], actions: Int ) : Option[ (DataFlavor, Int) ]

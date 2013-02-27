@@ -2,7 +2,7 @@
  *  PrefsFrame.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -42,6 +42,7 @@ import javax.swing.{ AbstractAction, AbstractButton, ButtonGroup, GroupLayout,
                     JComboBox, JComponent, JLabel, JPanel, JScrollPane,
                     JTable, JToggleButton, JToolBar, ScrollPaneConstants,
                     SwingConstants, UIManager, WindowConstants }
+import language.reflectiveCalls
 
 class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
 

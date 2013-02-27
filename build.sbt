@@ -2,29 +2,27 @@ import AssemblyKeys._
 
 name           := "Kontur"
 
-version        := "1.0.0"
+version        := "1.1.0"
 
 organization   := "de.sciss"
 
 scalaVersion   := "2.10.0"
 
-description := "An extensible multitrack audio editor based on ScalaCollider"
+description    := "An extensible multitrack audio editor based on ScalaCollider"
 
-homepage := Some( url( "https://github.com/Sciss/Kontur" ))
+homepage      <<= name { n => Some(url("https://github.com/Sciss/" + n)) }
 
-licenses := Seq( "GPL v2+" -> url( "http://www.gnu.org/licenses/gpl-2.0.txt" ))
-
-resolvers += "Clojars Repository" at "http://clojars.org/repo"  // for jsyntaxpane
+licenses       := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt"))
 
 libraryDependencies ++= Seq(
-   "de.sciss" %% "scalacolliderswing" % "1.3.+",
-   "de.sciss" %% "scissdsp" % "1.1.+",
-   "de.sciss" % "scisslib" % "0.15"
+  "de.sciss" %% "scalacolliderswing" % "1.5.+",
+  "de.sciss" %% "scissdsp" % "1.1.+",
+  "de.sciss" % "scisslib" % "0.15"
 )
 
 retrieveManaged := true
 
-scalacOptions ++= Seq( "-deprecation", "-unchecked" )
+scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature")
 
 // ---- build info ----
 
@@ -32,9 +30,9 @@ buildInfoSettings
 
 sourceGenerators in Compile <+= buildInfo
 
-buildInfoKeys := Seq( name, organization, version, scalaVersion, description,
-   BuildInfoKey.map( homepage ) { case (k, opt) => k -> opt.get },
-   BuildInfoKey.map( licenses ) { case (_, Seq( (lic, _) )) => "license" -> lic }
+buildInfoKeys := Seq(name, organization, version, scalaVersion, description,
+   BuildInfoKey.map(homepage) { case (k, opt)             => k -> opt.get },
+   BuildInfoKey.map(licenses) { case (_, Seq( (lic, _) )) => "license" -> lic }
 )
 
 buildInfoPackage := "de.sciss.kontur"
@@ -44,21 +42,21 @@ buildInfoPackage := "de.sciss.kontur"
 publishMavenStyle := true
 
 publishTo <<= version { (v: String) =>
-   Some( if( v.endsWith( "-SNAPSHOT" ))
-      "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
-   else
-      "Sonatype Releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-   )
+  Some( if( v.endsWith( "-SNAPSHOT" ))
+    "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+  else
+    "Sonatype Releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+  )
 }
 
 publishArtifact in Test := false
 
 pomIncludeRepository := { _ => false }
 
-pomExtra :=
+pomExtra <<= name { n =>
 <scm>
-  <url>git@github.com:Sciss/Kontur.git</url>
-  <connection>scm:git:git@github.com:Sciss/Kontur.git</connection>
+  <url>git@github.com:Sciss/{n}.git</url>
+  <connection>scm:git:git@github.com:Sciss/{n}.git</connection>
 </scm>
 <developers>
    <developer>
@@ -67,34 +65,29 @@ pomExtra :=
       <url>http://www.sciss.de</url>
    </developer>
 </developers>
+}
 
 // ---- packaging ----
 
-seq( assemblySettings: _* )
+seq(assemblySettings: _*)
 
 test in assembly := {}
 
-seq( appbundle.settings: _* )
+seq(appbundle.settings: _*)
 
-appbundle.icon := Some( file( "application.icns" ))
+appbundle.icon := Some(file("application.icns"))
 
-appbundle.javaOptions ++= Seq( "-ea", "-Xmx2048m" )
+appbundle.javaOptions ++= Seq("-ea", "-Xmx2048m")
 
 appbundle.target <<= baseDirectory
 
-// ---- disable scaladoc generation during development phase ----
-
-// publishArtifact in (Compile, packageDoc) := false
-
 // ---- ls.implicit.ly ----
 
-seq( lsSettings :_* )
+seq(lsSettings :_*)
 
-(LsKeys.tags in LsKeys.lsync) := Seq( "audio", "multitrack", "music", "daw" )
+(LsKeys.tags in LsKeys.lsync) := Seq("audio", "multitrack", "music", "daw")
 
-(LsKeys.ghUser in LsKeys.lsync) := Some( "Sciss" )
+(LsKeys.ghUser in LsKeys.lsync) := Some("Sciss")
 
-(LsKeys.ghRepo in LsKeys.lsync) := Some( "Kontur" )
+(LsKeys.ghRepo in LsKeys.lsync) <<= name(Some(_))
 
-// bug in ls -- doesn't find the licenses from global scope
-(licenses in LsKeys.lsync) := Seq( "GPL v2+" -> url( "http://www.gnu.org/licenses/gpl-2.0.txt" ))

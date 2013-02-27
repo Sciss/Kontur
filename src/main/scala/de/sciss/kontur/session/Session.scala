@@ -2,7 +2,7 @@
  *  Session.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,13 +23,13 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.session
+package de.sciss.kontur
+package session
 
 import de.sciss.app.AbstractApplication
 import de.sciss.common.{ BasicDocument, ProcessingThread }
 import de.sciss.util.Flag
-import de.sciss.kontur.util.{ BasicSerializerContext, SerializerContext }
-import de.sciss.synth.Model
+import util.{Model, BasicSerializerContext, SerializerContext}
 import java.awt.EventQueue
 import java.io.{ File, IOException }
 import scala.xml.{ Node, XML }
@@ -53,7 +53,7 @@ object Session {
        catch { case e: Exception => throw new IOException( e )}
        doc
     }
-   
+
     case class DirtyChanged( newDirty: Boolean )
     case class PathChanged( oldPath: Option[ File ], newPath: Option[ File ])
 }

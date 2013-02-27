@@ -2,7 +2,7 @@
  *  ConvolutionDiffusionGUI.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,7 +23,8 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
 import java.awt.event.{ ActionEvent, ActionListener }
 import java.io.{ File, FilenameFilter, IOException }
@@ -31,18 +32,14 @@ import java.util.Locale
 import java.text.MessageFormat
 import javax.swing.{ GroupLayout, JLabel, JPanel, JTextField, SwingConstants }
 import SwingConstants._
-//import scala.math._
 import de.sciss.app.{ AbstractCompoundEdit, DynamicAncestorAdapter, DynamicListening }
 import de.sciss.dsp.Util.nextPowerOfTwo
 import de.sciss.synth.io.AudioFile
-import de.sciss.kontur.session.{ Diffusion, DiffusionEditor, DiffusionFactory, ConvolutionDiffusion, Renamable, Session }
+import session.{ Diffusion, DiffusionEditor, DiffusionFactory, ConvolutionDiffusion, Renamable, Session }
 import de.sciss.util.ParamSpace
 import de.sciss.gui.{ ParamField => ParamF, PathEvent, PathField => PathF, PathListener}
-import de.sciss.synth.Model
+import util.Model
 
-/**
- *    @version 0.11, 20-Apr-10
- */
 object ConvolutionDiffusionGUI extends DiffusionGUIFactory {
    type T = ConvolutionDiffusionGUI
 

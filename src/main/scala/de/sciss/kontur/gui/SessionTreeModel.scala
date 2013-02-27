@@ -2,7 +2,7 @@
  *  SessionTreeModel.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,12 +23,12 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
 import de.sciss.app.DynamicListening
 import de.sciss.common.BasicWindowHandler
 import de.sciss.gui.{MenuGroup, MenuItem}
-import de.sciss.synth.Model
 import java.awt.{FileDialog, Frame}
 import java.awt.datatransfer.DataFlavor
 import java.awt.dnd.DnDConstants
@@ -37,7 +37,8 @@ import java.io.{File, FilenameFilter, IOException}
 import javax.swing.{AbstractAction, Action, JOptionPane}
 import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel}
 import de.sciss.synth.io.AudioFile
-import de.sciss.kontur.session.{MatrixDiffusion, Diffusions, AudioFileElement, AudioFileSeq, AudioTrack, BasicTimeline, Diffusion, Renamable, Session, SessionElement, SessionElementSeq, Timeline, Track}
+import session.{MatrixDiffusion, Diffusions, AudioFileElement, AudioFileSeq, AudioTrack, BasicTimeline, Diffusion, Renamable, Session, SessionElement, SessionElementSeq, Timeline, Track}
+import util.Model
 
 abstract class DynamicTreeNode( model: SessionTreeModel, obj: AnyRef, canExpand: Boolean )
 extends DefaultMutableTreeNode( obj, canExpand )

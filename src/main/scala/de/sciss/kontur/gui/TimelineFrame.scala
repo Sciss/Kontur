@@ -2,7 +2,7 @@
  *  TimelineFrame.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -41,6 +41,7 @@ import javax.swing.{ AbstractAction, Action, Box, ButtonGroup, JButton, JCompone
 import scala.math._
 import de.sciss.io.{AudioFileDescr, AudioFileFormatPane, IOUtil, Span}
 import de.sciss.synth.io.{AudioFileType, SampleFormat, AudioFileSpec}
+import language.reflectiveCalls
 
 object TimelineFrame {
   protected val lastLeftTop		= new Point()

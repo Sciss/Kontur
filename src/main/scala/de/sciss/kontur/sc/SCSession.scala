@@ -2,7 +2,7 @@
  *  SCSession.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,11 +23,12 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.sc
+package de.sciss.kontur
+package sc
 
-import de.sciss.kontur.session.{ Diffusion, Session, Timeline }
+import session.{ Diffusion, Session, Timeline }
 import SynthContext._
-import de.sciss.synth.Model
+import util.Model
 
 class SCSession( val doc: Session ) {
    online =>

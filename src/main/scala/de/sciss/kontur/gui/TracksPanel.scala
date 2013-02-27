@@ -2,7 +2,7 @@
  *  TracksPanel.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,20 +23,16 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
 import java.awt.Color
 import javax.swing.{ Box, JPanel, JScrollPane, ScrollPaneConstants }
 import ScrollPaneConstants._
 
-import de.sciss.kontur.session.Session
-import de.sciss.synth.Model
+import session.Session
+import util.Model
 
-//import Track.Tr
-
-/**
- * 	@version	0.12, 11-Jan-10
- */
 class TracksPanel( val doc: Session, val timelinePanel: TimelinePanel )
 extends JScrollPane( VERTICAL_SCROLLBAR_ALWAYS,
                      HORIZONTAL_SCROLLBAR_ALWAYS ) // JPanel( new BorderLayout() )

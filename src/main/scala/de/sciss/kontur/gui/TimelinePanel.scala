@@ -2,7 +2,7 @@
  *  TimelinePanel.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,25 +23,16 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
 import java.awt.{ Color, Graphics, Graphics2D, Rectangle }
 import java.awt.event.{ ActionEvent, ActionListener }
 import javax.swing.{ BoxLayout, JComponent, JViewport, Timer }
-//import scala.math._
 
 import de.sciss.io.Span
-import de.sciss.kontur.session.{ Timeline, Transport }
-import de.sciss.synth.Model
-
-//import Track.Tr
-
-/**
- *  @author		Hanns Holger Rutz
- *  @version	0.15, 17-Apr-10
- */
-//object TimelinePanel {
-//}
+import session.{ Timeline, Transport }
+import util.Model
 
 object TimelinePanel {
    private val colrSelection			= new Color( 0x00, 0x00, 0xFF, 0x4F ) // GraphicsUtil.colrSelection;

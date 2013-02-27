@@ -2,7 +2,7 @@
  *  SuperColliderClient.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,18 +23,17 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.sc
+package de.sciss.kontur
+package sc
 
 import de.sciss.app.{ AbstractApplication, DocumentEvent, DocumentListener }
-import de.sciss.kontur.session.Session
-import de.sciss.kontur.util.PrefsUtil
+import session.Session
+import util.{Model, PrefsUtil}
 import de.sciss.util.Param
 import java.awt.EventQueue
 import java.io.IOException
 import de.sciss.{synth, osc}
-import synth._
-import scala.Some
-import synth.ControlBus
+import synth.{Model => _, _}
 
 object SuperColliderClient {
    lazy val instance = new SuperColliderClient
@@ -328,9 +327,9 @@ println( ":: programPath       = " + so.programPath )
       limiterBus  = Some( limBus )
    }
 
-   override protected def dispatch( change: AnyRef ) {
-//println( "DISPATCH >>>>>>> " + change )
-      super.dispatch( change )
-//println( "DISPATCH <<<<<<< " + change )
-   }
+//   override protected def dispatch( change: AnyRef ) {
+////println( "DISPATCH >>>>>>> " + change )
+//      super.dispatch( change )
+////println( "DISPATCH <<<<<<< " + change )
+//   }
 }

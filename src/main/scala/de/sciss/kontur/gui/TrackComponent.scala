@@ -2,7 +2,7 @@
  *  TrackComponent.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,7 +23,8 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
 import java.awt.{Color, Dimension, Graphics, Graphics2D, Rectangle, RenderingHints, TexturePaint}
 import java.awt.datatransfer.DataFlavor
@@ -34,16 +35,15 @@ import java.awt.image.{BufferedImage, ImageObserver}
 import java.io.{File, IOException}
 import javax.swing.JComponent
 import collection.IterableLike
-import de.sciss.kontur.io.SonagramPaintController
-import de.sciss.kontur.session.{AudioFileElement, AudioRegion, AudioTrack,
+import io.SonagramPaintController
+import session.{AudioFileElement, AudioRegion, AudioTrack,
                                 BasicTrail, FadeSpec, RegionTrait,
                                 ResizableStake, Session, SlidableStake, Stake, Track}
 import de.sciss.app.{AbstractApplication, AbstractCompoundEdit, DynamicAncestorAdapter,DynamicListening, GraphicsHandler}
 import de.sciss.dsp.Util.ampdb
 import de.sciss.io.Span
-import de.sciss.synth.{curveShape, linShape, Model}
-
-//import Track.Tr
+import de.sciss.synth.{curveShape, linShape}
+import util.Model
 
 object DefaultTrackComponent {
    protected[gui] case class PaintContext( g2: Graphics2D, x: Int, y: Int, p_off: Long, p_scale: Double, height: Int,

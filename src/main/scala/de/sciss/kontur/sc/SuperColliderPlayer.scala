@@ -2,7 +2,7 @@
  *  SuperColliderPlayer.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,13 +23,13 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.sc
+package de.sciss.kontur
+package sc
 
-import de.sciss.kontur.session.Session
+import session.Session
 import de.sciss.util.Disposable
-import de.sciss.synth.{Server, Model}
-
-//import Track.Tr
+import de.sciss.synth.Server
+import util.Model
 
 class SuperColliderPlayer( client: SuperColliderClient, val doc: Session )
 extends Disposable {

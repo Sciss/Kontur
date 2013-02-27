@@ -2,7 +2,7 @@
  *  TimelineViewport.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,13 +23,14 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
 import java.awt.{ Dimension, Point, Rectangle }
 import javax.swing.{ JComponent, JViewport }
 import de.sciss.app.{ DynamicAncestorAdapter, DynamicListening }
 import de.sciss.io.Span
-import de.sciss.synth.Model
+import util.Model
 
 class TimelineViewport( timelineView: TimelineView )
 extends JViewport with DynamicListening {

@@ -2,7 +2,7 @@
  *  TrackList.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,14 +23,15 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
 import java.awt.Rectangle
-import scala.collection.mutable.{ ArrayBuffer, ListBuffer }
+import collection.mutable.{ ArrayBuffer, ListBuffer }
 import de.sciss.app.{ AbstractCompoundEdit, UndoManager }
-import de.sciss.kontur.edit.{ Editor, SimpleEdit }
-import de.sciss.kontur.session.{ AudioTrack, Session, Stake, Track }
-import de.sciss.synth.Model
+import edit.{ Editor, SimpleEdit }
+import session.{ AudioTrack, Session, Stake, Track }
+import util.Model
 
 object TrackList {
     case class ElementAdded( idx: Int, e: TrackListElement )

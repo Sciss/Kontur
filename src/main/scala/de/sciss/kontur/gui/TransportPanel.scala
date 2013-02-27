@@ -2,7 +2,7 @@
  *  TransportPanel.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,7 +23,8 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
 import java.awt.{ Color, Dimension, Font, Graphics, Graphics2D, LinearGradientPaint, RenderingHints }
 import java.awt.event.{ ActionEvent, ActionListener, KeyEvent, MouseAdapter, MouseEvent }
@@ -35,9 +36,9 @@ import de.sciss.app.{ AbstractApplication, DynamicAncestorAdapter, DynamicListen
 import de.sciss.common.BasicWindowHandler
 import de.sciss.gui.{ GUIUtil, TimeFormat }
 import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }
-import de.sciss.kontur.session.{ Timeline, Transport }
-import de.sciss.synth.Model
+import session.{ Timeline, Transport }
 import de.sciss.osc
+import util.Model
 
 // temporary hack to get osc synced video
 class TransportPanel( tlv: TimelineView )

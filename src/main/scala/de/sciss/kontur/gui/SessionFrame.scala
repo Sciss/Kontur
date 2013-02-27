@@ -2,7 +2,7 @@
  *  SessionFrame.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,7 +23,8 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
 import java.awt.{ FileDialog, Frame }
 import java.awt.event.{ ActionEvent, KeyEvent }
@@ -32,14 +33,10 @@ import javax.swing.{ AbstractAction, Action, JComponent, JOptionPane, KeyStroke,
 import de.sciss.app.AbstractWindow
 import de.sciss.common.{ BasicMenuFactory, BasicWindowHandler, ShowWindowAction }
 import de.sciss.gui.MenuAction
-import de.sciss.kontur.session.Session
+import session.Session
 import de.sciss.util.Flag
-import de.sciss.synth.Model
+import util.Model
 
-/**
- * @author  Hanns Holger Rutz
- * @version 0.10, 01-Feb-10
- */
 trait SessionFrame {
    frame: AppWindow =>
 

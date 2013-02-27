@@ -2,7 +2,7 @@
  *  MatrixDiffusionGUI.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,7 +23,8 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
 import java.awt.event.{ ActionEvent, ActionListener, MouseEvent }
 import javax.swing.{ AbstractCellEditor, Box, GroupLayout, JButton, JComponent, JLabel, JPanel, JScrollPane, JTable,
@@ -32,12 +33,11 @@ import SwingConstants._
 import javax.swing.border.Border
 import javax.swing.event.MouseInputAdapter
 import javax.swing.table.{ AbstractTableModel, DefaultTableColumnModel, TableCellEditor, TableCellRenderer, TableColumn }
-import scala.math._
+import math._
 import de.sciss.gui.{ ParamField => PF }
-import de.sciss.kontur.session.{ Diffusion, DiffusionEditor, DiffusionFactory, MatrixDiffusion, Renamable, Session }
-import de.sciss.kontur.util.Matrix2D
+import session.{ Diffusion, DiffusionEditor, DiffusionFactory, MatrixDiffusion, Renamable, Session }
+import util.{Model, Matrix2D}
 import de.sciss.util.{ Param, ParamSpace }
-import de.sciss.synth.Model
 import java.awt.{RenderingHints, BasicStroke, Graphics2D, Color, Component, Cursor, Graphics, Insets}
 import de.sciss.app.{GraphicsHandler, AbstractApplication, AbstractCompoundEdit, Document, DynamicAncestorAdapter, DynamicListening}
 

@@ -1,8 +1,7 @@
 package de.sciss.trees
 
-/**
- *  @version  0.11, 04-Jan-10
- */
+import language.implicitConversions
+
 trait ManagedNumber[ N ] {
 	@inline def <( x: N ) : Boolean
 	@inline def >( x: N ) : Boolean

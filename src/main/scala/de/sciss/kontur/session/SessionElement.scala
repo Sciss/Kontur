@@ -2,7 +2,7 @@
  *  SessionElement.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,10 +23,10 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.session
+package de.sciss.kontur
+package session
 
-import de.sciss.kontur.util.SerializerContext
-import de.sciss.synth.Model
+import util.{Model, SerializerContext}
 import java.io.IOException
 import scala.xml.Node
 

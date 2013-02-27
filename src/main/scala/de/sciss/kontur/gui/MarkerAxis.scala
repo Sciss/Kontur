@@ -2,7 +2,7 @@
  *  MarkerAxis.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,7 +23,8 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
 import java.awt.{ BasicStroke, Color, Dimension, FontMetrics, Graphics,
                  Graphics2D, Rectangle, RenderingHints, TexturePaint }
@@ -33,19 +34,15 @@ import java.awt.image.BufferedImage
 import java.io.IOException
 import javax.swing.JComponent
 import javax.swing.event.MouseInputAdapter
-import scala.collection.mutable.ListBuffer
-//import scala.math._
+import collection.mutable.ListBuffer
 
 import de.sciss.app.{ AbstractApplication, DynamicAncestorAdapter, DynamicListening, GraphicsHandler }
 import de.sciss.gui.ComponentHost
 import de.sciss.util.Disposable
-import de.sciss.kontur.session.{ Marker, Trail, TrailEditor }
-import de.sciss.synth.Model
+import session.{ Marker, Trail, TrailEditor }
+import util.Model
 
 /**
- *  @author		Hanns Holger Rutz
- *  @version	0.11, 09-Jan-10
- *
  *	@todo		uses TimelineListener to
  *				not miss document changes. should use
  *				a document change listener!

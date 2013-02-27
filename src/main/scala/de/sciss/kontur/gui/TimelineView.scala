@@ -2,7 +2,7 @@
  *  TimelineView.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,14 +23,15 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
 import javax.swing.undo.UndoManager
 import de.sciss.app.AbstractCompoundEdit
 import de.sciss.io.Span
-import de.sciss.kontur.edit.{ Editor, SimpleEdit }
-import de.sciss.kontur.session.{ Session, Timeline }
-import de.sciss.synth.Model
+import edit.{ Editor, SimpleEdit }
+import session.{ Session, Timeline }
+import util.Model
 
 object TimelineView {
    case class SpanChanged( oldSpan: Span, newSpan: Span )

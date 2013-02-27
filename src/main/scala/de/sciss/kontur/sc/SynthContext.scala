@@ -2,7 +2,7 @@
  *  SynthContext.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,15 +23,18 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.sc
+package de.sciss.kontur
+package sc
 
-import scala.collection.immutable.Queue
+import collection.immutable.Queue
 import java.io.{ File, IOException }
-import de.sciss.synth.{ osc => scosc, _}
+import de.sciss.synth.{Model => _, _}
 import de.sciss.osc
 import de.sciss.util.Disposable
 import collection.immutable.{IndexedSeq => IIdxSeq}
 import java.awt.EventQueue
+import util.Model
+import language.reflectiveCalls
 
 trait AsyncAction {
    def asyncDone() : Unit
@@ -336,14 +339,14 @@ extends Model with Disposable {
    def sampleRate : Double = server.counts.sampleRate
 
    def group : RichGroup = {
-      val group = new Group( server )
+      val group = Group( server )
       val rg    = new RichGroup( group )
       add( group.newMsg( currentTarget.group, addToHead ))
       rg
    }
 
    def groupAfter( n: RichNode ) : RichGroup = {
-      val group = new Group( server )
+      val group = Group( server )
       val rg    = new RichGroup( group )
       add( group.newMsg( n.node, addAfter ))  // XXX should check g.online!
       rg
@@ -485,21 +488,24 @@ extends Model with Disposable {
 
 class RealtimeSynthContext( s: Server )
 extends SynthContext( s, true ) {
-   private val resp = scosc.Responder( server ) {
-      // Warning: code is not thread safe, and Responder
-      // is on an arbitrary thread, so defer to AWT
-      // thread to conincide with the Swing Timer in
-      // SCTimeline!
-      case scosc.SyncedMessage( id ) => deferIfNeeded {
-         syncWait.get( id ).foreach { bundle =>
-            syncWait -= id
-            perform { bundle.doAsync() } // we could use 'delayed', but we might want bundle 'immediate' times
-         }
+  private var syncWait = Map[Int, Bundle]()
+
+  private val resp = message.Responder(server) {
+    // Warning: code is not thread safe, and Responder
+    // is on an arbitrary thread, so defer to AWT
+    // thread to conincide with the Swing Timer in
+    // SCTimeline!
+    case message.Synced(id) => deferIfNeeded {
+      syncWait.get(id).foreach { bundle =>
+        syncWait -= id
+        perform {
+          bundle.doAsync()
+        } // we could use 'delayed', but we might want bundle 'immediate' times
       }
-   }
+    }
+  }
    private var timebaseSysRef = System.currentTimeMillis()
    private var timebaseVar = 0.0
-   private var syncWait    = Map[ Int, Bundle ]()
    private var bundleCount = 0
 
    // ---- constructor ----
@@ -533,7 +539,7 @@ extends SynthContext( s, true ) {
          val cpy = if( hasAsync ) {
             syncWait += count -> this
 //            msgs.enqueue( new scosc.SyncedMessage( count ))
-            msgs :+ new scosc.SyncMessage( count )
+            msgs :+ new message.Sync(count)
          } else {
             msgs
          }

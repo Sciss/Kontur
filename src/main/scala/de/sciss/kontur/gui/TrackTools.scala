@@ -2,7 +2,7 @@
  *  TrackTools.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,7 +23,8 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
 import java.awt.{ Cursor, Point, Toolkit }
 import javax.swing.{ Box, JLabel, JOptionPane, SwingUtilities }
@@ -34,11 +35,11 @@ import de.sciss.dsp.Util.dbamp
 import de.sciss.gui.GUIUtil
 import de.sciss.io.Span
 import de.sciss.util.{ DefaultUnitTranslator, ParamSpace }
-import de.sciss.kontur.util.PrefsUtil
-import de.sciss.synth.Model
-import de.sciss.kontur.session.{Session, AudioRegion, MuteableStake, Stake}
-import de.sciss.kontur.sc.{SCAudioTrackPlayer, SuperColliderClient}
+import util.{Model, PrefsUtil}
+import session.{Session, AudioRegion, MuteableStake, Stake}
+import sc.{SCAudioTrackPlayer, SuperColliderClient}
 import java.awt.event.{MouseAdapter, KeyEvent, KeyListener, MouseEvent}
+import language.reflectiveCalls
 
 object TrackTools {
    case class ToolChanged( oldTool: TrackTool, newTool: TrackTool )

@@ -2,7 +2,7 @@
  * 	RTree
  * 	(de.sciss.tree package)
  *
- *  Copyright (c) 2009-2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2009-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -24,8 +24,8 @@
  */
 package de.sciss.trees
 
-import _root_.scala.annotation.tailrec
-import _root_.scala.collection.immutable.Vector
+import annotation.tailrec
+import language.existentials
 
 //import Version._
 

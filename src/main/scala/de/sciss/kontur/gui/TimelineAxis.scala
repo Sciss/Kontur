@@ -2,7 +2,7 @@
  *  TimelineAxis.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,7 +23,8 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
 import java.awt.Rectangle
 import java.awt.event.MouseEvent
@@ -31,9 +32,9 @@ import javax.swing.event.MouseInputAdapter
 import de.sciss.app.{ AbstractApplication, DynamicAncestorAdapter, DynamicListening, GraphicsHandler }
 import de.sciss.gui.{ /* Axis,*/ ComponentHost, VectorSpace }
 import de.sciss.io.Span
-import de.sciss.kontur.session.Timeline
-import de.sciss.synth.Model
-import scala.math._
+import session.Timeline
+import math._
+import util.Model
 
 class TimelineAxis( view: TimelineView, host: Option[ ComponentHost ])
 extends Axis( Axis.HORIZONTAL, Axis.TIMEFORMAT, host )

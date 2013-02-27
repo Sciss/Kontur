@@ -2,7 +2,7 @@
  *  SessionElementSeq.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,16 +23,16 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.session
+package de.sciss.kontur
+package session
 
 import java.io.IOException
 import javax.swing.undo.UndoManager
-import scala.collection.mutable.ArrayBuffer
-import scala.xml.Node
+import collection.mutable.ArrayBuffer
+import xml.Node
 import de.sciss.app.AbstractCompoundEdit
-import de.sciss.kontur.edit.{ Editor, SimpleEdit }
-import de.sciss.kontur.util.SerializerContext
-import de.sciss.synth.Model
+import edit.{ Editor, SimpleEdit }
+import util.{Model, SerializerContext}
 
 trait SessionElementSeq[ T <: SessionElement ]
 extends SessionElement {

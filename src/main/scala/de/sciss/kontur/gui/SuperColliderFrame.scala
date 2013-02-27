@@ -2,7 +2,7 @@
  *  SuperColliderFrame.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,16 +23,18 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
 import de.sciss.app.AbstractWindow
 import de.sciss.kontur.sc.SuperColliderClient
-import de.sciss.synth.{ Model, Server }
+import de.sciss.synth.Server
 import java.awt.BorderLayout
 import java.awt.event.{ ActionEvent, InputEvent, KeyEvent }
 import javax.swing.{ AbstractAction, JComponent, KeyStroke }
 import de.sciss.osc
 import de.sciss.synth.swing.j.JServerStatusPanel
+import util.Model
 
 // note: should be PALETTE, but then we loose the key actions...
 class SuperColliderFrame extends AppWindow( AbstractWindow.SUPPORT /* PALETTE */ ) {

@@ -2,7 +2,7 @@
  *  BounceSynthContext.scala
  *  (Kontur)
  *
- *  Copyright (c) 2004-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
  *
  *	This software is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
@@ -23,14 +23,15 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.sc
+package de.sciss.kontur
+package sc
 
 import java.io.{ BufferedReader, File, InputStreamReader, IOException, RandomAccessFile }
 import java.nio.ByteBuffer
 import javax.swing.SwingWorker
 import de.sciss.io.IOUtil
 import de.sciss.osc
-import de.sciss.synth.{ osc => _, _}
+import de.sciss.synth._
 import collection.mutable
 
 object BounceSynthContext {
