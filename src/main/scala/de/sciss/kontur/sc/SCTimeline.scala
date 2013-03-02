@@ -31,9 +31,9 @@ import java.awt.event.{ ActionEvent, ActionListener }
 import javax.swing.{ Timer => SwingTimer }
 
 import session.{ AudioTrack, Timeline, Track, Transport }
-import de.sciss.io.Span
 import SynthContext._
 import util.Model
+import de.sciss.span.Span
 
 class SCTimeline( val scDoc: SCSession, val tl: Timeline )
 extends ActionListener {
@@ -96,7 +96,7 @@ if( verbose ) println( "| | | | | timer " + currentPos )
       val latencyStop = stopFrame + latencyFrames
       val latentStart = currentPos + latencyFrames
 //      val span = new Span( latentStart, latentStart + deltaFrames )
-      val span = new Span( latentStart, latencyStop )
+      val span = Span( latentStart, latencyStop )
       context.timebase = (currentPos - start) / sr
       context.perform { step( currentPos, span )}
 //      currentPos += deltaFrames

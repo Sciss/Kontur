@@ -52,7 +52,7 @@ abstract class ActionQueryDuration extends MenuAction {
       GUIUtil.setInitialDialogFocus( ggDuration )
 
       val tl = timeline // timelineView.timeline
-      timeTrans.setLengthAndRate( tl.span.getLength, tl.rate )
+      timeTrans.setLengthAndRate( tl.span.length, tl.rate )
 
       ggDuration.setValue( value getOrElse initialValue )
       space.foreach( sp => ggDuration.setSpace( sp ))

@@ -25,10 +25,10 @@
 
 package de.sciss.kontur.session
 
-import de.sciss.io.Span
+import de.sciss.span.Span
 
 case class Marker( pos: Long, name: String ) extends Stake[ Marker ] {
-    val span = new Span( pos, pos )
+    val span = Span( pos, pos )
 
     def move( delta: Long ): Marker = copy( pos = pos + delta )
 }

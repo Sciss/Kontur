@@ -27,12 +27,12 @@ package de.sciss.kontur
 package sc
 
 import math._
-import de.sciss.io.Span
 import de.sciss.synth.{Model => _, _}
 import ugen._
 import SynthContext._
 import session.{Diffusion, AudioRegion, AudioTrack}
 import language.reflectiveCalls
+import de.sciss.span.Span
 
 class SCAudioTrackPlayer( val scDoc: SCSession, val track: AudioTrack )
 extends SCTrackPlayer {
@@ -143,7 +143,7 @@ extends SCTrackPlayer {
       def playStake() {
          val res = if( force || playing ) {
             val syn = sd.play( (L( "i_buf" -> buf.id,
-               "i_frames" -> ar.span.getLength.toFloat,
+               "i_frames" -> ar.span.length.toFloat,
                "i_frameOff" -> frameOffset.toFloat,
                "amp" -> ar.gain,
                "out" -> scDoc.diffusion( diff ).inBus.index ) :::
@@ -156,7 +156,7 @@ extends SCTrackPlayer {
                   "i_foutShape" -> f.shape.id, "i_foutCurve" -> f.shape.curvature,
                   "i_foutFloor" -> f.floor )).getOrElse( Nil )): _* )
             synths += syn
-            syn.endsAfter( (ar.span.getLength - frameOffset) / sampleRate ) // nrt hint
+            syn.endsAfter( (ar.span.length - frameOffset) / sampleRate ) // nrt hint
 
             syn.whenOffline {
 //               stakes -= ar

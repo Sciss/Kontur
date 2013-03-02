@@ -28,9 +28,9 @@ package de.sciss.kontur.session
 import javax.swing.undo.UndoManager
 import scala.xml.Node
 import de.sciss.app.AbstractCompoundEdit
-import de.sciss.io.Span
 import de.sciss.kontur.edit.{ Editor, SimpleEdit }
 import de.sciss.kontur.util.SerializerContext
+import de.sciss.span.Span
 
 object Timeline {
   case class SpanChanged( oldSpan: Span, newSpan: Span )
@@ -69,7 +69,7 @@ class BasicTimeline( doc: Session )
 extends Timeline with Renamable with TimelineEditor {
    import Timeline._
 
-   private var spanVar = new Span()
+   private var spanVar = Span(0L, 0L)
    private var rateVar = 44100.0
    protected var nameVar = "Timeline"
    private val transportVar = new BasicTransport( this )
@@ -90,7 +90,7 @@ extends Timeline with Renamable with TimelineEditor {
    def fromXML( c: SerializerContext, node: Node ) {
       nameVar   = (node \ "name").text
       val spanN = node \ "span"
-      spanVar   = new Span( (spanN \ "@start").text.toLong, (spanN \ "@stop").text.toLong )
+      spanVar   = Span( (spanN \ "@start").text.toLong, (spanN \ "@stop").text.toLong )
       rateVar   = (node \ "rate").text.toDouble
       tracks.fromXML( c, node )
    }

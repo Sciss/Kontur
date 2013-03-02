@@ -31,7 +31,7 @@ import de.sciss.kontur.session.{AudioRegion, FadeSpec}
 
 object SonogramFadePaint {
    def apply( imageObserver: ImageObserver, ar: AudioRegion, visualBoost: Float = 1f ) =
-      new SonogramFadePaint( imageObserver, ar.gain * visualBoost, ar.offset, ar.span.getLength,
+      new SonogramFadePaint( imageObserver, ar.gain * visualBoost, ar.offset, ar.span.length,
          ar.fadeIn.orNull, ar.fadeOut.orNull )
 }
 

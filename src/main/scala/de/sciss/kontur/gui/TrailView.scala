@@ -28,10 +28,11 @@ package gui
 
 import javax.swing.undo.UndoManager
 import de.sciss.app.AbstractCompoundEdit
-import de.sciss.io.Span
 import edit.{ Editor, SimpleEdit }
 import session.{ Session, Stake, Trail }
 import util.Model
+import de.sciss.span.Span
+import de.sciss.span.Span.SpanOrVoid
 
 object TrailView {
    // FUCKING SCHEISS DOES NOT COMPILE ANY MORE
@@ -103,10 +104,9 @@ extends TrailView[ T ] with TrailViewEditor[ T ] {
   def select(   stakes: T* ) { setSelection( stakes, state = true  )}
   def deselect( stakes: T* ) { setSelection( stakes, state = false )}
 
-  private def unionSpan( stakes: T* ) : Span = {
-     var span = stakes.headOption.map( _.span ) getOrElse new Span()
-     stakes.foreach( s => (span = span.union( s.span )))
-     span
+  private def unionSpan( stakes: T* ): SpanOrVoid = stakes match {
+    case head +: tail => tail.foldLeft(head.span)(_ union _.span)
+    case _ => Span.Void
   }
 
   private def setSelection( stakes: Seq[ T ], state: Boolean ) {
@@ -125,12 +125,10 @@ extends TrailView[ T ] with TrailViewEditor[ T ] {
         selected
      }).toList
 
-     if( changedStakes.isEmpty ) return
-
-//println( "after sel : " + selectedStakesVar.toList )
-
-//     dispatch( SelectionChanged( unionSpan( changedStakes: _* ), changedStakes: _* ))
-     dispatch( SelectionChanged( unionSpan( changedStakes: _* )))
+      unionSpan( changedStakes: _* ) match {
+        case sp @ Span(_, _) if sp.nonEmpty => dispatch( SelectionChanged( sp))
+        case _ =>
+      }
   }
 
   def isSelected( stake: T ) : Boolean = selectedStakesVar.contains( stake )

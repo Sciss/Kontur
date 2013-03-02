@@ -27,10 +27,10 @@ package de.sciss.kontur
 package session
 
 import de.sciss.app.AbstractCompoundEdit
-import de.sciss.io.Span
 import de.sciss.util.Disposable
 import edit.Editor
 import util.Model
+import de.sciss.span.Span
 
 abstract sealed class TouchMode( val id: Int )
 
@@ -39,7 +39,6 @@ case object TouchSplit  extends TouchMode( 1 )
 case object TouchResize extends TouchMode( 2 )
 
 trait Stake[ +Repr ] {
-  Repr =>
   val span: Span
 //  def reshape( newStart: Long, newStop: Long, innerMotion: Long ) : Repr
    def move( delta: Long ) : Repr

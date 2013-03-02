@@ -27,12 +27,13 @@ package de.sciss.kontur
 package session
 
 import de.sciss.app.AbstractCompoundEdit
-import de.sciss.io.Span
 import de.sciss.trees.{ Interval, LongManager, ManagedLong, Rect, RTree, Shaped }
 import edit.SimpleEdit
 import javax.swing.undo.UndoManager
 import collection.mutable.ListBuffer
 import language.implicitConversions
+import de.sciss.span.Span
+import de.sciss.span.Span.SpanOrVoid
 
 /**
  *  Basic trail structure using R-Tree
@@ -95,22 +96,34 @@ with TrailEditor[ T ] {
       -1 // XXX
     }
 
-    def add( stakes: T* ) {
-       var modSpan = new Span()
-       stakes.foreach( stake => {
-         tree.insert( StoredStake( stake ))
-         modSpan = if( modSpan.isEmpty ) stake.span else modSpan.union( stake.span )
-       })
-       if( !modSpan.isEmpty ) dispatch( StakesAdded( modSpan, stakes: _* ))
+  def add(stakes: T*) {
+    var modSpan: SpanOrVoid = Span.Void
+    stakes.foreach { stake =>
+      tree.insert(StoredStake(stake))
+      modSpan = modSpan match {
+        case sp@Span(_, _) => sp.union(stake.span)
+        case _ => stake.span
+      }
     }
+    modSpan match {
+      case sp@Span(_, _) if sp.nonEmpty => dispatch(StakesAdded(sp, stakes: _*))
+      case _ =>
+    }
+  }
 
-    def remove( stakes: T* ) {
-       var modSpan = new Span()
+  def remove( stakes: T* ) {
+      var modSpan: SpanOrVoid = Span.Void
        stakes.foreach( stake => {
          tree.remove( StoredStake( stake ))
-         modSpan = if( modSpan.isEmpty ) stake.span else modSpan.union( stake.span )
+         modSpan = modSpan match {
+           case sp @ Span(_, _) => sp.union(stake.span)
+           case _ => stake.span
+         }
        })
-       if( !modSpan.isEmpty ) dispatch( StakesRemoved( modSpan, stakes: _* ))
+      modSpan match {
+        case sp @ Span(_, _) if sp.nonEmpty => dispatch( StakesRemoved( sp, stakes: _* ))
+        case _ =>
+      }
     }
 
     def dispose() {}

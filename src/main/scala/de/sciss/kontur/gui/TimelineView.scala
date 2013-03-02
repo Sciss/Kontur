@@ -28,10 +28,11 @@ package gui
 
 import javax.swing.undo.UndoManager
 import de.sciss.app.AbstractCompoundEdit
-import de.sciss.io.Span
 import edit.{ Editor, SimpleEdit }
 import session.{ Session, Timeline }
 import util.Model
+import de.sciss.span.Span.SpanOrVoid
+import de.sciss.span.Span
 
 object TimelineView {
    case class SpanChanged( oldSpan: Span, newSpan: Span )
@@ -48,7 +49,7 @@ trait TimelineView extends Model {
 trait TimelineViewEditor extends Editor {
    def editPosition( ce: AbstractCompoundEdit, newPos: Long ) : Unit
    def editScroll( ce: AbstractCompoundEdit, newSpan: Span ) : Unit
-   def editSelect( ce: AbstractCompoundEdit, newSpan: Span ) : Unit
+   def editSelect( ce: AbstractCompoundEdit, newSpan: SpanOrVoid ) : Unit
 }
 
 class BasicTimelineView( doc: Session, val timeline: Timeline )
@@ -114,7 +115,7 @@ extends TimelineView with TimelineViewEditor {
     ce.addPerform( edit )
    }
 
-   def editSelect( ce: AbstractCompoundEdit, newSpan: Span ) {
+   def editSelect( ce: AbstractCompoundEdit, newSpan: SpanOrVoid ) {
       val edit = new SimpleEdit( "editTimelineSelection", false ) {
         lazy val oldSpan = basicSel.span
         def apply() { oldSpan; basicSel.span = newSpan }
@@ -149,21 +150,21 @@ extends TimelineCursor {
 }
 
 object TimelineSelection {
-  case class SpanChanged( oldSpan: Span, newSpan: Span )
+  case class SpanChanged( oldSpan: SpanOrVoid, newSpan: SpanOrVoid )
 }
 
 trait TimelineSelection extends Model {
-  def span: Span
+  def span: SpanOrVoid
 }
 
 class BasicTimelineSelection( val timeline: Timeline )
 extends TimelineSelection {
   import TimelineSelection._
 
-  private var spanVar = new Span
+  private var spanVar = Span.Void: SpanOrVoid
 
-  def span: Span = spanVar
-  def span_=( newSpan: Span ) {
+  def span: SpanOrVoid = spanVar
+  def span_=( newSpan: SpanOrVoid ) {
       if( newSpan != spanVar ) {
         val change = SpanChanged( spanVar, newSpan )
         spanVar = newSpan

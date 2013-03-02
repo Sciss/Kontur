@@ -28,11 +28,12 @@ package de.sciss.kontur.io
 import java.io.{ File, IOException }
 import java.net.InetSocketAddress
 import java.util.prefs.{ PreferenceChangeListener, PreferenceChangeEvent }
-import de.sciss.io.Span
 import de.sciss.app.AbstractApplication
 import de.sciss.kontur.util.PrefsUtil
 import scala.actors.{ Actor, TIMEOUT }
 import de.sciss.osc
+import de.sciss.span.Span
+import de.sciss.span.Span.SpanOrVoid
 
 object EisenkrautClient {
    val verbose = true
@@ -69,7 +70,7 @@ class EisenkrautClient {
       prefs.removePreferenceChangeListener( prefsListener )
    }
 
-   def openAudioFile( path: File, cursor: Option[ Long ] = None, selection: Option[ Span ] = None ) {
+   def openAudioFile( path: File, cursor: Option[ Long ] = None, selection: SpanOrVoid = Span.Void ) {
       spawn {
          send( "/doc", "open", path.getCanonicalPath )
          documentForPath( path ).foreach( addr => {
@@ -78,9 +79,10 @@ class EisenkrautClient {
             cursor.foreach( pos => {
                send( tAddr, "position", pos )
             })
-            selection.foreach( span => {
-               send( tAddr, "select", span.start, span.stop )
-            })
+           selection match {
+             case Span(start, stop) => send( tAddr, "select", start, stop )
+             case _ =>
+           }
          })
       }
    }

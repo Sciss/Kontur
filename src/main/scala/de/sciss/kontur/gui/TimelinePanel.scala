@@ -30,9 +30,9 @@ import java.awt.{ Color, Graphics, Graphics2D, Rectangle }
 import java.awt.event.{ ActionEvent, ActionListener }
 import javax.swing.{ BoxLayout, JComponent, JViewport, Timer }
 
-import de.sciss.io.Span
 import session.{ Timeline, Transport }
 import util.Model
+import de.sciss.span.Span
 
 object TimelinePanel {
    private val colrSelection			= new Color( 0x00, 0x00, 0xFF, 0x4F ) // GraphicsUtil.colrSelection;
@@ -149,7 +149,7 @@ with TopPaintable {
 		val span = affectedSpan.shift( -timelineVis.start )
 		val updateRect = new Rectangle(
 			(span.start * vpScale).toInt, 0,
-			(span.getLength * vpScale).toInt + 2, getHeight ).
+			(span.length * vpScale).toInt + 2, getHeight ).
 				intersection( new Rectangle( 0, 0, getWidth, getHeight ))
 		if( !updateRect.isEmpty ) {
 			// update markAxis in any case, even if it's invisible
@@ -255,16 +255,18 @@ with TopPaintable {
         val span = timelineView.timeline.span // whole line, _not_ view
 
 		if( !span.isEmpty ) {
-			vpScale        = (vpRecentRect.width.toDouble / math.max( 1, span.getLength )).toFloat
+			vpScale        = (vpRecentRect.width.toDouble / math.max( 1, span.length )).toFloat
          if( isPlaying ) updatePlayHeadRefreshRate()
 			vpPosition		= ((timelinePos - span.start) * vpScale + 0.5f).toInt
 			vpPositionRect.setBounds( vpPosition, 0, 1, vpRecentRect.height )
-			if( !timelineSel.isEmpty ) {
-				val x			= ((timelineSel.start - span.start) * vpScale + 0.5f).toInt + vpRecentRect.x
-				val w			= math.max( 1, ((timelineSel.stop - span.start) * vpScale + 0.5f).toInt - x )
-				vpSelectionRect.setBounds( x, 0, w, vpRecentRect.height )
-			} else {
-				vpSelectionRect.setBounds( 0, 0, 0, 0 )
+      timelineSel match {
+        case sp @ Span(selStart, selStop) =>
+          val x			= ((selStart - span.start) * vpScale + 0.5f).toInt + vpRecentRect.x
+      				val w			= math.max( 1, ((selStop - span.start) * vpScale + 0.5f).toInt - x )
+      				vpSelectionRect.setBounds( x, 0, w, vpRecentRect.height )
+
+        case _ =>
+				  vpSelectionRect.setBounds( 0, 0, 0, 0 )
 			}
 		} else {
 			vpScale			= 0.0f

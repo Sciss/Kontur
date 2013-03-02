@@ -148,7 +148,7 @@ extends SegmentedButtonPanel with DynamicListening {
       GUIUtil.setInitialDialogFocus( ggTime )
 
       val tl = tlv.timeline
-      timeTrans.setLengthAndRate( tl.span.getLength, tl.rate )
+      timeTrans.setLengthAndRate( tl.span.length, tl.rate )
 
       ggTime.setValue( valueGoToTime getOrElse new Param( 0.0, ParamSpace.TIME | ParamSpace.SECS ))
       spaceGoToTime.foreach( sp => ggTime.setSpace( sp ))

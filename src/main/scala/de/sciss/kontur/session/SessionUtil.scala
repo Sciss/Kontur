@@ -28,13 +28,13 @@ package de.sciss.kontur.session
 import java.beans.{ PropertyChangeEvent, PropertyChangeListener }
 import javax.swing.SwingWorker
 import de.sciss.app.AbstractApplication
-import de.sciss.io.Span
 import de.sciss.util.Param
 import de.sciss.kontur.sc.{ BounceSynthContext, SCSession, SCTimeline }
 import de.sciss.kontur.util.PrefsUtil
 import de.sciss.synth.io.AudioFileSpec
 import java.io.{File, IOException}
 import de.sciss.synth.Server
+import de.sciss.span.Span
 
 object SessionUtil {
    private def getResourceString( key: String ) =
@@ -81,7 +81,7 @@ object SessionUtil {
       var pos     = span.start
       while( pos < span.stop ) {
          val chunkLen      = math.min( stepSize, span.stop - pos )
-         val procSpan      = new Span( pos, pos + chunkLen )
+         val procSpan      = Span( pos, pos + chunkLen )
          context.perform {
             scTL.step( pos, procSpan )
          }

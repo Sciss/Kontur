@@ -41,9 +41,10 @@ import session.{AudioFileElement, AudioRegion, AudioTrack,
                                 ResizableStake, Session, SlidableStake, Stake, Track}
 import de.sciss.app.{AbstractApplication, AbstractCompoundEdit, DynamicAncestorAdapter,DynamicListening, GraphicsHandler}
 import de.sciss.dsp.Util.ampdb
-import de.sciss.io.Span
 import de.sciss.synth.{curveShape, linShape}
 import util.Model
+import de.sciss.span.{SpanLike, Span}
+import de.sciss.span.Span.SpanOrVoid
 
 object DefaultTrackComponent {
    protected[gui] case class PaintContext( g2: Graphics2D, x: Int, y: Int, p_off: Long, p_scale: Double, height: Int,
@@ -121,7 +122,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
       override def mousePressed( e: MouseEvent ) {
           trackTools.foreach( tt => {
               val pos    = screenToVirtual( e.getX )
-              val span   = new Span( pos, pos + 1 )
+              val span   = Span( pos, pos + 1 )
               val stakes = trail.getRange( span )
               val stakeO = stakes.headOption
               tt.currentTool.handleSelect( e, trackListElement, pos, stakeO )
@@ -131,12 +132,12 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
    }
 
    private val moveResizeToolListener: Model.Listener = {
-        case TrackStakeTool.DragBegin => {
-            val union = unionSpan( trailView.selectedStakes )
-            if( !union.isEmpty ) {
-               painter = createMoveResizePainter( union, painter )
+        case TrackStakeTool.DragBegin =>
+            unionSpan( trailView.selectedStakes ) match {
+              case union @ Span(_, _) => painter = createMoveResizePainter( union, painter )
+              case _ =>
             }
-        }
+
         case TrackMoveTool.Move( deltaTime, deltaVertical, copy ) => painter match {
            case mrp: MoveResizePainter => {
                  mrp.adjustMove( deltaTime, deltaVertical, copy )
@@ -186,13 +187,13 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
    protected def createMoveResizePainter( initialUnion: Span, oldPainter: Painter ) =
       new MoveResizePainter( initialUnion, oldPainter )
 
-   protected def unionSpan( stakes: IterableLike[ Stake[ _ ], _ ]) : Span = {
+   protected def unionSpan( stakes: IterableLike[ Stake[ _ ], _ ]) : SpanOrVoid = {
       val (start, stop) = stakes.foldLeft(
          (Long.MaxValue, Long.MinValue) )( (tup, stake) =>
             (math.min( tup._1, stake.span.start ), math.max( tup._2, stake.span.stop)) )
       if( start < stop ) {
-         new Span( start, stop )
-      } else new Span()
+         Span( start, stop )
+      } else Span.Void
    }
 
    private def showObserverPage() {
@@ -270,13 +271,13 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
       val width   = getWidth
       if( width == 0 ) return 0L
       val tlSpan  = timelineView.timeline.span
-      val scale   = tlSpan.getLength / width.toDouble
+      val scale   = tlSpan.length / width.toDouble
       (x.toLong * scale + tlSpan.start + 0.5).toLong
    }
 
    protected def virtualToScreen( pos: Long ) : Int = {
       val tlSpan  = timelineView.timeline.span
-      val tlLen   = tlSpan.getLength
+      val tlLen   = tlSpan.length
       if( tlLen == 0L ) return 0
       val scale   = getWidth.toDouble / tlLen
       ((pos - tlSpan.start) * scale + 0.5).toInt
@@ -321,7 +322,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
    def paintTrack( g2: Graphics2D, x: Int, y: Int, width: Int, height: Int, viewSpan: Span ) {
       val tlSpan = timelineView.timeline.span
       g2.getClipBounds( clipRect )
-      val pc = PaintContext( g2, x, y, -tlSpan.start, width.toDouble / tlSpan.getLength, height, viewSpan, clipRect )
+      val pc = PaintContext( g2, x, y, -tlSpan.start, width.toDouble / tlSpan.length, height, viewSpan, clipRect )
       g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON )
       painter.paint( pc )
    }
@@ -361,29 +362,32 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
 
       protected val initialUnion: Span
       protected val oldPainter: Painter
-      private var lastDraggedUnion = initialUnion
+      private var lastDraggedUnion: SpanOrVoid = initialUnion
       protected var copyTransform = false
       protected var copyTransformChanged = false
 
       protected var dragTrail: Option[ BasicTrail[ track.T ]] = None
 
-      def adjusted() {
-         val tTrail = new BasicTrail[ track.T ]( doc )
-         dragTrail = Some( tTrail )
-         val tStakes = trailView.selectedStakes.toList.map( transform _ )
-         tTrail.add( tStakes: _* )
-         val newDraggedUnion = unionSpan( tStakes )
-         val repaintSpan = if( copyTransformChanged ) {
-            copyTransformChanged = false
-            newDraggedUnion.union( lastDraggedUnion ).union( initialUnion )
-         } else {
-            newDraggedUnion.union( lastDraggedUnion )
-         }
-         lastDraggedUnion  = newDraggedUnion
-         checkSpanRepaint( repaintSpan )
-      }
+     def adjusted() {
+       val tTrail = new BasicTrail[track.T](doc)
+       dragTrail = Some(tTrail)
+       val tStakes = trailView.selectedStakes.toList.map(transform _)
+       tTrail.add(tStakes: _*)
+       val newDraggedUnion = unionSpan(tStakes)
+       val repaintSpan = if (copyTransformChanged) {
+         copyTransformChanged = false
+         newDraggedUnion.union(lastDraggedUnion).union(initialUnion)
+       } else {
+         newDraggedUnion.union(lastDraggedUnion)
+       }
+       lastDraggedUnion = newDraggedUnion
+       repaintSpan match {
+         case sp @ Span(_, _) => checkSpanRepaint(sp)
+         case _ =>
+       }
+     }
 
-      protected def transform( stake: track.T ): track.T
+     protected def transform( stake: track.T ): track.T
 
       def finish( ce: AbstractCompoundEdit ) {
          painter = oldPainter
@@ -407,13 +411,16 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
          })
       }
 
-      def cancel() {
-         val repaintSpan = lastDraggedUnion.union( initialUnion )
-         painter = oldPainter
-         checkSpanRepaint( repaintSpan )
-      }
+     def cancel() {
+       val repaintSpan = lastDraggedUnion.union(initialUnion)
+       painter = oldPainter
+       repaintSpan match {
+         case sp @ Span(_, _) => checkSpanRepaint(sp)
+         case _ =>
+       }
+     }
 
-      override def paint( pc: PaintContext ) {
+     override def paint( pc: PaintContext ) {
          if( dragTrail.isEmpty ) {
             super.paint( pc )
             return
@@ -489,7 +496,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
                   val mStart = if( moveStart < 0 )
                      math.max( tlSpan.start - stake.span.start, moveStart )
                   else
-                     math.min( stake.span.getLength - MIN_SPAN_LEN, moveStart )
+                     math.min( stake.span.length - MIN_SPAN_LEN, moveStart )
 
 //println( "stake " + stake.span + "; moveStart " + moveStart + "; mStart " + mStart )
                   rStake.moveStart( mStart )
@@ -500,7 +507,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
             stake match {
                case rStake: ResizableStake[ _ ] => {
                   val mStop = if( moveStop < 0 )
-                     math.max( -stake.span.getLength + MIN_SPAN_LEN, moveStop )
+                     math.max( -stake.span.length + MIN_SPAN_LEN, moveStop )
                   else
                      math.min( tlSpan.stop - stake.span.stop, moveStop )
                   rStake.moveStop( mStop )
@@ -557,7 +564,7 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
            override def dragExit( dte: DropTargetEvent ) {
               dropPos.foreach( pos => {
                  dropPos = None
-                 repaint( new Span( pos, pos ))
+                 repaint( Span( pos, pos ))
               })
            }
 
@@ -573,10 +580,10 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
                   val dirtySpan = if( dropPos.isDefined ) {
                      val pos1 = dropPos.get
                      val pos2 = newLoc getOrElse pos1
-                     new Span( math.min( pos1, pos2 ), math.max( pos1, pos2 ))
+                     Span( math.min( pos1, pos2 ), math.max( pos1, pos2 ))
                   } else {
                      val pos1 = newLoc.get
-                     new Span( pos1, pos1 )
+                     Span( pos1, pos1 )
                   }
                   dropPos = newLoc
                   repaint( dirtySpan )
@@ -586,7 +593,7 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
            def drop( dtde: DropTargetDropEvent ) {
               dropPos.foreach( pos => {
                  dropPos = None
-                 repaint( new Span( pos, pos ))
+                 repaint( Span( pos, pos ))
               })
               if( dtde.isDataFlavorSupported( DataFlavor.stringFlavor )) {
                  dtde.acceptDrop( DnDConstants.ACTION_COPY )
@@ -595,7 +602,7 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
                  if( arr.size == 3 ) {
                    try {
                       val path   = new File( arr( 0 ))
-                      val span   = new Span( arr( 1 ).toLong, arr( 2 ).toLong )
+                      val span   = Span( arr( 1 ).toLong, arr( 2 ).toLong )
                       val tlSpan = timelineView.timeline.span
                       val insPos = math.max( tlSpan.start, math.min( tlSpan.stop,
                           screenToVirtual( dtde.getLocation.x )))
@@ -614,17 +621,17 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
    // XXX eventually we could save space and let the painter
    // do the msg matching, no?
    private val gainToolListener: Model.Listener = {
-      case TrackStakeTool.DragBegin => {
-         val union = unionSpan( trailView.selectedStakes )
-         if( !union.isEmpty ) {
-            painter = new GainPainter( union, painter )
+      case TrackStakeTool.DragBegin =>
+         unionSpan( trailView.selectedStakes ) match {
+           case union @ Span(_, _) => painter = new GainPainter( union, painter )
+           case _ =>
          }
-      }
+
       case TrackGainTool.Gain( factor ) => painter match {
-         case gp: GainPainter => {
+         case gp: GainPainter =>
             gp.adjustGain( factor )
             gp.adjusted()
-         }
+
          case _ =>
       }
       case TrackStakeTool.DragEnd( ce ) => painter match {
@@ -638,32 +645,32 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
    }
 
    private val muteToolListener: Model.Listener = {
-      case TrackMuteTool.Mute( ce, muted ) => {
-         val union = unionSpan( trailView.selectedStakes )
-         if( !union.isEmpty ) {
-            new MutePainter( union, painter, ce, muted )
+      case TrackMuteTool.Mute( ce, muted ) =>
+         unionSpan( trailView.selectedStakes ) match {
+           case union @ Span(_, _) => painter = new MutePainter( union, painter, ce, muted )
+           case  _ =>
          }
-      }
    }
 
    private val fadeToolListener: Model.Listener = {
-      case TrackStakeTool.DragBegin => {
-         val union = unionSpan( trailView.selectedStakes )
-         if( !union.isEmpty ) {
-            painter = new FadePainter( union, painter )
+      case TrackStakeTool.DragBegin =>
+         unionSpan( trailView.selectedStakes ) match {
+           case union @ Span(_, _) => painter = new FadePainter( union, painter )
+           case _ =>
          }
-      }
+
       case TrackFadeTool.Fade( inDelta, outDelta, inCurve, outCurve ) => painter match {
-         case fp: FadePainter => {
+         case fp: FadePainter =>
             fp.adjustFade( inDelta, outDelta, inCurve, outCurve )
             fp.adjusted()
-         }
          case _ =>
       }
+
       case TrackStakeTool.DragEnd( ce ) => painter match {
          case fp: FadePainter => fp.finish( ce )
          case _ =>
       }
+
       case TrackStakeTool.DragCancel => painter match {
          case fp: FadePainter => fp.cancel()
          case _ =>
@@ -689,8 +696,8 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
                 }
 
                 audioTrack.trail.editor.foreach( ted => {
-                     val insSpan = new Span( insPos,
-                                math.min( insPos + fileSpan.getLength,
+                     val insSpan = Span( insPos,
+                                math.min( insPos + fileSpan.length,
                                      timelineView.timeline.span.stop ))
                       if( !insSpan.isEmpty ) {
                          val ar = new AudioRegion( insSpan, afe.name, afe, fileSpan.start )
@@ -836,7 +843,7 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
                      case other => other
                   } else fadeInSpec.shape
                   fadeInSpec = FadeSpec(
-                     max( 0L, min( ar.span.getLength - fadeOutSpec.numFrames,
+                     max( 0L, min( ar.span.length - fadeOutSpec.numFrames,
                      fadeInSpec.numFrames + dragFdInTime )), newShape )
                   tStake = tStake.replaceFadeIn( Some( fadeInSpec ))
                }
@@ -847,7 +854,7 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
                      case other => other
                   } else fadeOutSpec.shape
                   fadeOutSpec = FadeSpec(
-                     max( 0L, min( ar.span.getLength - fadeInSpec.numFrames,
+                     max( 0L, min( ar.span.length - fadeInSpec.numFrames,
                      fadeOutSpec.numFrames + dragFdOutTime )), newShape )
                   tStake = tStake.replaceFadeOut( Some( fadeOutSpec ))
                }
@@ -901,7 +908,7 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
                val x = pc.virtualToScreen( ar.span.start )
                val y = pc.y
 //               val width = ((ar.span.stop + pc.p_off) * pc.p_scale + 0.5).toInt - x
-               val width = (ar.span.getLength * pc.p_scale + 0.5).toInt
+               val width = (ar.span.length * pc.p_scale + 0.5).toInt
 //             val x1C = max( x, pc.clip.x - 2 )
                val x1C = max( x + 1, pc.clip.x - 2 ) // + 1 for left margin
                val x2C = min( x + width, pc.clip.x + pc.clip.width + 3 )

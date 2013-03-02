@@ -129,7 +129,7 @@ with DynamicListening with Disposable {
 
 	private val mil = new MouseInputAdapter() {
 			override def mousePressed( e: MouseEvent ) {
-				val scale	= visibleSpan.getLength.toDouble / math.max( 1, getWidth )
+				val scale	= visibleSpan.length.toDouble / math.max( 1, getWidth )
 				val pos		= (e.getX * scale + visibleSpan.start + 0.5).toLong
 
 				if( shpFlags.contains( e.getPoint )) {
@@ -180,7 +180,7 @@ with DynamicListening with Disposable {
 				}
 
 				val oldPos  = (d.lastMark getOrElse d.firstMark).pos
-				val scale	= getWidth.toDouble / visibleSpan.getLength
+				val scale	= getWidth.toDouble / visibleSpan.length
 				val newPos	= timelineView.timeline.span.clip( ((e.getX - d.startX) / scale + d.firstMark.pos + 0.5).toLong )
 
 				if( oldPos == newPos ) return
@@ -251,7 +251,7 @@ with DynamicListening with Disposable {
 		AbstractApplication.getApplication.getResourceString( key )
 
 	private def recalcDisplay( fm: FontMetrics ) {
-		val scale = recentWidth.toDouble / visibleSpan.getLength
+		val scale = recentWidth.toDouble / visibleSpan.length
 
 		shpFlags.reset()
         marks.clear()
@@ -294,7 +294,7 @@ with DynamicListening with Disposable {
 
 		// handle dnd graphics
         drag.foreach( _.lastMark.foreach( lastMark => {
-			val dragMarkFlagPos = (((lastMark.pos - visibleSpan.start) * recentWidth.toDouble / visibleSpan.getLength) + 0.5).toInt
+			val dragMarkFlagPos = (((lastMark.pos - visibleSpan.start) * recentWidth.toDouble / visibleSpan.length) + 0.5).toInt
 			g2.setPaint( pntMarkFlagDrag )
 			g2.fillRect( dragMarkFlagPos, 1, fm.stringWidth( lastMark.name ) + 8, markExtent )
 			g2.setColor( colrLabelDrag )
@@ -315,7 +315,7 @@ with DynamicListening with Disposable {
 			g2.drawLine( m.flagPos, bounds.y, m.flagPos, bounds.y + bounds.height )
 		})
         drag.foreach( _.lastMark.foreach( lastMark => {
-			val dragMarkFlagPos = (((lastMark.pos - visibleSpan.start) * recentWidth.toDouble / visibleSpan.getLength) + 0.5).toInt
+			val dragMarkFlagPos = (((lastMark.pos - visibleSpan.start) * recentWidth.toDouble / visibleSpan.length) + 0.5).toInt
 			g2.setPaint( pntMarkStickDrag )
 			g2.drawLine( dragMarkFlagPos, bounds.y, dragMarkFlagPos, bounds.y + bounds.height )
 		}))

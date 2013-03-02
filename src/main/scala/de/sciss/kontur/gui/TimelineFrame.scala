@@ -39,9 +39,11 @@ import java.io.File
 import javax.swing.{ AbstractAction, Action, Box, ButtonGroup, JButton, JComponent, JLabel, JOptionPane, JProgressBar,
                      JRadioButton, KeyStroke, SwingUtilities }
 import scala.math._
-import de.sciss.io.{AudioFileDescr, AudioFileFormatPane, IOUtil, Span}
+import de.sciss.io.{AudioFileDescr, AudioFileFormatPane, IOUtil}
 import de.sciss.synth.io.{AudioFileType, SampleFormat, AudioFileSpec}
 import language.reflectiveCalls
+import de.sciss.span.Span
+import de.sciss.span.Span.SpanOrVoid
 
 object TimelineFrame {
   protected val lastLeftTop		= new Point()
@@ -281,7 +283,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
          val v       = initialValue
          val trans   = new DefaultUnitTranslator()
          val tl      = timeline
-         trans.setLengthAndRate( tl.span.getLength, tl.rate )
+         trans.setLengthAndRate( tl.span.length, tl.rate )
          (trans.translate( v, ParamSpace.spcTimeSmps ).`val` + 0.5).toLong
       }
    }
@@ -295,18 +297,18 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
          val delta   = (trans.translate( v, ParamSpace.spcTimeSmps ).`val` + 0.5).toLong
          if( delta <= 0L ) return
          val pos     = timelineView.cursor.position
-         val span = new Span( pos, pos + delta )
+         val span = Span( pos, pos + delta )
 
     		val tl      = timeline
 
 			require( (pos >= tl.span.start) && (pos <= tl.span.stop), span.toString )
 
-         val affectedSpan = new Span( pos, tl.span.stop )
+         val affectedSpan = Span( pos, tl.span.stop )
 
          tl.editor.foreach( ed => {
             val ce = ed.editBegin( editName )
             try {
-               ed.editSpan( ce, tl.span.replaceStop( tl.span.stop + delta ))
+               ed.editSpan( ce, Span(tl.span.start, tl.span.stop + delta ))
                timelineView.editor.foreach( ved => {
                   if( timelineView.span.isEmpty ) {
         		         ved.editScroll( ce, span )
@@ -351,17 +353,22 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
       private def editName = getValue( Action.NAME ).toString
 
       def perform() {
-         val span          = timelineView.selection.span
+         timelineView.selection.span match {
+           case sp @ Span(_, _) if sp.nonEmpty => perform(sp)
+           case _ =>
+         }
+      }
+
+     private def perform(span: Span) {
          val tlSpan        = tl.span
-         val affectedSpan  = new Span( span.start, tlSpan.stop )
-         if( span.isEmpty ) return
-         val delta         = -span.getLength
+         val affectedSpan  = Span( span.start, tlSpan.stop )
+         val delta         = -span.length
 
          tl.editor.foreach( ed => {
             val ce = ed.editBegin( editName )
             try {
                val (selTracksE, unselTracksE) = tracksPanel.toList.partition( _.selected )
-               val newTlStop = unselTracksE.foldLeft( math.max( tlSpan.start, tlSpan.stop - span.getLength )) { (mx, tr) =>
+               val newTlStop = unselTracksE.foldLeft( math.max( tlSpan.start, tlSpan.stop - span.length )) { (mx, tr) =>
                   val st = tr.track.trail.getRange( affectedSpan )
                   if( st.isEmpty ) mx else math.max( mx, st.map( _.span.stop ).max )
                }
@@ -413,15 +420,15 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
                }
 
                timelineView.editPosition( ce, span.start )
-               timelineView.editSelect( ce, new Span )
+               timelineView.editSelect( ce, Span.Void )
 
                if( newTlStop != tlSpan.stop ) {
                   tl.editor.foreach { ed =>
                      val vSpan = timelineView.span
                      if( newTlStop < vSpan.stop ) {
-                        timelineView.editScroll( ce, new Span( math.max( tlSpan.start, vSpan.start + delta ), newTlStop ))
+                        timelineView.editScroll( ce, Span( math.max( tlSpan.start, vSpan.start + delta ), newTlStop ))
                      }
-                     ed.editSpan( ce, tlSpan.replaceStop( newTlStop ))
+                     ed.editSpan( ce, Span(tlSpan.start, newTlStop ))
                   }
                }
 
@@ -440,8 +447,13 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
       private def editName = getValue( Action.NAME ).toString
 
       def perform() {
-         val span = timelineView.selection.span
-         if( span.isEmpty ) return
+         timelineView.selection.span match {
+           case sp @ Span(_, _) if sp.nonEmpty => perform(sp)
+           case _ =>
+         }
+      }
+
+     private def perform(span: Span) {
          tl.editor.foreach( ed => {
             val ce = ed.editBegin( editName )
             try {
@@ -500,7 +512,13 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
       private def editName = getValue( Action.NAME ).toString
 
       def perform() {
-         val srcSpan = timelineView.selection.span
+         timelineView.selection.span match {
+           case sp @ Span(_, _) if sp.nonEmpty => perform(sp)
+           case _ =>
+         }
+      }
+
+     private def perform(srcSpan: Span) {
          val delta   = timelineView.cursor.position - srcSpan.start
 //         val dstSpan = srcSpan.shift( delta )
          val tlSpan  = tl.span
@@ -549,7 +567,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
                      val newMax = if( newStakes.isEmpty ) tlSpan.stop else newStakes.map( _.span.stop ).max
 
                      if( newMax > tlSpan.stop ) {
-                        ed.editSpan( ce, tlSpan.replaceStop( newMax ))
+                        ed.editSpan( ce, Span(tlSpan.start, newMax ))
                      }
                      tvCast.trail.editor.foreach( _.editAdd( ce, newStakes: _* ))
                      ed2.editSelect( ce, newStakes: _* )
@@ -574,42 +592,45 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
       def perform() {
 		   val visiSpan	= timelineView.span
-			val visiLen		= visiSpan.getLength
+			val visiLen		= visiSpan.length
 			val pos			= timelineView.cursor.position
-         val timelineLen = timelineView.timeline.span.getLength
+         val timelineLen = timelineView.timeline.span.length
 
          val newVisiSpan = if( factor < 1.0 ) {		// zoom in
-            if( visiLen < 4 ) new Span()
+            if( visiLen < 4 ) Span.Void
             else {
                // if timeline pos visible -> try to keep it's relative position constant
                if( visiSpan.contains( pos )) {
                   val start   = pos - ((pos - visiSpan.start) * factor + 0.5).toLong
                   val stop    = start + (visiLen * factor + 0.5).toLong
-                  new Span( start, stop )
+                  Span( start, stop )
                // if timeline pos before visible span, zoom left hand
                } else if( visiSpan.start > pos ) {
                   val start   = visiSpan.start
                   val stop    = start + (visiLen * factor + 0.5).toLong
-                  new Span( start, stop )
+                  Span( start, stop )
                // if timeline pos after visible span, zoom right hand
                } else {
                   val stop    = visiSpan.stop
                   val start   = stop - (visiLen * factor + 0.5).toLong
-                  new Span( start, stop )
+                  Span( start, stop )
                }
             }
 			} else {			// zoom out
             val start   = max( 0, visiSpan.start - (visiLen * factor/4 + 0.5).toLong )
             val stop    = min( timelineLen, start + (visiLen * factor + 0.5).toLong )
-            new Span( start, stop )
+            Span( start, stop )
          }
-         if( !newVisiSpan.isEmpty ) {
+        newVisiSpan match {
+          case sp @ Span(_, _) if sp.nonEmpty =>
             timelineView.editor.foreach { ed =>
                val ce = ed.editBegin( "scroll" )
 //println( "NEW VISI SPAN " + newVisiSpan )
-               ed.editScroll( ce, newVisiSpan )
+               ed.editScroll( ce, sp )
                ed.editEnd( ce )
             }
+
+          case _ =>
          }
 		}
    } // class actionSpanWidthClass
@@ -623,18 +644,19 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 	extends AbstractAction {
 		def actionPerformed( e: ActionEvent ) { perform() }
 
-		private def perform() {
-			val selSpan = timelineView.selection.span
-			if( selSpan.isEmpty ) return
-
-            timelineView.editor.foreach( ed => {
-    			val ce = ed.editBegin( "position" )
-                if( deselect ) ed.editSelect( ce, new Span() )
-                val pos = (selSpan.start + selSpan.getLength * weight + 0.5).toLong
-                ed.editPosition( ce, pos )
-                ed.editEnd( ce )
-            })
-		}
+    private def perform() {
+      timelineView.selection.span match {
+        case sel @ Span(selStart, _) =>
+          timelineView.editor.foreach { ed =>
+            val ce = ed.editBegin("position")
+            if (deselect) ed.editSelect(ce, Span.Void)
+            val pos = (selStart + sel.length * weight + 0.5).toLong
+            ed.editPosition(ce, pos)
+            ed.editEnd(ce)
+          }
+        case _ =>
+      }
+    }
 	} // class actionSelToPosClass
 
    private object ActionScroll {
@@ -664,7 +686,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
                   val ce = ed.editBegin( "scroll" )
                   if( posNotZero ) ed.editPosition( ce, wholeSpan.start )
                   if( zeroNotVisi ) {
-                     ed.editScroll( ce, new Span( wholeSpan.start, wholeSpan.start + visiSpan.getLength ))
+                     ed.editScroll( ce, Span( wholeSpan.start, wholeSpan.start + visiSpan.length ))
                   }
                   ed.editEnd( ce )
                }
@@ -672,28 +694,36 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
                val selSpan = timelineView.selection.span
                val newSpan = mode match {
                   case SCROLL_SELECTION_START =>
-                     val selSpanStart = if( selSpan.isEmpty ) pos else selSpan.start
-                     val start = max( wholeSpan.start, selSpanStart - (visiSpan.getLength >>
+                     val selSpanStart = selSpan match {
+                       case Span.HasStart(s)  => s
+                       case _ => pos
+                     }
+                     val start = max( wholeSpan.start, selSpanStart - (visiSpan.length >>
                         (if( visiSpan.contains( selSpanStart )) 1 else 3)) )
-                     val stop = min( wholeSpan.stop, start + visiSpan.getLength )
-                     new Span( start, stop )
+                     val stop = min( wholeSpan.stop, start + visiSpan.length )
+                     Span( start, stop )
 
                      case SCROLL_SELECTION_STOP =>
-                        val selSpanStop = if( selSpan.isEmpty ) pos else selSpan.stop
-                        val stop = min( wholeSpan.stop, selSpanStop + (visiSpan.getLength >>
+                        val selSpanStop = selSpan match {
+                          case Span.HasStop(s) => s
+                          case _ => pos
+                        }
+                        val stop = min( wholeSpan.stop, selSpanStop + (visiSpan.length >>
                            (if( visiSpan.contains( selSpanStop )) 1 else 3)) )
-                        val start = max( wholeSpan.start, stop - visiSpan.getLength )
-                        new Span( start, stop )
+                        val start = max( wholeSpan.start, stop - visiSpan.length )
+                        Span( start, stop )
 
                   case SCROLL_FIT_TO_SELECTION => selSpan
                   case SCROLL_ENTIRE_SESSION => timelineView.timeline.span
                   case _ => sys.error( mode.toString )
                }
-               if( (visiSpan != newSpan) && !newSpan.isEmpty ) {
+              newSpan match {
+                case sp @ Span(_, _) if sp.nonEmpty && sp != visiSpan =>
                   val ce = ed.editBegin( "scroll" )
-                  ed.editScroll( ce, newSpan )
+                  ed.editScroll( ce, sp )
                   ed.editEnd( ce )
-               }
+                case _ =>
+              }
             }
          }
       }
@@ -716,22 +746,21 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
       def perform() {
          timelineView.editor.foreach { ed =>
             val pos = timelineView.cursor.position
-            val selSpan = if( timelineView.selection.span.isEmpty ) {
-               new Span( pos, pos )
-            } else {
-               timelineView.selection.span
+            val selSpan = timelineView.selection.span match {
+              case sp @ Span(_, _) => sp
+              case _ => Span(pos, pos)
             }
 
             val wholeSpan = timelineView.timeline.span
             val newSpan = mode match {
-               case SELECT_TO_SESSION_START  => new Span( wholeSpan.start, selSpan.stop )
-               case SELECT_TO_SESSION_END    => new Span( selSpan.start, wholeSpan.stop )
+               case SELECT_TO_SESSION_START  => Span( wholeSpan.start, selSpan.stop )
+               case SELECT_TO_SESSION_END    => Span( selSpan.start, wholeSpan.stop )
                case SELECT_ALL               => wholeSpan
                case SELECT_BWD_BY_LEN        =>
-                  val delta = -math.min( selSpan.start - wholeSpan.start, selSpan.getLength )
+                  val delta = -math.min( selSpan.start - wholeSpan.start, selSpan.length )
                   selSpan.shift( delta )
                case SELECT_FWD_BY_LEN        =>
-                  val delta = math.min( wholeSpan.stop - selSpan.stop, selSpan.getLength )
+                  val delta = math.min( wholeSpan.stop - selSpan.stop, selSpan.length )
                   selSpan.shift( delta )
                case _ => sys.error( mode.toString )
             }
@@ -832,8 +861,8 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
       def perform() {
          val pos	= timelineView.cursor.position
-         val stop = timelineView.timeline.span.getLength
-         val span = new Span( pos, stop )
+         val stop = timelineView.timeline.span.length
+         val span = Span( pos, stop )
          timelineView.timeline.editor.foreach( ed => {
             val ce = ed.editBegin( getValue( Action.NAME ).toString )
             tracksPanel.foreach( elem => {
@@ -874,8 +903,10 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
             case Some( ar: AudioRegion ) => {
                val delta      = ar.offset - ar.span.start
                val cursor     = Some( timelineView.cursor.position + delta )
-               val selection  = if( timelineView.selection.span.isEmpty ) None else
-                  Some( timelineView.selection.span.shift( delta ))
+               val selection  = timelineView.selection.span match {
+                 case sp @ Span(_, _) if sp.nonEmpty => sp.shift( delta )
+                 case _ => Span.Void
+               }
                EisenkrautClient.instance.openAudioFile( ar.audioFile.path, cursor, selection )
                true
             }
@@ -886,10 +917,11 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
    private class ActionBounce extends MenuAction {
       def actionPerformed( e: ActionEvent ) {
-         query.foreach( tup => {
-            val (tls, span, path, spec) = tup
+         query.foreach {
+           case (tls, span @ Span(_, _), path, spec) =>
             perform( tls, span, path, spec )
-         })
+           case _ =>
+         }
       }
 
       def perform( tracks: List[ Track ], span: Span, path: File, spec: AudioFileSpec ) {
@@ -918,7 +950,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
             BasicWindowHandler.showErrorDialog( frame.getWindow, e, name )}
       }
 
-      def query: Option[ (List[ Track ], Span, File, AudioFileSpec) ] = {
+      def query: Option[ (List[ Track ], SpanOrVoid, File, AudioFileSpec) ] = {
          val trackElems    = tracksPanel.toList
 //         val numTracks     = trackElems.size
          val selTrackElems = trackElems.filter( _.selected )

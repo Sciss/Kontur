@@ -29,8 +29,8 @@ package gui
 import java.awt.{ Dimension, Point, Rectangle }
 import javax.swing.{ JComponent, JViewport }
 import de.sciss.app.{ DynamicAncestorAdapter, DynamicListening }
-import de.sciss.io.Span
 import util.Model
+import de.sciss.span.Span
 
 class TimelineViewport( timelineView: TimelineView )
 extends JViewport with DynamicListening {
@@ -56,9 +56,9 @@ extends JViewport with DynamicListening {
          if( !tlSpan.isEmpty && !newSpan.isEmpty ) {
 //             val scale = dim.getWidth.toDouble / tlSpan.getLength
              val e = getExtentSize
-if( verbose ) println( "e.w " + e.width + "; tl.len " + tlSpan.getLength + "; visi.len " + newSpan.getLength )
-             val w = (tlSpan.getLength.toDouble / newSpan.getLength * e.width + 0.5).toInt
-             val x = ((newSpan.start - tlSpan.start).toDouble / tlSpan.getLength * w + 0.5).toInt
+if( verbose ) println( "e.w " + e.width + "; tl.len " + tlSpan.length + "; visi.len " + newSpan.length )
+             val w = (tlSpan.length.toDouble / newSpan.length * e.width + 0.5).toInt
+             val x = ((newSpan.start - tlSpan.start).toDouble / tlSpan.length * w + 0.5).toInt
              val d = getViewSize
              val p = getViewPosition
 if( verbose ) println( "old.x" + p.x + "; old.w " + d.width + "; new.x " + x + "; new.w " + w )
@@ -105,15 +105,15 @@ if( verbose ) println( "old.x" + p.x + "; old.w " + d.width + "; new.x " + x + "
 //     println( "---VP: setViewPosition( new Point( " + p.x + ", " + p.y + " ))" )
       val tlSpan  = timelineView.timeline.span
       val w       = getViewSize.width
-      val scale   = tlSpan.getLength.toDouble / w
+      val scale   = tlSpan.length.toDouble / w
       val r       = getViewRect
       val start   = (r.x * scale + 0.5).toLong + tlSpan.start
       val stop    = (r.width * scale + 0.5).toLong + start
-      val newSpan = new Span( start, stop )
+      val newSpan = Span( start, stop )
       if( newSpan != timelineView.span ) {
          timelineView.editor.foreach( ed => {
              val ce = ed.editBegin( "scroll" )
-             ed.editScroll( ce, new Span( start, stop ))
+             ed.editScroll( ce, Span( start, stop ))
              ed.editEnd( ce )
         })
       } else {  // vertical scrolling

@@ -26,9 +26,9 @@
 package de.sciss.kontur.session
 
 import scala.xml.{ Node, Null }
-import de.sciss.io.Span
 import de.sciss.kontur.util.SerializerContext
 import math._
+import de.sciss.span.Span
 
 object AudioRegion {
    val XML_NODE = "stake"
@@ -36,7 +36,7 @@ object AudioRegion {
    def fromXML( c: SerializerContext, doc: Session, node: Node ) : AudioRegion = {
       val name    = (node \ "name").text
       val spanN   = node \ "span"
-      val span    = new Span( (spanN \ "@start").text.toLong, (spanN \ "@stop").text.toLong )
+      val span    = Span( (spanN \ "@start").text.toLong, (spanN \ "@stop").text.toLong )
       val af      = c.byID[ AudioFileElement ]( node \ "audioFile" )
       val offset  = (node \ "offset").text.toLong
       val gain    = (node \ "gain").headOption.map( _.text.toFloat ) getOrElse 1f
@@ -73,12 +73,12 @@ extends RegionTrait[ AudioRegion ] with SlidableStake[ AudioRegion ] with Muteab
       copy( fadeOut = newFadeOut )
 
    def replaceAudioFile( newFile: AudioFileElement ) : AudioRegion = {
-      if( newFile.numFrames >= span.getLength + offset ) {
+      if( newFile.numFrames >= span.length + offset ) {
          copy( audioFile = newFile )
       } else {
          val newOffset = min( offset, newFile.numFrames - 1 )
-         val newStop   = span.start + min( newFile.numFrames - newOffset, span.getLength )
-         copy( audioFile = newFile, span = new Span( span.start, newStop ), offset = newOffset )
+         val newStop   = span.start + min( newFile.numFrames - newOffset, span.length )
+         copy( audioFile = newFile, span = Span( span.start, newStop ), offset = newOffset )
       }
    }
 
@@ -90,40 +90,40 @@ extends RegionTrait[ AudioRegion ] with SlidableStake[ AudioRegion ] with Muteab
 
    override def split( pos: Long ) : (AudioRegion, AudioRegion) = {
       val left = {
-         val d = max( -(span.getLength - 1), min( audioFile.numFrames - offset - span.getLength, pos - span.stop ))
+         val d = max( -(span.length - 1), min( audioFile.numFrames - offset - span.length, pos - span.stop ))
          if( d == 0 ) this
-         else copy( span = span.replaceStop( span.stop + d ), fadeOut = None )
+         else copy( span = Span(span.start, span.stop + d ), fadeOut = None )
       }
       val right = {
-         val d = max( -offset, min( span.getLength - 1, pos - span.start ))
+         val d = max( -offset, min( span.length - 1, pos - span.start ))
          if( d == 0 ) this
-         else copy( span = span.replaceStart( span.start + d ), offset = offset + d, fadeIn = None )
+         else copy( span = Span(span.start + d, span.stop), offset = offset + d, fadeIn = None )
       }
       (left, right)
    }
 
    def moveOuter( delta: Long ) : AudioRegion = {
-      val d = max( -offset, min( audioFile.numFrames - offset - span.getLength, delta ))
+      val d = max( -offset, min( audioFile.numFrames - offset - span.length, delta ))
       if( d == 0 ) this
       else copy( span = span.shift( d ), offset = offset + d )
    }
    
    def moveInner( delta: Long ) : AudioRegion = {
-      val d = max( -offset, min( audioFile.numFrames - offset - span.getLength, delta ))
+      val d = max( -offset, min( audioFile.numFrames - offset - span.length, delta ))
       if( d == 0 ) this
       else copy( offset = offset + d )
    }
    
    def moveStart( delta: Long ) : AudioRegion = {
-      val d = max( -offset, min( span.getLength - 1, delta ))
+      val d = max( -offset, min( span.length - 1, delta ))
       if( d == 0 ) this
-      else copy( span = span.replaceStart( span.start + d ), offset = offset + d )
+      else copy( span = Span(span.start + d, span.stop), offset = offset + d )
    }
 
    def moveStop( delta: Long ) : AudioRegion = {
-      val d = max( -(span.getLength - 1), min( audioFile.numFrames - offset - span.getLength, delta ))
+      val d = max( -(span.length - 1), min( audioFile.numFrames - offset - span.length, delta ))
       if( d == 0 ) this
-      else copy( span = span.replaceStop( span.stop + d ))
+      else copy( span = Span(span.start, span.stop + d ))
    }
 
 /*

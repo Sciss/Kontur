@@ -32,9 +32,9 @@ import java.awt.geom.{ Line2D, Rectangle2D }
 import javax.swing.{ JScrollBar, UIManager }
 
 import de.sciss.app.{ DynamicAncestorAdapter, DynamicListening }
-import de.sciss.io.Span
 import session.Timeline
 import util.Model
+import de.sciss.span.Span
 
 /**
  *  A GUI element for allowing
@@ -114,13 +114,13 @@ with AdjustmentListener with DynamicListening {
 		setFocusable( false )
 //    }
 
-    private def calcLenShift() {
-        var i = 0
-        while( (timelineSpan.getLength >> i) > 0x3FFFFFFF ) i += 1
-		timelineLenShift = i
-    }
+  private def calcLenShift() {
+    var i = 0
+    while ((timelineSpan.length >> i) > 0x3FFFFFFF) i += 1
+    timelineLenShift = i
+  }
 
-	/**
+  /**
 	 *  Paints the normal scroll bar using
 	 *  the super class's method. Additionally
 	 *  paints timeline position and selection cues
@@ -153,8 +153,8 @@ with AdjustmentListener with DynamicListening {
     }
 
     private def recalcBoundedRange() {
-		val len   = (timelineSpan.getLength >> timelineLenShift).toInt
-		val len2  = (timelineVis.getLength >> timelineLenShift).toInt
+		val len   = (timelineSpan.length >> timelineLenShift).toInt
+		val len2  = (timelineVis.length >> timelineLenShift).toInt
 // println( "recalcBoundedRange: len = " + len + "; len2 = " + len2 )
 		if( (len > 0) && (len2 > 0) ) {
 			if( !isEnabled ) setEnabled( true )
@@ -173,14 +173,14 @@ with AdjustmentListener with DynamicListening {
      */
     private def recalcTransforms() {
 		if( !timelineSpan.isEmpty ) {
-			val scale = (recentSize.width - trackMargin.left - trackMargin.right).toDouble /
-              timelineSpan.getLength
-			if( timelineSel.isEmpty ) {
-				shpSelection = None
-			} else {
-				shpSelection = Some( new Rectangle2D.Double(
-                    timelineSel.start * scale + trackMargin.left, 0,
-                    timelineSel.getLength * scale, recentSize.height ))
+			val scale = (recentSize.width - trackMargin.left - trackMargin.right).toDouble / timelineSpan.length
+			timelineSel match {
+        case sp @ Span(tlStart, _) =>
+          shpSelection = Some( new Rectangle2D.Double(
+                          tlStart * scale + trackMargin.left, 0,
+                          sp.length * scale, recentSize.height ))
+        case _ =>
+				  shpSelection = None
 			}
 			val x           = timelinePos * scale + trackMargin.left
 			shpPosition     = Some( new Line2D.Double( x, 0, x, recentSize.height ))
@@ -206,28 +206,28 @@ with AdjustmentListener with DynamicListening {
 	def setPosition( pos: Long, patience: Long, typ: Int ) {
 		if( prefCatch && (catchBypassCount == 0) /* && timelineVis.contains( timelinePos ) */ &&
 //			(timelineVis.getStop() < timelineLen) &&
-			!timelineVis.contains( pos + (if( typ == TYPE_TRANSPORT ) timelineVis.getLength >> 3 else 0) )) {
+			!timelineVis.contains( pos + (if( typ == TYPE_TRANSPORT ) timelineVis.length >> 3 else 0) )) {
 
 			timelinePos = pos
 
             var start	= timelinePos
 			if( typ == TYPE_TRANSPORT ) {
-				start -= timelineVis.getLength >> 3
+				start -= timelineVis.length >> 3
 			} else if( typ == TYPE_DRAG ) {
 				if( timelineVis.stop <= timelinePos ) {
-					start -= timelineVis.getLength
+					start -= timelineVis.length
 				}
 			} else {
-				start -= timelineVis.getLength >> 2
+				start -= timelineVis.length >> 2
 			}
-			val stop  = math.min( timelineSpan.stop, math.max( timelineSpan.start, start ) + timelineVis.getLength )
-			start     = math.max( timelineSpan.start, stop - timelineVis.getLength )
+			val stop  = math.min( timelineSpan.stop, math.max( timelineSpan.start, start ) + timelineVis.length )
+			start     = math.max( timelineSpan.start, stop - timelineVis.length )
 			if( stop > start ) {
 				// it's crucial to update internal var timelineVis here because
 				// otherwise the delay between emitting the edit and receiving the
 				// change via timelineScrolled might be two big, causing setPosition
 				// to fire more than one edit!
-				timelineVis = new Span( start, stop )
+				timelineVis = Span( start, stop )
                 timelineView.editor.foreach( ed => {
                   val ce = ed.editBegin( "scroll" )
     				   ed.editScroll( ce, timelineVis )
@@ -253,15 +253,15 @@ with AdjustmentListener with DynamicListening {
 		if( (catchBypassCount == 0) && catchBypassWasSynced ) {
 			catchBypassWasSynced = false
 			if( prefCatch && !timelineVis.contains( timelinePos )) {
-				var start = timelinePos - (timelineVis.getLength >> 2)
-				val stop  = math.min( timelineSpan.stop, math.max( timelineSpan.start, start ) + timelineVis.getLength )
-				start     = math.max( timelineSpan.start, stop - timelineVis.getLength )
+				var start = timelinePos - (timelineVis.length >> 2)
+				val stop  = math.min( timelineSpan.stop, math.max( timelineSpan.start, start ) + timelineVis.length )
+				start     = math.max( timelineSpan.start, stop - timelineVis.length )
 				if( stop > start ) {
 					// it's crucial to update internal var timelineVis here because
 					// otherwise the delay between emitting the edit and receiving the
 					// change via timelineScrolled might be two big, causing setPosition
 					// to fire more than one edit!
-					timelineVis = new Span( start, stop )
+					timelineVis = Span( start, stop )
                     timelineView.editor.foreach( ed => {
                         val ce = ed.editBegin( "scroll" )
                         ed.editScroll( ce, timelineVis )
@@ -302,11 +302,11 @@ with AdjustmentListener with DynamicListening {
 		catchBypassCount	= 0
 		adjustCatchBypass	= false
 		if( !timelineVis.contains( timelinePos )) {
-			var start   = math.max( 0, timelinePos - (timelineVis.getLength >> 2) )
-			val stop	   = math.min( timelineSpan.stop, start + timelineVis.getLength )
-			start		   = math.max( timelineSpan.start, stop - timelineVis.getLength )
+			var start   = math.max( 0, timelinePos - (timelineVis.length >> 2) )
+			val stop	   = math.min( timelineSpan.stop, start + timelineVis.length )
+			start		   = math.max( timelineSpan.start, stop - timelineVis.length )
 			if( stop > start ) {
-				timelineVis = new Span( start, stop )
+				timelineVis = Span( start, stop )
                 timelineView.editor.foreach( ed => {
                     val ce = ed.editBegin( "scroll" )
                     ed.editScroll( ce, timelineVis )
@@ -347,7 +347,7 @@ with AdjustmentListener with DynamicListening {
 
     	val isAdjusting	= e.getValueIsAdjusting
 		val oldVisi		= timelineView.span
-		val newVisi		= new Span( getValue << timelineLenShift,
+		val newVisi		= Span( getValue << timelineLenShift,
 								 	(getValue + getVisibleAmount) << timelineLenShift )
 
 //println( "oldVisi " + oldVisi + "; newVisi " + newVisi )

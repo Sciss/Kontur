@@ -25,9 +25,9 @@
 
 package de.sciss.kontur.sc
 
-import de.sciss.io.Span
 import de.sciss.util.Disposable
 import de.sciss.kontur.session.Track
+import de.sciss.span.Span
 
 trait SCTrackPlayer extends Disposable {
    def track: Track

@@ -2,7 +2,7 @@ import AssemblyKeys._
 
 name           := "Kontur"
 
-version        := "1.1.0"
+version        := "1.2.0-SNAPSHOT"
 
 organization   := "de.sciss"
 
@@ -16,6 +16,7 @@ licenses       := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt"
 
 libraryDependencies ++= Seq(
   "de.sciss" %% "scalacolliderswing" % "1.5.+",
+  "de.sciss" %% "span" % "1.1.+",
   "de.sciss" %% "scissdsp" % "1.1.+",
   "de.sciss" % "scisslib" % "0.15"
 )

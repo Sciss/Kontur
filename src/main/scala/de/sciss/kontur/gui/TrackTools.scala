@@ -33,13 +33,13 @@ import de.sciss.app.{ AbstractApplication, AbstractCompoundEdit }
 import de.sciss.common.BasicWindowHandler
 import de.sciss.dsp.Util.dbamp
 import de.sciss.gui.GUIUtil
-import de.sciss.io.Span
 import de.sciss.util.{ DefaultUnitTranslator, ParamSpace }
 import util.{Model, PrefsUtil}
 import session.{Session, AudioRegion, MuteableStake, Stake}
 import sc.{SCAudioTrackPlayer, SuperColliderClient}
 import java.awt.event.{MouseAdapter, KeyEvent, KeyListener, MouseEvent}
 import language.reflectiveCalls
+import de.sciss.span.Span
 
 object TrackTools {
    case class ToolChanged( oldTool: TrackTool, newTool: TrackTool )
@@ -170,9 +170,10 @@ trait TrackStakeTool extends TrackTool {
       // handle linked timeline selection
       if( AbstractApplication.getApplication.getUserPrefs.getBoolean( PrefsUtil.KEY_LINKOBJTIMELINESEL, false )) {
          val oldSel     = timelineView.selection.span
-         val newSel     = trackList.foldLeft( new Span() )( (union, elem) =>
-            elem.trailView.selectedStakes.foldLeft( union )( (union, stake) =>
-               if( union.isEmpty ) stake.span else union.union( stake.span )))
+         val newSel     = trackList.toList.flatMap(_.trailView.selectedStakes.map(_.span)) match {
+           case head :: tail => tail.foldLeft(head)(_ union _)
+           case Nil => Span.Void
+         }
          if( newSel != oldSel ) {
             timelineView.editor.foreach( ed => {
                val ce = ed.editBegin( "select" )
@@ -193,7 +194,7 @@ trait TrackStakeTool extends TrackTool {
    protected def screenToVirtual( e: MouseEvent ) : Long = {
       val tlSpan   = timelineView.timeline.span
       val p_off    = -tlSpan.start
-      val p_scale  = e.getComponent.getWidth.toDouble / tlSpan.getLength
+      val p_scale  = e.getComponent.getWidth.toDouble / tlSpan.length
       (e.getX.toLong / p_scale - p_off + 0.5).toLong
    }
 }
@@ -377,7 +378,7 @@ extends BasicTrackStakeTool[ TrackMoveTool.Move ]( trackList, timelineView ) {
       box.add( ggTime )
 
       val tl = timelineView.timeline
-      timeTrans.setLengthAndRate( tl.span.getLength, tl.rate )
+      timeTrans.setLengthAndRate( tl.span.length, tl.rate )
       if( showDialog( box )) {
          val delta = timeTrans.translate( ggTime.getValue, ParamSpace.spcTimeSmpsD ).`val`.toLong
          Some( Move( delta, 0, copy = false ))

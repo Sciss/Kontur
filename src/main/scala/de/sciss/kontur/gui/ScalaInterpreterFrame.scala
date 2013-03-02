@@ -33,7 +33,6 @@ import de.sciss.kontur.edit.Editor
 import de.sciss.synth.Server
 import tools.nsc.interpreter.NamedParam
 import de.sciss.common.BasicApplication
-import de.sciss.io.Span
 import de.sciss.scalainterpreter.{SplitPane, CodePane, Interpreter, InterpreterPane}
 import language.implicitConversions
 
@@ -66,7 +65,7 @@ object ScalaInterpreterFrame {
       def con : SynthContext        = { val p = scp; (if( p != null ) p.context else None).orNull }
       def s : Server                = sc.server.orNull
 
-      def Span( start: Long, stop: Long ) = new Span( start, stop )
+//      def Span( start: Long, stop: Long ) = Span( start, stop )
 
       def defer(thunk: => Unit) { ScalaInterpreterFrame.defer( thunk )}
 

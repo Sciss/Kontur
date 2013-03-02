@@ -31,10 +31,10 @@ import java.awt.event.MouseEvent
 import javax.swing.event.MouseInputAdapter
 import de.sciss.app.{ AbstractApplication, DynamicAncestorAdapter, DynamicListening, GraphicsHandler }
 import de.sciss.gui.{ /* Axis,*/ ComponentHost, VectorSpace }
-import de.sciss.io.Span
 import session.Timeline
 import math._
 import util.Model
+import de.sciss.span.Span
 
 class TimelineAxis( view: TimelineView, host: Option[ ComponentHost ])
 extends Axis( Axis.HORIZONTAL, Axis.TIMEFORMAT, host )
@@ -63,42 +63,46 @@ with DynamicListening {
         		dragTimelinePosition( e )
         	}
 
-        	private def dragTimelinePosition( e: MouseEvent ) {
-                view.editor.foreach( ed => {
-                  // translate into a valid time offset
-                  val position  = view.timeline.span.clip(
-                    timelineVis.start + ((e.getX.toDouble / getWidth) * timelineVis.getLength).toLong )
+      private def dragTimelinePosition(e: MouseEvent) {
+        view.editor.foreach(ed => {
+          // translate into a valid time offset
+          val position = view.timeline.span.clip(
+            timelineVis.start + ((e.getX.toDouble / getWidth) * timelineVis.length).toLong)
 
-                  val ce = ed.editBegin( getResourceString( "editTimelineView" ))
+          val ce = ed.editBegin(getResourceString("editTimelineView"))
 
-//println( "HIER : " + position + "; view.span " + view.span + "; timeline.span " + view.timeline.span )
+          //println( "HIER : " + position + "; view.span " + view.span + "; timeline.span " + view.timeline.span )
 
-                  if( shiftDrag ) {
-                    val selSpan = view.selection.span
-        			if( altDrag || selSpan.isEmpty ) {
-        				selectionStart = view.cursor.position
-        				altDrag = false
-        			} else if( selectionStart == -1 ) {
-        				selectionStart =
-                          if( abs( selSpan.start - position ) > abs( selSpan.stop - position ))
-        					selSpan.start else selSpan.stop
-        			}
-        			val newSelSpan = new Span( min( position, selectionStart ),
-        								max( position, selectionStart ))
-        			ed.editSelect( ce, newSelSpan )
-                } else {
-        			if( altDrag ) {
-        				ed.editSelect( ce, new Span() )
-        				ed.editPosition( ce, position )
-        				altDrag = false
-        			} else {
-        				ed.editPosition( ce, position )
-        			}
-                }
-                ed.editEnd( ce )
-        	})
+          if (shiftDrag) {
+            view.selection.span match {
+              case _ if altDrag =>
+                selectionStart = view.cursor.position
+                altDrag = false
+              case Span.Void =>
+                selectionStart = view.cursor.position
+              case Span(selStart, selStop) if selectionStart == -1 =>
+                selectionStart =
+                  if (abs(selStart - position) > abs(selStop - position))
+                    selStart
+                  else selStop
+              case _ =>
             }
-        }
+            val newSelSpan = Span(min(position, selectionStart),
+              max(position, selectionStart))
+            ed.editSelect(ce, newSelSpan)
+          } else {
+            if (altDrag) {
+              ed.editSelect(ce, Span.Void)
+              ed.editPosition(ce, position)
+              altDrag = false
+            } else {
+              ed.editPosition(ce, position)
+            }
+          }
+          ed.editEnd(ce)
+        })
+      }
+    }
 
      private val timelineListener: Model.Listener = {
         case Timeline.RateChanged( _, _ ) => recalcSpace( trigger = true )
@@ -118,10 +122,10 @@ with DynamicListening {
     override protected def viewRectChanged( r: Rectangle ) {
         val tlSpan      = view.timeline.span
         val w           = getWidth
-        val scale       = tlSpan.getLength.toDouble / w
+        val scale       = tlSpan.length.toDouble / w
         val start       = (r.x * scale + 0.5).toLong + tlSpan.start
         val stop        = (r.width * scale + 0.5).toLong + start
-        timelineVis = new Span( start, stop )
+        timelineVis = Span( start, stop )
         recalcSpace( trigger = false )
     }
 
