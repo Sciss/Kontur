@@ -37,7 +37,7 @@ import javax.swing.{AbstractAction, AbstractButton, ButtonGroup, GroupLayout,
   JTable, JToggleButton, JToolBar, ScrollPaneConstants,
   SwingConstants, UIManager}
 import language.reflectiveCalls
-import legacy.{TreeExpanderButton, PreferenceEntrySync, Param, ParamSpace, StringItem}
+import legacy.{ComboBoxEditorBorder, TreeExpanderButton, PreferenceEntrySync, Param, ParamSpace, StringItem}
 import desktop.impl.{BasicPathField, PrefPathField, PrefComboBox, PrefParamField}
 
 class PrefsFrame extends desktop.impl.WindowImpl {
@@ -254,7 +254,7 @@ class PrefsFrame extends desktop.impl.WindowImpl {
     val ggInterfaces = createAudioBoxGUI(prefs.node(NODE_AUDIOBOXES))
 
     val lbRate = new JLabel( getResourceString( "prefsAudioRate" ))
-		val ggRateParam  = new PrefParamField()
+		val ggRateParam = new PrefParamField(prefs, KEY_AUDIORATE)
 		ggRateParam.addSpace( ParamSpace.spcFreqHertz )
     val ggRate = new JComboBox()
     val RATE_ITEMS = List(
@@ -268,7 +268,6 @@ class PrefsFrame extends desktop.impl.WindowImpl {
     ggRateParam.setBorder(new ComboBoxEditorBorder())
     ggRate.setEditor(ggRateParam)
     ggRate.setEditable(true)
-    ggRateParam.setPreferences(prefs, KEY_AUDIORATE) // important to be _afer_ setEditor because otherwise prefs get overwritten!
     ggRateParam.setBackground(bg)
 
     val lbAdvanced = new JLabel(getResourceString("prefsAdvanced"))

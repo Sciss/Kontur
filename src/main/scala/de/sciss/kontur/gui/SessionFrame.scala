@@ -26,19 +26,16 @@
 package de.sciss.kontur
 package gui
 
-import java.awt.{ FileDialog, Frame }
-import java.awt.event.{ ActionEvent, KeyEvent }
-import java.io.{ File, IOException }
-import javax.swing.{ AbstractAction, Action, JComponent, JOptionPane, KeyStroke, WindowConstants }
-import de.sciss.app.AbstractWindow
-import de.sciss.common.{ BasicMenuFactory, BasicWindowHandler, ShowWindowAction }
-import de.sciss.gui.MenuAction
+import java.awt.{FileDialog, Frame}
+import java.awt.event.{ActionEvent, KeyEvent}
+import java.io.{File, IOException}
+import javax.swing.{AbstractAction, Action, JComponent, JOptionPane, KeyStroke, WindowConstants}
 import session.Session
-import de.sciss.util.Flag
-import util.Model
+import util.{Flag, Model}
+import legacy.MenuAction
 
 trait SessionFrame {
-   frame: AppWindow =>
+   frame: desktop.Window =>
 
    private var writeProtected	= false
    private var wpHaveWarned	= false
@@ -84,7 +81,7 @@ trait SessionFrame {
       doc.addListener( docListener )
 
       app.getMenuFactory.addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
-      setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE )
+      closeOperation = desktop.Window.CloseIgnore
       addListener( winListener )
    }
 

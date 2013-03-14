@@ -13,5 +13,5 @@ object BasicPathField {
   }
 }
 class BasicPathField(tpe: Int, dialogText: String) extends PrefPathField(tpe, dialogText) {
-	protected def createPathButton(tpe: Int): PathButton  = new BasicPathField.Button( buttonType )
+	protected def createPathButton(tpe: Int): PathButton  = new BasicPathField.Button(tpe)
 }

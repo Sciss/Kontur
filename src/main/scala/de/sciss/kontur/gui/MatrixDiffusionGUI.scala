@@ -58,8 +58,8 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
 
   private var objects             = List.empty[Diffusion]
   private val ggName              = new JTextField(16)
-  private val ggNumInputChannels  = new ParamField()
-  private val ggNumOutputChannels = new ParamField()
+  private val ggNumInputChannels  = new BasicParamField()
+  private val ggNumOutputChannels = new BasicParamField()
   private val tabMatrix           = new JTable(MatrixModel)
   private val scrollMatrix        = new JScrollPane(tabMatrix)
   private val ggMatrix            = Box.createVerticalBox()
@@ -67,7 +67,7 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
 
   private val diffListener: Model.Listener = {
       // XXX the updates could be more selective
-      case Renamable.NameChanged( _, _ )             => updateGadgets()
+      case Renamable.NameChanged( _, _ )              => updateGadgets()
       case Diffusion.NumInputChannelsChanged( _, _ )  => updateGadgets()
       case Diffusion.NumOutputChannelsChanged( _, _ ) => updateGadgets()
       case MatrixDiffusion.MatrixChanged( _, _ )      => updateGadgets()

@@ -16,8 +16,18 @@ object PreferencesImpl {
 
     override def toString = s"Preferences.${if (isSystem) "system" else "user"}($name)"
 
-    def get[A](key: String)(implicit tpe: Type[A]): Option[A] = tpe.get(peer, key)
-    def getOrElse[A](key: String, default: A)(implicit tpe: Type[A]): A = tpe.getOrElse(peer, key, default)
-    def put[A](key: String, value: A)(implicit tpe: Type[A]) { tpe.put(peer, key, value) }
+    def get[A](key: String)(implicit tpe: Type[A]): Option[A] = {
+      val s = peer.get(key, null)
+      if (s == null) None else tpe.valueOf(s)
+    }
+
+    def getOrElse[A](key: String, default: A)(implicit tpe: Type[A]): A = {
+      val s = peer.get(key, null)
+      if (s == null) default else tpe.valueOf(s).getOrElse(default)
+    }
+
+    def put[A](key: String, value: A)(implicit tpe: Type[A]) {
+      peer.put(key, tpe.toString(value))
+    }
   }
 }

@@ -37,6 +37,7 @@ import de.sciss.synth.io.AudioFile
 import session.{ Diffusion, DiffusionEditor, DiffusionFactory, ConvolutionDiffusion, Renamable, Session }
 import util.Model
 import legacy.{PathListener, PathEvent, ParamSpace, AbstractCompoundEdit}
+import desktop.impl.BasicParamField
 
 object ConvolutionDiffusionGUI extends DiffusionGUIFactory {
    type T = ConvolutionDiffusionGUI
@@ -57,8 +58,8 @@ extends JPanel with desktop.impl.DynamicComponentImpl with FilenameFilter {
    private var objects: List[ Diffusion ] = Nil
    private val ggName         = new JTextField( 16 )
    private val ggPath         = new PathField( legacy.PathField.TYPE_INPUTFILE | legacy.PathField.TYPE_FORMATFIELD, "Choose Impulse Response Audiofile" )
-   private val ggGain         = new ParamField()
-   private val ggDelay        = new ParamField()
+   private val ggGain         = new BasicParamField()
+   private val ggDelay        = new BasicParamField()
    private val msgPtrn		   = "{0,choice,0#no channels|1#mono|2#stereo|2<{0,number,integer}-ch}, {1,number,########} frames / fft {2,number,########}, {3,number,0.###} kHz, {4,number,integer}:{5,number,00.000}";
    private val msgForm		   = new MessageFormat( msgPtrn, Locale.US )
 

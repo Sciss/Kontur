@@ -12,8 +12,6 @@ import java.awt.event.{ActionEvent, ActionListener}
 import annotation.switch
 
 object BasicParamField {
-  private final val uvf = new DefaultUnitViewFactory()
-
   trait UnitViewFactory {
  		def createView(unit: Int): Any
  	}
@@ -56,6 +54,13 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
 
   private val lay   = new GridBagLayout()
   private val con		= new GridBagConstraints()
+
+
+  addPropertyChangeListener("JComponent.sizeVariant", new PropertyChangeListener {
+    def propertyChange(pce: PropertyChangeEvent) {
+      numberField.putClientProperty(pce.getPropertyName, pce.getNewValue)
+    }
+  })
 
   setLayout(lay)
   con.anchor  = GridBagConstraints.WEST
@@ -127,7 +132,7 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
 
 	def addSpace(space: ParamSpace) {
 		spaces :+= space
-		val view = uvf.createView( space.unit )
+    val view = DefaultUnitViewFactory.createView(space.unit)
     view match {
       case icn: Icon  => unitLabel.addUnit(icn)
       case _          => unitLabel.addUnit(view.toString)
@@ -331,4 +336,13 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
   def removeActionListener(l: ActionListener) {
     numberField.removeActionListener(l)
   }
+
+  override def getBaseline(width: Int, height: Int) =
+    numberField.getBaseline(width, height) + numberField.getY
+
+  def setEditable(b: Boolean) {
+    numberField.setEditable(b)
+  }
+
+  def isEditable = numberField.isEditable
 }

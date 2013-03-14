@@ -8,42 +8,34 @@ object Preferences {
   object Type {
     import scala.{Int => SInt}
     import java.lang.{String => SString}
+    import java.io.{File => SFile}
 
     implicit object String extends Type[SString] {
-      private[desktop] def put(prefs: j.Preferences, key: SString, value: SString) {
-        prefs.put(key, value)
-      }
+      private[desktop] def toString(value: SString) = value
+      private[desktop] def valueOf(string: SString): Option[SString] = Some(string)
+    }
 
-      private[desktop] def get(prefs: j.Preferences, key: SString): Option[SString] = Option(prefs.get(key))
-
-      private[desktop] def getOrElse(prefs: j.Preferences, key: SString, default: SString): SString =
-        prefs.get(key, default)
+    implicit object File extends Type[SFile] {
+      private[desktop] def toString(value: SFile) = value.getPath
+      private[desktop] def valueOf(string: SString): Option[SFile] = Some(new SFile(string))
     }
 
     implicit object Int extends Type[SInt] {
-      private[desktop] def put(prefs: j.Preferences, key: SString, value: SInt) {
-        prefs.put(key, value.toString)
-      }
-
-      private[desktop] def get(prefs: j.Preferences, key: SString): Option[SInt] = try {
-        val s = prefs.get(key, null)
-        if (s == null) None else Some(s.toInt)
+      private[desktop] def toString(value: SInt) = value.toString
+      private[desktop] def valueOf(string: SString): Option[SInt] = try {
+        Some(string.toInt)
       } catch {
         case _: NumberFormatException => None
-      }
-
-      private[desktop] def getOrElse(prefs: j.Preferences, key: SString, default: SInt): SInt = try {
-        val s = prefs.get(key, null)
-        if (s == null) default else s.toInt
-      } catch {
-        case _: NumberFormatException => default
       }
     }
   }
   sealed trait Type[A] {
-    private[desktop] def put(prefs: j.Preferences, key: String, value: A): Unit
-    private[desktop] def get(prefs: j.Preferences, key: String): Option[A]
-    private[desktop] def getOrElse(prefs: j.Preferences, key: String, default: A): A
+    private[desktop] def toString(value: A): String
+    private[desktop] def valueOf(string: String): Option[A]
+
+//    private[desktop] def put(prefs: j.Preferences, key: String, value: A): Unit
+//    private[desktop] def get(prefs: j.Preferences, key: String): Option[A]
+//    private[desktop] def getOrElse(prefs: j.Preferences, key: String, default: A): A
   }
 
   def user  (clazz: Class[_]): Preferences = Impl.user  (clazz)

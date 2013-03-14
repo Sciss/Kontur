@@ -23,17 +23,18 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
-import java.io.{File, FileInputStream}
-import de.sciss.kontur.sc.{ SuperColliderClient, SuperColliderPlayer, SynthContext }
-import de.sciss.kontur.session.Session
-import de.sciss.kontur.edit.Editor
+import sc.{ SuperColliderClient, SuperColliderPlayer, SynthContext }
+import session.Session
+import edit.Editor
 import de.sciss.synth.Server
-import tools.nsc.interpreter.NamedParam
-import de.sciss.scalainterpreter.{SplitPane, CodePane, Interpreter, InterpreterPane}
-import language.implicitConversions
 import legacy.AbstractCompoundEdit
+import language.implicitConversions
+import de.sciss.scalainterpreter.{SplitPane, NamedParam, InterpreterPane, Interpreter, CodePane}
+import java.io.{File, FileInputStream}
+import swing.Component
 
 object ScalaInterpreterFrame {
    final class ProvideEditing private[ScalaInterpreterFrame] ( e: Editor ) {
@@ -71,15 +72,16 @@ object ScalaInterpreterFrame {
       implicit def provideEditing( e: Editor ) : ProvideEditing = new ProvideEditing( e )
    }
 }
-class ScalaInterpreterFrame
-extends AppWindow( AbstractWindow.REGULAR ) {
-   import ScalaInterpreterFrame._
 
-   // ---- constructor ----
+class ScalaInterpreterFrame extends desktop.impl.WindowImpl {
+  protected def style = desktop.Window.Regular
+
+  import ScalaInterpreterFrame._
+
+  title = getResourceString("frameScalaInterpreter")
+
+  // ---- constructor ----
    {
-      setTitle( getResourceString( "frameScalaInterpreter" ))
-      val cp = getContentPane
-
       val ipc  = InterpreterPane.Config()
       val ic   = Interpreter.Config()
       val cpc  = CodePane.Config()
@@ -148,16 +150,15 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 //      val sp = new JSplitPane( SwingConstants.HORIZONTAL )
 //      sp.setTopComponent( ip )
 //      sp.setBottomComponent( lp )
-      cp.add( sp.component )
+      content = Component.wrap(sp.component)
 //      val b = GraphicsEnvironment.getLocalGraphicsEnvironment.getMaximumWindowBounds
 //      setSize( b.width / 2, b.height * 7 / 8 )
 //      sp.setDividerLocation( b.height * 2 / 3 )
 //      setLocationRelativeTo( null )
 
-      init()
+//      init()
 //      sp.setDividerLocation( cp.getHeight * 2 / 3 )
-      setVisible( true )
-      toFront()
+      visible = true
    }
 
    override protected def autoUpdatePrefs = true
