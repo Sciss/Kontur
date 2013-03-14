@@ -23,30 +23,29 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
-import de.sciss.app.AbstractWindow
-import de.sciss.gui.LogTextArea
-import de.sciss.kontur.Kontur
-import java.awt.{ BorderLayout, Color, Font }
+import java.awt.{Color, Font}
 import java.awt.geom.Point2D
-import javax.swing.{ BorderFactory, JInternalFrame, WindowConstants }
+import javax.swing.{BorderFactory, JInternalFrame}
 
-class MainFrame extends AppWindow( AbstractWindow.REGULAR ) {
+class MainFrame extends desktop.impl.WindowImpl {
+  protected def style = desktop.Window.Regular
 
   // --- constructor ---
   {
 //	  val app     = AbstractApplication.getApplication()
       val strMain = app.getResourceString( "frameMain" )
 
-      if( app.getWindowHandler.usesInternalFrames ) {
-		setTitle( strMain )
-		getWindow.asInstanceOf[ JInternalFrame ].setClosable( false )
-	  } else {
-		setTitle( app.getName + " : " + strMain )
-	  }
+    if (app.getWindowHandler.usesInternalFrames) {
+      title = strMain
+      getWindow.asInstanceOf[JInternalFrame].setClosable(false)
+    } else {
+      title = app.name + " : " + strMain
+    }
 
-      val lta       = new LogTextArea( 32, 60, false, null )
+    val lta       = new LogTextArea( 32, 60, false, null )
       lta.makeSystemOutput()
       lta.setFont( new Font( "Menlo", Font.PLAIN, 10 ))
       lta.setForeground( Color.white )
@@ -55,7 +54,6 @@ class MainFrame extends AppWindow( AbstractWindow.REGULAR ) {
 //      lta.setOpaque( false )
       lta.setBorder( BorderFactory.createEmptyBorder( 2, 4, 2, 4 ))
 
-      val cp		= getContentPane
 //      val cp = new JPanel( new BorderLayout() )
 //      cp.setOpaque( false )
 //      cp.setBackground( new Color( 0, 0, 0, 0 ))
@@ -68,39 +66,39 @@ class MainFrame extends AppWindow( AbstractWindow.REGULAR ) {
 //      val vp = ggScroll.getViewport
 //      vp.setBackground( new Color( 0, 0, 0, 0 ))
 //      vp.setOpaque( false )
-      cp.add( ggScroll, BorderLayout.CENTER )
+     contents = ggScroll
 
 //      cp.setBackground( new Color( 0, 0, 0, 0 ))
 //      cp.setOpaque( false )
 //      getWindow.setBackground( new Color( 0, 0, 0, 0x7F ))
 
-    setAlpha( 0.85f )
+    alpha = 0.85f
 
 //    cp.add( new JLabel( "Testin" ), BorderLayout.SOUTH )
 
-      getWindow.setBackground( new Color( 0, 0, 0, 0x7F ))
+    component.background = new Color(0, 0, 0, 0x7F)
 
-      app.getMenuBarRoot.putMimic( "edit.clear", this, lta.getClearAction )
-	  val winListener = new AbstractWindow.Adapter {
-			override def windowClosing( e: AbstractWindow.Event ) {
-				app.quit()
-			}
+    app.getMenuBarRoot.putMimic("edit.clear", this, lta.getClearAction)
+    val winListener = new AbstractWindow.Adapter {
+      override def windowClosing(e: AbstractWindow.Event) {
+        app.quit()
       }
-      addListener( winListener )
+    }
+    addListener(winListener)
 
-      setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE )
+    closeOperation = desktop.Window.CloseIgnore
 
-      init()
-  	  app.addComponent( Kontur.COMP_MAIN, this )
-	  setVisible( true )
+//    init()
+    app.addComponent(Kontur.COMP_MAIN, this)
+    visible = true
 
-//      println( "Testin one two")
+    // println( "Testin one two")
   }
 
-   override protected def getPreferredLocation: Point2D = new Point2D.Float( 0f, 0f )
+  override protected def getPreferredLocation: Point2D = new Point2D.Float(0f, 0f)
 
-   override def dispose() {
-		app.removeComponent( Kontur.COMP_MAIN )
-		super.dispose()
-	}
+  override def dispose() {
+    app.removeComponent(Kontur.COMP_MAIN)
+    super.dispose()
+  }
 }

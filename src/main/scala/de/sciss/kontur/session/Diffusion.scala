@@ -28,9 +28,9 @@ package de.sciss.kontur.session
 import java.awt.datatransfer.DataFlavor
 import javax.swing.undo.UndoManager
 import scala.xml.Node
-import de.sciss.app.AbstractCompoundEdit
 import de.sciss.kontur.edit.Editor
 import de.sciss.kontur.util.SerializerContext
+import legacy.AbstractCompoundEdit
 
 object Diffusion {
    case class NumInputChannelsChanged( oldNum: Int, newNum: Int )

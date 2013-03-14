@@ -27,10 +27,10 @@ package de.sciss.kontur.session
 
 import java.io.{ File, IOException }
 import scala.xml.{ Node, Null }
-import de.sciss.app.AbstractCompoundEdit
 import de.sciss.kontur.edit.SimpleEdit
 import de.sciss.kontur.util.SerializerContext
 import de.sciss.synth.io.AudioFile
+import legacy.AbstractCompoundEdit
 
 /**
  *    @version 0.11, 20-Apr-10

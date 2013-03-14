@@ -27,10 +27,9 @@ package de.sciss.kontur.gui
 
 import java.awt.event.ActionEvent
 import javax.swing.JOptionPane
-import de.sciss.common.BasicWindowHandler
-import de.sciss.gui.MenuAction
 import de.sciss.kontur.edit.Editor
 import de.sciss.kontur.session.Renamable
+import legacy.MenuAction
 
 class EditRenameAction( r: Renamable, ed: Editor, name: String = "Rename..." )
 extends MenuAction( name ) {

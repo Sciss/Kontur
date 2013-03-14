@@ -26,36 +26,37 @@
 package de.sciss.kontur.gui
 
 import java.awt.event.ActionEvent
-import de.sciss.util.{DefaultUnitTranslator, Param, ParamSpace}
-import de.sciss.gui.{GUIUtil, MenuAction, SpringPanel}
-import de.sciss.common.BasicWindowHandler
 import javax.swing.{Action, JOptionPane}
 import java.awt.Component
 import de.sciss.kontur.session.Timeline
+import legacy.{MenuAction, GUIUtil, SpringPanel, DefaultUnitTranslator, ParamSpace, Param}
+import de.sciss.kontur.desktop.impl.BasicParamField
 
 abstract class ActionQueryDuration extends MenuAction {
-   private var value: Option[ Param ] = None
-   private var space: Option[ ParamSpace ] = None
+  private var value = Option.empty[Param]
+  private var space = Option.empty[ParamSpace]
 
-   def actionPerformed( e: ActionEvent ) { perform() }
+  def actionPerformed(e: ActionEvent) {
+    perform()
+  }
 
-   def perform() {
-      val msgPane     = new SpringPanel( 4, 2, 4, 2 )
-      val timeTrans   = new DefaultUnitTranslator()
-      val ggDuration  = new ParamField( timeTrans )
-      ggDuration.addSpace( ParamSpace.spcTimeHHMMSS )
-      ggDuration.addSpace( ParamSpace.spcTimeSmps )
-      ggDuration.addSpace( ParamSpace.spcTimeMillis )
-      ggDuration.addSpace( ParamSpace.spcTimePercentF )
-      msgPane.gridAdd( ggDuration, 0, 0 )
-      msgPane.makeCompactGrid()
-      GUIUtil.setInitialDialogFocus( ggDuration )
+  def perform() {
+     val msgPane    = new SpringPanel(4, 2, 4, 2)
+     val timeTrans  = new DefaultUnitTranslator()
+     val ggDuration = new BasicParamField(timeTrans)
+     ggDuration.addSpace(ParamSpace.spcTimeHHMMSS)
+     ggDuration.addSpace(ParamSpace.spcTimeSmps)
+     ggDuration.addSpace(ParamSpace.spcTimeMillis)
+     ggDuration.addSpace(ParamSpace.spcTimePercentF)
+     msgPane.gridAdd(ggDuration, 0, 0)
+     msgPane.makeCompactGrid()
+     GUIUtil.setInitialDialogFocus(ggDuration)
 
-      val tl = timeline // timelineView.timeline
+     val tl = timeline // timelineView.timeline
       timeTrans.setLengthAndRate( tl.span.length, tl.rate )
 
-      ggDuration.setValue( value getOrElse initialValue )
-      space.foreach( sp => ggDuration.setSpace( sp ))
+      ggDuration.value = (value getOrElse initialValue)
+      space.foreach(ggDuration.space = _)
 
       val op = new JOptionPane( msgPane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )
       val result = BasicWindowHandler.showDialog( op, parent, getValue( Action.NAME ).toString )
@@ -73,13 +74,13 @@ abstract class ActionQueryDuration extends MenuAction {
       }
    }
 
-   protected def editName : String = {
-      val name = getValue( Action.NAME ).toString
-      if( name.endsWith( "..." )) name.substring( 0, name.length - 3 ) else name
-   }
+  protected def editName: String = {
+    val name = getValue(Action.NAME).toString
+    if (name endsWith "...") name.substring(0, name.length - 3) else name
+  }
 
-   protected def initialValue : Param
-   protected def timeline: Timeline
-   protected def initiate( v: Param, trans: ParamSpace.Translator ) : Unit
-   protected def parent : Component
+  protected def initialValue: Param
+  protected def timeline: Timeline
+  protected def initiate(v: Param, trans: ParamSpace.Translator): Unit
+  protected def parent: Component
 }

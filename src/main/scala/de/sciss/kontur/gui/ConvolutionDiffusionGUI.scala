@@ -32,13 +32,11 @@ import java.util.Locale
 import java.text.MessageFormat
 import javax.swing.{ GroupLayout, JLabel, JPanel, JTextField, SwingConstants }
 import SwingConstants._
-import de.sciss.app.{ AbstractCompoundEdit, DynamicAncestorAdapter, DynamicListening }
 import de.sciss.dsp.Util.nextPowerOfTwo
 import de.sciss.synth.io.AudioFile
 import session.{ Diffusion, DiffusionEditor, DiffusionFactory, ConvolutionDiffusion, Renamable, Session }
-import de.sciss.util.ParamSpace
-import de.sciss.gui.{ ParamField => ParamF, PathEvent, PathField => PathF, PathListener}
 import util.Model
+import legacy.{ParamSpace, AbstractCompoundEdit}
 
 object ConvolutionDiffusionGUI extends DiffusionGUIFactory {
    type T = ConvolutionDiffusionGUI
@@ -54,15 +52,13 @@ object ConvolutionDiffusionGUI extends DiffusionGUIFactory {
 }
 
 class ConvolutionDiffusionGUI( autoApply: Boolean )
-extends JPanel with DynamicListening with FilenameFilter {
+extends JPanel with desktop.impl.DynamicComponentImpl with FilenameFilter {
 
    private var objects: List[ Diffusion ] = Nil
    private val ggName         = new JTextField( 16 )
    private val ggPath         = new PathField( PathF.TYPE_INPUTFILE | PathF.TYPE_FORMATFIELD, "Choose Impulse Response Audiofile" )
    private val ggGain         = new ParamField()
    private val ggDelay        = new ParamField()
-   private var isListening    = false
-// private val tf             = new TimeFormat( 0, null, null, 3, Locale.US )
    private val msgPtrn		   = "{0,choice,0#no channels|1#mono|2#stereo|2<{0,number,integer}-ch}, {1,number,########} frames / fft {2,number,########}, {3,number,0.###} kHz, {4,number,integer}:{5,number,00.000}";
    private val msgForm		   = new MessageFormat( msgPtrn, Locale.US )
 
@@ -150,8 +146,6 @@ extends JPanel with DynamicListening with FilenameFilter {
              .addComponent( ggDelay )
          )
       )
-
-      new DynamicAncestorAdapter( this ).addTo( this )
    }
 
    // ---- FilenameFilter ----
@@ -236,23 +230,21 @@ extends JPanel with DynamicListening with FilenameFilter {
       }
    }
 
-   def setObjects( diff: Diffusion* ) {
-      objects.foreach( _.removeListener( diffListener ))
-      objects = diff.toList
-      if( isListening ) {
-         updateGadgets()
-         objects.foreach( _.addListener( diffListener ))
-      }
-   }
-
-   def startListening() {
-      isListening = true
+  def setObjects(diff: Diffusion*) {
+    objects.foreach(_.removeListener(diffListener))
+    objects = diff.toList
+    if (isListening) {
       updateGadgets()
-      objects.foreach( _.addListener( diffListener ))
-   }
+      objects.foreach(_.addListener(diffListener))
+    }
+  }
 
-   def stopListening() {
-      isListening = false
-      objects.foreach( _.removeListener( diffListener ))
-   }
+  protected def componentShown() {
+    updateGadgets()
+    objects.foreach(_.addListener(diffListener))
+  }
+
+  protected def componentHidden() {
+    objects.foreach(_.removeListener(diffListener))
+  }
 }

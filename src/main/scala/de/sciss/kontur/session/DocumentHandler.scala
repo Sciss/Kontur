@@ -23,13 +23,10 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.session
+package de.sciss.kontur
+package session
 
-import de.sciss.app.AbstractDocumentHandler
-import de.sciss.kontur.Kontur
-                        
-class DocumentHandler( root: Kontur )
-extends AbstractDocumentHandler( true ) {
+class DocumentHandler extends AbstractDocumentHandler( true ) {
 //  	private val mapIDs = Map
 /*
 	def addDocument( Object source, Document doc ) {

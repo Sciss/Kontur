@@ -26,9 +26,6 @@
 package de.sciss.kontur
 package session
 
-import de.sciss.app.AbstractApplication
-import de.sciss.common.{ BasicDocument, ProcessingThread }
-import de.sciss.util.Flag
 import util.{Model, BasicSerializerContext, SerializerContext}
 import java.awt.EventQueue
 import java.io.{ File, IOException }

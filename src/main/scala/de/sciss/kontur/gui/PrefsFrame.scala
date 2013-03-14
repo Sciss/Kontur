@@ -23,17 +23,11 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
-import de.sciss.app.{ AbstractWindow, PreferenceEntrySync }
-import de.sciss.gui.{ ComboBoxEditorBorder, CoverGrowBox, PathField => PathF,
-                     PrefCheckBox, PrefComboBox, PrefPathField, PrefParamField,
-                     StringItem, TreeExpanderButton }
-import de.sciss.common.{ BasicWindowHandler, BasicPathField }
-import de.sciss.util.{ Param, ParamSpace }
-import de.sciss.kontur.Kontur
-import de.sciss.kontur.util.PrefsUtil
-import de.sciss.kontur.io.PrefCacheManager
+import util.PrefsUtil
+import io.PrefCacheManager
 import PrefsUtil._
 import java.awt.{ BorderLayout, SystemColor }
 import java.awt.event.{ ActionEvent, ActionListener }
@@ -43,15 +37,19 @@ import javax.swing.{ AbstractAction, AbstractButton, ButtonGroup, GroupLayout,
                     JTable, JToggleButton, JToolBar, ScrollPaneConstants,
                     SwingConstants, UIManager, WindowConstants }
 import language.reflectiveCalls
+import legacy.{Param, ParamSpace, PrefPathField, BasicPathField, StringItem}
+import desktop.impl.PrefParamField
 
-class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
+class PrefsFrame extends desktop.impl.WindowImpl {
+  protected def style = desktop.Window.Auxiliary
+
+  title     = getResourceString( "framePrefs" )
+  resizable = false
+  makeUnifiedLook()
 
     // ---- constructor ----
     {
-      setTitle( getResourceString( "framePrefs" ))
-      setResizable( false )
-      makeUnifiedLook()
-      
+
 //	  val app = AbstractApplication.getApplication()
 
       val cp = getContentPane
@@ -316,126 +314,6 @@ ggRateParam.setBackground( bg )
             .addComponent( ggAdvanced )
           )
         )
-
-//    layout.linkSize(SwingConstants.HORIZONTAL, findButton, cancelButton)
-
-
-/*
-		collAudioAdvanced = new ArrayList();
-
-		row++;
-		key2	= "prefsSuperColliderOSC";
-		lb		= new JLabel( getResourceString( key2 ), TRAILING );
-		lb.setVisible( false );
-		collAudioAdvanced.add( lb );
-		tab.gridAdd( lb, 0, row );
-		key		= KEY_SCPROTOCOL;
-		key2	= "prefsOSCProtocol";
-		lb		= new JLabel( getResourceString( key2 ), TRAILING );
-		b		= Box.createHorizontalBox();
-		b.add( Box.createHorizontalStrut( 4 ));
-		b.add( lb );
-		ggChoice = new PrefComboBox();
-		ggChoice.addItem( new StringItem( OSCChannel.TCP, "TCP" ));
-		ggChoice.addItem( new StringItem( OSCChannel.UDP, "UDP" ));
-		ggChoice.setPreferences( prefs, key );
-		b.add( ggChoice );
-
-		key		= KEY_SCPORT;
-		key2	= "prefsOSCPort";
-		lb		= new JLabel( getResourceString( key2 ), TRAILING );
-		b.add( Box.createHorizontalStrut( 16 ));
-		b.add( lb );
-		ggParam  = new PrefParamField();
-		ggParam.addSpace( spcIntegerFromZero );
-		ggParam.setPreferences( prefs, key );
-		b.add( ggParam );
-		b.setVisible( false );
-		collAudioAdvanced.add( b );
-		tab.gridAdd( b, 1, row, -1, 1 );
-
-		row++;
-		key		= KEY_SCBLOCKSIZE;
-		key2	= "prefsSCBlockSize";
-		lb		= new JLabel( getResourceString( key2 ), TRAILING );
-		lb.setVisible( false );
-		collAudioAdvanced.add( lb );
-		tab.gridAdd( lb, 0, row );
-		ggParam  = new PrefParamField();
-		ggParam.addSpace( spcIntegerFromOne );
-		ggParam.setPreferences( prefs, key );
-		ggParam.setVisible( false );
-		collAudioAdvanced.add( ggParam );
-		tab.gridAdd( ggParam, 1, row, -1, 1 );
-
-		row++;
-		key		= KEY_AUDIOBUSSES;
-		key2	= "prefsAudioBusses";
-		lb		= new JLabel( getResourceString( key2 ), TRAILING );
-		lb.setVisible( false );
-		collAudioAdvanced.add( lb );
-		tab.gridAdd( lb, 0, row );
-		ggParam  = new PrefParamField();
-		ggParam.addSpace( spcIntegerFromOne );
-		ggParam.setPreferences( prefs, key );
-		ggParam.setVisible( false );
-		collAudioAdvanced.add( ggParam );
-		tab.gridAdd( ggParam, 1, row, -1, 1 );
-
-		row++;
-		key		= KEY_SCMEMSIZE;
-		key2	= "prefsSCMemSize";
-		lb		= new JLabel( getResourceString( key2 ), TRAILING );
-		lb.setVisible( false );
-		collAudioAdvanced.add( lb );
-		tab.gridAdd( lb, 0, row );
-		ggParam  = new PrefParamField();
-		ggParam.addSpace( spcIntegerFromOne );
-		ggParam.setPreferences( prefs, key );
-		ggParam.setVisible( false );
-		collAudioAdvanced.add( ggParam );
-		tab.gridAdd( ggParam, 1, row, -1, 1 );
-
-		row++;
-		key		= KEY_SCRENDEZVOUS;
-		key2	= "prefsSCRendezvous";
-		lb		= new JLabel( getResourceString( key2 ), TRAILING );
-		lb.setVisible( false );
-		collAudioAdvanced.add( lb );
-		tab.gridAdd( lb, 0, row );
-		ggCheckBox  = new PrefCheckBox();
-		ggCheckBox.setPreferences( prefs, key );
-		ggCheckBox.setVisible( false );
-		collAudioAdvanced.add( ggCheckBox );
-		tab.gridAdd( ggCheckBox, 1, row, -1, 1 );
-*/
-/*
-final SpringPanel tabAudio = tab;
-		ggTreeAudio.addActionListener( new ActionListener() {
-			public void actionPerformed( ActionEvent e )
-			{
-				final int		width	= getWindow().getWidth();
-				final int		height	= getWindow().getHeight();
-				final boolean	visible	= ggTreeAudio.isExpanded();
-				int				delta	= 0;
-				int				d2;
-
-				for( int i = 0; i < collAudioAdvanced.size(); ) {
-					d2 = 0;
-					for( int j = i + 2; i < j; i++ ) {
-						d2 = Math.max( d2, ((JComponent) collAudioAdvanced.get( i )).getPreferredSize().height );
-					}
-					delta = delta + d2 + 2;
-				}
-
-				for( int i = 0; i < collAudioAdvanced.size(); i++ ) {
-					((JComponent) collAudioAdvanced.get( i )).setVisible( visible );
-				}
-				tabAudio.makeCompactGrid();
-				getWindow().setSize( width, height + (visible ? delta : -delta ));
-			}
-		});
-*/
       panel
     }
 }

@@ -34,12 +34,11 @@ import javax.swing.border.Border
 import javax.swing.event.MouseInputAdapter
 import javax.swing.table.{ AbstractTableModel, DefaultTableColumnModel, TableCellEditor, TableCellRenderer, TableColumn }
 import math._
-import de.sciss.gui.{ ParamField => PF }
 import session.{ Diffusion, DiffusionEditor, DiffusionFactory, MatrixDiffusion, Renamable, Session }
 import util.{Model, Matrix2D}
-import de.sciss.util.{ Param, ParamSpace }
 import java.awt.{RenderingHints, BasicStroke, Graphics2D, Color, Component, Cursor, Graphics, Insets}
-import de.sciss.app.{GraphicsHandler, AbstractApplication, AbstractCompoundEdit, Document, DynamicAncestorAdapter, DynamicListening}
+import legacy.{Param, ParamSpace, AbstractCompoundEdit}
+import desktop.impl.BasicParamField
 
 object MatrixDiffusionGUI extends DiffusionGUIFactory {
    type T = MatrixDiffusionGUI
@@ -54,20 +53,19 @@ object MatrixDiffusionGUI extends DiffusionGUIFactory {
    def factory : DiffusionFactory = MatrixDiffusion
 }
 
-class MatrixDiffusionGUI( autoApply: Boolean = true )
-extends JPanel with ObserverPage with DynamicListening {
+class MatrixDiffusionGUI(autoApply: Boolean = true)
+  extends JPanel with ObserverPage with desktop.impl.DynamicComponentImpl {
 
-   private var objects: List[ Diffusion ] = Nil
-   private val ggName              = new JTextField( 16 )
-   private val ggNumInputChannels  = new ParamField()
-   private val ggNumOutputChannels = new ParamField()
-   private val tabMatrix           = new JTable( MatrixModel )
-   private val scrollMatrix        = new JScrollPane( tabMatrix )
-   private val ggMatrix            = Box.createVerticalBox() // new JPanel()
-   private val ggMatrixApply       = new JButton( "Apply" )
-   private var isListening          = false
+  private var objects             = List.empty[Diffusion]
+  private val ggName              = new JTextField(16)
+  private val ggNumInputChannels  = new ParamField()
+  private val ggNumOutputChannels = new ParamField()
+  private val tabMatrix           = new JTable(MatrixModel)
+  private val scrollMatrix        = new JScrollPane(tabMatrix)
+  private val ggMatrix            = Box.createVerticalBox()
+  private val ggMatrixApply       = new JButton("Apply")
 
-   private val diffListener: Model.Listener = {
+  private val diffListener: Model.Listener = {
       // XXX the updates could be more selective
       case Renamable.NameChanged( _, _ )             => updateGadgets()
       case Diffusion.NumInputChannelsChanged( _, _ )  => updateGadgets()
@@ -119,20 +117,20 @@ extends JPanel with ObserverPage with DynamicListening {
          }
       })
 
-      ggNumInputChannels.addListener( new PF.Listener {
-         def paramValueChanged( e: PF.Event ) {
+      ggNumInputChannels.addListener( new BasicParamField.Listener {
+         def paramValueChanged( e: BasicParamField.Event ) {
             if( !e.isAdjusting )
-               editSetNumInputChannels( e.getValue.`val`.toInt )
+               editSetNumInputChannels( e.value.`val`.toInt )
          }
-         def paramSpaceChanged( e: PF.Event ) {}
+         def paramSpaceChanged( e: BasicParamField.Event ) {}
       })
 
-      ggNumOutputChannels.addListener( new PF.Listener {
-         def paramValueChanged( e: PF.Event ) {
+      ggNumOutputChannels.addListener( new BasicParamField.Listener {
+         def paramValueChanged( e: BasicParamField.Event ) {
             if( !e.isAdjusting )
                editSetNumOutputChannels( e.getValue.`val`.toInt )
          }
-         def paramSpaceChanged( e: PF.Event ) {}
+         def paramSpaceChanged( e: BasicParamField.Event ) {}
       })
 
       layout.setHorizontalGroup( layout.createParallelGroup()
@@ -166,8 +164,6 @@ extends JPanel with ObserverPage with DynamicListening {
          )
          .addComponent( ggMatrix )
       )
-
-      new DynamicAncestorAdapter( this ).addTo( this )
    }
 
    private def withEditor( editName: String, fun: (DiffusionEditor, AbstractCompoundEdit) => Unit ) {
@@ -231,14 +227,14 @@ extends JPanel with ObserverPage with DynamicListening {
         ggName.setEnabled( enabled )
         ggName.setEditable( editable )
 //        val pDummy = new Param( Double.NaN, ParamSpace.NONE )
-        ggNumInputChannels.setValue( new Param( collapse(
+        ggNumInputChannels.value = new Param( collapse(
               objects.map( _.numInputChannels.toDouble ): _* ),
-            ParamSpace.NONE ))
+            ParamSpace.NONE )
         ggNumInputChannels.setEnabled( enabled )
         ggNumInputChannels.setEditable( editable )
-        ggNumOutputChannels.setValue( new Param( collapse(
+        ggNumOutputChannels.value = new Param( collapse(
               objects.map( _.numOutputChannels.toDouble ): _* ),
-            ParamSpace.NONE ))
+            ParamSpace.NONE )
         ggNumOutputChannels.setEnabled( enabled )
         ggNumOutputChannels.setEnabled( enabled )
         ggNumOutputChannels.setEditable( editable )
@@ -258,37 +254,35 @@ extends JPanel with ObserverPage with DynamicListening {
         }
     }
 
-    def setObjects( diff: Diffusion* ) {
-       objects.foreach( _.removeListener( diffListener ))
-       objects = diff.toList
-       if( isListening ) {
-          updateGadgets()
-          objects.foreach( _.addListener( diffListener ))
-       }
-    }
-
-   def startListening() {
-      isListening = true
+  def setObjects(diff: Diffusion*) {
+    objects.foreach(_.removeListener(diffListener))
+    objects = diff.toList
+    if (isListening) {
       updateGadgets()
-      objects.foreach( _.addListener( diffListener ))
-   }
-
-   def stopListening() {
-      isListening = false
-      objects.foreach( _.removeListener( diffListener ))
-   }
-
-    private def matrixChanged() {
-       ggMatrixApply.setEnabled( true )
-       if( autoApply ) applyMatrixChanges()
+      objects.foreach(_.addListener(diffListener))
     }
+  }
 
-    private def applyMatrixChanges() {
-       ggMatrixApply.setEnabled( false )
-       editSetMatrix( MatrixModel.matrix )
-    }
+  protected def componentShown() {
+    updateGadgets()
+    objects.foreach(_.addListener(diffListener))
+  }
 
-    // ---- ObserverPage interface ----+
+  protected def componentHidden() {
+    objects.foreach(_.removeListener(diffListener))
+  }
+
+  private def matrixChanged() {
+    ggMatrixApply.setEnabled(true)
+    if (autoApply) applyMatrixChanges()
+  }
+
+  private def applyMatrixChanges() {
+    ggMatrixApply.setEnabled(false)
+    editSetMatrix(MatrixModel.matrix)
+  }
+
+  // ---- ObserverPage interface ----+
     def component: JComponent = this
     def id = DiffusionObserverPage.id
     def title = "Diffusion" // XXX getResourceString

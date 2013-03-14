@@ -26,10 +26,11 @@
 package de.sciss.kontur.gui
 
 import java.beans.{ PropertyChangeEvent, PropertyChangeListener }
-import de.sciss.util.{ DefaultUnitTranslator, ParamSpace }
+import legacy.{DefaultUnitTranslator, ParamSpace}
+import de.sciss.kontur.desktop.impl.PrefParamField
 
 class ParamField( ut: ParamSpace.Translator )
-extends de.sciss.gui.PrefParamField( ut ) {
+extends PrefParamField( ut ) {
     def this() = this( new DefaultUnitTranslator() )
 
     addPropertyChangeListener( "JComponent.sizeVariant", new PropertyChangeListener {

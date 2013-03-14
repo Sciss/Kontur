@@ -27,8 +27,7 @@ package de.sciss.kontur.edit
 
 import java.awt.EventQueue
 import javax.swing.undo.UndoManager
-import de.sciss.app.AbstractCompoundEdit
-import de.sciss.common.BasicCompoundEdit
+import legacy.{BasicCompoundEdit, AbstractCompoundEdit}
 
 trait Editor {
    def undoManager: UndoManager

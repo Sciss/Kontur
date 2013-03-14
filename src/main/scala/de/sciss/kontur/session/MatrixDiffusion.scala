@@ -23,27 +23,26 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.session
+package de.sciss.kontur
+package session
 
-import scala.xml.Node
-import de.sciss.app.AbstractCompoundEdit
-import de.sciss.kontur.edit.SimpleEdit
-import de.sciss.kontur.util.{ Matrix2D, SerializerContext }
+import edit.SimpleEdit
+import util.{Matrix2D, SerializerContext}
+import legacy.AbstractCompoundEdit
 
 object MatrixDiffusion extends DiffusionFactory {
-   def fromXML( c: SerializerContext, doc: Session, node: Node ) : MatrixDiffusion = {
-      val diff = new MatrixDiffusion( doc )
-      c.id( diff, node )
-      diff.fromXML( node )
-      diff
-   }
+  def fromXML(c: SerializerContext, doc: Session, node: xml.Node): MatrixDiffusion = {
+    val diff = new MatrixDiffusion(doc)
+    c.id(diff, node)
+    diff.fromXML(node)
+    diff
+  }
 
-   def factoryName         = "matrix"
-   def humanReadableName   = "Matrix Diffusion"
+  def factoryName = "matrix"
 
-//   def guiFactory = Some( MatrixDiffusionGUI )
+  def humanReadableName = "Matrix Diffusion"
 
-   case class MatrixChanged( oldMatrix: Matrix2D[ Float ], newMatrix: Matrix2D[ Float ])
+  final case class MatrixChanged(oldMatrix: Matrix2D[Float], newMatrix: Matrix2D[Float])
 }
 
 // columns correspond to outputs, rows to inputs
@@ -69,7 +68,7 @@ extends BasicDiffusion( doc ) {
     private def rowToXML( row: Seq[ Float ]) =
       <row>{row.mkString( " " )}</row>
 
-    def fromXML( node: Node ) {
+    def fromXML( node: xml.Node ) {
         nameVar              = (node \ "name").text
         numInputChannelsVar  = (node \ "numInputChannels").text.toInt
         numOutputChannelsVar = (node \ "numOutputChannels").text.toInt

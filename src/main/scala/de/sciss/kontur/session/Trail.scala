@@ -26,11 +26,10 @@
 package de.sciss.kontur
 package session
 
-import de.sciss.app.AbstractCompoundEdit
-import de.sciss.util.Disposable
 import edit.Editor
 import util.Model
 import de.sciss.span.Span
+import legacy.AbstractCompoundEdit
 
 abstract sealed class TouchMode( val id: Int )
 
@@ -69,7 +68,7 @@ trait MuteableStake[ +Repr ] extends Stake[ Repr ] {
 //}
 
 trait Trail[ T <: Stake[ T ]]
-extends Disposable with Model {
+extends /* Disposable with */ Model {
 //    type St = T
 
    def emptyList: List[ T ] = Nil
@@ -93,17 +92,14 @@ extends Disposable with Model {
    case class StakesRemoved( span: Span, stakes: T* )
 }
 
-trait TrailEditor[ T <: Stake[ T ]]
-extends Editor {
-//    type St = T
-	def editInsert( ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode ) : Unit
-	def editRemove( ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode ) : Unit
-	def editClear( ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode ) : Unit
-	def editAdd( ce: AbstractCompoundEdit, stakes: T* ) : Unit
-	def editRemove( ce: AbstractCompoundEdit, stakes: T* ) : Unit
-	def defaultTouchMode: TouchMode
-}
+trait TrailEditor[T <: Stake[T]] extends Editor {
 
-// trait TrailVisitor[ T <: Stake ] {
-//   def visit( stake: T ) : Unit
-// }
+  def editInsert(ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode): Unit
+  def editRemove(ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode): Unit
+  def editClear (ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode): Unit
+
+  def editAdd   (ce: AbstractCompoundEdit, stakes: T*): Unit
+  def editRemove(ce: AbstractCompoundEdit, stakes: T*): Unit
+
+  def defaultTouchMode: TouchMode
+}

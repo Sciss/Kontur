@@ -36,11 +36,9 @@ import javax.swing.JComponent
 import javax.swing.event.MouseInputAdapter
 import collection.mutable.ListBuffer
 
-import de.sciss.app.{ AbstractApplication, DynamicAncestorAdapter, DynamicListening, GraphicsHandler }
-import de.sciss.gui.ComponentHost
-import de.sciss.util.Disposable
 import session.{ Marker, Trail, TrailEditor }
 import util.Model
+import legacy.ComponentHost
 
 /**
  *	@todo		uses TimelineListener to
@@ -83,33 +81,31 @@ object MarkerAxis {
 
 class MarkerAxis( timelineView: TimelineView, host: ComponentHost )
 extends JComponent
-with DynamicListening with Disposable {
+with desktop.impl.DynamicComponentImpl {
 
-    import MarkerAxis._
+  import MarkerAxis._
 
-//	private String[]			markLabels		= new String[0];
-//	private int[]				markFlagPos		= new int[0];
-//	private var numMarkers		= 0
-	protected val shpFlags		= new GeneralPath()
-	private var recentWidth		= -1
-	private var doRecalc		= true
-	protected var visibleSpan = timelineView.span
+  //	private String[]			markLabels		= new String[0];
+  //	private int[]				markFlagPos		= new int[0];
+  //	private var numMarkers		= 0
+  protected val shpFlags = new GeneralPath()
+  private var recentWidth = -1
+  private var doRecalc = true
+  protected var visibleSpan = timelineView.span
 
-	private val img1		= new BufferedImage( 1, barExtent, BufferedImage.TYPE_INT_ARGB )
-	img1.setRGB( 0, 0, 1, barExtent, pntBarGradientPixels, 0, 1 )
-	private val pntBackground = new TexturePaint( img1, new Rectangle( 0, 0, 1, barExtent ))
-	private val img2		= new BufferedImage( 1, markExtent, BufferedImage.TYPE_INT_ARGB )
-	img2.setRGB( 0, 0, 1, markExtent, pntMarkGradientPixels, 0, 1 )
-	private val pntMarkFlag	= new TexturePaint( img2, new Rectangle( 0, 0, 1, markExtent ))
-	private val img3		= new BufferedImage( 1, markExtent, BufferedImage.TYPE_INT_ARGB )
-	img3.setRGB( 0, 0, 1, markExtent, pntMarkDragPixels, 0, 1 )
-	private val pntMarkFlagDrag = new TexturePaint( img3, new Rectangle( 0, 0, 1, markExtent ))
+  private val img1 = new BufferedImage(1, barExtent, BufferedImage.TYPE_INT_ARGB)
+  img1.setRGB(0, 0, 1, barExtent, pntBarGradientPixels, 0, 1)
+  private val pntBackground = new TexturePaint(img1, new Rectangle(0, 0, 1, barExtent))
+  private val img2 = new BufferedImage(1, markExtent, BufferedImage.TYPE_INT_ARGB)
+  img2.setRGB(0, 0, 1, markExtent, pntMarkGradientPixels, 0, 1)
+  private val pntMarkFlag = new TexturePaint(img2, new Rectangle(0, 0, 1, markExtent))
+  private val img3 = new BufferedImage(1, markExtent, BufferedImage.TYPE_INT_ARGB)
+  img3.setRGB(0, 0, 1, markExtent, pntMarkDragPixels, 0, 1)
+  private val pntMarkFlagDrag = new TexturePaint(img3, new Rectangle(0, 0, 1, markExtent))
 
-	private var isListening	= false
+  private val marks = new ListBuffer[Mark]()
 
-    private val marks       = new ListBuffer[ Mark ]()
-
-	// ----- Edit-Marker Dialog -----
+  // ----- Edit-Marker Dialog -----
 //	private var editMarkerPane: Option[ JPanel ] = None
 //	private Object[]					editOptions		= null;
 //	private ParamField					ggMarkPos;
@@ -118,108 +114,109 @@ with DynamicListening with Disposable {
 //	protected int						editIdx			= -1;
 //	private DefaultUnitTranslator		timeTrans;
 
-	// ---- dnd ----
-    private var drag: Option[ Drag ] = None
+  // ---- dnd ----
+  private var drag      = Option.empty[Drag]
 
-    private var trailVar: Option[ Trail[ Marker ]] = None
-    private var editorVar: Option[ TrailEditor[ Marker ]] = None
+  private var trailVar  = Option.empty[Trail[Marker]]
+  private var editorVar = Option.empty[TrailEditor[Marker]]
 
-//	private val elm = new EventManager( this )
+  //	private val elm = new EventManager( this )
 //	protected Trail.Editor				editor			= null;
 
-	private val mil = new MouseInputAdapter() {
-			override def mousePressed( e: MouseEvent ) {
-				val scale	= visibleSpan.length.toDouble / math.max( 1, getWidth )
-				val pos		= (e.getX * scale + visibleSpan.start + 0.5).toLong
+  private val mil = new MouseInputAdapter() {
+    override def mousePressed(e: MouseEvent) {
+      val scale = visibleSpan.length.toDouble / math.max(1, getWidth)
+      val pos = (e.getX * scale + visibleSpan.start + 0.5).toLong
 
-				if( shpFlags.contains( e.getPoint )) {
-					if( e.isAltDown ) {					// delete marker
-						removeMarkerLeftTo( pos + 1 )
-					} else if( e.getClickCount == 2 ) {	// rename
-//						editMarkerLeftTo( pos + 1 )
-					} else {								// start drag
-                        getMarkerLeftTo( pos + 1 ).foreach( m => {
-                           drag = Some( new Drag( m, e.getX ))
-//							dispatchEvent( Event.DRAGSTARTED, dragMark.span )
-							requestFocus()
-						})
-					}
+      if (shpFlags.contains(e.getPoint)) {
+        if (e.isAltDown) {
+          // delete marker
+          removeMarkerLeftTo(pos + 1)
+        } else if (e.getClickCount == 2) {
+          // rename
+          // editMarkerLeftTo( pos + 1 )
+        } else {
+          // start drag
+          getMarkerLeftTo(pos + 1).foreach(m => {
+            drag = Some(new Drag(m, e.getX))
+            // dispatchEvent( Event.DRAGSTARTED, dragMark.span )
+            requestFocus()
+          })
+        }
 
-				} else if( !e.isAltDown && (e.getClickCount == 2) ) {		// insert marker
-					addMarker( pos )
-				}
-			}
-
-      		override def mouseReleased( e: MouseEvent ) {
-                drag.foreach( d => {
-//					dispatchEvent( Event.DRAGSTOPPED, (d.lastMark getOrElse d.firstMark).span )
-
-                     d.lastMark.foreach( lastMark => {
-                         editorVar.foreach( ed => {
-        					val ce = ed.editBegin( getResourceString( "editMoveMarker" ))
-        					try {
-                        		ed.editRemove( ce, d.firstMark )
-                                ed.editAdd( ce, lastMark )
-                           		ed.editEnd( ce )
-                            }
-                            catch { case e1: IOException => {
-        						System.err.println( e1 )
-                				ed.editCancel( ce )
-                            }}
-                         })
-					})
-                    drag = None
-				})
-			}
-
-			override def mouseDragged( e: MouseEvent ) {
-              drag.foreach( d => {
-				if( !d.started ) {
-					if( math.abs( e.getX - d.startX ) < 5 ) return
-					d.started = true
-				}
-
-				val oldPos  = (d.lastMark getOrElse d.firstMark).pos
-				val scale	= getWidth.toDouble / visibleSpan.length
-				val newPos	= timelineView.timeline.span.clip( ((e.getX - d.startX) / scale + d.firstMark.pos + 0.5).toLong )
-
-				if( oldPos == newPos ) return
-
-//				val dirtySpan = new Span( min( oldPos, newPos ), max( oldPos, newPos ))
-				d.lastMark = Some( Marker( newPos, d.firstMark.name ))
-//				dispatchEvent( Event.DRAGADJUSTED, dirtySpan )
-			  })
-            }
-		}
-
-	private val kl = new KeyAdapter() {
-		    override def keyPressed( e: KeyEvent ) {
-				if( e.getKeyCode == KeyEvent.VK_ESCAPE ) {
-                  if( drag.isDefined ) {
-                    drag = None
-//					dispatchEvent( Event.DRAGSTOPPED, visibleSpan )
-                  }
-				}
-			}
+      } else if (!e.isAltDown && (e.getClickCount == 2)) {
+        // insert marker
+        addMarker(pos)
+      }
     }
 
-	/*
-	 *  Constructs a new object for
-	 *  displaying the timeline ruler
-	 */
-	{
-		setMaximumSize( new Dimension( getMaximumSize.width, barExtent ))
-		setMinimumSize( new Dimension( getMinimumSize.width, barExtent ))
-		setPreferredSize( new Dimension( getPreferredSize.width, barExtent ))
+    override def mouseReleased(e: MouseEvent) {
+      drag.foreach { d =>
+        // dispatchEvent( Event.DRAGSTOPPED, (d.lastMark getOrElse d.firstMark).span )
 
-		setOpaque( true )
- 		setFont( AbstractApplication.getApplication.getGraphicsHandler.getFont(
-            GraphicsHandler.FONT_SYSTEM | GraphicsHandler.FONT_MINI ))
+        d.lastMark.foreach { lastMark =>
+          editorVar.foreach { ed =>
+            val ce = ed.editBegin(getResourceString("editMoveMarker"))
+            try {
+              ed.editRemove(ce, d.firstMark)
+              ed.editAdd(ce, lastMark)
+              ed.editEnd(ce)
+            }
+            catch {
+              case e1: IOException =>
+                Console.err.println(e1)
+                ed.editCancel(ce)
+            }
+          }
+        }
+        drag = None
+      }
+    }
 
-        new DynamicAncestorAdapter( this ).addTo( this )
-	}
+    override def mouseDragged(e: MouseEvent) {
+      drag.foreach(d => {
+        if (!d.started) {
+          if (math.abs(e.getX - d.startX) < 5) return
+          d.started = true
+        }
 
-    def trail = trailVar
+        val oldPos = (d.lastMark getOrElse d.firstMark).pos
+        val scale = getWidth.toDouble / visibleSpan.length
+        val newPos = timelineView.timeline.span.clip(((e.getX - d.startX) / scale + d.firstMark.pos + 0.5).toLong)
+
+        if (oldPos == newPos) return
+
+        //				val dirtySpan = new Span( min( oldPos, newPos ), max( oldPos, newPos ))
+        d.lastMark = Some(Marker(newPos, d.firstMark.name))
+        //				dispatchEvent( Event.DRAGADJUSTED, dirtySpan )
+      })
+    }
+  }
+
+  private val kl = new KeyAdapter() {
+    override def keyPressed(e: KeyEvent) {
+      if (e.getKeyCode == KeyEvent.VK_ESCAPE) {
+        if (drag.isDefined) {
+          drag = None
+          //					dispatchEvent( Event.DRAGSTOPPED, visibleSpan )
+        }
+      }
+    }
+  }
+
+  /*
+   *  Constructs a new object for
+   *  displaying the timeline ruler
+   */
+  setMaximumSize(new Dimension(getMaximumSize.width, barExtent))
+  setMinimumSize(new Dimension(getMinimumSize.width, barExtent))
+  setPreferredSize(new Dimension(getPreferredSize.width, barExtent))
+
+  setOpaque(true)
+  setFont(AbstractApplication.getApplication.getGraphicsHandler.getFont(
+    GraphicsHandler.FONT_SYSTEM | GraphicsHandler.FONT_MINI))
+
+  def trail = trailVar
 	def trail_=( newTrail: Option[ Trail[ Marker ]]) {
         trailVar.foreach( t => {
             if( isListening ) t.removeListener( trailListener )
@@ -536,7 +533,7 @@ with DynamicListening with Disposable {
 	// -------------- Disposable interface --------------
 
 	def dispose() {
-		stopListening()
+//		stopListening()
 		editor = None
 		trail  = None
 //		markLabels	= null;
@@ -549,24 +546,18 @@ with DynamicListening with Disposable {
 
 // ---------------- DynamicListening interface ----------------
 
-    def startListening() {
-		if( !isListening ) {
-			timelineView.addListener( timelineListener )
-            trailVar.foreach( _.addListener( trailListener ))
-			triggerRedisplay()
-			isListening = true
-		}
-    }
+  protected def componentShown() {
+    timelineView.addListener(timelineListener)
+    trailVar.foreach(_.addListener(trailListener))
+    triggerRedisplay()
+  }
 
-    def stopListening() {
-		if( isListening ) {
-            trailVar.foreach( _.removeListener( trailListener ))
-			timelineView.removeListener( timelineListener )
-			isListening = false
-		}
-    }
+  protected def componentHidden() {
+    trailVar.foreach(_.removeListener(trailListener))
+    timelineView.removeListener(timelineListener)
+  }
 
-// ---------------- MarkerManager.Listener interface ----------------
+  // ---------------- MarkerManager.Listener interface ----------------
 
 	private val trailListener: Model.Listener = {
 //        case Trail.Changed( span ) => if( span.touches( visibleSpan )) triggerRedisplay

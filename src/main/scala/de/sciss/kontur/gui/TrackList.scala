@@ -28,10 +28,10 @@ package gui
 
 import java.awt.Rectangle
 import collection.mutable.{ ArrayBuffer, ListBuffer }
-import de.sciss.app.{ AbstractCompoundEdit, UndoManager }
 import edit.{ Editor, SimpleEdit }
 import session.{ AudioTrack, Session, Stake, Track }
 import util.Model
+import legacy.AbstractCompoundEdit
 
 object TrackList {
     case class ElementAdded( idx: Int, e: TrackListElement )

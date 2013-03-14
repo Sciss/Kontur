@@ -27,9 +27,9 @@ package de.sciss.kontur.session
 
 import javax.swing.undo.UndoManager
 import scala.xml.Node
-import de.sciss.app.AbstractCompoundEdit
 import de.sciss.kontur.edit.SimpleEdit
 import de.sciss.kontur.util.SerializerContext
+import legacy.AbstractCompoundEdit
 
 object AudioTrack {
    val XML_NODE = "audioTrack"

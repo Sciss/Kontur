@@ -32,12 +32,9 @@ import java.awt.dnd.{ DnDConstants, DropTarget, DropTargetAdapter,
 import java.awt.event.{ MouseAdapter, MouseEvent }
 import javax.swing.{ BorderFactory, JLabel, JPanel, Spring, SpringLayout }
 
-import de.sciss.gui.GradientPanel
-import de.sciss.app.{ AbstractApplication, DynamicAncestorAdapter,
-                     DynamicListening, GraphicsHandler }
-import de.sciss.util.Disposable
 import session.{ AudioTrack, Diffusion, Renamable, Track }
 import util.Model
+import legacy.GradientPanel
 
 //import Track.Tr
 
@@ -66,7 +63,7 @@ object DefaultTrackHeaderComponent {
 
 class DefaultTrackHeaderComponent( protected val track: Track, trackList: TrackList )
 extends JPanel
-with DynamicListening with Disposable {
+with desktop.impl.DynamicComponentImpl /* with Disposable */ {
   import DefaultTrackHeaderComponent._
   
 	private val lbTrackName = new JLabel()
@@ -145,7 +142,6 @@ with DynamicListening with Disposable {
 
 		// --- Listener ---
       addMouseListener( ml )
-      new DynamicAncestorAdapter( this ).addTo( this )
 
 /*
 		trackListener = new MapManager.Listener() {
@@ -199,9 +195,10 @@ with DynamicListening with Disposable {
 		}
 	}
 */
-	def dispose() {
-		stopListening()
-	}
+
+//	def dispose() {
+//		stopListening()
+//	}
 
 	/**
 	 *  Determines if this row is selected
@@ -248,27 +245,21 @@ with DynamicListening with Disposable {
 
 // ---------------- DynamicListening interface ----------------
 
-    private val trackListListener: Model.Listener = {
-      case TrackList.SelectionChanged( mod @ _* ) => {
-          if( mod.contains( trackListElement )) repaint()
-      }
-      case Renamable.NameChanged( _, newName ) => checkTrackName()
-    }
+  private val trackListListener: Model.Listener = {
+    case TrackList.SelectionChanged(mod @ _*) =>
+      if (mod contains trackListElement) repaint()
 
-    def startListening() {
-    	if( !isListening ) {
-    		isListening = true
-            trackList.addListener( trackListListener )
-    		checkTrackName()
-    	}
-    }
+    case Renamable.NameChanged(_, newName) => checkTrackName()
+  }
 
-    def stopListening() {
-    	if( isListening ) {
-    		isListening = false
-            trackList.removeListener( trackListListener )
-    	}
-    }
+  protected def componentShown() {
+    trackList.addListener(trackListListener)
+    checkTrackName()
+  }
+
+  protected def componentHidden() {
+    trackList.removeListener(trackListListener)
+  }
 }
 
 class AudioTrackHeaderComponent( audioTrack: AudioTrack, trackList: TrackList )

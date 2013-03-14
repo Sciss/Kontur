@@ -27,8 +27,8 @@ package de.sciss.kontur
 package session
 
 import edit.SimpleEdit
-import de.sciss.app.AbstractCompoundEdit
 import util.Model
+import legacy.AbstractCompoundEdit
 
 object Renamable {
   case class NameChanged( oldName: String, newName: String )

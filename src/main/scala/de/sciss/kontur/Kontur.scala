@@ -25,14 +25,13 @@
 
 package de.sciss.kontur
 
-import java.awt.EventQueue
 import javax.swing.UIManager
-import de.sciss.app.DocumentHandler
-import de.sciss.common.{ BasicApplication, BasicDocument, BasicMenuFactory, BasicWindowHandler, ProcessingThread }
 import de.sciss.kontur.gui.{ MainFrame, MenuFactory, SuperColliderFrame }
 import de.sciss.kontur.util.PrefsUtil
-import de.sciss.util.Flag
+import util.Flag
 import sc.SuperColliderClient
+import swing.Swing
+import legacy.ProcessingThread
 
 /**
  *  The <code>Main</code> class contains the java VM
@@ -54,89 +53,52 @@ import sc.SuperColliderClient
  *				; seems to be a problem of menuFactory.closeAll!
  */
 
-object Kontur {
-   private val name          = "Kontur"
-   private val version = 1.1
+object Kontur extends desktop.SwingApplication with App {
+  /*
+   *  The MacOS file creator string.
+   */
+  private val CREATOR = "Ttm "
 
-//    private val APP_NAME	= "Kontur"
+  /**
+   * Value for add/getComponent(): the preferences frame
+   *
+   * @see	#getComponent( Object )
+   */
+  val COMP_PREFS = "Prefs"
+  /**
+   * Value for add/getComponent(): the observer palette
+   *
+   * @see	#getComponent( Object )
+   */
+  val COMP_OBSERVER = "Observer"
+  /**
+   * Value for add/getComponent(): the main log frame
+   *
+   * @see	#getComponent( Object )
+   */
+  val COMP_MAIN = "Main"
+  /**
+   * Value for add/getComponent(): the online help display frame
+   *
+   * @see	#getComponent( Object )
+   */
+  val COMP_HELP = "Help"
 
-//	/*
-//	 *  Current version of the application. This is stored
-//	 *  in the preferences file.
-//	 *
-//	 *  @todo   should be saved in the session file as well
-//	 */
-//	private val APP_VERSION		= 0.17
+  val COMP_CTRLROOM = "ControlRoom"
 
-	/**
-	 *  Enables / disables event dispatching debugging
-	 */
-//	public static final boolean DEBUG_EVENTS	= false;
+  private val quitAfterSaveListener = new ProcessingThread.Listener {
+    def processStarted(e: ProcessingThread.Event) {
+      /* empty */
+    }
 
-	/*
-	 *  The MacOS file creator string.
-	 */
-	private val CREATOR			= "Ttm "
+    // if the saving was successfull, we will call closeAll again
+    def processStopped(e: ProcessingThread.Event) {
+      if (e.isDone) quit()
+    }
+  }
 
-	/**
-	 *  Value for add/getComponent(): the preferences frame
-	 *
-	 *  @see	#getComponent( Object )
-	 */
-	val COMP_PREFS		= "Prefs"
-	/**
-	 *  Value for add/getComponent(): the observer palette
-	 *
-	 *  @see	#getComponent( Object )
-	 */
-	val COMP_OBSERVER	= "Observer"
-	/**
-	 *  Value for add/getComponent(): the main log frame
-	 *
-	 *  @see	#getComponent( Object )
-	 */
-	val COMP_MAIN		= "Main"
-	/**
-	 *  Value for add/getComponent(): the online help display frame
-	 *
-	 *  @see	#getComponent( Object )
-	 */
-	val COMP_HELP  		= "Help"
-
-   val COMP_CTRLROOM    = "ControlRoom"
-
-    /**
-	 *  java VM starting method. does some
-	 *  static initializations and then creates
-	 *  an instance of <code>Main</code>.
-	 *
-	 *  @param  args	are not parsed.
-	 */
-	def main( args: Array[ String ]) {
-		// --- run the main application ---
-		// Schedule a job for the event-dispatching thread:
-		// creating and showing this application's GUI.
-		EventQueue.invokeLater( new Runnable() {
-			def run() {
-				new Kontur( args )
-			}
-		})
-	}
-}
-
-class Kontur( args: Array[ String ])
-extends BasicApplication( classOf[ Kontur ], Kontur.name ) {
-   	private val quitAfterSaveListener = new ProcessingThread.Listener {
-		def processStarted( e: ProcessingThread.Event ) { /* empty */ }
-
-        // if the saving was successfull, we will call closeAll again
-		def processStopped( e: ProcessingThread.Event ) {
-			if( e.isDone ) quit()
-		}
-	}
-
-    // ---- constructor ----
-    preInit()
+  // ---- constructor ----
+  Swing.onEDT { preInit() }
 
 	/**
 	 *	The arguments may contain the following options:
@@ -150,102 +112,39 @@ extends BasicApplication( classOf[ Kontur ], Kontur.name ) {
 	private def preInit() {
 		val prefs = getUserPrefs
 
-		// ---- init prefs ----
+    var lafName = prefs.get(PrefsUtil.KEY_LOOKANDFEEL, null)
+    var openDoc = scala.collection.immutable.Queue[String]()
+    var i = 0
+    while (i < args.length) {
+      if (args(i).startsWith("-")) {
+        if (args(i).equals("-laf")) {
+          if ((i + 2) < args.length) {
+            UIManager.installLookAndFeel(args(i + 1), args(i + 2))
+            if (lafName == null) lafName = args(i + 2)
+            i += 2
+          } else {
+            System.err.println("Option -laf requires two additional arguments (screen-name and class-name).")
+            System.exit(1)
+          }
+        } else {
+          System.err.println("Unknown option " + args(i))
+          System.exit(1)
+        }
+      } else {
+        openDoc = openDoc.enqueue(args(i))
+      }
+      i += 1
+    }
 
-//        val prefsVersion = prefs.getDouble( PrefsUtil.KEY_VERSION, 0.0 )
-//		if( prefsVersion < APP_VERSION ) {
-//			warnings = PrefsUtil.createDefaults( prefs, prefsVersion )
-//		} else {
-//			warnings = null
-//		}
-
-		// ---- check commandline options ----
-
-		var lafName = prefs.get( PrefsUtil.KEY_LOOKANDFEEL, null )
-        var openDoc = scala.collection.immutable.Queue[ String ]()
-        var i = 0
-        while( i < args.length ) {
-			if( args( i ).startsWith( "-" )) {
-				if( args( i ).equals( "-laf" )) {
-					if( (i + 2) < args.length ) {
-						UIManager.installLookAndFeel( args( i + 1 ), args( i + 2 ))
-						if( lafName == null ) lafName = args( i + 2 )
-						i += 2
-					} else {
-						System.err.println( "Option -laf requires two additional arguments (screen-name and class-name)." )
-						System.exit( 1 )
-					}
-				} else {
-					System.err.println( "Unknown option " + args( i ))
-					System.exit( 1 )
-				}
-			} else {
-				openDoc = openDoc.enqueue( args( i ))
-			}
-            i += 1
-		}
-
-		// ---- init look-and-feel ----
-
-		System.setProperty( "swing.aatext", "true" )
-//		lookAndFeelUpdate( lafName )
-
-		// ---- init infrastructure ----
-		// warning : reihenfolge is crucial
-//		val superCollider = SuperColliderClient.instance
-
-		init()
-
-		// ---- listeners ----
-
-//		try {
-//			superCollider.init();
-//		}
-//		catch( IOException e1 ) {
-//			BasicWindowHandler.showErrorDialog( null, e1, "SuperColliderClient Initialization" );
-//			System.exit( 1 );
-//			return;
-//		}
+//    init()
 
 		// ---- component views ----
 
-		val mainFrame	= new MainFrame()
-		getWindowHandler.asInstanceOf[ BasicWindowHandler ].setDefaultBorrower( mainFrame )
-//        val ctrlRoom	= new ControlRoomFrame()
-//		val observer	= new ObserverPalette()
-		val scFrame = new SuperColliderFrame()
-        scFrame.setVisible( true )
-
-		// means no preferences found, so
-		// do some more default initializations
-		// and display splash screen
-//		if( prefsVersion == 0.0 ) {
-//			ctrlRoom.setVisible( true )
-//			observer.setVisible( true )
-//			if( cache.getFolder().isDirectory() ) {
-//				cache.setActive( true );
-//			}
-//  		new WelcomeScreen( this );
-//		}
-
-//		if( warnings != null ) {
-//			for( int i = 0; i < warnings.size(); i++ ) {
-//				System.err.println( warnings.get( i ));
-//			}
-//		}
-
-//		if( prefs.node( PrefsUtil.NODE_AUDIO ).getBoolean( PrefsUtil.KEY_AUTOBOOT, false )) {
-//			superCollider.boot();
-//		}
-
-//		if( openDoc != null ) {
-//			for( int i = 0; i < openDoc.size(); i++ ) {
-//				getMenuFactory().openDocument( new File( openDoc.get( i ).toString() ));
-//			}
-//		}
-	}
-
-   override def toString = "Kontur"
+    val mainFrame = new MainFrame()
+    getWindowHandler.asInstanceOf[BasicWindowHandler].setDefaultBorrower(mainFrame)
+    val scFrame = new SuperColliderFrame()
+    scFrame.visible = true
+  }
 
 	protected def createMenuFactory() : BasicMenuFactory = new MenuFactory( this )
 	protected def createDocumentHandler() : DocumentHandler = new de.sciss.kontur.session.DocumentHandler( this )
@@ -254,7 +153,7 @@ extends BasicApplication( classOf[ Kontur ], Kontur.name ) {
 	private var shouldForceQuit = false
 
    override def quit() {
-      val confirmed  = new Flag( false )
+      val confirmed  = Flag(init = false)
 //println( "---0 " + shouldForceQuit )
       val pt         = getMenuFactory.closeAll( shouldForceQuit, confirmed )
 
@@ -263,7 +162,7 @@ extends BasicApplication( classOf[ Kontur ], Kontur.name ) {
 //println( "---2" )
          pt.addListener( quitAfterSaveListener )
          pt.getClientArg( "doc" ).asInstanceOf[ BasicDocument ].start( pt )
-      } else if( confirmed.isSet ) {
+      } else if(confirmed) {
 //println( "---3" )
 //       OSCRoot.getInstance().quit();
          SuperColliderClient.instance.quit()
@@ -276,18 +175,6 @@ extends BasicApplication( classOf[ Kontur ], Kontur.name ) {
 		quit()
 	}
 
-//    private def lookAndFeelUpdate( className: String ) {
-//        if( className != null ) {
-//            try {
-//                UIManager.setLookAndFeel( className )
-//				AppWindow.lookAndFeelUpdate()
-//            }
-//            catch { case e1: Exception => GUIUtil.displayError( null, e1, null )}
-//        }
-//    }
-
-// ------------ Application interface ------------
-
-	def getMacOSCreator : String = Kontur.CREATOR
-	def getVersion: Double = Kontur.version
+//	def getMacOSCreator : String = Kontur.CREATOR
+//	def getVersion: Double = Kontur.version
 }

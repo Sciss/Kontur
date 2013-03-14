@@ -30,9 +30,9 @@ import java.io.IOException
 import javax.swing.undo.UndoManager
 import collection.mutable.ArrayBuffer
 import xml.Node
-import de.sciss.app.AbstractCompoundEdit
 import edit.{ Editor, SimpleEdit }
 import util.{Model, SerializerContext}
+import legacy.AbstractCompoundEdit
 
 trait SessionElementSeq[ T <: SessionElement ]
 extends SessionElement {

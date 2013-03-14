@@ -25,7 +25,7 @@
 
 package de.sciss.kontur.edit
 
-import de.sciss.app.{ AbstractApplication, BasicUndoableEdit, PerformableEdit }
+import legacy.{BasicUndoableEdit, PerformableEdit}
 
 abstract class SimpleEdit( name: String, override val isSignificant: Boolean = true )
 extends BasicUndoableEdit {

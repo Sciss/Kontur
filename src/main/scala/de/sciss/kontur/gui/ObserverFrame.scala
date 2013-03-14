@@ -23,26 +23,30 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
-import de.sciss.app.{ AbstractWindow, Document, DocumentEvent, DocumentListener }
-import de.sciss.kontur.Kontur
 import java.awt.{ BorderLayout, Dimension }
 import javax.swing.{ JComponent, JTabbedPane, WindowConstants }
 import javax.swing.event.{ ChangeEvent, ChangeListener }
 import WindowConstants._
 
-class ObserverFrame extends AppWindow( AbstractWindow.PALETTE )
-with DocumentListener {
+class ObserverFrame extends desktop.impl.WindowImpl with DocumentListener {
+  protected def style = desktop.Window.Palette
 
     private val ggTabPane = new JTabbedPane()
     private var mapTabs   = Map[ String, ObserverPage ]()
     private var shown: Option[ ObserverPage ] = None
 
-    // ---- constructor ----
+  title = getResourceString("paletteObserver")
+  resizable = false
+
+  setDefaultCloseOperation( HIDE_ON_CLOSE )
+//        init()
+  setSize( new Dimension( 300, 300 ))
+
+  // ---- constructor ----
     {
-        setTitle( getResourceString( "paletteObserver" ))
-        setResizable( false )
 
 //        ggTabPane.setPreferredSize( new Dimension( 400, 400 )) // XXX
         ggTabPane.addChangeListener( new ChangeListener {
@@ -59,11 +63,8 @@ with DocumentListener {
             }
         })
 //        ggTabPane.putClientProperty( "JComponent.sizeVariant", "small" )
-        getContentPane.add( ggTabPane, BorderLayout.CENTER )
+        contents = ggTabPane
 
-        setDefaultCloseOperation( HIDE_ON_CLOSE )
-        init()
-        setSize( new Dimension( 300, 300 ))
         app.addComponent( Kontur.COMP_OBSERVER, this )
     }
 
@@ -112,28 +113,19 @@ with DocumentListener {
 }
 
 trait ObserverPage /* extends DynamicListening */ {
-    def component:    JComponent
-    def id:           String
-    def title:        String
-    def pageShown():  Unit
-    def pageHidden(): Unit
-    def documentChanged( newDoc: Document )
+  def component: JComponent
+
+  def id: String
+
+  def title: String
+
+  def pageShown(): Unit
+
+  def pageHidden(): Unit
+
+  def documentChanged(newDoc: Document)
 }
 
 object DiffusionObserverPage {
-    val id = "observer.diffusion"
-
-/*
-    lazy val instance: DiffusionObserverPage = {
-        val page = new DiffusionObserverPage
-        val app = AbstractApplication.getApplication()
-        var ob = app.getComponent( Main.COMP_OBSERVER )
-          .asInstanceOf[ ObserverFrame ]
-        if( ob == null ) {
-            ob = new ObserverFrame()
-        }
-        ob.addPage( page )
-        page
-    }
-*/
+  val id = "observer.diffusion"
 }

@@ -23,33 +23,31 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
 import javax.swing.event.{ChangeEvent, ChangeListener}
 import java.awt.event.{ActionEvent, ActionListener}
-import de.sciss.gui.{AbstractWindowHandler, PeakMeterPanel, MultiStateButton, SpringPanel}
 import de.sciss.kontur.Kontur
 import java.awt.{BorderLayout, Color}
 import java.awt.geom.Point2D
 import de.sciss.kontur.sc.SuperColliderClient
-import javax.swing.{JPanel, WindowConstants}
-import de.sciss.app.{DynamicListening, AbstractApplication, AbstractWindow}
+import javax.swing.JPanel
+import legacy.SpringPanel
 
-class ControlRoomFrame extends AppWindow( AbstractWindow.SUPPORT /* PALETTE */ )
-with DynamicListening {
-//   private val lmm      = new PeakMeterManager( superCollider.getMeterManager() )
-   private val ggVolume    = new VolumeFader()
-   private val ggLimiter   = new MultiStateButton()
-   private val pmg	      = new PeakMeterPanel()
-   private val b1          = new SpringPanel( 2, 4, 2, 4 )
-   private var isListening = false
+class ControlRoomFrame extends desktop.impl.WindowImpl(desktop.Window.Auxiliary) {
+  private val ggVolume    = new VolumeFader()
+  private val ggLimiter   = new MultiStateButton()
+  private val pmg         = new PeakMeterPanel()
+  private val b1          = new SpringPanel(2, 4, 2, 4)
+  private var isListening = false
 
-   // ---- constructor ----
+  // ---- constructor ----
    {
 //      lmm.setDynamicComponent( b1 )
 
-      setTitle( "Control Room" ) // XXX getResource
-      setResizable( false )
+      title     = "Control Room" // XXX getResource
+      resizable = true
 
       ggVolume.addChangeListener( new ChangeListener() {
  			def stateChanged( e: ChangeEvent ) {
@@ -85,8 +83,7 @@ with DynamicListening {
 // 		b1.gridAdd( ggAudioBox, 0, 3, -1, 1 )
  		b1.makeCompactGrid()
 
-      val cp = getContentPane
- 		cp.add( b1, BorderLayout.CENTER )
+     content = b1
 
  		AbstractWindowHandler.setDeepFont( b1 )
 
@@ -105,8 +102,8 @@ with DynamicListening {
 
       updateVolume()
 
-      setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE ) // window listener see above!
-      init()
+     closeOperation = desktop.Window.CloseIgnore  // window listener see above!
+//      init()
       app.addComponent( Kontur.COMP_CTRLROOM, this )
    }
 
@@ -221,7 +218,7 @@ with DynamicListening {
 ////      mapPlayers.clear()
 //  	}
 
-   def startListening() {
+   private def startListening() {
    	isListening = true
 //	   superCollider.addServerListener( this )
 //	   superCollider.addClientListener( this )
@@ -231,7 +228,7 @@ with DynamicListening {
 //	   startMeters()
    }
 
-   def stopListening() {
+   private def stopListening() {
       isListening = false
 //	   stopMeters()
 //	   unregisterTaskSyncs()
