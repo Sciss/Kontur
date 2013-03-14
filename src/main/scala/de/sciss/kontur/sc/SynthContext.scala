@@ -30,7 +30,6 @@ import collection.immutable.Queue
 import java.io.{ File, IOException }
 import de.sciss.synth.{Model => _, _}
 import de.sciss.osc
-import de.sciss.util.Disposable
 import collection.immutable.{IndexedSeq => IIdxSeq}
 import java.awt.EventQueue
 import util.Model
@@ -273,7 +272,7 @@ object SynthContext {
 }
 
 abstract class SynthContext( val server: Server, val realtime: Boolean )
-extends Model with Disposable {
+extends Model /* with Disposable */ {
    private var defMap      = Map[ List[ Any ], RichSynthDef ]()
    private var uniqueID    = 0
    private var bundleVar: AbstractBundle = null
@@ -486,8 +485,9 @@ extends Model with Disposable {
    }
 }
 
-class RealtimeSynthContext( s: Server )
-extends SynthContext( s, true ) {
+class RealtimeSynthContext(s: Server)
+  extends SynthContext(s, true) {
+
   private var syncWait = Map[Int, Bundle]()
 
   private val resp = message.Responder(server) {
@@ -496,57 +496,58 @@ extends SynthContext( s, true ) {
     // thread to conincide with the Swing Timer in
     // SCTimeline!
     case message.Synced(id) => deferIfNeeded {
-      syncWait.get(id).foreach { bundle =>
-        syncWait -= id
-        perform {
-          bundle.doAsync()
-        } // we could use 'delayed', but we might want bundle 'immediate' times
+      syncWait.get(id).foreach {
+        bundle =>
+          syncWait -= id
+          perform {
+            bundle.doAsync()
+          } // we could use 'delayed', but we might want bundle 'immediate' times
       }
     }
   }
-   private var timebaseSysRef = System.currentTimeMillis()
-   private var timebaseVar = 0.0
-   private var bundleCount = 0
+  private var timebaseSysRef  = System.currentTimeMillis()
+  private var timebaseVar     = 0.0
+  private var bundleCount     = 0
 
-   // ---- constructor ----
-   resp.add()
+  // ---- constructor ----
+  resp.add()
 
-   def dispose() {
-      resp.remove()
-   }
+  def dispose() {
+    resp.remove()
+  }
 
-   override def toString = "Realtime(" + s.toString + ")"
+  override def toString = "Realtime(" + s.toString + ")"
 
-   def timebase : Double = {
-      timebaseVar
-   }
+  def timebase: Double = {
+    timebaseVar
+  }
 
-   def timebase_=( newVal: Double ) {
-      if( newVal == 0.0 ) timebaseSysRef = System.currentTimeMillis
-      timebaseVar = newVal
-   }
+  def timebase_=(newVal: Double) {
+    if (newVal == 0.0) timebaseSysRef = System.currentTimeMillis
+    timebaseVar = newVal
+  }
 
-   protected def initBundle( delta: Double ) : AbstractBundle = {
-      val res = new Bundle( bundleCount, if( delta < 0 ) 0L else timebaseSysRef + ((timebase + delta) * 1000 + 0.5).toLong )
-      bundleCount += 1
-      res
-   }
+  protected def initBundle(delta: Double): AbstractBundle = {
+    val res = new Bundle(bundleCount, if (delta < 0) 0L else timebaseSysRef + ((timebase + delta) * 1000 + 0.5).toLong)
+    bundleCount += 1
+    res
+  }
 
-   private class Bundle( count: Int, ref: Long )
-   extends AbstractBundle {
-      @throws( classOf[ IOException ])
-      def send() {
-         val cpy = if( hasAsync ) {
-            syncWait += count -> this
-//            msgs.enqueue( new scosc.SyncedMessage( count ))
-            msgs :+ new message.Sync(count)
-         } else {
-            msgs
-         }
-         if( cpy.nonEmpty ) {
-            val bndl = if( ref == 0L ) osc.Bundle.now( cpy: _* ) else osc.Bundle.millis( ref, cpy: _* )
-            server ! bndl
-         }
+  private class Bundle(count: Int, ref: Long)
+    extends AbstractBundle {
+
+    def send() {
+      val cpy = if (hasAsync) {
+        syncWait += count -> this
+        // msgs.enqueue( new scosc.SyncedMessage( count ))
+        msgs :+ new message.Sync(count)
+      } else {
+        msgs
       }
-   }
+      if (cpy.nonEmpty) {
+        val bndl = if (ref == 0L) osc.Bundle.now(cpy: _*) else osc.Bundle.millis(ref, cpy: _*)
+        server ! bndl
+      }
+    }
+  }
 }

@@ -26,9 +26,8 @@
 package de.sciss.kontur
 
 import javax.swing.UIManager
-import de.sciss.kontur.gui.{ MainFrame, MenuFactory, SuperColliderFrame }
-import de.sciss.kontur.util.PrefsUtil
-import util.Flag
+import gui.{MainFrame, SuperColliderFrame}
+import util.{Flag, PrefsUtil}
 import sc.SuperColliderClient
 import swing.Swing
 import legacy.ProcessingThread
@@ -53,7 +52,7 @@ import legacy.ProcessingThread
  *				; seems to be a problem of menuFactory.closeAll!
  */
 
-object Kontur extends desktop.SwingApplication with App {
+object Kontur extends desktop.SwingApplication with desktop.impl.ApplicationImpl with App {
   /*
    *  The MacOS file creator string.
    */
@@ -110,7 +109,7 @@ object Kontur extends desktop.SwingApplication with App {
 	 *	that will be opened after launch.
 	 */
 	private def preInit() {
-		val prefs = getUserPrefs
+		val prefs = userPrefs
 
     var lafName = prefs.get(PrefsUtil.KEY_LOOKANDFEEL, null)
     var openDoc = scala.collection.immutable.Queue[String]()

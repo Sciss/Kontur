@@ -120,7 +120,7 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
       ggNumInputChannels.addListener( new BasicParamField.Listener {
          def paramValueChanged( e: BasicParamField.Event ) {
             if( !e.isAdjusting )
-               editSetNumInputChannels( e.value.`val`.toInt )
+               editSetNumInputChannels( e.value.value.toInt )
          }
          def paramSpaceChanged( e: BasicParamField.Event ) {}
       })
@@ -128,7 +128,7 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
       ggNumOutputChannels.addListener( new BasicParamField.Listener {
          def paramValueChanged( e: BasicParamField.Event ) {
             if( !e.isAdjusting )
-               editSetNumOutputChannels( e.getValue.`val`.toInt )
+               editSetNumOutputChannels( e.value.value.toInt )
          }
          def paramSpaceChanged( e: BasicParamField.Event ) {}
       })

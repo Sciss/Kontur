@@ -26,23 +26,25 @@
 package de.sciss.kontur.gui
 
 import java.beans.{ PropertyChangeEvent, PropertyChangeListener }
+import de.sciss.kontur.desktop.impl.BasicPathField
 
-class PathField( typ: Int, title: String )
-extends BasicPathField( typ, title ) {
-    addPropertyChangeListener( "JComponent.sizeVariant", new PropertyChangeListener {
-        def propertyChange( pce: PropertyChangeEvent ) {
-           ggPath.putClientProperty( pce.getPropertyName, pce.getNewValue )
-           if( ggFormat != null ) ggFormat.putClientProperty( pce.getPropertyName, pce.getNewValue )
-        }
-    })
+class PathField(typ: Int, title: String)
+  extends BasicPathField(typ, title) {
 
-    override def getBaseline( width: Int, height: Int ) =
-       ggPath.getBaseline( width, height ) + ggPath.getY
-
-    def setEditable( b: Boolean ) {
-       ggPath.setEditable( b )
-       ggChoose.setEnabled( b )
+  addPropertyChangeListener("JComponent.sizeVariant", new PropertyChangeListener {
+    def propertyChange(pce: PropertyChangeEvent) {
+      ggPath.putClientProperty(pce.getPropertyName, pce.getNewValue)
+      if (ggFormat != null) ggFormat.putClientProperty(pce.getPropertyName, pce.getNewValue)
     }
+  })
 
-    def isEditable = ggPath.isEditable
+  override def getBaseline(width: Int, height: Int) =
+    ggPath.getBaseline(width, height) + ggPath.getY
+
+  def setEditable(b: Boolean) {
+    ggPath.setEditable(b)
+    ggChoose.setEnabled(b)
+  }
+
+  def isEditable = ggPath.isEditable
 }

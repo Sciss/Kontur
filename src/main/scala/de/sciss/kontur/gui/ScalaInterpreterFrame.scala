@@ -26,15 +26,14 @@
 package de.sciss.kontur.gui
 
 import java.io.{File, FileInputStream}
-import de.sciss.app.{AbstractWindow, AbstractCompoundEdit}
 import de.sciss.kontur.sc.{ SuperColliderClient, SuperColliderPlayer, SynthContext }
 import de.sciss.kontur.session.Session
 import de.sciss.kontur.edit.Editor
 import de.sciss.synth.Server
 import tools.nsc.interpreter.NamedParam
-import de.sciss.common.BasicApplication
 import de.sciss.scalainterpreter.{SplitPane, CodePane, Interpreter, InterpreterPane}
 import language.implicitConversions
+import legacy.AbstractCompoundEdit
 
 object ScalaInterpreterFrame {
    final class ProvideEditing private[ScalaInterpreterFrame] ( e: Editor ) {

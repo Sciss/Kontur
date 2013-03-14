@@ -27,65 +27,61 @@ package de.sciss.kontur
 package sc
 
 import session.Session
-import de.sciss.util.Disposable
 import de.sciss.synth.Server
 import util.Model
 
-class SuperColliderPlayer( client: SuperColliderClient, val doc: Session )
-extends Disposable {
+class SuperColliderPlayer(client: SuperColliderClient, val doc: Session) {
+  private var online: Option[SCSession] = None
 
-//    private var server: Option[ Server ] = client.server
-    private var online: Option[ SCSession ] = None
+  private val clientListener: Model.Listener = {
+    case SuperColliderClient.ServerRunning(_) => serverRunning()
+    case Server.Running                       => serverRunning()
+    case Server.Offline                       => serverOffline()
+  }
 
-    private val clientListener: Model.Listener = {
-       case SuperColliderClient.ServerRunning( _ ) => serverRunning()
-       case Server.Running => serverRunning()
-       case Server.Offline => serverOffline()
+  // ---- constructor ----
+  {
+    val c = client.serverCondition
+    if (clientListener.isDefinedAt(c)) clientListener(c)
+    //println( "ADDING PLAYER " + hashCode + " : condition = " + c + " -> " + clientListener.isDefinedAt( c ) + " // " + c.getClass.getName )
+    client.addListener(clientListener)
+  }
+
+  override def toString = "SuperColliderPlayer(" + doc.name.getOrElse("<Untitled>") + ")"
+
+  private def serverRunning() {
+    client.server.foreach { s =>
+      //println( "---- CONSTRUCTING RealtimeSynthContext" )
+      val context = new RealtimeSynthContext(s)
+      //println( "---- PERFORMING RealtimeSynthContext" )
+      context.perform {
+        //println( "---- >>>>>> PERFORMING" )
+        online = Some(new SCSession(doc))
+        //println( "---- <<<<<< PERFORMING" )
+      }
     }
+  }
 
-    // ---- constructor ----
-    {
-       val c = client.serverCondition
-       if( clientListener.isDefinedAt( c )) clientListener( c )
-//println( "ADDING PLAYER " + hashCode + " : condition = " + c + " -> " + clientListener.isDefinedAt( c ) + " // " + c.getClass.getName )
-       client.addListener( clientListener )
+  def session: Option[SCSession] = online
+
+  private def serverOffline() {
+    online.foreach { ol =>
+      ol.context.consume {
+        ol.dispose()
+      }
+      online = None
     }
+  }
 
-   override def toString = "SuperColliderPlayer(" + doc.name.getOrElse( "<Untitled>" ) + ")"
-
-    private def serverRunning() {
-      client.server.foreach( s => {
-//println( "---- CONSTRUCTING RealtimeSynthContext" )
-         val context = new RealtimeSynthContext( s )
-//println( "---- PERFORMING RealtimeSynthContext" )
-         context.perform {
-//println( "---- >>>>>> PERFORMING" )
-            online = Some( new SCSession( doc ))
-//println( "---- <<<<<< PERFORMING" )
-         }
-      })
+  def dispose() {
+    client.removeListener(clientListener)
+    online.foreach { ol =>
+      ol.context.perform {
+        ol.dispose()
+      }
+      online = None
     }
+  }
 
-   def session: Option[ SCSession ] = online
-
-    private def serverOffline() {
-       online.foreach( ol => {
-          ol.context.consume {
-             ol.dispose()
-          }
-          online = None
-       })
-    }
-
-    def dispose() {
-       client.removeListener( clientListener )
-       online.foreach( ol => {
-          ol.context.perform {
-             ol.dispose()
-         }
-         online = None
-      })
-    }
-
-    def context: Option[ SynthContext ] = online.map( _.context )
+  def context: Option[SynthContext] = online.map(_.context)
 }

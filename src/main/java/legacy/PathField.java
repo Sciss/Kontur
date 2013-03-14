@@ -71,7 +71,7 @@ implements ActionListener, PathListener, EventManager.Processor
 	protected final IOTextField	ggPath;
 	protected final PathButton	ggChoose;
 	protected final JLabel		lbWarn;
-	protected ColouredTextField	ggFormat	= null;
+	protected ColoredTextField	ggFormat	= null;
 
 	private static final Color  COLOR_ERR   = new Color( 0xFF, 0x00, 0x00, 0x2F );
 	private static final Color  COLOR_EXISTS= new Color( 0x00, 0x00, 0xFF, 0x2F );
@@ -136,7 +136,7 @@ implements ActionListener, PathListener, EventManager.Processor
 		gridAdd( ggPath, 1, 0 );
 
 		if( (type & TYPE_FORMATFIELD) != 0 ) {
-			ggFormat		= new ColouredTextField();
+			ggFormat		= new ColoredTextField();
 			ggFormat.setEditable( false );
 			ggFormat.setBackground( null );
 			gridAdd( ggFormat, 1, 1 );
@@ -726,7 +726,7 @@ implements ActionListener, PathListener, EventManager.Processor
 // -------- internal IOTextfeld class --------
 
 	protected class IOTextField
-	extends ColouredTextField
+	extends ColoredTextField
 	{
 		protected IOTextField()
 		{

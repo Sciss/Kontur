@@ -36,7 +36,7 @@ import de.sciss.dsp.Util.nextPowerOfTwo
 import de.sciss.synth.io.AudioFile
 import session.{ Diffusion, DiffusionEditor, DiffusionFactory, ConvolutionDiffusion, Renamable, Session }
 import util.Model
-import legacy.{ParamSpace, AbstractCompoundEdit}
+import legacy.{PathListener, PathEvent, ParamSpace, AbstractCompoundEdit}
 
 object ConvolutionDiffusionGUI extends DiffusionGUIFactory {
    type T = ConvolutionDiffusionGUI
@@ -56,7 +56,7 @@ extends JPanel with desktop.impl.DynamicComponentImpl with FilenameFilter {
 
    private var objects: List[ Diffusion ] = Nil
    private val ggName         = new JTextField( 16 )
-   private val ggPath         = new PathField( PathF.TYPE_INPUTFILE | PathF.TYPE_FORMATFIELD, "Choose Impulse Response Audiofile" )
+   private val ggPath         = new PathField( legacy.PathField.TYPE_INPUTFILE | legacy.PathField.TYPE_FORMATFIELD, "Choose Impulse Response Audiofile" )
    private val ggGain         = new ParamField()
    private val ggDelay        = new ParamField()
    private val msgPtrn		   = "{0,choice,0#no channels|1#mono|2#stereo|2<{0,number,integer}-ch}, {1,number,########} frames / fft {2,number,########}, {3,number,0.###} kHz, {4,number,integer}:{5,number,00.000}";
@@ -99,18 +99,18 @@ extends JPanel with desktop.impl.DynamicComponentImpl with FilenameFilter {
          def pathChanged( e: PathEvent ) { editSetPath( e.getPath )}
       })
 
-      ggGain.addListener( new ParamF.Listener {
-         def paramValueChanged( e: ParamF.Event ) {
+      ggGain.addListener( new legacy.PathField.Listener {
+         def paramValueChanged( e: legacy.PathField.Event ) {
             if( !e.isAdjusting ) editSetGain( e.getTranslatedValue( spcAbsGain ).`val`.toFloat )
          }
-         def paramSpaceChanged( e: ParamF.Event ) {}
+         def paramSpaceChanged( e: legacy.PathField.Event ) {}
       })
 
-      ggDelay.addListener( new ParamF.Listener {
-         def paramValueChanged( e: ParamF.Event ) {
+      ggDelay.addListener( new legacy.PathField.Listener {
+         def paramValueChanged( e: legacy.PathField.Event ) {
             if( !e.isAdjusting ) editSetDelay( (e.getValue.`val` / 1000).toFloat )
          }
-         def paramSpaceChanged( e: ParamF.Event ) {}
+         def paramSpaceChanged( e: legacy.PathField.Event ) {}
       })
 
       layout.setHorizontalGroup( layout.createSequentialGroup()

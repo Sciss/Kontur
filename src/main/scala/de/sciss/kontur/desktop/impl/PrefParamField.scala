@@ -5,27 +5,21 @@ package impl
 import java.util.prefs.{PreferenceChangeEvent, Preferences, PreferenceChangeListener}
 import legacy.{LaterInvocationManager, PreferenceEntrySync, Param, ParamSpace, DefaultUnitTranslator}
 
-class PrefParamField(translator: ParamSpace.Translator = new DefaultUnitTranslator)
+class PrefParamField(protected val prefs: Preferences, protected val prefsKey: String, default: Param)
+                    (translator: ParamSpace.Translator = new DefaultUnitTranslator)
   extends BasicParamField(translator)
-  with DynamicComponentImpl with PreferenceChangeListener with LaterInvocationManager.Listener with PreferenceEntrySync {
-
-	private var prefs = Option.empty[Preferences]
-	private var key   = Option.empty[String]
-  private val lim   = new LaterInvocationManager(this)
+  with PreferencesWidgetImpl {
 
   private var defaultValue  = Option.empty[Param]
-
-	private var _readPrefs    = true
-	protected var _writePrefs = true
 
   private val listener = new BasicParamField.Listener() {
     def paramValueChanged(e: BasicParamField.Event) {
       if (e.isAdjusting) return
-      if (_writePrefs) writePrefs()
+      writePrefs()
     }
 
     def paramSpaceChanged(e: BasicParamField.Event) {
-      if (_writePrefs) writePrefs()
+      writePrefs()
     }
   }
 
@@ -69,14 +63,6 @@ class PrefParamField(translator: ParamSpace.Translator = new DefaultUnitTranslat
       case _ =>
     }
 	}
-
-  def setPreferenceNode(prefs: Preferences) {
-    setPreferences(prefs, key.orNull)
-  }
-
-  def setPreferenceKey(key: String) {
-    setPreferences(prefs.orNull, key)
-  }
 
   /**
 	 *  Enable Preferences synchronization.
@@ -147,7 +133,7 @@ class PrefParamField(translator: ParamSpace.Translator = new DefaultUnitTranslat
     }
   }
 
-  def readPrefsFromString(prefStr: Option[String]) {
+  def readPrefsFromString(prefsStr: Option[String]) {
     val s = prefsStr.getOrElse {
       defaultValue.foreach { v =>
         value = v
@@ -205,6 +191,6 @@ class PrefParamField(translator: ParamSpace.Translator = new DefaultUnitTranslat
   override def item_=(it: Any) {
     if (!comboGate || it == null) return
 		super.setItem(it)
-    if (_writePrefs) writePrefs()
+    writePrefs()
   }
 }

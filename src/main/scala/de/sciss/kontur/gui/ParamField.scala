@@ -29,22 +29,21 @@ import java.beans.{ PropertyChangeEvent, PropertyChangeListener }
 import legacy.{DefaultUnitTranslator, ParamSpace}
 import de.sciss.kontur.desktop.impl.PrefParamField
 
-class ParamField( ut: ParamSpace.Translator )
-extends PrefParamField( ut ) {
-    def this() = this( new DefaultUnitTranslator() )
+class ParamField(translator: ParamSpace.Translator = new DefaultUnitTranslator())
+  extends PrefParamField(translator) {
 
-    addPropertyChangeListener( "JComponent.sizeVariant", new PropertyChangeListener {
-        def propertyChange( pce: PropertyChangeEvent ) {
-            ggNumber.putClientProperty( pce.getPropertyName, pce.getNewValue )
-        }
-    })
-
-    override def getBaseline( width: Int, height: Int ) =
-       ggNumber.getBaseline( width, height ) + ggNumber.getY
-
-    def setEditable( b: Boolean ) {
-      ggNumber.setEditable( b )
+  addPropertyChangeListener("JComponent.sizeVariant", new PropertyChangeListener {
+    def propertyChange(pce: PropertyChangeEvent) {
+      numberField.putClientProperty(pce.getPropertyName, pce.getNewValue)
     }
+  })
 
-    def isEditable = ggNumber.isEditable
+  override def getBaseline(width: Int, height: Int) =
+    numberField.getBaseline(width, height) + ggNumber.getY
+
+  def setEditable(b: Boolean) {
+    numberField.setEditable(b)
+  }
+
+  def isEditable = ggNumber.isEditable
 }

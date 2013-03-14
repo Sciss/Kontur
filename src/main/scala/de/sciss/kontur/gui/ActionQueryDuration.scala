@@ -41,38 +41,38 @@ abstract class ActionQueryDuration extends MenuAction {
   }
 
   def perform() {
-     val msgPane    = new SpringPanel(4, 2, 4, 2)
-     val timeTrans  = new DefaultUnitTranslator()
-     val ggDuration = new BasicParamField(timeTrans)
-     ggDuration.addSpace(ParamSpace.spcTimeHHMMSS)
-     ggDuration.addSpace(ParamSpace.spcTimeSmps)
-     ggDuration.addSpace(ParamSpace.spcTimeMillis)
-     ggDuration.addSpace(ParamSpace.spcTimePercentF)
-     msgPane.gridAdd(ggDuration, 0, 0)
-     msgPane.makeCompactGrid()
-     GUIUtil.setInitialDialogFocus(ggDuration)
+    val msgPane     = new SpringPanel(4, 2, 4, 2)
+    val timeTrans   = new DefaultUnitTranslator()
+    val ggDuration  = new BasicParamField(timeTrans)
+    ggDuration.addSpace(ParamSpace.spcTimeHHMMSS)
+    ggDuration.addSpace(ParamSpace.spcTimeSmps)
+    ggDuration.addSpace(ParamSpace.spcTimeMillis)
+    ggDuration.addSpace(ParamSpace.spcTimePercentF)
+    msgPane.gridAdd(ggDuration, 0, 0)
+    msgPane.makeCompactGrid()
+    GUIUtil.setInitialDialogFocus(ggDuration)
 
-     val tl = timeline // timelineView.timeline
-      timeTrans.setLengthAndRate( tl.span.length, tl.rate )
+    val tl = timeline // timelineView.timeline
+    timeTrans.setLengthAndRate(tl.span.length, tl.rate)
 
-      ggDuration.value = (value getOrElse initialValue)
-      space.foreach(ggDuration.space = _)
+    ggDuration.value = (value getOrElse initialValue)
+    space.foreach(ggDuration.space = _)
 
-      val op = new JOptionPane( msgPane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )
-      val result = BasicWindowHandler.showDialog( op, parent, getValue( Action.NAME ).toString )
+    val op = new JOptionPane(msgPane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
+    val result = BasicWindowHandler.showDialog(op, parent, getValue(Action.NAME).toString)
 
-      if( result == JOptionPane.OK_OPTION ) {
-         val v = ggDuration.getValue
-         value	= Some( v )
-         space	= Some( ggDuration.getSpace )
-//         val durationSmps = timeTrans.translate( v, ParamSpace.spcTimeSmps ).`val`
-//         initiate( durationSmps.toLong )
-         initiate( v, timeTrans )
-      } else {
-         value = None
-         space = None
-      }
-   }
+    if (result == JOptionPane.OK_OPTION) {
+      val v = ggDuration.value
+      value = Some(v)
+        space = Some(ggDuration.space)
+      //         val durationSmps = timeTrans.translate( v, ParamSpace.spcTimeSmps ).`val`
+      //         initiate( durationSmps.toLong )
+      initiate(v, timeTrans)
+    } else {
+      value = None
+      space = None
+    }
+  }
 
   protected def editName: String = {
     val name = getValue(Action.NAME).toString

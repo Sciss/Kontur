@@ -145,10 +145,10 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
     val oldNum    = numberField.getNumber
     val newParam  = translator.translate(p, currentSpace)
 
-    val newNum = if (currentSpace.isInteger()) {
-      newParam.`val`.toLong
+    val newNum = if (currentSpace.isInteger) {
+      newParam.value.toLong
     } else {
-      newParam.`val`
+      newParam.value
     }
     if (newNum != oldNum) numberField.setNumber(newNum)
   }

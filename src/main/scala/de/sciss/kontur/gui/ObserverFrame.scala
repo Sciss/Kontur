@@ -38,12 +38,12 @@ class ObserverFrame extends desktop.impl.WindowImpl with DocumentListener {
     private var mapTabs   = Map[ String, ObserverPage ]()
     private var shown: Option[ ObserverPage ] = None
 
-  title = getResourceString("paletteObserver")
+  title     = getResourceString("paletteObserver")
   resizable = false
 
-  setDefaultCloseOperation( HIDE_ON_CLOSE )
-//        init()
-  setSize( new Dimension( 300, 300 ))
+  closeOperation = desktop.Window.CloseHide
+  // init()
+  size = new Dimension(300, 300)
 
   // ---- constructor ----
     {

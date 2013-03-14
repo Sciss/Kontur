@@ -29,6 +29,7 @@ package gui
 import java.awt.{Color, Font}
 import java.awt.geom.Point2D
 import javax.swing.{BorderFactory, JInternalFrame}
+import de.sciss.scalainterpreter.LogPane
 
 class MainFrame extends desktop.impl.WindowImpl {
   protected def style = desktop.Window.Regular
@@ -45,28 +46,26 @@ class MainFrame extends desktop.impl.WindowImpl {
       title = app.name + " : " + strMain
     }
 
-    val lta       = new LogTextArea( 32, 60, false, null )
-      lta.makeSystemOutput()
-      lta.setFont( new Font( "Menlo", Font.PLAIN, 10 ))
-      lta.setForeground( Color.white )
-      lta.setBackground( Color.black )
-//      lta.setBackground( new Color( 0, 0, 0, 0 ))
-//      lta.setOpaque( false )
-      lta.setBorder( BorderFactory.createEmptyBorder( 2, 4, 2, 4 ))
+    val lta       = LogPane()
+      lta.makeDefault()
+//      lta.setFont( new Font( "Menlo", Font.PLAIN, 10 ))
+//      lta.setForeground( Color.white )
+//      lta.setBackground( Color.black )
+//      lta.setBorder( BorderFactory.createEmptyBorder( 2, 4, 2, 4 ))
 
 //      val cp = new JPanel( new BorderLayout() )
 //      cp.setOpaque( false )
 //      cp.setBackground( new Color( 0, 0, 0, 0 ))
 //      setContentPane( cp )
 //      cp.add( lta, BorderLayout.CENTER )
-	  val ggScroll  = lta.placeMeInAPane()
-      ggScroll.setBorder( null )
+//	  val ggScroll  = lta.placeMeInAPane()
+//      ggScroll.setBorder( null )
 //      ggScroll.setBackground( new Color( 0, 0, 0, 0 ))
 //      ggScroll.setOpaque( false )
 //      val vp = ggScroll.getViewport
 //      vp.setBackground( new Color( 0, 0, 0, 0 ))
 //      vp.setOpaque( false )
-     contents = ggScroll
+     contents = lta.component
 
 //      cp.setBackground( new Color( 0, 0, 0, 0 ))
 //      cp.setOpaque( false )
