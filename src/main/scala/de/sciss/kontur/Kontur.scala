@@ -116,9 +116,8 @@ object Kontur extends desktop.SwingApplication with desktop.impl.ApplicationImpl
 	 *	that will be opened after launch.
 	 */
 	private def preInit() {
-		val prefs = userPrefs
-
-    var lafName = prefs.get(PrefsUtil.KEY_LOOKANDFEEL, null)
+		val prefs   = userPrefs
+    var lafName = prefs.get[String](PrefsUtil.KEY_LOOKANDFEEL).orNull
     var openDoc = scala.collection.immutable.Queue[String]()
     var i = 0
     while (i < args.length) {

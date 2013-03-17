@@ -59,8 +59,8 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
   private val timelinePanel = new TimelinePanel(timelineView)
   // private val trailView      = new javax.swing.JLabel( "Trail" )
   // private val trailsView     = new BasicTrailsView( doc, tl.tracks )
-  val tracksPanel = new TracksPanel(doc, timelinePanel)
-  private val trackTools = new TrackToolsPanel(doc, tracksPanel, timelineView)
+  val tracksPanel = new TracksPanel(document, timelinePanel)
+  private val trackTools = new TrackToolsPanel(document, tracksPanel, timelineView)
 
   // ---- constructor ----
   {
@@ -166,7 +166,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
   def nudgeFrames: Long = ActionNudgeAmount.numFrames
 
   private def initBounds() {
-		val cp	= application.userPrefs.node("TimelineFrame")
+		val cp	= application.userPrefs / "TimelineFrame"
 		val sr	= WindowHandler.availableSpace
     import desktop.Implicits._
     val d 	= cp.getOrElse[Dimension](TimelineFrame.KEY_TRACKSIZE, new Dimension())
@@ -252,9 +252,12 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
        prefs.put(PrefsUtil.KEY_NUDGEAMOUNT, v.toString)
      }
 
-     private def prefs = application.userPrefs.node(PrefsUtil.NODE_GUI)
+     private def prefs = application.userPrefs / PrefsUtil.NODE_GUI
 
-     protected def initialValue: Param = Param.fromPrefs(prefs, PrefsUtil.KEY_NUDGEAMOUNT, new Param(0.1, ParamSpace.TIME | ParamSpace.SECS))
+     protected def initialValue: Param = {
+       import desktop.Implicits._
+       prefs.getOrElse(PrefsUtil.KEY_NUDGEAMOUNT, new Param(0.1, ParamSpace.TIME | ParamSpace.SECS))
+     }
 
      def numFrames: Long = {
        val v      = initialValue
@@ -911,7 +914,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
       })
       var done = false
       try {
-        val process = SessionUtil.bounce(doc, timelineView.timeline, tracks, span, path, spec, msg => msg match {
+        val process = SessionUtil.bounce(document, timelineView.timeline, tracks, span, path, spec, msg => msg match {
           case "done" => {
             done = true; fDispose()
           }
@@ -952,7 +955,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
       val affp = new AudioFileFormatPane(AudioFileFormatPane.FORMAT | AudioFileFormatPane.ENCODING)
       val descr = new AudioFileDescr
       affp.toDescr(descr)
-      val path0 = doc.path getOrElse {
+      val path0 = document.path getOrElse {
         val home = new File(System.getProperty("user.home"))
         val desktop = new File(home, "Desktop")
         new File(if (desktop.isDirectory) desktop else home, "Untitled") // getResourceString("labelUntitled"))

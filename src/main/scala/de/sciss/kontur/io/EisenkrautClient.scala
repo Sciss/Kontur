@@ -46,7 +46,7 @@ class EisenkrautClient()(implicit application: Application) {
 
   private var oscVar        = Option.empty[osc.Client]
   private var actorVar      = Option.empty[OSCActor]
-  private val prefs         = application.userPrefs.node(PrefsUtil.NODE_IO)
+  private val prefs         = application.userPrefs / PrefsUtil.NODE_IO
   private val prefs1        = prefs[Int]   (PrefsUtil.KEY_EISKOSCPORT    )
   private val prefs2        = prefs[String](PrefsUtil.KEY_EISKOSCPROTOCOL)
   private var queryIDCount  = 0

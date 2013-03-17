@@ -2,12 +2,11 @@ package de.sciss.kontur
 package desktop
 package impl
 
-import java.util.prefs.Preferences
 import reflect.ClassTag
 
 trait ApplicationImpl extends Application {
-  private lazy val _systemPrefs = Preferences.systemNodeForPackage(getClass)
-  private lazy val _userPrefs   = Preferences.userNodeForPackage  (getClass)
+  private lazy val _systemPrefs = Preferences.system(getClass)
+  private lazy val _userPrefs   = Preferences.user  (getClass)
 
   final def systemPrefs: Preferences = _systemPrefs
   final def userPrefs  : Preferences = _userPrefs

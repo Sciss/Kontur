@@ -82,6 +82,8 @@ class ScalaInterpreterFrame extends desktop.impl.WindowImpl {
 
   title = "Scala Interpreter" // getResourceString("frameScalaInterpreter")
 
+  def application = Kontur
+
   // ---- constructor ----
    {
       val ipc  = InterpreterPane.Config()

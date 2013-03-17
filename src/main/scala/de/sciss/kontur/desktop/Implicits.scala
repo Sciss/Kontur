@@ -5,8 +5,20 @@ import swing.{Component, Action}
 import javax.{swing => j}
 import j.KeyStroke
 import java.awt.Dimension
+import legacy.Param
+import scala.util.control.NonFatal
 
 object Implicits {
+  implicit object ParamPrefs extends Preferences.Type[Param] {
+    private[desktop] def toString(value: Param): String = value.toString
+
+    private[desktop] def valueOf(string: String): Option[Param] = try {
+      Some(Param.valueOf(string))
+    } catch {
+      case NonFatal(_) => None
+    }
+  }
+
   implicit object DimensionPrefs extends Preferences.Type[Dimension] {
     private[desktop] def toString(value: Dimension): String = s"${value.width} ${value.height}"
     private[desktop] def valueOf(string: String): Option[Dimension] = try {

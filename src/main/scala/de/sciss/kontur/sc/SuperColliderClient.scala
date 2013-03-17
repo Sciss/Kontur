@@ -29,10 +29,11 @@ package sc
 import session.Session
 import util.{Model, PrefsUtil}
 import java.awt.EventQueue
-import java.io.IOException
+import java.io.{File, IOException}
 import de.sciss.{synth, osc}
 import synth.{Model => _, _}
 import legacy.Param
+import desktop.DocumentHandler
 
 object SuperColliderClient {
    lazy val instance = new SuperColliderClient
@@ -49,8 +50,8 @@ class SuperColliderClient extends Model {
 
    private final val VERBOSE  = false
 
-   private val app            = AbstractApplication.getApplication
-   private val audioPrefs     = app.getUserPrefs.node( PrefsUtil.NODE_AUDIO )
+   private val app            = Kontur // AbstractApplication.getApplication
+   private val audioPrefs     = app.userPrefs / PrefsUtil.NODE_AUDIO
    private var bootingVar     = Option.empty[ ServerConnection ]
    private var serverVar      = Option.empty[ Server ]
    private var serverIsReady  = false
@@ -75,31 +76,17 @@ class SuperColliderClient extends Model {
 //				outputConfigChanged();
 //			}
 //		};
-      
-      app.getDocumentHandler.addDocumentListener( new DocumentListener {
-        	def documentAdded( e: DocumentEvent ) {
-               e.getDocument match {
-                  case doc: Session => {
-                     players += doc -> new SuperColliderPlayer( SuperColliderClient.this, doc )
-                  }
-                  case _ =>
-               }
-            }
 
-        	def documentRemoved( e: DocumentEvent ) {
-               e.getDocument match {
-                  case doc: Session => {
-                     val player = players( doc )
-                     players -= doc
-                     player.dispose()
-                  }
-                  case _ =>
-               }
-            }
-            
-        	def documentFocussed( e: DocumentEvent ) {}
-      })
-   }
+      app.documentHandler.addListener {
+        case DocumentHandler.Added(doc) =>
+          players += doc -> new SuperColliderPlayer(SuperColliderClient.this, doc)
+
+        case DocumentHandler.Removed(doc) =>
+          val player = players(doc)
+          players -= doc
+          player.dispose()
+      }
+    }
 
    override def toString = "SuperColliderClient"
 
@@ -209,100 +196,94 @@ class SuperColliderClient extends Model {
 		serverIsReady = false
 	}
 
-   private def getResourceString( key: String ) = app.getResourceString( key )
+   private def getResourceString( key: String ) = key // XXX TODO app.getResourceString( key )
 
-   def boot() : Boolean = {
-      if( bootingVar.isDefined || serverVar.map( _.isRunning ) == Some( true )) return false
+  def boot(): Boolean = {
+    if (bootingVar.isDefined || serverVar.map(_.isRunning) == Some(true)) return false
 
-		dispose()
+    dispose()
 
-      val so = Server.Config()
+    val so = Server.Config()
+    import desktop.Implicits._
 
-		val pRate = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_AUDIORATE, null )
-		if( pRate != null ) so.sampleRate = pRate.value.toInt
-      so.memorySize = 64 << 10
+    val pRate = audioPrefs.get[Param](PrefsUtil.KEY_AUDIORATE)
+    pRate.foreach { p => so.sampleRate = p.value.toInt }
+    so.memorySize = 64 << 10
 
-      val pAudioBuses = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_AUDIOBUSSES, null )
-      if( pAudioBuses != null ) {
-         so.audioBusChannels = pAudioBuses.value.toInt
-      } else {
-         so.audioBusChannels = 512  // XXX hack around the missing prefs GUI
+    val pAudioBuses = audioPrefs.get[Param](PrefsUtil.KEY_AUDIOBUSSES).map(_.value.toInt).getOrElse(512)
+    so.audioBusChannels = pAudioBuses
+
+    val pBlockSize = audioPrefs.get[Param](PrefsUtil.KEY_SCBLOCKSIZE)
+    pBlockSize.foreach { p => so.blockSize = p.value.toInt }
+    so.loadSynthDefs = false
+    so.zeroConf = audioPrefs.getOrElse(PrefsUtil.KEY_SCZEROCONF, false)
+
+    val serverPort = audioPrefs.get[Param](PrefsUtil.KEY_SCPORT).map(_.value.toInt).getOrElse(0)
+    so.port = serverPort
+    val proto = audioPrefs.getOrElse(PrefsUtil.KEY_SCPROTOCOL, "tcp") match {
+      case "udp" => osc.UDP
+      case "tcp" => osc.TCP
+    }
+    so.transport = proto
+    if (serverPort == 0) so.pickPort()
+
+    audioPrefs.get[File](PrefsUtil.KEY_SUPERCOLLIDERAPP).foreach { p =>
+      so.programPath = p.getPath
+    }
+
+    if (VERBOSE) {
+      println(":: memorySize        = " + so.memorySize)
+      println(":: audioBusChannels  = " + so.audioBusChannels)
+      println(":: blockSize         = " + so.blockSize)
+      println(":: zeroConf          = " + so.zeroConf)
+      println(":: port              = " + so.port)
+      println(":: transport         = " + so.transport)
+      println(":: programPath       = " + so.programPath)
+    }
+
+    try {
+      //		   // check for automatic port assignment
+      //			if( serverPort == 0 ) {
+      //			   if( so.transport == osc.TCP ) {
+      //				   val ss = new ServerSocket( 0 )
+      //					serverPort = ss.getLocalPort
+      //					ss.close()
+      //            } else if( so.transport == osc.UDP ) {
+      //				   val ds = new DatagramSocket()
+      //					serverPort = ds.getLocalPort
+      //					ds.close()
+      //		      } else {
+      //               throw new IllegalArgumentException( "Illegal protocol : " + so.transport )
+      //            }
+      //         }
+      //
+      val b = Server.boot(app.name, so) {
+        case ServerConnection.Aborted =>
+          defer {
+            bootingVar = None
+          }
+        case ServerConnection.Running(s) =>
+          defer {
+            bootingVar = None
+            serverVar = Some(s)
+            s.addListener(forward)
+            s.dumpOSC(dumpMode)
+            initMaster(s)
+            dispatch(ServerRunning(s))
+          }
       }
+      bootingVar = Some(b)
+      dispatch(ServerBooting(b))
+      true
+    }
+    catch {
+      case e1: IOException =>
+        printError("boot", e1)
+        false
+    }
+  }
 
-		val pBlockSize = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCBLOCKSIZE, null )
-		if( pBlockSize != null ) so.blockSize = pBlockSize.value.toInt
-   	so.loadSynthDefs  = false
-	 	so.zeroConf       = audioPrefs.getBoolean( PrefsUtil.KEY_SCZEROCONF, false )
-
-		val pPort = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCPORT, null )
-		val serverPort = if( pPort == null ) 0 else pPort.value.toInt
-      so.port = serverPort
-		val proto = audioPrefs.get( PrefsUtil.KEY_SCPROTOCOL, "tcp" ) match {
-         case "udp" => osc.UDP
-         case "tcp" => osc.TCP
-      }
-		so.transport = proto
-      if( serverPort == 0 ) so.pickPort()
-
-		val appPath = audioPrefs.get( PrefsUtil.KEY_SUPERCOLLIDERAPP, null )
-		if( appPath == null ) {
-		   println( getResourceString( "errSCSynthAppNotFound" ))
-			return false
-		}
-		so.programPath = appPath
-
-if( VERBOSE ) {
-println( ":: memorySize        = " + so.memorySize )
-println( ":: audioBusChannels  = " + so.audioBusChannels )
-println( ":: blockSize         = " + so.blockSize )
-println( ":: zeroConf          = " + so.zeroConf )
-println( ":: port              = " + so.port )
-println( ":: transport         = " + so.transport )
-println( ":: programPath       = " + so.programPath )
-}
-
-		try {
-//		   // check for automatic port assignment
-//			if( serverPort == 0 ) {
-//			   if( so.transport == osc.TCP ) {
-//				   val ss = new ServerSocket( 0 )
-//					serverPort = ss.getLocalPort
-//					ss.close()
-//            } else if( so.transport == osc.UDP ) {
-//				   val ds = new DatagramSocket()
-//					serverPort = ds.getLocalPort
-//					ds.close()
-//		      } else {
-//               throw new IllegalArgumentException( "Illegal protocol : " + so.transport )
-//            }
-//         }
-//
-         val b = Server.boot( app.getName, so ) {
-            case ServerConnection.Aborted =>
-               defer {
-                  bootingVar = None
-               }
-            case ServerConnection.Running( s ) =>
-               defer {
-                  bootingVar = None
-                  serverVar = Some( s )
-                  s.addListener( forward )
-                  s.dumpOSC( dumpMode )
-                  initMaster( s )
-                  dispatch( ServerRunning( s ))
-               }
-         }
-         bootingVar = Some( b )
-         dispatch( ServerBooting( b ))
-			true
-	   }
-		catch { case e1: IOException =>
-		   printError( "boot", e1 )
-         false
-      }
-   }
-
-   private def initMaster( s: Server ) {
+  private def initMaster( s: Server ) {
       import synth._
       import synth.ugen._
 

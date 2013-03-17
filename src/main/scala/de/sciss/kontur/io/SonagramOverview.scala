@@ -23,17 +23,18 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.io
+package de.sciss.kontur
+package io
 
 import java.awt.{Dimension, Graphics2D}
 import java.awt.image.{BufferedImage, DataBufferInt, ImageObserver}
 import java.beans.{PropertyChangeEvent, PropertyChangeListener}
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream, File, IOException}
 import javax.swing.SwingWorker
-import scala.collection.immutable.Queue
-import scala.math._
-import de.sciss.kontur.gui.IntensityColorScheme
-import de.sciss.kontur.util.PrefsUtil
+import collection.immutable.Queue
+import math._
+import gui.IntensityColorScheme
+import util.PrefsUtil
 import de.sciss.dsp.{ConstQ, FastLog}
 import de.sciss.synth.io.{AudioFileType, SampleFormat, AudioFileSpec, AudioFile}
 
@@ -184,14 +185,14 @@ object SonagramOverview {
    private var imageCache     = Map[ Dimension, ImageCache ]()
    private var fileBufCache   = Map[ SonagramImageSpec, FileBufCache ]()
    private val sync           = new AnyRef
-   private lazy val fileCache = {
-      val app = AbstractApplication.getApplication 
-      new PrefCacheManager(
-         app.getUserPrefs.node( PrefsUtil.NODE_IO ).node( PrefsUtil.NODE_SONACACHE ),
-         true, new File( System.getProperty( "java.io.tmpdir" ), app.getName ), maxSize )
-   }
+  private lazy val fileCache = {
+    val app = Kontur // AbstractApplication.getApplication
+    new PrefCacheManager(
+      app.userPrefs / PrefsUtil.NODE_IO / PrefsUtil.NODE_SONACACHE,
+      true, new File(sys.props("java.io.tmpdir"), app.name), maxSize)
+  }
 
-   @throws( classOf[ IOException ])
+  @throws( classOf[ IOException ])
    def fromPath( path: File ) : SonagramOverview = {
       sync.synchronized {
          val cPath         = path.getCanonicalFile

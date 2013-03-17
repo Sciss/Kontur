@@ -56,8 +56,8 @@ trait SessionFrame {
         override def windowActivated( e: AbstractWindow.Event ) {
             // need to check 'disposed' to avoid runtime exception in doc handler if document was just closed
             if( !disposed ) {
-                app.getDocumentHandler.setActiveDocument( frame, doc )
-                app.getWindowHandler.asInstanceOf[ BasicWindowHandler ].setMenuBarBorrower( frame )
+                application.documentHandler.activeDocument = doc
+                handler.setMenuBarBorrower( frame )
             }
         }
     }
@@ -77,18 +77,18 @@ trait SessionFrame {
       mr.putMimic( "file.save",   this, actionSave )
       mr.putMimic( "file.saveAs", this, actionSaveAs )
 
-      mr.putMimic( "edit.undo", this, doc.getUndoManager.getUndoAction )
-      mr.putMimic( "edit.redo", this, doc.getUndoManager.getRedoAction )
+      mr.putMimic( "edit.undo", this, document.undoManager.undoAction )
+      mr.putMimic( "edit.redo", this, document.undoManager.redoAction )
       
       updateTitle()
-      doc.addListener( docListener )
+     document.addListener( docListener )
 
-      app.getMenuFactory.addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
+      application.getMenuFactory.addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
       closeOperation = desktop.Window.CloseIgnore
       addListener( winListener )
    }
 
-   def doc: Session
+   def document: Session
 
    protected def elementName: Option[ String ]
 
@@ -97,8 +97,8 @@ trait SessionFrame {
    protected def invokeDispose() {
       disposed = true	// important to avoid "too late window messages" to be processed; fucking swing doesn't kill them despite listener being removed
       removeListener( winListener )
-      doc.removeListener( docListener )
-      app.getMenuFactory.removeFromWindowMenu( actionShowWindow )
+     document.removeListener( docListener )
+      application.getMenuFactory.removeFromWindowMenu( actionShowWindow )
       actionShowWindow.dispose()
       dispose()
    }
@@ -108,21 +108,21 @@ trait SessionFrame {
    * after a sessions name changed (clear/load/save as session)
    */
   protected def updateTitle() {
-    writeProtected = doc.path.map(!_.canWrite) getOrElse false
+    writeProtected = document.path.map(!_.canWrite) getOrElse false
 
-    val name = doc.displayName
+    val name = document.displayName
     title = (if (!handler.usesInternalFrames) handler.application.name else "") +
-      (if (doc.dirty) " - \u2022" else " - ") + name + (elementName.map(e => " - " + e) getOrElse "")
+      (if (document.dirty) " - \u2022" else " - ") + name + (elementName.map(e => " - " + e) getOrElse "")
 
     actionShowWindow.title = name
     actionSave.enabled = !writeProtected && doc.dirty
-    dirty = doc.dirty
-    file  = doc.path
+    dirty = document.dirty
+    file  = document.path
 
     //		final AudioFileInfoPalette infoBox = (AudioFileInfoPalette) app.getComponent( Main.COMP_AUDIOINFO )
     //		if( infoBox != null ) infoBox.updateDocumentName( doc )
 
-    if (writeProtected && !wpHaveWarned && doc.dirty) {
+    if (writeProtected && !wpHaveWarned && document.dirty) {
       val op = new JOptionPane(getResourceString("warnWriteProtected"), JOptionPane.WARNING_MESSAGE)
       showDialog(op, "Warning") // getResourceString("msgDlgWarn"))
       wpHaveWarned = true
@@ -134,7 +134,8 @@ trait SessionFrame {
 //   }
 
    protected def documentClosed() {
-      app.documentHandler.removeDocument( this, doc )	// XXX
+     // XXX TODO
+//      application.documentHandler.removeDocument(doc)	// XXX
       invokeDispose() // dispose()
    }
 
@@ -198,7 +199,7 @@ trait SessionFrame {
     *	@see	de.sciss.eisenkraut.util.ProcessingThread#start
     */
    def confirmUnsaved(actionName: String, confirmed: Flag): Boolean = {
-     if (!doc.dirty) {
+     if (!document.dirty) {
        confirmed.value = true
        return false
      }
@@ -209,7 +210,7 @@ trait SessionFrame {
        // getResourceString( "buttonDontSave" )
      )
      val dont = Flag.False()
-     val name = doc.displayName
+     val name = document.displayName
 
      val op = new JOptionPane(s"<html><body><p><b>Do you want to save the changes you made in\nthe document $name?</b></p>" +
        "<p>Your changes will be lost if you don't save them.</p></body></html>",
@@ -255,10 +256,10 @@ trait SessionFrame {
 
        case 0 =>
          confirmed() = false
-         val path = if (doc.path.isEmpty || writeProtected) {
+         val path = if (document.path.isEmpty || writeProtected) {
            actionSaveAs.query(actionSave.title)
          } else {
-           doc.path
+           document.path
          }
          path.map(p => {
            actionSave.perform(actionSave.title, p, asCopy = false, openAfterSave = false)
@@ -282,22 +283,22 @@ trait SessionFrame {
        */
       def actionPerformed( e: ActionEvent ) {
          val name = title
-         (doc.path orElse actionSaveAs.query( name )).foreach( f =>
+         (document.path orElse actionSaveAs.query( name )).foreach( f =>
             perform( name, f, asCopy = false, openAfterSave = false ))
       }
 
       protected[gui] def perform( name: String, file: File, asCopy: Boolean, openAfterSave: Boolean ) : Boolean = {
          try {
-            doc.save( file )
+           document.save( file )
             wpHaveWarned = false
 
             if( !asCopy ) {
-               app.getMenuFactory.addRecent( file )
-               doc.path = Some( file )
-               doc.undoManager.clear()
+               application.getMenuFactory.addRecent( file )
+              document.path = Some( file )
+              document.undoManager.clear()
             }
             if( openAfterSave ) {
-               app.getMenuFactory.openDocument( file )
+               application.getMenuFactory.openDocument( file )
             }
             true
          }

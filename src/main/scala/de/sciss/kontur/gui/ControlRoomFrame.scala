@@ -114,7 +114,8 @@ class ControlRoomFrame extends desktop.impl.WindowImpl {
 
   override def dispose() {
     application.removeComponent(Kontur.COMP_CTRLROOM)
-    stopListening()
+    // XXX TODO
+//    stopListening()
 
     pmg.dispose()
     super.dispose()

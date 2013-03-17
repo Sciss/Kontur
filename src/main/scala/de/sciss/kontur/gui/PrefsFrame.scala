@@ -39,7 +39,7 @@ import language.reflectiveCalls
 import legacy.{ComboBoxEditorBorder, TreeExpanderButton, PreferenceEntrySync, Param, ParamSpace, StringItem}
 import desktop.impl.{BasicPathField, PrefPathField, PrefComboBox, PrefParamField}
 import java.io.File
-import desktop.Preferences
+import desktop.{WindowHandler, Preferences}
 
 class PrefsFrame extends desktop.impl.WindowImpl {
   protected def style = desktop.Window.Auxiliary
@@ -136,11 +136,11 @@ class PrefsFrame extends desktop.impl.WindowImpl {
     }
     ggWarn.add(lbWarn)
 
-    def addWarn(b: {def addActionListener(l: ActionListener): Unit}, pes: PreferenceEntrySync) {
-      val initialValue = pes.getPreferenceNode.get(pes.getPreferenceKey, null)
+    def addWarn[A](b: {def addActionListener(l: ActionListener): Unit}, pes: Preferences.Entry[A]) {
+      val initialValue = pes.get
       b.addActionListener(new ActionListener {
         def actionPerformed(e: ActionEvent) {
-          val newValue = pes.getPreferenceNode.get(pes.getPreferenceKey, initialValue)
+          val newValue = pes.get
           if (newValue != initialValue) {
             lbWarn.setVisible(true)
           }
@@ -148,29 +148,31 @@ class PrefsFrame extends desktop.impl.WindowImpl {
       })
     }
 
-    val lbLAF = new JLabel(getResourceString("prefsLookAndFeel"))
-    val ggLAF = new PrefComboBox(prefs[String](KEY_LOOKANDFEEL))
+    val lbLAF = new JLabel("Look and Feel") // getResourceString("prefsLookAndFeel"))
+    val prefsLAF = prefs[String](KEY_LOOKANDFEEL)
+    val ggLAF = new PrefComboBox(prefsLAF)
     val lafInfos = UIManager.getInstalledLookAndFeels
     for (info <- lafInfos) {
       ggLAF.addItem(new StringItem(info.getClassName, info.getName))
     }
-    addWarn(ggLAF, ggLAF)
+    addWarn(ggLAF, prefsLAF)
 
-    val ggLAFDeco = new PrefCheckBox(getResourceString("prefsLAFDecoration"))
-    ggLAFDeco.setPreferences(prefs, BasicWindowHandler.KEY_LAFDECORATION)
-    addWarn(ggLAFDeco, ggLAFDeco)
+    val prefsLAFDeco = prefs[Boolean](WindowHandler.Preferences.keyLookAndFeelDecoration)
+    val ggLAFDeco = new PrefCheckBox(prefsLAFDeco, false)("Frame Decoration") // getResourceString("prefsLAFDecoration"))
+    addWarn(ggLAFDeco, prefsLAFDeco)
 
-    val ggInternalFrames = new PrefCheckBox(getResourceString("prefsInternalFrames"))
-    ggInternalFrames.setPreferences(prefs, BasicWindowHandler.KEY_INTERNALFRAMES)
-    addWarn(ggInternalFrames, ggInternalFrames)
+    val prefsInternalFrames = prefs[Boolean](WindowHandler.Preferences.keyInternalFrames)
+    val ggInternalFrames = new PrefCheckBox(prefsInternalFrames, false)("Internal Frames") // getResourceString("prefsInternalFrames"))
+    addWarn(ggInternalFrames, prefsInternalFrames)
 
-    val ggIntrudingSize = new PrefCheckBox(getResourceString("prefsIntrudingSize"))
-    ggIntrudingSize.setPreferences(prefs, CoverGrowBox.KEY_INTRUDINGSIZE)
-    addWarn(ggIntrudingSize, ggIntrudingSize)
+    val isMac = sys.props("os.name").contains("Mac OS")
+    val prefsIntrudingSize = prefs[Boolean](WindowHandler.Preferences.keyIntrudingGrowBox)
+    val ggIntrudingSize = new PrefCheckBox(prefsIntrudingSize, isMac)("Intruding Growbox") // (getResourceString("prefsIntrudingSize"))
+    addWarn(ggIntrudingSize, prefsIntrudingSize)
 
-    val ggFloatingPalettes = new PrefCheckBox(getResourceString("prefsFloatingPalettes"))
-      ggFloatingPalettes.setPreferences(prefs, BasicWindowHandler.KEY_FLOATINGPALETTES)
-      addWarn(ggFloatingPalettes, ggFloatingPalettes)
+    val prefsFloatingPalettes = prefs[Boolean](WindowHandler.Preferences.keyFloatingPalettes)
+    val ggFloatingPalettes = new PrefCheckBox(prefsFloatingPalettes, false)("Floating Palettes") // getResourceString("prefsFloatingPalettes"))
+      addWarn(ggFloatingPalettes, prefsFloatingPalettes)
 
       layout.setHorizontalGroup(layout.createParallelGroup()
         .addGroup(layout.createSequentialGroup()
@@ -201,14 +203,14 @@ class PrefsFrame extends desktop.impl.WindowImpl {
     }
 
   private def ioPanel: JComponent = {
-    val prefs = application.userPrefs.node(NODE_IO)
+    val prefs = application.userPrefs / NODE_IO
 
     val (panel, layout) = createPanel()
 
-    val txSonaCacheFolder = getResourceString("prefsSonaCacheFolder")
+    val txSonaCacheFolder = "Sonagram Cache Folder" // getResourceString("prefsSonaCacheFolder")
     val lbSonaCacheFolder = new JLabel(txSonaCacheFolder)
-    val ggSonaCacheFolder = new PrefPathField(legacy.PathField.TYPE_FOLDER, txSonaCacheFolder)
-    ggSonaCacheFolder.setPreferences(prefs.node(NODE_SONACACHE), PrefCacheManager.KEY_FOLDER)
+    val prefsSonaCacheFolder = (prefs / NODE_SONACACHE)[File](PrefCacheManager.KEY_FOLDER)
+    val ggSonaCacheFolder = new PrefPathField(prefsSonaCacheFolder, new File(""))(legacy.PathField.TYPE_FOLDER, txSonaCacheFolder)
 
     layout.setHorizontalGroup(layout.createSequentialGroup()
       .addComponent(lbSonaCacheFolder)
@@ -222,7 +224,7 @@ class PrefsFrame extends desktop.impl.WindowImpl {
   }
 
   private def audioPanel: JComponent = {
-    val prefs = application.userPrefs.node(NODE_AUDIO)
+    val prefs = application.userPrefs / NODE_AUDIO
     // val abPrefs	= prefs.node( NODE_AUDIOBOXES );
 
     val (panel, layout) = createPanel()
@@ -230,18 +232,20 @@ class PrefsFrame extends desktop.impl.WindowImpl {
 
     val resApp  = getResourceString("prefsSuperColliderApp")
     val lbApp   = new JLabel(resApp)
-    val ggApp   = new BasicPathField(prefs[File](KEY_SUPERCOLLIDERAPP))(legacy.PathField.TYPE_INPUTFILE, resApp)
+    val defaultApp = new File(sys.env.get("SC_HOME").getOrElse(""), "scsynth")
+    val ggApp   = new BasicPathField(prefs[File](KEY_SUPERCOLLIDERAPP), defaultApp)(legacy.PathField.TYPE_INPUTFILE, resApp)
     ggApp.setBackground(bg)
 
     // val lbBoot  = new JLabel( getResourceString( "prefsAutoBoot" ))
-    val ggBoot = new PrefCheckBox(getResourceString("prefsAutoBoot")) // space to have proper baseline!
-    ggBoot.setPreferences(prefs, KEY_AUTOBOOT)
+    val ggBoot = new PrefCheckBox(prefs[Boolean](KEY_AUTOBOOT), false)("Auto Boot") // getResourceString("prefsAutoBoot")) // space to have proper baseline!
 
     val lbInterfaces = new JLabel(getResourceString("labelAudioIFs"))
-    val ggInterfaces = createAudioBoxGUI(prefs.node(NODE_AUDIOBOXES))
+    val ggInterfaces = createAudioBoxGUI(prefs / NODE_AUDIOBOXES)
 
-    val lbRate = new JLabel( getResourceString( "prefsAudioRate" ))
-    val rate0 = new Param(    0, ParamSpace.FREQ | ParamSpace.HERTZ)
+    import desktop.Implicits._
+
+    val lbRate = new JLabel("Sample Rate") // getResourceString( "prefsAudioRate" ))
+    val rate0 = new Param(0, ParamSpace.FREQ | ParamSpace.HERTZ)
 		val ggRateParam = new PrefParamField(prefs[Param](KEY_AUDIORATE), rate0)
 		ggRateParam.addSpace( ParamSpace.spcFreqHertz )
     val ggRate = new JComboBox()

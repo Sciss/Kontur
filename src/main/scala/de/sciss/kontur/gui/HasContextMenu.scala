@@ -25,6 +25,8 @@
 
 package de.sciss.kontur.gui
 
+import de.sciss.desktop.Menu
+
 trait HasContextMenu {
-  def createContextMenu() : Option[ PopupRoot ]
+  def createContextMenu() : Option[Menu.Popup]
 }

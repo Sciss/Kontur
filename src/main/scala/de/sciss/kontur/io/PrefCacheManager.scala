@@ -30,13 +30,10 @@ package de.sciss.kontur
 package io
 
 import java.io.File
-import java.util.prefs.{ PreferenceChangeEvent, PreferenceChangeListener, Preferences }
+import java.util.prefs.{ PreferenceChangeEvent, PreferenceChangeListener }
 import legacy.{CacheManager, ParamSpace, Param}
+import desktop.Preferences
 
-/**
- *  @author		Hanns Holger Rutz
- *  @version	0.71, 02-Feb-10
- */
 object PrefCacheManager {
    /**
     *	Convenient name for preferences node
@@ -56,27 +53,32 @@ with PreferenceChangeListener {
 
   // ---- constructor ---
   {
-    val capacity = Param.fromPrefs(preferences, KEY_CAPACITY, defaultCapacityP).value.toInt
-    val folder = new File(preferences.get(KEY_FOLDER, defaultFolder.getAbsolutePath))
-    val active = preferences.getBoolean(KEY_ACTIVE, defaultActive)
+    import desktop.Implicits._
+
+    val capacity  = preferences.getOrElse(KEY_CAPACITY, defaultCapacityP).value.toInt
+    val folder    = preferences.getOrElse(KEY_FOLDER, defaultFolder)
+    val active    = preferences.getOrElse(KEY_ACTIVE, defaultActive)
     setFolderAndCapacity(folder, capacity)
     setActive(active)
-    preferences.addPreferenceChangeListener(this)
+    // XXX TODO
+//    preferences.addPreferenceChangeListener(this)
   }
 
   def dispose() {
-    preferences.removePreferenceChangeListener(this)
+    // XXX TODO
+//    preferences.removePreferenceChangeListener(this)
   }
 
   override def setActive(onOff: Boolean) {
     super.setActive(onOff)
-    preferences.putBoolean(KEY_ACTIVE, onOff)
+    preferences.put(KEY_ACTIVE, onOff)
   }
 
   override def setFolderAndCapacity(folder: File, capacity: Int) {
     super.setFolderAndCapacity(folder, capacity)
-    preferences.put(KEY_FOLDER, folder.getPath)
-    preferences.put(KEY_CAPACITY, new Param(capacity, ParamSpace.NONE | ParamSpace.ABS).toString)
+    import desktop.Implicits._
+    preferences.put(KEY_FOLDER, folder)
+    preferences.put(KEY_CAPACITY, new Param(capacity, ParamSpace.NONE | ParamSpace.ABS))
   }
 
 // ------- PreferenceChangeListener interface -------
@@ -84,13 +86,15 @@ with PreferenceChangeListener {
 	def preferenceChange( e: PreferenceChangeEvent) {
 		val key = e.getKey
 
+    import desktop.Implicits._
+
 		if( key == KEY_FOLDER ) {
 			val f = new File( e.getNewValue )
 			if( (getFolder == null) || (getFolder != f) ) {
 				setFolder( f )
 			}
       } else if( key == KEY_CAPACITY ) {
-			val c = Param.fromPrefs( preferences, key, defaultCapacityP ).value.toInt
+			val c = preferences.getOrElse(key, defaultCapacityP).value.toInt
 			if( getCapacity != c ) {
 				setCapacity( c )
 			}

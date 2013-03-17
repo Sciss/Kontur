@@ -46,7 +46,9 @@ object SessionUtil {
 
    def bounce( doc: Session, tl: Timeline, tracks: List[ Track ], span: Span, path: File, spec: AudioFileSpec,
                upd: AnyRef => Unit = _ => () )(implicit application: desktop.Application): Process = {
-      
+
+     import desktop.Implicits._
+
       val so                        = Server.Config()
       so.nrtOutputPath              = path.getCanonicalPath
       so.outputBusChannels          = spec.numChannels // 2   // XXX
@@ -54,18 +56,15 @@ object SessionUtil {
       so.nrtSampleFormat            = spec.sampleFormat
       val sampleRate                = spec.sampleRate
       so.sampleRate                 = sampleRate.toInt
-      val audioPrefs                = application.userPrefs.node( PrefsUtil.NODE_AUDIO )
-      val pMemSize = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCMEMSIZE, null )
-      if( pMemSize != null ) {
-         so.memorySize              = pMemSize.value.toInt << 10
+      val audioPrefs                = application.userPrefs / PrefsUtil.NODE_AUDIO
+      audioPrefs.get[Param](PrefsUtil.KEY_SCMEMSIZE).foreach { p =>
+         so.memorySize              = p.value.toInt << 10
       }
       so.blockSize                  = 1
       so.loadSynthDefs              = false
-      val appPath = audioPrefs.get[String](PrefsUtil.KEY_SUPERCOLLIDERAPP).orNull
-      if( appPath == null ) {
-         throw new Exception( getResourceString( "errSCSynthAppNotFound" ))
+      audioPrefs.get[File](PrefsUtil.KEY_SUPERCOLLIDERAPP).foreach { p =>
+        so.programPath = p.getPath
       }
-      so.programPath              = appPath
 
       // karlheinz bounce core
       val context = BounceSynthContext( so )

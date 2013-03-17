@@ -2,7 +2,7 @@ package de.sciss.kontur
 package desktop
 package impl
 
-import swing.{Component, Dialog}
+import swing.{Action, Component, Dialog}
 import javax.swing.{JOptionPane, RootPaneContainer, SwingUtilities}
 import java.util.StringTokenizer
 
@@ -63,6 +63,27 @@ object WindowHandlerImpl {
       exception.printStackTrace()
     }
   }
+
+  def showAction(window: Window): Action = new ShowAction(window)
+
+  private final class ShowAction(window: Window) extends Action(window.title) {
+    window.reactions += {
+      case Window.Activated(_) =>
+//				if( !disposed ) {
+          // ((BasicApplication) AbstractApplication.getApplication()).getMenuFactory().setSelectedWindow( ShowWindowAction.this );
+          ???
+//			  }
+    }
+
+	  def apply() {
+      window.visible = true
+      window.front()
+    }
+
+//    def dispose() {
+//      w.reactions -= ...
+//    }
+	}
 
   private final class DialogWindow(dialog: Dialog) extends WindowImpl {
 // 			if( modal ) fph.addModalDialog(); // this shit is necessary because java.awt.FileDialog doesn't fire windowActivated ...

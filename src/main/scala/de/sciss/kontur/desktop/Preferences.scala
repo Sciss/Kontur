@@ -7,7 +7,7 @@ import scala.util.control.NonFatal
 
 object Preferences {
   object Type {
-    import scala.{Int => SInt}
+    import scala.{Int => SInt, Boolean => SBoolean}
     import java.lang.{String => SString}
     import java.io.{File => SFile}
 
@@ -26,7 +26,16 @@ object Preferences {
       private[desktop] def valueOf(string: SString): Option[SInt] = try {
         Some(string.toInt)
       } catch {
-        case _: NumberFormatException => None
+        case NonFatal(_) => None
+      }
+    }
+
+    implicit object Boolean extends Type[SBoolean] {
+      private[desktop] def toString(value: SBoolean) = value.toString
+      private[desktop] def valueOf(string: SString): Option[SBoolean] = try {
+        Some(string.toBoolean)
+      } catch {
+        case NonFatal(_) => None
       }
     }
   }
@@ -92,7 +101,7 @@ trait Preferences {
   def get[A: Type](key: String): Option[A]
   def getOrElse[A: Type](key: String, default: => A): A
   def put[A: Type](key: String, value: A): Unit
-  def node(key: String): Preferences
+  def / (key: String): Preferences
 
   def apply[A: Type](key: String): Preferences.Entry[A]
 }

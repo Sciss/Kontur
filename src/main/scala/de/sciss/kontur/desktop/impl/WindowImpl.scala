@@ -44,7 +44,7 @@ trait WindowImpl extends Window {
   final protected def contents_=(value: Component) { delegate.contents = value }
 
   final protected def dirty: Boolean = delegate.dirty
-  final protected def dirty_(value: Boolean) { delegate.dirty = value }
+  final protected def dirty_=(value: Boolean) { delegate.dirty = value }
 
   private final val delegate: Delegate = {
     ???

@@ -16,7 +16,7 @@ object PreferencesImpl {
 
     override def toString = s"Preferences.${if (isSystem) "system" else "user"}($name)"
 
-    def node(key: String): Preferences = ???
+    def / (key: String): Preferences = new Impl(peer.node(key), isSystem = isSystem, name = s"$name.key")
 
     def get[A](key: String)(implicit tpe: Type[A]): Option[A] = {
       val s = peer.get(key, null)

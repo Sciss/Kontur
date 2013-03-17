@@ -396,8 +396,8 @@ final class TracksTreeIndex(model: SessionTreeModel, tl: Timeline)
   extends SessionElementSeqTreeNode(model, tl.tracks)
   with HasContextMenu with CanBeDropTarget {
 
-  def createContextMenu(): Option[PopupRoot] = {
-    val root = new PopupRoot()
+  def createContextMenu(): Option[Menu.Popup] = {
+    val root = Menu.Popup()
     val miAddNewAudio = Menu.Item("new", new Action("New Audio Track") {
       def apply() {
         tl.tracks.editor.foreach { ed =>
