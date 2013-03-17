@@ -44,7 +44,7 @@ class ControlRoomFrame extends desktop.impl.WindowImpl {
   private val ggLimiter   = new MultiStateButton()
   private val pmg         = new PeakMeter()
   private val b1          = new SpringPanel(2, 4, 2, 4)
-  private var isListening = false
+//  private var isListening = false
 
   title = "Control Room" // XXX getResource
   resizable = true
@@ -83,28 +83,28 @@ class ControlRoomFrame extends desktop.impl.WindowImpl {
   // 		b1.gridAdd( ggAudioBox, 0, 3, -1, 1 )
   b1.makeCompactGrid()
 
-  content = Component.wrap(b1)
+  contents = Component.wrap(b1)
 
-  AbstractWindowHandler.setDeepFont( b1 )
+//  AbstractWindowHandler.setDeepFont( b1 )
 
-  // ---- listeners -----
-
-  addListener(new AbstractWindow.Adapter {
-    override def windowOpened(e: AbstractWindow.Event) {
-      startListening()
-    }
-
-    override def windowClosing(e: AbstractWindow.Event) {
-      setVisible(false)
-      dispose()
-    }
-  })
+//  // ---- listeners -----
+//
+//  addListener(new AbstractWindow.Adapter {
+//    override def windowOpened(e: AbstractWindow.Event) {
+//      startListening()
+//    }
+//
+//    override def windowClosing(e: AbstractWindow.Event) {
+//      setVisible(false)
+//      dispose()
+//    }
+//  })
 
   updateVolume()
 
-  closeOperation = desktop.Window.CloseIgnore // window listener see above!
+  closeOperation = desktop.Window.CloseDispose // CloseIgnore // window listener see above!
   // init()
-  app.addComponent(Kontur.COMP_CTRLROOM, this)
+  application.addComponent(Kontur.COMP_CTRLROOM, this)
 
   private def superCollider = SuperColliderClient.instance
 
@@ -115,7 +115,7 @@ class ControlRoomFrame extends desktop.impl.WindowImpl {
   override protected def getPreferredLocation: Point2D = new Point2D.Float(0.95f, 0.2f)
 
   override def dispose() {
-    AbstractApplication.getApplication.removeComponent(Kontur.COMP_CTRLROOM)
+    application.removeComponent(Kontur.COMP_CTRLROOM)
     stopListening()
 
     pmg.dispose()
@@ -132,11 +132,11 @@ class ControlRoomFrame extends desktop.impl.WindowImpl {
     pack()
   }
 
-  private def startListening() {
-    isListening = true
-  }
-
-  private def stopListening() {
-    isListening = false
-  }
+//  private def startListening() {
+//    isListening = true
+//  }
+//
+//  private def stopListening() {
+//    isListening = false
+//  }
 }

@@ -27,12 +27,12 @@ package de.sciss.kontur
 package gui
 
 import javax.swing.undo.UndoManager
-import de.sciss.app.AbstractCompoundEdit
-import edit.{ Editor, SimpleEdit }
-import session.{ Session, Timeline }
+import edit.{Editor, SimpleEdit}
+import session.{Session, Timeline}
 import util.Model
-import de.sciss.span.Span.SpanOrVoid
 import de.sciss.span.Span
+import Span.SpanOrVoid
+import legacy.AbstractCompoundEdit
 
 object TimelineView {
    case class SpanChanged( oldSpan: Span, newSpan: Span )
@@ -47,9 +47,9 @@ trait TimelineView extends Model {
 }
 
 trait TimelineViewEditor extends Editor {
-   def editPosition( ce: AbstractCompoundEdit, newPos: Long ) : Unit
-   def editScroll( ce: AbstractCompoundEdit, newSpan: Span ) : Unit
-   def editSelect( ce: AbstractCompoundEdit, newSpan: SpanOrVoid ) : Unit
+  def editPosition(ce: AbstractCompoundEdit, newPos: Long): Unit
+  def editScroll  (ce: AbstractCompoundEdit, newSpan: Span): Unit
+  def editSelect  (ce: AbstractCompoundEdit, newSpan: SpanOrVoid): Unit
 }
 
 class BasicTimelineView( doc: Session, val timeline: Timeline )

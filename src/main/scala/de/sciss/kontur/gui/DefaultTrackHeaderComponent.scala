@@ -163,7 +163,7 @@ with desktop.impl.DynamicComponentImpl /* with Disposable */ {
 //    def component: JComponent = this
 
 	protected def getResourceString( key: String ) =
-		AbstractApplication.getApplication.getResourceString( key )
+		key // XXX TODO AbstractApplication.getApplication.getResourceString( key )
 
 /*
     def track = trackVar

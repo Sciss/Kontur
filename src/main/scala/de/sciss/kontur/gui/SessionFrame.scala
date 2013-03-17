@@ -212,7 +212,7 @@ trait SessionFrame {
       val op = new JOptionPane( name + " :\n" + getResourceString( "optionDlgUnsaved" ),
                             JOptionPane.WARNING_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION, null,
                             options, options( 1 ))
-      val d = op.createDialog( component, actionName )
+      val d = op.createDialog( component.peer, actionName )
       val rp = d.getRootPane
       if( rp != null ) {
          rp.getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW ).put(

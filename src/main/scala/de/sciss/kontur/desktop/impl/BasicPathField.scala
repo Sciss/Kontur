@@ -6,9 +6,9 @@ import legacy.PathButton
 import swing.{Dialog, Component}
 
 object BasicPathField {
-  private final class Button(tpe: Int, title: String) extends PathButton(tpe) {
+  private final class Button(tpe: Int, title: String) extends PathButton(tpe, title) {
     protected def showDialog(dialog: Dialog) {
-      WindowHandler.showDialog(Component.wrap(this), dialog, title)
+      WindowHandler.showDialog(Component.wrap(this), dialog)
     }
   }
 }

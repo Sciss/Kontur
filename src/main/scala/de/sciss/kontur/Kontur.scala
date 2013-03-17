@@ -65,27 +65,27 @@ object Kontur extends desktop.SwingApplication with desktop.impl.ApplicationImpl
    *
    * @see	#getComponent( Object )
    */
-  val COMP_PREFS = "Prefs"
+  final val COMP_PREFS = "Prefs"
   /**
    * Value for add/getComponent(): the observer palette
    *
    * @see	#getComponent( Object )
    */
-  val COMP_OBSERVER = "Observer"
+  final val COMP_OBSERVER = "Observer"
   /**
    * Value for add/getComponent(): the main log frame
    *
    * @see	#getComponent( Object )
    */
-  val COMP_MAIN = "Main"
+  final val COMP_MAIN = "Main"
   /**
    * Value for add/getComponent(): the online help display frame
    *
    * @see	#getComponent( Object )
    */
-  val COMP_HELP = "Help"
+  final val COMP_HELP = "Help"
 
-  val COMP_CTRLROOM = "ControlRoom"
+  final val COMP_CTRLROOM = "ControlRoom"
 
   private val quitAfterSaveListener = new ProcessingThread.Listener {
     def processStarted(e: ProcessingThread.Event) {

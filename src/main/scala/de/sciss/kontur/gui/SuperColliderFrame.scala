@@ -26,37 +26,41 @@
 package de.sciss.kontur
 package gui
 
-import de.sciss.app.AbstractWindow
-import de.sciss.kontur.sc.SuperColliderClient
+import sc.SuperColliderClient
 import de.sciss.synth.Server
-import java.awt.BorderLayout
-import java.awt.event.{ ActionEvent, InputEvent, KeyEvent }
-import javax.swing.{ AbstractAction, JComponent, KeyStroke }
+import java.awt.event.{ActionEvent, InputEvent, KeyEvent}
+import javax.swing.{AbstractAction, JComponent, KeyStroke}
 import de.sciss.osc
 import de.sciss.synth.swing.j.JServerStatusPanel
 import util.Model
+import desktop.Window
+import swing.Component
 
 // note: should be PALETTE, but then we loose the key actions...
-class SuperColliderFrame extends AppWindow( AbstractWindow.SUPPORT /* PALETTE */ ) {
-   private val superCollider = SuperColliderClient.instance
-   private val serverPanel = new JServerStatusPanel(
-      JServerStatusPanel.COUNTS | JServerStatusPanel.BOOT_BUTTON ) {
+class SuperColliderFrame extends desktop.impl.WindowImpl {
+  protected def style = Window.Auxiliary
 
-     override protected def bootServer() { superCollider.boot() }
-     override protected def stopServer() { superCollider.stop() }
-     override protected def couldBoot: Boolean = true
-   }
+  private val superCollider = SuperColliderClient.instance
+  private val serverPanel = new JServerStatusPanel(
+    JServerStatusPanel.COUNTS | JServerStatusPanel.BOOT_BUTTON) {
 
-   private val clientListener: Model.Listener = {
-      case SuperColliderClient.ServerBooting( s ) => serverPanel.booting = Some( s )
-      case SuperColliderClient.ServerRunning( s ) => serverPanel.server  = Some( s )
-      case SuperColliderClient.ServerTerminated   => serverPanel.server  = None
-   }
-   
+    override protected def bootServer() { superCollider.boot() }
+    override protected def stopServer() { superCollider.stop() }
+
+    override protected def couldBoot: Boolean = true
+  }
+
+  private val clientListener: Model.Listener = {
+    case SuperColliderClient.ServerBooting(s) => serverPanel.booting  = Some(s)
+    case SuperColliderClient.ServerRunning(s) => serverPanel.server   = Some(s)
+    case SuperColliderClient.ServerTerminated => serverPanel.server   = None
+  }
+
+  title     = "SuperCollider Server"  // XXX getResource
+  resizable = false
+
    // ---- constructor ----
    {
-      setTitle( "SuperCollider Server" ) // XXX getResource
-      setResizable( false )
 
       // ---- actions ----
       val imap		= getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW )
@@ -68,11 +72,10 @@ class SuperColliderFrame extends AppWindow( AbstractWindow.SUPPORT /* PALETTE */
       imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_D, 0 ), "dumposc" )
       amap.put( "dumposc", new ActionDumpOSC )
 
-      val cp = getContentPane
-      cp.add( serverPanel, BorderLayout.CENTER )
+     contents = Component.wrap(serverPanel)
 
-      superCollider.addListener( clientListener )
-      init()
+     superCollider.addListener(clientListener)
+     // init()
    }
 
    override protected def autoUpdatePrefs = true

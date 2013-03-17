@@ -29,16 +29,19 @@ package gui
 import java.awt.Rectangle
 import java.awt.event.MouseEvent
 import javax.swing.event.MouseInputAdapter
-import de.sciss.app.{ AbstractApplication, DynamicAncestorAdapter, DynamicListening, GraphicsHandler }
-import de.sciss.gui.{ /* Axis,*/ ComponentHost, VectorSpace }
 import session.Timeline
 import math._
 import util.Model
 import de.sciss.span.Span
+import legacy.ComponentHost
+import de.sciss.audiowidgets.j.Axis
 
 class TimelineAxis( view: TimelineView, host: Option[ ComponentHost ])
-extends Axis( Axis.HORIZONTAL, Axis.TIMEFORMAT, host )
-with DynamicListening {
+extends Axis()
+/* with DynamicListening */ {
+
+  format = Axis.Format.Time()
+//  componentHost = host  // XXX TODO
 
 	private var isListening		= false
 //	private var editorVar: Option[ TimelineView#Editor ] = None
@@ -129,19 +132,18 @@ with DynamicListening {
         recalcSpace( trigger = false )
     }
 
-    // ---- constructor ----
-    {
- 		val app = AbstractApplication.getApplication
- 		setFont( app.getGraphicsHandler.getFont( GraphicsHandler.FONT_SYSTEM | GraphicsHandler.FONT_MINI ))
+  // ---- constructor ----
+//  setFont(application.getGraphicsHandler.getFont(GraphicsHandler.FONT_SYSTEM | GraphicsHandler.FONT_MINI))
 
-        if( view.editor.isDefined ) {
-//println( "EDITOR" )
-            addMouseListener( mil )
-        	addMouseMotionListener( mil )
-        }
+  if (view.editor.isDefined) {
+    //println( "EDITOR" )
+    addMouseListener(mil)
+    addMouseMotionListener(mil)
+  }
 
-        new DynamicAncestorAdapter( this ).addTo( this )
-    }
+  // XXX TODO
+//  new DynamicAncestorAdapter( this ).addTo( this )
+
 /*
     def editor: Option[ TimelineView#Editor ] = editorVar
 	def editor_=( newEditor: Option[ TimelineView#Editor ]) {
@@ -157,26 +159,27 @@ with DynamicListening {
 		}
 	}
 */
-	private def recalcSpace( trigger: Boolean ) {
-// println( "TimelineAxis : recalcSpace. visi = " + visibleSpan )
-        val spc = if( (flags & Axis.TIMEFORMAT) == 0 ) {
-			VectorSpace.createLinSpace( timelineVis.start,
-										timelineVis.stop,
-									  	0.0, 1.0, null, null, null, null )
-		} else {
-			val d1 = 1.0 / view.timeline.rate
-			VectorSpace.createLinSpace( timelineVis.start * d1,
-										timelineVis.stop * d1,
-									    0.0, 1.0, null, null, null, null )
-		}
-        if( trigger ) {
-          space = spc
-        } else {
-          setSpaceNoRepaint( spc )
-        }
-	}
 
-// ---------------- DynamicListening interface ----------------
+  private def recalcSpace(trigger: Boolean) {
+    // XXX TODO
+//    val spc = if ((format & Axis.Format.) == 0) {
+//      VectorSpace.createLinSpace(timelineVis.start,
+//        timelineVis.stop,
+//        0.0, 1.0, null, null, null, null)
+//    } else {
+//      val d1 = 1.0 / view.timeline.rate
+//      VectorSpace.createLinSpace(timelineVis.start * d1,
+//        timelineVis.stop * d1,
+//        0.0, 1.0, null, null, null, null)
+//    }
+//    if (trigger) {
+//      space = spc
+//    } else {
+//      setSpaceNoRepaint(spc)
+//    }
+  }
+
+  // ---------------- DynamicListening interface ----------------
 
     def startListening() {
     	if( !isListening ) {
@@ -196,7 +199,7 @@ with DynamicListening {
     }
 
 	protected def getResourceString( key: String ) =
-		AbstractApplication.getApplication.getResourceString( key )
+		key // XXX TODO AbstractApplication.getApplication.getResourceString( key )
 
 	// -------------- Disposable interface --------------
 

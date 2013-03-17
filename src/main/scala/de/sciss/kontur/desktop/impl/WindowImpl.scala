@@ -11,21 +11,33 @@ object WindowImpl {
     def apply(): Delegate = ???
   }
   sealed trait Delegate {
+    var contents: Component
     def component: Component
+    var title: String
+    var resizable: Boolean
     def putRootPaneProperty(name: String, value: Any): Unit
+    def pack(): Unit
   }
 }
 trait WindowImpl extends Window {
   import WindowImpl._
 
-  protected def handler: WindowHandler
+  protected def application: SwingApplication = handler.application
 
   final def size = component.size
-  final def size_=(value: Dimension) { component.peer.setSize(value) }
+  final protected def size_=(value: Dimension) { component.peer.setSize(value) }
   final def bounds = component.bounds
-  final def bounds_=(value: Rectangle) { component.peer.setBounds(value) }
+  final protected def bounds_=(value: Rectangle) { component.peer.setBounds(value) }
   final def location = component.location
-  final def location_=(value: Point) { component.peer.setLocation(value) }
+  final protected def location_=(value: Point) { component.peer.setLocation(value) }
+  final def title = delegate.title
+  final protected def title_=(value: String) { delegate.title = value }
+  final def resizable = delegate.resizable
+  final protected def resizable_=(value: Boolean) { delegate.resizable = value }
+
+  final protected def pack() { delegate.pack() }
+  final protected def contents = delegate.contents
+  final protected def contents_=(value: Component) { delegate.contents = value }
 
   private final val delegate: Delegate = {
     ???

@@ -36,6 +36,7 @@ import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel}
 import de.sciss.synth.io.AudioFile
 import session.{MatrixDiffusion, Diffusions, AudioFileElement, AudioFileSeq, AudioTrack, BasicTimeline, Diffusion, Renamable, Session, SessionElement, SessionElementSeq, Timeline, Track}
 import util.Model
+import de.sciss.desktop.Menu
 
 abstract class DynamicTreeNode( model: SessionTreeModel, obj: AnyRef, canExpand: Boolean )
 extends DefaultMutableTreeNode( obj, canExpand )
@@ -178,7 +179,7 @@ with HasContextMenu {
 
     def createContextMenu() : Option[ PopupRoot ] = {
      val root = new PopupRoot()
-     val miAddNew = new MenuItem( "new", new AbstractAction( "New Timeline" ) {
+     val miAddNew = Menu.Item( "new", new AbstractAction( "New Timeline" ) {
         def actionPerformed( a: ActionEvent ) {
            timelines.editor.foreach( ed => {
              val ce = ed.editBegin( getValue( Action.NAME ).toString )
@@ -203,7 +204,7 @@ with HasContextMenu with CanBeDropTarget {
 
    def createContextMenu() : Option[ PopupRoot ] = {
       val root = new PopupRoot()
-      val miAddNew = new MenuItem( "new", new AbstractAction( "Add..." )
+      val miAddNew = Menu.Item( "new", new AbstractAction( "Add..." )
                                  with FilenameFilter {
          def actionPerformed( a: ActionEvent ) {
             audioFiles.editor.foreach( ed => {
@@ -245,7 +246,7 @@ with HasContextMenu with CanBeDropTarget {
       })
       root.add( miAddNew )
 
-      val miRemoveUnused = new MenuItem( "removeUnused",
+      val miRemoveUnused = Menu.Item( "removeUnused",
          new EditRemoveUnusedElementsAction[ AudioFileElement ]( "Audio Files", audioFiles, audioFiles.unused,
             _.path.getName ))
       root.add( miRemoveUnused )
@@ -287,12 +288,12 @@ with HasContextMenu with CanBeDropTarget {
    def createContextMenu() : Option[ PopupRoot ] = {
       val root = new PopupRoot()
       val strNew = "New" // XXX getResourceString
-      val mgAdd = new MenuGroup( "new", strNew )
+      val mgAdd = Menu.Group( "new", strNew )
 
       DiffusionGUIFactory.registered.foreach { entry =>
          val (name, gf) = entry
          val fullName = strNew + " " + gf.factory.humanReadableName
-         val miAddNew = new MenuItem( name, new AbstractAction( gf.factory.humanReadableName ) {
+         val miAddNew = Menu.Item( name, new AbstractAction( gf.factory.humanReadableName ) {
             def actionPerformed( a: ActionEvent ) {
                val panel = gf.createPanel( model.doc )
                val op = new JOptionPane( panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )
@@ -311,7 +312,7 @@ with HasContextMenu with CanBeDropTarget {
       }
       root.add( mgAdd )
 
-      val miRemoveUnused = new MenuItem( "removeUnused",
+      val miRemoveUnused = Menu.Item( "removeUnused",
          new EditRemoveUnusedElementsAction[ Diffusion ]( "Diffusions", diffusions, diffusions.unused, _.name ))
       root.add( miRemoveUnused )
 
@@ -361,17 +362,17 @@ with HasContextMenu {
    addDyn( tracks )
 
    def createContextMenu() : Option[ PopupRoot ] = {
-      var items = IndexedSeq.empty[ MenuItem ]
+      var items = Vector.empty[ Menu.Item ]
       tl.editor.foreach { ed =>
          tl match {
             case r: Renamable => {
-               items :+= new MenuItem( "rename", new EditRenameAction( r, ed ))
+               items :+= Menu.Item( "rename", new EditRenameAction( r, ed ))
             }
             case _ =>
          }
       }
       timelines.editor.foreach { ed =>
-         items :+= new MenuItem( "remove", new EditRemoveSessionElementAction( "Timeline", tl, ed ))
+         items :+= Menu.Item( "remove", new EditRemoveSessionElementAction( "Timeline", tl, ed ))
       }
       if( items.isEmpty ) None else {
          val root = new PopupRoot()
@@ -395,7 +396,7 @@ extends SessionElementSeqTreeNode( model, tl.tracks )
 with HasContextMenu with CanBeDropTarget {
    def createContextMenu() : Option[ PopupRoot ] = {
       val root = new PopupRoot()
-      val miAddNewAudio = new MenuItem( "new", new AbstractAction( "New Audio Track" ) {
+      val miAddNewAudio = Menu.Item( "new", new AbstractAction( "New Audio Track" ) {
          def actionPerformed( a: ActionEvent ) {
             tl.tracks.editor.foreach( ed => {
                val ce = ed.editBegin( getValue( Action.NAME ).toString )
@@ -407,7 +408,7 @@ with HasContextMenu with CanBeDropTarget {
       })
 
       tl.tracks.editor.foreach { ed =>
-         root.add( new MenuItem( "removeUnused",
+         root.add( Menu.Item( "removeUnused",
             new EditRemoveUnusedElementsAction[ Track ]( "Tracks", ed, tl.tracks.filter( _.trail.isEmpty ), _.name )))
       }
 
@@ -449,16 +450,16 @@ class TrackTreeLeaf( model: SessionTreeModel, trs: SessionElementSeq[ Track ], t
 extends SessionElementTreeNode( model, t, false )
 with HasContextMenu with CanBeDragSource {
    def createContextMenu() : Option[ PopupRoot ] = {
-      var items = IndexedSeq.empty[ MenuItem ]
+      var items = Vector.empty[ Menu.Item ]
       t.editor.foreach { ed =>
          t match {
-            case r: Renamable => items :+= new MenuItem( "rename", new EditRenameAction( r, ed ))
+            case r: Renamable => items :+= Menu.Item( "rename", new EditRenameAction( r, ed ))
             case _ =>
          }
       }
 
       trs.editor.foreach { ed =>
-         items :+= new MenuItem( "remove", new EditRemoveSessionElementAction[ Track ]( "Track", t, ed ))
+         items :+= Menu.Item( "remove", new EditRemoveSessionElementAction[ Track ]( "Track", t, ed ))
       }
 
       if( items.isEmpty ) None else {
@@ -488,7 +489,7 @@ with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
       coll match {
          case afs: AudioFileSeq => {
             val name = "Replace With Other File"
-            val miReplace = new MenuItem( "replace", new AbstractAction( name + "..." ) with FilenameFilter {
+            val miReplace = Menu.Item( "replace", new AbstractAction( name + "..." ) with FilenameFilter {
                def actionPerformed( a: ActionEvent ) {
                   getPath.foreach( path => {
                      try {
@@ -564,10 +565,10 @@ with HasContextMenu with HasDoubleClickAction with CanBeDragSource {
    }
 
    def createContextMenu() : Option[ PopupRoot ] = {
-      var items = IndexedSeq.empty[ MenuItem ]
+      var items = Vector.empty[ Menu.Item ]
       diff.editor.foreach { ed =>
          diff match {
-            case r: Renamable => items :+= new MenuItem( "rename", new EditRenameAction( r, ed ))
+            case r: Renamable => items :+= Menu.Item( "rename", new EditRenameAction( r, ed ))
             case _ =>
          }
 
@@ -575,7 +576,7 @@ with HasContextMenu with HasDoubleClickAction with CanBeDragSource {
             case md: MatrixDiffusion =>
                val strEdit    = "Edit"
                val fullName   = strEdit + " " + MatrixDiffusion.humanReadableName + " " + diff.name
-               val miEdit     = new MenuItem( "edit", new AbstractAction( strEdit + "..." ) {
+               val miEdit     = Menu.Item( "edit", new AbstractAction( strEdit + "..." ) {
                   def actionPerformed( a: ActionEvent ) {
                      val panel   = new MatrixDiffusionGUI()
                      panel.setObjects( diff )

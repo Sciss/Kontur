@@ -91,33 +91,42 @@ object Window {
 trait Window {
   def handler: WindowHandler
 
-  var contents: Component
-  var title: String
-  var closeOperation: Window.CloseOperation
+//  protected var contents: Component
+  def title: String
+//  protected def title_=(value: String): Unit
+
+//  protected var closeOperation: Window.CloseOperation
   var visible: Boolean
-  var undecorated: Boolean
+//  protected def setUndecorated(value: Boolean): Unit
 
   def component: Component
 
-  def pack(): Unit
+//  protected def pack(): Unit
   def dispose(): Unit
   def front(): Unit
 //  def revalidate(): Unit
 
-  def isFloating: Boolean
-  def isActive: Boolean
-  var resizable: Boolean
-  var dirty: Boolean
-  var file: Option[File]
-  var alpha: Float
+  def floating: Boolean
+  def active: Boolean
+
+  def resizable: Boolean
+//  protected def resizable_=(value: Boolean): Unit
+
+//  protected var dirty: Boolean
+//  protected var file: Option[File]
+//  protected var alpha: Float
+
   var alwaysOnTop: Boolean
 //  var focusTraversalKeysEnabled: Boolean
 
-  var size: Dimension
-  var bounds: Rectangle
+  def size: Dimension
+//  protected def size_=(value: Dimension): Unit
+  def bounds: Rectangle
+//  protected def bounds_=(value: Rectangle): Unit
+
   var location: Point
-  var menubar: MenuBar
-  def insets: Insets
+//  var menubar: MenuBar
+//  def insets: Insets
 
 //	def init(): Unit
 

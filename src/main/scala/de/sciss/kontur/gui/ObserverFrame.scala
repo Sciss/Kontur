@@ -39,7 +39,6 @@ class ObserverFrame extends desktop.impl.WindowImpl with DocumentListener {
     private var shown: Option[ ObserverPage ] = None
 
   title     = getResourceString("paletteObserver")
-  resizable = false
 
   closeOperation = desktop.Window.CloseHide
   // init()
@@ -65,7 +64,7 @@ class ObserverFrame extends desktop.impl.WindowImpl with DocumentListener {
 //        ggTabPane.putClientProperty( "JComponent.sizeVariant", "small" )
         contents = ggTabPane
 
-        app.addComponent( Kontur.COMP_OBSERVER, this )
+      application.addComponent(Kontur.COMP_OBSERVER, this)
     }
 
     override protected def autoUpdatePrefs = true

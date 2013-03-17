@@ -26,23 +26,18 @@
 package de.sciss.kontur
 package gui
 
-import java.awt.{ Color, Dimension, Font, Graphics, Graphics2D, LinearGradientPaint, RenderingHints }
-import java.awt.event.{ ActionEvent, ActionListener, KeyEvent, MouseAdapter, MouseEvent }
+import java.awt.{Color, Dimension, Font, Graphics, Graphics2D, LinearGradientPaint, RenderingHints}
+import java.awt.event.{ActionEvent, ActionListener, KeyEvent, MouseAdapter, MouseEvent}
 import java.awt.geom.RoundRectangle2D
 import java.util.Locale
-import javax.swing.{ AbstractAction, BorderFactory, Box, BoxLayout, ImageIcon,
-                    JButton, JComponent, JLabel, JOptionPane, JToggleButton, KeyStroke, SwingConstants, Timer }
-import de.sciss.app.{ AbstractApplication, DynamicAncestorAdapter, DynamicListening }
-import de.sciss.common.BasicWindowHandler
-import de.sciss.gui.{ GUIUtil, TimeFormat }
-import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }
-import session.{ Timeline, Transport }
+import javax.swing.{AbstractAction, BorderFactory, Box, BoxLayout, ImageIcon, JButton, JComponent, JLabel, JOptionPane, JToggleButton, KeyStroke, SwingConstants, Timer}
+import session.{Timeline, Transport}
 import de.sciss.osc
 import util.Model
 
 // temporary hack to get osc synced video
 class TransportPanel( tlv: TimelineView )
-extends SegmentedButtonPanel with DynamicListening {
+extends SegmentedButtonPanel /* with DynamicListening */ {
    import Transport._
 
    private val transport= tlv.timeline.transport

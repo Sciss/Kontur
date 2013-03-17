@@ -44,7 +44,6 @@ class PrefsFrame extends desktop.impl.WindowImpl {
   protected def style = desktop.Window.Auxiliary
 
   title     = getResourceString( "framePrefs" )
-  resizable = false
   makeUnifiedLook()
 
   // ---- constructor ----
@@ -82,7 +81,7 @@ class PrefsFrame extends desktop.impl.WindowImpl {
       ggTab
     }
 
-    val tabGeneral = newTab("prefsGeneral", generalPanel)
+    val tabGeneral = newTab("prefsGeneral", generalPanel())
     newTab("prefsIO", ioPanel)
     newTab("prefsAudio", audioPanel)
 
@@ -91,18 +90,7 @@ class PrefsFrame extends desktop.impl.WindowImpl {
     // activateTab( tabGeneral )
     tabGeneral.doClick()
 
-    // ---------- listeners ----------
-
-    addListener(new AbstractWindow.Adapter() {
-      override def windowClosing(e: AbstractWindow.Event) {
-        setVisible(false)
-        dispose()
-      }
-    })
-
-    closeOperation = desktop.Window.CloseIgnore
-    // init()
-    app.addComponent(Kontur.COMP_PREFS, this)
+    application.addComponent(Kontur.COMP_PREFS, this)
   }
 
   private def createAudioBoxGUI(prefs: Preferences): JComponent = {
@@ -112,7 +100,7 @@ class PrefsFrame extends desktop.impl.WindowImpl {
     ggScroll
   }
 
-  private def createPanel: (JPanel, GroupLayout) = {
+  private def createPanel(): (JPanel, GroupLayout) = {
     val panel = new JPanel()
     panel.setBackground(SystemColor.control) // new Color( 216, 216, 216 )
     val layout = new GroupLayout(panel)
@@ -127,10 +115,10 @@ class PrefsFrame extends desktop.impl.WindowImpl {
     super.dispose()
   }
 
-  private def generalPanel : JComponent = {
-    val prefs = app.getUserPrefs
+  private def generalPanel() : JComponent = {
+    val prefs = application.userPrefs
 
-    val (panel, layout) = createPanel
+    val (panel, layout) = createPanel()
 
     // val ggWarn = new JPanel()
     // ggWarn.setLayout( new OverlayLayout( ggWarn ))
@@ -215,7 +203,7 @@ class PrefsFrame extends desktop.impl.WindowImpl {
   private def ioPanel: JComponent = {
     val prefs = app.getUserPrefs.node(NODE_IO)
 
-    val (panel, layout) = createPanel
+    val (panel, layout) = createPanel()
 
     val txSonaCacheFolder = getResourceString("prefsSonaCacheFolder")
     val lbSonaCacheFolder = new JLabel(txSonaCacheFolder)
@@ -237,7 +225,7 @@ class PrefsFrame extends desktop.impl.WindowImpl {
     val prefs = app.getUserPrefs.node(NODE_AUDIO)
     // val abPrefs	= prefs.node( NODE_AUDIOBOXES );
 
-    val (panel, layout) = createPanel
+    val (panel, layout) = createPanel()
     val bg = panel.getBackground
 
     val resApp  = getResourceString("prefsSuperColliderApp")

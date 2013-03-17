@@ -23,36 +23,34 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
-import de.sciss.app.AbstractWindow
-import de.sciss.common.{ BasicMenuFactory, BasicWindowHandler}
-import de.sciss.gui.{GUIUtil, MenuAction, PathField => PathF}
-import de.sciss.kontur.io.EisenkrautClient
-import de.sciss.kontur.session.{ AudioRegion, AudioTrack, Session, SessionUtil, Stake,
-                                 ResizableStake, Timeline, Track }
-import de.sciss.kontur.util.PrefsUtil
-import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }
-import java.awt.event.{ ActionEvent, ActionListener, InputEvent, KeyEvent }
-import java.awt.{ BorderLayout, Component, Dimension, Point, Rectangle }
+import io.EisenkrautClient
+import session.{AudioRegion, AudioTrack, Session, SessionUtil, Stake, ResizableStake, Timeline, Track}
+import util.PrefsUtil
+import java.awt.event.{ActionEvent, ActionListener, InputEvent, KeyEvent}
+import java.awt.{Component, Dimension, Point, Rectangle}
 import java.io.File
-import javax.swing.{ AbstractAction, Action, Box, ButtonGroup, JButton, JComponent, JLabel, JOptionPane, JProgressBar,
-                     JRadioButton, KeyStroke, SwingUtilities }
+import javax.swing.{AbstractAction, Action, Box, ButtonGroup, JButton, JComponent, JLabel, JOptionPane, JProgressBar, JRadioButton, KeyStroke, SwingUtilities}
 import scala.math._
-import de.sciss.io.{AudioFileDescr, AudioFileFormatPane, IOUtil}
 import de.sciss.synth.io.{AudioFileType, SampleFormat, AudioFileSpec}
-import language.reflectiveCalls
 import de.sciss.span.Span
-import de.sciss.span.Span.SpanOrVoid
+import Span.SpanOrVoid
+import language.reflectiveCalls
+import legacy.{MenuAction, DefaultUnitTranslator, Param, ParamSpace, GUIUtil}
+import swing.BorderPanel
+import desktop.Window
 
 object TimelineFrame {
   protected val lastLeftTop		= new Point()
   protected val KEY_TRACKSIZE	= "tracksize"
 }
 
-class TimelineFrame( val doc: Session, tl: Timeline )
-extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
-   frame =>
+final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.impl.WindowImpl with SessionFrame {
+  frame =>
+
+  protected def style = Window.Regular
 
 // private var writeProtected	= false
 //	private var wpHaveWarned	= false
@@ -67,19 +65,22 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
    // ---- constructor ----
    {
-      tracksPanel.registerTools( trackTools )
-      timelinePanel.viewPort    = Some( tracksPanel.getViewport )
+     tracksPanel.registerTools(trackTools)
+     timelinePanel.viewPort = Some(tracksPanel.getViewport)
 
-//    app.getMenuFactory().addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
-      val cp = getContentPane
-      cp.add( tracksPanel, BorderLayout.CENTER )
-      val topBox = Box.createHorizontalBox()
-      topBox.add( trackTools )
-      topBox.add( Box.createHorizontalGlue() )
-      topBox.add( new TransportPanel( timelineView ))
-      cp.add( topBox, BorderLayout.NORTH )
+     // app.getMenuFactory().addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
 
-//    tracksPanel.tracks = Some( tl.tracks )
+     val topBox = Box.createHorizontalBox()
+     topBox.add(trackTools)
+     topBox.add(Box.createHorizontalGlue())
+     topBox.add(new TransportPanel(timelineView))
+     val pane = new BorderPanel {
+       add(Component.wrap(tracksPanel), BorderPanel.Position.Center)
+       add(Component.wrap(topBox),      BorderPanel.Position.North )
+     }
+     contents = pane
+
+     //    tracksPanel.tracks = Some( tl.tracks )
 
     	// ---- actions ----
 		val imap		= getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW )
@@ -163,33 +164,34 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
       mr.putMimic( "actions.showInEisK", this, new ActionShowInEisK )
 
       makeUnifiedLook()
-      init()
+//      init()
 //  	  updateTitle
 //      documentUpdate
 
       initBounds()	// be sure this is after documentUpdate!
 
-	  setVisible( true )
-	  toFront()
-    }
+	  visible = true
+   }
 
-	override protected def alwaysPackSize() = false
+  override protected def alwaysPackSize() = false
 
   //	protected def documentUpdate {
   //    // nada
   //  }
 
-   def document: Session = doc
-   
-   protected def elementName = Some( tl.name )
+  def document: Session = doc
 
-   protected def windowClosing() { invokeDispose() }
+  protected def elementName = Some(tl.name)
 
-   def nudgeFrames : Long = ActionNudgeAmount.numFrames
+  protected def windowClosing() {
+    invokeDispose()
+  }
 
-	private def initBounds() {
+  def nudgeFrames: Long = ActionNudgeAmount.numFrames
+
+  private def initBounds() {
 		val cp	= getClassPrefs
-		val bwh	= getWindowHandler
+		val bwh	= handler
 		val sr	= bwh.getWindowSpace
       val dt	= /* AppWindow.*/ stringToDimension( cp.get( TimelineFrame.KEY_TRACKSIZE, null ))
 		val d	= if( dt == null ) new Dimension() else dt
@@ -208,13 +210,13 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 		}
 //		waveView.setPreferredSize( new Dimension( w, (int) (h * hf + 0.5f) ));
 //		pack();
-		setSize( new Dimension( w, (h * hf + 0.5f).toInt ))
-		val winSize = getSize
+		size = new Dimension( w, (h * hf + 0.5f).toInt )
+		val winSize = size
 		val wr = new Rectangle( TimelineFrame.lastLeftTop.x + 21, TimelineFrame.lastLeftTop.y + 23,
                                 winSize.width, winSize.height )
 		GUIUtil.wrapWindowBounds( wr, sr )
 		TimelineFrame.lastLeftTop.setLocation( wr.getLocation )
-		setBounds( wr )
+		bounds = wr
 //		waveView.addComponentListener( new ComponentAdapter() {
 //			public void componentResized( ComponentEvent e )
 //			{
@@ -269,13 +271,13 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
    private object ActionNudgeAmount extends ActionQueryDuration {
       protected def timeline : Timeline = timelineView.timeline
-      protected def parent : Component = getWindow
+      protected def parent : Component = frame.component
 
       protected def initiate( v: Param, trans: ParamSpace.Translator ) {
          prefs.put( PrefsUtil.KEY_NUDGEAMOUNT, v.toString )
       }
 
-      private def prefs = app.getUserPrefs.node( PrefsUtil.NODE_GUI )
+      private def prefs = application.userPrefs.node( PrefsUtil.NODE_GUI )
 
       protected def initialValue : Param = Param.fromPrefs( prefs, PrefsUtil.KEY_NUDGEAMOUNT, new Param( 0.1, ParamSpace.TIME | ParamSpace.SECS ))
 
@@ -290,18 +292,18 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
    private object ActionInsertSpan extends ActionQueryDuration {
       protected def timeline : Timeline = timelineView.timeline
-      protected def parent : Component = getWindow
+      protected def parent : Component = frame.component
       protected def initialValue : Param = new Param( 60.0, ParamSpace.TIME | ParamSpace.SECS )
 
-      protected def initiate( v: Param, trans: ParamSpace.Translator ) {
-         val delta   = (trans.translate( v, ParamSpace.spcTimeSmps ).`val` + 0.5).toLong
-         if( delta <= 0L ) return
-         val pos     = timelineView.cursor.position
-         val span = Span( pos, pos + delta )
+      protected def initiate(v: Param, trans: ParamSpace.Translator) {
+        val delta = (trans.translate(v, ParamSpace.spcTimeSmps).`val` + 0.5).toLong
+        if (delta <= 0L) return
+        val pos = timelineView.cursor.position
+        val span = Span(pos, pos + delta)
 
-    		val tl      = timeline
+        val tl = timeline
 
-			require( (pos >= tl.span.start) && (pos <= tl.span.stop), span.toString )
+        require( (pos >= tl.span.start) && (pos <= tl.span.stop), span.toString )
 
          val affectedSpan = Span( pos, tl.span.stop )
 

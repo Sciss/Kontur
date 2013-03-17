@@ -148,9 +148,10 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
 
   def value_=(p: Param) {
     val oldNum    = numberField.getNumber
-    val newParam  = translator.translate(p, currentSpace)
+    val newParam  = currentSpace.map(s => translator.translate(p, s)).getOrElse(p)
+//    val spc       = currentSpace.getOrElse(p.space)
 
-    val newNum = if (currentSpace.isInteger) {
+    val newNum = if (currentSpace.map(_.isInteger).getOrElse(false)) {
       newParam.value.toLong
     } else {
       newParam.value
