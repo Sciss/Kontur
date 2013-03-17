@@ -44,7 +44,7 @@ object BounceSynthContext {
 //      val so = new ServerOptions()
 //      so.blockSize = 1
 //      so.sampleRate
-      val oscPath = IOUtil.createTempFile( "kontur", ".osc" )
+      val oscPath = File /*IOUtil */.createTempFile( "kontur", ".osc" )
       val oscFile = new RandomAccessFile( oscPath, "rw" )
 //      oscFile.setLength( 0L )
       so.nrtCommandPath = oscPath.getCanonicalPath

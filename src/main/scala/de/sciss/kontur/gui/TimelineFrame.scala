@@ -51,126 +51,105 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
 
   protected def style = Window.Regular
 
-// private var writeProtected	= false
-//	private var wpHaveWarned	= false
-// private val actionShowWindow= new ShowWindowAction( this )
-   val timelineView           = new BasicTimelineView( doc, tl )
-// private val trackList      = new BasicTrackList( doc, timelineView )
-   private val timelinePanel  = new TimelinePanel( timelineView )
-// private val trailView      = new javax.swing.JLabel( "Trail" )
-// private val trailsView     = new BasicTrailsView( doc, tl.tracks )
-   val tracksPanel            = new TracksPanel( doc, timelinePanel )
-   private val trackTools     = new TrackToolsPanel( doc, tracksPanel, timelineView )
+  // private var writeProtected	= false
+  //	private var wpHaveWarned	= false
+  // private val actionShowWindow= new ShowWindowAction( this )
+  val timelineView = new BasicTimelineView(doc, tl)
+  // private val trackList      = new BasicTrackList( doc, timelineView )
+  private val timelinePanel = new TimelinePanel(timelineView)
+  // private val trailView      = new javax.swing.JLabel( "Trail" )
+  // private val trailsView     = new BasicTrailsView( doc, tl.tracks )
+  val tracksPanel = new TracksPanel(doc, timelinePanel)
+  private val trackTools = new TrackToolsPanel(doc, tracksPanel, timelineView)
 
-   // ---- constructor ----
-   {
-     tracksPanel.registerTools(trackTools)
-     timelinePanel.viewPort = Some(tracksPanel.getViewport)
+  // ---- constructor ----
+  {
+    tracksPanel.registerTools(trackTools)
+    timelinePanel.viewPort = Some(tracksPanel.getViewport)
 
-     // app.getMenuFactory().addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
+    // app.getMenuFactory().addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
 
-     val topBox = Box.createHorizontalBox()
-     topBox.add(trackTools)
-     topBox.add(Box.createHorizontalGlue())
-     topBox.add(new TransportPanel(timelineView))
-     val pane = new BorderPanel {
-       add(Component.wrap(tracksPanel), BorderPanel.Position.Center)
-       add(Component.wrap(topBox),      BorderPanel.Position.North )
-     }
-     contents = pane
+    val topBox = Box.createHorizontalBox()
+    topBox.add(trackTools)
+    topBox.add(Box.createHorizontalGlue())
+    topBox.add(new TransportPanel(timelineView))
+    val pane = new BorderPanel {
+      add(Component.wrap(tracksPanel), BorderPanel.Position.Center)
+      add(Component.wrap(topBox), BorderPanel.Position.North)
+    }
+    contents = pane
 
-     //    tracksPanel.tracks = Some( tl.tracks )
+    //    tracksPanel.tracks = Some( tl.tracks )
 
-    	// ---- actions ----
-		val imap		= getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW )
-		val amap		= getActionMap
-		val myMeta		= if( WindowHandler.menuShortcut== InputEvent.CTRL_MASK )
-			InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK else WindowHandler.menuShortcut	// META on Mac, CTRL+SHIFT on PC
+    // ---- actions ----
+     //		val imap		= getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW )
+     //		val amap		= getActionMap
 
-		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_LEFT, InputEvent.CTRL_MASK ), "inch" )
-		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_OPEN_BRACKET, WindowHandler.menuShortcut), "inch" )
-		amap.put( "inch", new ActionSpanWidth( 2.0 ))
-		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT, InputEvent.CTRL_MASK ), "dech" )
-		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_CLOSE_BRACKET, WindowHandler.menuShortcut ), "dech" )
-		amap.put( "dech", new ActionSpanWidth( 0.5 ))
-//		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT, myMeta ), "samplvl" )
-//		amap.put( "samplvl", new ActionSpanWidth( 0.0 ))
-		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 ), "retn" )
-		amap.put( "retn", new ActionScroll( ActionScroll.SCROLL_SESSION_START ))
-		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_LEFT, 0 ), "left" )
-		amap.put( "left", new ActionScroll( ActionScroll.SCROLL_SELECTION_START ))
-		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT, 0 ), "right" )
-		amap.put( "right", new ActionScroll( ActionScroll.SCROLL_SELECTION_STOP ))
-		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_F, InputEvent.ALT_MASK ), "fit" )
-		amap.put( "fit", new ActionScroll( ActionScroll.SCROLL_FIT_TO_SELECTION ))
-		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_A, InputEvent.ALT_MASK ), "entire" )
-		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_LEFT, myMeta ), "entire" )
-		amap.put( "entire", new ActionScroll( ActionScroll.SCROLL_ENTIRE_SESSION ))
-		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, InputEvent.SHIFT_MASK ), "seltobeg" )
-		amap.put( "seltobeg", new ActionSelect( ActionSelect.SELECT_TO_SESSION_START ))
-		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, InputEvent.SHIFT_MASK + InputEvent.ALT_MASK ), "seltoend" )
-		amap.put( "seltoend", new ActionSelect( ActionSelect.SELECT_TO_SESSION_END ))
-		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_UP, 0 ), "postoselbegc" )
-		amap.put( "postoselbegc", new ActionSelToPos( 0.0, true ))
-		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_DOWN, 0 ), "postoselendc" )
-		amap.put( "postoselendc", new ActionSelToPos( 1.0, true ))
-		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_UP, InputEvent.ALT_MASK ), "postoselbeg" )
-		amap.put( "postoselbeg", new ActionSelToPos( 0.0, false ))
-		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_DOWN, InputEvent.ALT_MASK ), "postoselend" )
-		amap.put( "postoselend", new ActionSelToPos( 1.0, false ))
-//		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_M, 0 ), "dropmark" )
-//		amap.put( "dropmark", new ActionDropMarker() )
-//		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_TAB, 0 ), "selnextreg" )
-//		amap.put( "selnextreg", new ActionSelectRegion( SELECT_NEXT_REGION ))
-//		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_TAB, InputEvent.ALT_MASK ), "selprevreg" )
-//		amap.put( "selprevreg", new ActionSelectRegion( SELECT_PREV_REGION ))
-//		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_TAB, InputEvent.SHIFT_MASK ), "extnextreg" )
-//		amap.put( "extnextreg", new ActionSelectRegion( EXTEND_NEXT_REGION ))
-//		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_TAB, InputEvent.ALT_MASK + InputEvent.SHIFT_MASK ), "extprevreg" )
-//		amap.put( "extprevreg", new ActionSelectRegion( EXTEND_PREV_REGION ))
+    import InputEvent.{CTRL_MASK, SHIFT_MASK, ALT_MASK}
+    import KeyEvent._
+    import KeyStroke.{getKeyStroke => stroke}
 
-//    imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_M, BasicMenuFactory.MENU_SHORTCUT ), "debuggen" )
-//		amap.put( "debuggen", new ActionDebugGenerator )
+    val meta1 = WindowHandler.menuShortcut
+    val meta2 = if (meta1 == CTRL_MASK) CTRL_MASK | SHIFT_MASK else meta1 // META on Mac, CTRL+SHIFT on PC
 
-    	// ---- menus and actions ----
-		val mr = app.getMenuBarRoot
+    addAction("inch1",    new ActionSpanWidth(2.0, stroke(VK_LEFT,          CTRL_MASK)))
+    addAction("inch2",    new ActionSpanWidth(2.0, stroke(VK_OPEN_BRACKET,  meta1    )))
+    addAction("dech1",    new ActionSpanWidth(0.5, stroke(VK_RIGHT,         CTRL_MASK)))
+    addAction("dech2",    new ActionSpanWidth(0.5, stroke(VK_CLOSE_BRACKET, meta1    )))
+    import ActionScroll._
+    addAction("retn",     new ActionScroll(SCROLL_SESSION_START,    stroke(VK_ENTER,  0       )))
+    addAction("left",     new ActionScroll(SCROLL_SELECTION_START,  stroke(VK_LEFT,   0       )))
+    addAction("right",    new ActionScroll(SCROLL_SELECTION_STOP,   stroke(VK_RIGHT,  0       )))
+    addAction("fit",      new ActionScroll(SCROLL_FIT_TO_SELECTION, stroke(VK_F,      ALT_MASK)))
+    addAction("entire1",  new ActionScroll(SCROLL_ENTIRE_SESSION,   stroke(VK_A,      ALT_MASK)))
+    addAction("entire2",  new ActionScroll(SCROLL_ENTIRE_SESSION,   stroke(VK_LEFT,   meta2   )))
+    import ActionSelect._
+    addAction("seltobeg", new ActionSelect(SELECT_TO_SESSION_START, stroke(VK_ENTER, SHIFT_MASK           )))
+    addAction("seltoend", new ActionSelect(SELECT_TO_SESSION_END,   stroke(VK_ENTER, SHIFT_MASK | ALT_MASK)))
 
-      mr.putMimic( "file.bounce", this, new ActionBounce() )
+    addAction("posselbegc", new ActionSelToPos(0.0, deselect = true,  stroke(VK_UP,   0       )))
+    addAction("posselendc", new ActionSelToPos(1.0, deselect = true,  stroke(VK_DOWN, 0       )))
+    addAction("posselbeg",  new ActionSelToPos(0.0, deselect = false, stroke(VK_UP,   ALT_MASK)))
+    addAction("posselend",  new ActionSelToPos(1.0, deselect = false, stroke(VK_DOWN, ALT_MASK)))
 
-		mr.putMimic( "edit.cut", this, ActionCut )
-		mr.putMimic( "edit.copy", this, ActionCopy )
-		mr.putMimic( "edit.paste", this, ActionPaste )
-		mr.putMimic( "edit.clear", this, ActionDelete )
-		mr.putMimic( "edit.selectAll", this, new ActionSelect( ActionSelect.SELECT_ALL ))
+    // ---- menus and actions ----
+    val mr = app.getMenuBarRoot
 
-//		mr.putMimic( "timeline.trimToSelection", this, doc.getTrimAction() )
-		mr.putMimic( "timeline.insertSpan", this, ActionInsertSpan )
-		mr.putMimic( "timeline.clearSpan", this, ActionClearSpan )
-		mr.putMimic( "timeline.removeSpan", this, ActionRemoveSpan )
-      mr.putMimic( "timeline.dupSpanToPos", this, ActionDupSpanToPos )
+    mr.putMimic("file.bounce", this, ActionBounce)
 
-      mr.putMimic( "timeline.nudgeAmount", this, ActionNudgeAmount )
-      mr.putMimic( "timeline.nudgeLeft", this, new ActionNudge( -1 ))
-      mr.putMimic( "timeline.nudgeRight", this, new ActionNudge( 1 ))
+    mr.putMimic("edit.cut", this, ActionCut)
+    mr.putMimic("edit.copy", this, ActionCopy)
+    mr.putMimic("edit.paste", this, ActionPaste)
+    mr.putMimic("edit.clear", this, ActionDelete)
+    mr.putMimic("edit.selectAll", this, new ActionSelect(ActionSelect.SELECT_ALL))
 
-		mr.putMimic( "timeline.splitObjects", this, new ActionSplitObjects )
-      mr.putMimic( "timeline.selFollowingObj", this, new ActionSelectFollowingObjects )
-      mr.putMimic( "timeline.alignObjStartToPos", this, new ActionAlignObjectsStartToTimelinePosition )
+    mr.putMimic("timeline.insertSpan", this, ActionInsertSpan)
+    mr.putMimic("timeline.clearSpan", this, ActionClearSpan)
+    mr.putMimic("timeline.removeSpan", this, ActionRemoveSpan)
+    mr.putMimic("timeline.dupSpanToPos", this, ActionDupSpanToPos)
 
-      mr.putMimic( "timeline.selStopToStart", this, new ActionSelect( ActionSelect.SELECT_BWD_BY_LEN ))
-      mr.putMimic( "timeline.selStartToStop", this, new ActionSelect( ActionSelect.SELECT_FWD_BY_LEN ))
+    mr.putMimic("timeline.nudgeAmount", this, ActionNudgeAmount)
+    mr.putMimic("timeline.nudgeLeft", this, new ActionNudge(-1))
+    mr.putMimic("timeline.nudgeRight", this, new ActionNudge(1))
 
-      mr.putMimic( "actions.showInEisK", this, new ActionShowInEisK )
+    mr.putMimic("timeline.splitObjects", this, new ActionSplitObjects)
+    mr.putMimic("timeline.selFollowingObj", this, new ActionSelectFollowingObjects)
+    mr.putMimic("timeline.alignObjStartToPos", this, new ActionAlignObjectsStartToTimelinePosition)
 
-      makeUnifiedLook()
-//      init()
-//  	  updateTitle
-//      documentUpdate
+    mr.putMimic("timeline.selStopToStart", this, new ActionSelect(ActionSelect.SELECT_BWD_BY_LEN))
+    mr.putMimic("timeline.selStartToStop", this, new ActionSelect(ActionSelect.SELECT_FWD_BY_LEN))
 
-      initBounds()	// be sure this is after documentUpdate!
+    mr.putMimic("actions.showInEisK", this, new ActionShowInEisK)
 
-	  visible = true
-   }
+    makeUnifiedLook()
+    // init()
+    // updateTitle
+    // documentUpdate
+
+    initBounds() // be sure this is after documentUpdate!
+
+    visible = true
+  }
 
   override protected def alwaysPackSize() = false
 
@@ -580,11 +559,14 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
 	 *  Increase or decrease the width
 	 *  of the visible time span
 	 */
-   private class ActionSpanWidth( factor: Double )
-	extends Action("Span Width") {
-      def apply() {
-		   val visiSpan	= timelineView.span
-			val visiLen		= visiSpan.length
+  private class ActionSpanWidth(factor: Double, stroke: KeyStroke)
+    extends Action(s"Span Width $factor") {
+
+    accelerator = Some(stroke)
+
+    def apply() {
+      val visiSpan = timelineView.span
+      val visiLen		= visiSpan.length
 			val pos			= timelineView.cursor.position
          val timelineLen = timelineView.timeline.span.length
 
@@ -632,12 +614,14 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
 	 *				there were quantization errors. with double seems
 	 *				to be fine. haven't checked with really long files!!
 	 */
-	private class ActionSelToPos( weight: Double, deselect: Boolean )
-	  extends Action("Extends Selection to Position") {
+  private class ActionSelToPos(weight: Double, deselect: Boolean, stroke: KeyStroke)
+    extends Action("Extends Selection to Position") {
+
+    accelerator = Some(stroke)
 
     def apply() {
       timelineView.selection.span match {
-        case sel @ Span(selStart, _) =>
+        case sel@Span(selStart, _) =>
           timelineView.editor.foreach { ed =>
             val ce = ed.editBegin("position")
             if (deselect) ed.editSelect(ce, Span.Void)
@@ -648,9 +632,11 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
         case _ =>
       }
     }
-	} // class actionSelToPosClass
+  }
 
-   private object ActionScroll {
+  // class actionSelToPosClass
+
+  private object ActionScroll {
       val SCROLL_SESSION_START    = 0
       val SCROLL_SELECTION_START  = 1
       val SCROLL_SELECTION_STOP   = 2
@@ -658,11 +644,14 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
       val SCROLL_ENTIRE_SESSION   = 4
    }
 
-   private class ActionScroll( mode: Int )
-     extends Action("Scroll") {
-      import ActionScroll._
+  private class ActionScroll(mode: Int, stroke: KeyStroke)
+    extends Action("Scroll") {
 
-      def apply() {
+    accelerator = Some(stroke)
+
+    import ActionScroll._
+
+    def apply() {
          timelineView.editor.foreach { ed =>
             val pos       = timelineView.cursor.position
             val visiSpan  = timelineView.span
@@ -721,47 +710,51 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
    private object ActionSelect {
       val SELECT_TO_SESSION_START	= 0
       val SELECT_TO_SESSION_END		= 1
-      val SELECT_ALL                = 2
-      val SELECT_BWD_BY_LEN         = 3
-      val SELECT_FWD_BY_LEN         = 4
+      val SELECT_ALL              = 2
+      val SELECT_BWD_BY_LEN       = 3
+      val SELECT_FWD_BY_LEN       = 4
     }
 
-   private class ActionSelect( mode: Int )
+  private class ActionSelect(mode: Int, stroke: KeyStroke)
     extends Action("Select") {
 
-      import ActionSelect._
+    accelerator = Some(stroke)
 
-      def apply() {
-         timelineView.editor.foreach { ed =>
-            val pos = timelineView.cursor.position
-            val selSpan = timelineView.selection.span match {
-              case sp @ Span(_, _) => sp
-              case _ => Span(pos, pos)
-            }
+    import ActionSelect._
 
-            val wholeSpan = timelineView.timeline.span
-            val newSpan = mode match {
-               case SELECT_TO_SESSION_START  => Span( wholeSpan.start, selSpan.stop )
-               case SELECT_TO_SESSION_END    => Span( selSpan.start, wholeSpan.stop )
-               case SELECT_ALL               => wholeSpan
-               case SELECT_BWD_BY_LEN        =>
-                  val delta = -math.min( selSpan.start - wholeSpan.start, selSpan.length )
-                  selSpan.shift( delta )
-               case SELECT_FWD_BY_LEN        =>
-                  val delta = math.min( wholeSpan.stop - selSpan.stop, selSpan.length )
-                  selSpan.shift( delta )
-               case _ => sys.error( mode.toString )
-            }
-            if( newSpan != selSpan ) {
-               val ce = ed.editBegin( "select" )
-               ed.editSelect( ce, newSpan )
-               ed.editEnd( ce )
-            }
-         }
+    def apply() {
+      timelineView.editor.foreach { ed =>
+        val pos = timelineView.cursor.position
+        val selSpan = timelineView.selection.span match {
+          case sp @ Span(_, _) => sp
+          case _ => Span(pos, pos)
+        }
+
+        val wholeSpan = timelineView.timeline.span
+        val newSpan = mode match {
+          case SELECT_TO_SESSION_START => Span(wholeSpan.start, selSpan.stop)
+          case SELECT_TO_SESSION_END => Span(selSpan.start, wholeSpan.stop)
+          case SELECT_ALL => wholeSpan
+          case SELECT_BWD_BY_LEN =>
+            val delta = -math.min(selSpan.start - wholeSpan.start, selSpan.length)
+            selSpan.shift(delta)
+          case SELECT_FWD_BY_LEN =>
+            val delta = math.min(wholeSpan.stop - selSpan.stop, selSpan.length)
+            selSpan.shift(delta)
+          case _ => sys.error(mode.toString)
+        }
+        if (newSpan != selSpan) {
+          val ce = ed.editBegin("select")
+          ed.editSelect(ce, newSpan)
+          ed.editEnd(ce)
+        }
       }
-   } // class actionSelectClass
+    }
+  }
 
-//    private class ActionDebugGenerator
+  // class actionSelectClass
+
+  //    private class ActionDebugGenerator
 //    extends MenuAction( "Debug Generator" ) {
 //        def actionPerformed( e: ActionEvent ) : Unit = debugGenerator
 //    }
@@ -892,7 +885,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
      }
    }
 
-  private class ActionBounce extends Action("Bounce") {
+  private object ActionBounce extends Action("Bounce") {
     def apply() {
       query.foreach {
         case (tls, span@Span(_, _), path, spec) =>
@@ -924,7 +917,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
           }
           case ("progress", i: Int) => ggProgress.setValue(i)
           // case _ => println( "received: " + msg )
-        })
+        })(application)
         showDialog(op, name)
         if (!done) process.cancel()
       }

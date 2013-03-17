@@ -47,15 +47,11 @@ class EisenkrautClient()(implicit application: Application) {
   private var oscVar        = Option.empty[osc.Client]
   private var actorVar      = Option.empty[OSCActor]
   private val prefs         = application.userPrefs.node(PrefsUtil.NODE_IO)
+  private val prefs1        = prefs[Int]   (PrefsUtil.KEY_EISKOSCPORT    )
+  private val prefs2        = prefs[String](PrefsUtil.KEY_EISKOSCPROTOCOL)
   private var queryIDCount  = 0
 
-  private val prefsListener = new PreferenceChangeListener {
-      def preferenceChange( e: PreferenceChangeEvent ) { e.getKey match {
-         case PrefsUtil.KEY_EISKOSCPORT     => shutDown()
-         case PrefsUtil.KEY_EISKOSCPROTOCOL => shutDown()
-         case _ =>
-      }}
-   }
+  private val prefsListener = { _: Option[Any] => shutDown() }
 
    private val receiveAction = (p: osc.Packet) => p match {
       case m: osc.Message => actorVar.foreach( _ ! m )
@@ -63,12 +59,12 @@ class EisenkrautClient()(implicit application: Application) {
    }
 
    // ---- constructor ----
-   {
-      prefs.addPreferenceChangeListener( prefsListener )
-   }
+  prefs1.addListener(prefsListener)
+  prefs2.addListener(prefsListener)
 
    def dispose() {
-      prefs.removePreferenceChangeListener( prefsListener )
+     prefs1.removeListener(prefsListener)
+     prefs2.removeListener(prefsListener)
    }
 
    def openAudioFile( path: File, cursor: Option[ Long ] = None, selection: SpanOrVoid = Span.Void ) {

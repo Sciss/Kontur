@@ -60,9 +60,9 @@ class SuperColliderFrame extends desktop.impl.WindowImpl {
   resizable = false
 
   // ---- actions ----
-  addAction(new ActionDumpTree(controls = false, stroke = KeyStroke.getKeyStroke(KeyEvent.VK_N, 0)))
-  addAction(new ActionDumpTree(controls = true , stroke = KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.SHIFT_MASK)))
-  addAction(ActionDumpOSC)
+  addAction("tree",  new ActionDumpTree(controls = false, stroke = KeyStroke.getKeyStroke(KeyEvent.VK_N, 0)))
+  addAction("treec", new ActionDumpTree(controls = true , stroke = KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.SHIFT_MASK)))
+  addAction("dump", ActionDumpOSC)
 
   contents = Component.wrap(serverPanel)
 

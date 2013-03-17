@@ -205,33 +205,31 @@ class AudioFilesTreeIndex(model: SessionTreeModel, audioFiles: AudioFileSeq)
 
   def createContextMenu(): Option[PopupRoot] = {
     val root = new PopupRoot()
-    val miAddNew = Menu.Item("new", new AbstractAction("Add...")
-      with FilenameFilter {
-      def actionPerformed(a: ActionEvent) {
-        audioFiles.editor.foreach(ed => {
-          getPath.foreach(path => {
+    val miAddNew = Menu.Item("new", new Action("Add...") with FilenameFilter {
+      def apply() {
+        audioFiles.editor.foreach { ed =>
+          getPath.foreach { path =>
             val name = "Add Audio File" // getValue( Action.NAME ).toString
             try {
-              val spec = AudioFile.readSpec(path)
-              val ce = ed.editBegin(name)
-              val afe = new AudioFileElement(path, spec.numFrames, spec.numChannels, spec.sampleRate)
+              val spec  = AudioFile.readSpec(path)
+              val ce    = ed.editBegin(name)
+              val afe   = new AudioFileElement(path, spec.numFrames, spec.numChannels, spec.sampleRate)
               ed.editInsert(ce, audioFiles.size, afe)
               ed.editEnd(ce)
             }
             catch {
               case e1: IOException => WindowHandler.showErrorDialog(e1, name)
             }
-          })
-        })
+          }
+        }
       }
 
       private def getPath: Option[File] = {
         val dlg = new FileDialog(null: Frame, title)
         dlg.setFilenameFilter(this)
-        // dlg.show
         WindowHandler.showDialog(dlg)
-        val dirName = dlg.getDirectory
-        val fileName = dlg.getFile
+        val dirName   = dlg.getDirectory
+        val fileName  = dlg.getFile
         if (dirName != null && fileName != null) {
           Some(new File(dirName, fileName))
         } else {
@@ -524,18 +522,18 @@ with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
                   }
                }
 
-               private def getPath: Option[ File ] = {
-                  val dlg = new FileDialog(null: Frame, title)
-                  dlg.setFilenameFilter( this )
-                  BasicWindowHandler.showDialog( dlg )
-                  val dirName   = dlg.getDirectory
-                  val fileName  = dlg.getFile
-                  if( dirName != null && fileName != null ) {
-                     Some( new File( dirName, fileName ))
-                  } else {
-                     None
-                  }
-               }
+              private def getPath: Option[File] = {
+                val dlg = new FileDialog(null: Frame, title)
+                dlg.setFilenameFilter(this)
+                WindowHandler.showDialog(dlg)
+                val dirName   = dlg.getDirectory
+                val fileName  = dlg.getFile
+                if (dirName != null && fileName != null) {
+                  Some(new File(dirName, fileName))
+                } else {
+                  None
+                }
+              }
 
                def accept( dir: File, name: String ) : Boolean = {
                   val f = new File( dir, name )

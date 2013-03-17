@@ -31,7 +31,6 @@ import io.PrefCacheManager
 import PrefsUtil._
 import java.awt.{BorderLayout, SystemColor}
 import java.awt.event.{ActionEvent, ActionListener}
-import java.util.prefs.Preferences
 import javax.swing.{AbstractAction, AbstractButton, ButtonGroup, GroupLayout,
   JComboBox, JComponent, JLabel, JPanel, JScrollPane,
   JTable, JToggleButton, JToolBar, ScrollPaneConstants,
@@ -39,6 +38,8 @@ import javax.swing.{AbstractAction, AbstractButton, ButtonGroup, GroupLayout,
 import language.reflectiveCalls
 import legacy.{ComboBoxEditorBorder, TreeExpanderButton, PreferenceEntrySync, Param, ParamSpace, StringItem}
 import desktop.impl.{BasicPathField, PrefPathField, PrefComboBox, PrefParamField}
+import java.io.File
+import desktop.Preferences
 
 class PrefsFrame extends desktop.impl.WindowImpl {
   protected def style = desktop.Window.Auxiliary
@@ -111,7 +112,7 @@ class PrefsFrame extends desktop.impl.WindowImpl {
   }
 
   override def dispose() {
-    app.removeComponent(Kontur.COMP_PREFS)
+    application.removeComponent(Kontur.COMP_PREFS)
     super.dispose()
   }
 
@@ -148,12 +149,11 @@ class PrefsFrame extends desktop.impl.WindowImpl {
     }
 
     val lbLAF = new JLabel(getResourceString("prefsLookAndFeel"))
-    val ggLAF = new PrefComboBox()
+    val ggLAF = new PrefComboBox(prefs[String](KEY_LOOKANDFEEL))
     val lafInfos = UIManager.getInstalledLookAndFeels
     for (info <- lafInfos) {
       ggLAF.addItem(new StringItem(info.getClassName, info.getName))
     }
-    ggLAF.setPreferences(prefs, KEY_LOOKANDFEEL)
     addWarn(ggLAF, ggLAF)
 
     val ggLAFDeco = new PrefCheckBox(getResourceString("prefsLAFDecoration"))
@@ -201,7 +201,7 @@ class PrefsFrame extends desktop.impl.WindowImpl {
     }
 
   private def ioPanel: JComponent = {
-    val prefs = app.getUserPrefs.node(NODE_IO)
+    val prefs = application.userPrefs.node(NODE_IO)
 
     val (panel, layout) = createPanel()
 
@@ -222,7 +222,7 @@ class PrefsFrame extends desktop.impl.WindowImpl {
   }
 
   private def audioPanel: JComponent = {
-    val prefs = app.getUserPrefs.node(NODE_AUDIO)
+    val prefs = application.userPrefs.node(NODE_AUDIO)
     // val abPrefs	= prefs.node( NODE_AUDIOBOXES );
 
     val (panel, layout) = createPanel()
@@ -230,8 +230,7 @@ class PrefsFrame extends desktop.impl.WindowImpl {
 
     val resApp  = getResourceString("prefsSuperColliderApp")
     val lbApp   = new JLabel(resApp)
-    val ggApp   = new BasicPathField(legacy.PathField.TYPE_INPUTFILE, resApp)
-    ggApp.setPreferences(prefs, KEY_SUPERCOLLIDERAPP)
+    val ggApp   = new BasicPathField(prefs[File](KEY_SUPERCOLLIDERAPP))(legacy.PathField.TYPE_INPUTFILE, resApp)
     ggApp.setBackground(bg)
 
     // val lbBoot  = new JLabel( getResourceString( "prefsAutoBoot" ))
@@ -243,7 +242,7 @@ class PrefsFrame extends desktop.impl.WindowImpl {
 
     val lbRate = new JLabel( getResourceString( "prefsAudioRate" ))
     val rate0 = new Param(    0, ParamSpace.FREQ | ParamSpace.HERTZ)
-		val ggRateParam = new PrefParamField(prefs, KEY_AUDIORATE, rate0)
+		val ggRateParam = new PrefParamField(prefs[Param](KEY_AUDIORATE), rate0)
 		ggRateParam.addSpace( ParamSpace.spcFreqHertz )
     val ggRate = new JComboBox()
     val RATE_ITEMS = List(

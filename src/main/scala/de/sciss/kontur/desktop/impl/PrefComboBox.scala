@@ -31,44 +31,42 @@ import javax.swing.JComboBox
  *  @see		java.util.prefs.PreferenceChangeListener
  *  @see		StringItem
  */
-class PrefComboBox(protected val prefs: Preferences, protected val prefsKey: String, default: String)
-  extends JComboBox with PreferencesWidgetImpl[String] {
+class PrefComboBox[A](protected val prefs: Preferences.Entry[A])
+  extends JComboBox with PreferencesWidgetImpl[A] {
 
-  protected def prefsType = Preferences.Type.String
-
-  /**
-	 *  Because the items in the ComboBox
-	 *  can be naturally moved, added and replaced,
-	 *  it is crucial to have a non-index-based
-	 *  value to store in the preferences. Since
-	 *  the actual String representation of the
-	 *  the items is likely to be locale specific,
-	 *  it is required to add items of class
-	 *  StringItem !
-	 *
-	 *  @param  item	the <code>StringItem</code> to add
-	 *  @see	StringItem
-	 */
-	def addItem(item: Any) {
-		super.addItem(validateItem(item))
-	}
-
-	/*  Add a new item at a specific index position
-	 *  to the gadget. See {@link #addItem( Object ) addItem( Object )}
-	 *  for an explanation of the <code>StringItem</code>
-	 *  usage.
-	 *
-	 *  @param  item	the <code>StringItem</code> to add
-	 *  @see	StringItem
-	 */
-	def insertItemAt(item: Any, idx: Int) {
-		super.insertItemAt(validateItem(item), idx)
-	}
-
-	private def validateItem(item: Any): Any = item match {
-    case si: StringItem => si
-    case _ => new StringItem(item.toString, item.toString)
-  }
+//  /**
+//	 *  Because the items in the ComboBox
+//	 *  can be naturally moved, added and replaced,
+//	 *  it is crucial to have a non-index-based
+//	 *  value to store in the preferences. Since
+//	 *  the actual String representation of the
+//	 *  the items is likely to be locale specific,
+//	 *  it is required to add items of class
+//	 *  StringItem !
+//	 *
+//	 *  @param  item	the <code>StringItem</code> to add
+//	 *  @see	StringItem
+//	 */
+//	def addItem(item: Any) {
+//		super.addItem(validateItem(item))
+//	}
+//
+//	/*  Add a new item at a specific index position
+//	 *  to the gadget. See {@link #addItem( Object ) addItem( Object )}
+//	 *  for an explanation of the <code>StringItem</code>
+//	 *  usage.
+//	 *
+//	 *  @param  item	the <code>StringItem</code> to add
+//	 *  @see	StringItem
+//	 */
+//	def insertItemAt(item: Any, idx: Int) {
+//		super.insertItemAt(validateItem(item), idx)
+//	}
+//
+//	private def validateItem(item: Any): Any = item match {
+//    case si: StringItem => si
+//    case _ => new StringItem(item.toString, item.toString)
+//  }
 
 
 //  private def readPrefsFromString (prefsValue: Option[String]) {

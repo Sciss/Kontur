@@ -40,8 +40,12 @@ object SessionUtil {
    private def getResourceString( key: String ) =
       key // XXX TODO AbstractApplication.getApplication.getResourceString( key )
 
+  trait Process {
+    def cancel(): Unit
+  }
+
    def bounce( doc: Session, tl: Timeline, tracks: List[ Track ], span: Span, path: File, spec: AudioFileSpec,
-               upd: AnyRef => Unit = _ => () )(implicit application: desktop.Application): () => Unit = {
+               upd: AnyRef => Unit = _ => () )(implicit application: desktop.Application): Process = {
       
       val so                        = Server.Config()
       so.nrtOutputPath              = path.getCanonicalPath
@@ -50,14 +54,14 @@ object SessionUtil {
       so.nrtSampleFormat            = spec.sampleFormat
       val sampleRate                = spec.sampleRate
       so.sampleRate                 = sampleRate.toInt
-      val audioPrefs                = AbstractApplication.getApplication.getUserPrefs.node( PrefsUtil.NODE_AUDIO )
+      val audioPrefs                = application.userPrefs.node( PrefsUtil.NODE_AUDIO )
       val pMemSize = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCMEMSIZE, null )
       if( pMemSize != null ) {
          so.memorySize              = pMemSize.value.toInt << 10
       }
       so.blockSize                  = 1
       so.loadSynthDefs              = false
-      val appPath = audioPrefs.get( PrefsUtil.KEY_SUPERCOLLIDERAPP, null )
+      val appPath = audioPrefs.get[String](PrefsUtil.KEY_SUPERCOLLIDERAPP).orNull
       if( appPath == null ) {
          throw new Exception( getResourceString( "errSCSynthAppNotFound" ))
       }
@@ -115,9 +119,11 @@ object SessionUtil {
       })
       worker.execute()
 
-     () => {
-       println("WARNING: CANCEL DOES NOT WORK YET PROPERLY")
-       worker.cancel(true)
+     new Process {
+       def cancel() {
+         println("WARNING: CANCEL DOES NOT WORK YET PROPERLY")
+         worker.cancel(true)
+       }
      }
    }
 }

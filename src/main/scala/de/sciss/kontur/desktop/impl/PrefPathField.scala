@@ -5,7 +5,7 @@ package impl
 import legacy.PathField
 import java.io.File
 
-class PrefPathField(tpe: Int, dialogText: String)
+class PrefPathField(protected val prefs: Preferences.Entry[File], default: File)(tpe: Int, dialogText: String)
   extends PathField(tpe, dialogText) with PreferencesWidgetImpl[File] {
 
   protected def prefsType = Preferences.Type.File

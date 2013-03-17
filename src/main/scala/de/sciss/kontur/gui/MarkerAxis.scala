@@ -213,8 +213,8 @@ with desktop.impl.DynamicComponentImpl {
   setPreferredSize(new Dimension(getPreferredSize.width, barExtent))
 
   setOpaque(true)
-  setFont(AbstractApplication.getApplication.getGraphicsHandler.getFont(
-    GraphicsHandler.FONT_SYSTEM | GraphicsHandler.FONT_MINI))
+//  setFont(AbstractApplication.getApplication.getGraphicsHandler.getFont(
+//    GraphicsHandler.FONT_SYSTEM | GraphicsHandler.FONT_MINI))
 
   def trail = trailVar
 	def trail_=( newTrail: Option[ Trail[ Marker ]]) {

@@ -18,6 +18,7 @@ object WindowImpl {
     var resizable: Boolean
     def putRootPaneProperty(name: String, value: Any): Unit
     def pack(): Unit
+    var dirty: Boolean
   }
 }
 trait WindowImpl extends Window {
@@ -41,6 +42,9 @@ trait WindowImpl extends Window {
   final protected def pack() { delegate.pack() }
   final protected def contents = delegate.contents
   final protected def contents_=(value: Component) { delegate.contents = value }
+
+  final protected def dirty: Boolean = delegate.dirty
+  final protected def dirty_(value: Boolean) { delegate.dirty = value }
 
   private final val delegate: Delegate = {
     ???
@@ -85,9 +89,9 @@ trait WindowImpl extends Window {
  		handler.showDialog(this, pane, title)
  	}
 
-  protected def addAction(action: Action) {
+  protected def addAction(key: String, action: Action) {
     import Implicits._
-    component.addAction(action, FocusType.Window)
+    component.addAction(key, action, FocusType.Window)
   }
 }
 

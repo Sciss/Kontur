@@ -22,9 +22,9 @@ object Implicits {
   }
 
   implicit final class RichComponent(val component: Component) extends AnyVal {
-    def addAction(action: Action, focus: FocusType = FocusType.Default) {
+    def addAction(key: String, action: Action, focus: FocusType = FocusType.Default) {
       val a       = action.peer
-      val key     = a.getValue(j.Action.NAME).toString
+//      val key     = a.getValue(j.Action.NAME).toString
       val stroke  = a.getValue(j.Action.ACCELERATOR_KEY).asInstanceOf[KeyStroke]
       component.peer.registerKeyboardAction(a, key, stroke, focus.id)
     }

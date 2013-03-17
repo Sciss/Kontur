@@ -108,7 +108,7 @@ class ScalaInterpreterFrame extends desktop.impl.WindowImpl {
          case e: Throwable => e.printStackTrace()
       }
 
-      val support = new REPLSupport( app )
+      val support = new REPLSupport( application )
       ic.bindings = Seq(
 //         NamedParam( "app", app ),
          NamedParam( "replsupport", support )

@@ -4,7 +4,7 @@ package impl
 
 import legacy.{Param, ParamSpace, DefaultUnitTranslator}
 
-class PrefParamField(protected val prefs: Preferences, protected val prefsKey: String, default: Param)
+class PrefParamField(protected val prefs: Preferences.Entry[Param], default: Param)
                     (translator: ParamSpace.Translator = new DefaultUnitTranslator)
   extends BasicParamField(translator)
   with PreferencesWidgetImpl[Param] {

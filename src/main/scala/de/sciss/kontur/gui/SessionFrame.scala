@@ -38,6 +38,8 @@ import swing.Action
 trait SessionFrame {
    frame: desktop.impl.WindowImpl =>
 
+  protected def application: desktop.Application { type Document = Session }
+
    private var writeProtected	= false
    private var wpHaveWarned	= false
 
@@ -113,7 +115,7 @@ trait SessionFrame {
       (if (doc.dirty) " - \u2022" else " - ") + name + (elementName.map(e => " - " + e) getOrElse "")
 
     actionShowWindow.title = name
-    actionSave.setEnabled(!writeProtected && doc.dirty)
+    actionSave.enabled = !writeProtected && doc.dirty
     dirty = doc.dirty
     file  = doc.path
 
@@ -195,38 +197,37 @@ trait SessionFrame {
     *
     *	@see	de.sciss.eisenkraut.util.ProcessingThread#start
     */
-   def confirmUnsaved( actionName: String, confirmed: Flag ) : Boolean = {
-      if( !doc.dirty ) {
-         confirmed.value = true
-         return false
-      }
+   def confirmUnsaved(actionName: String, confirmed: Flag): Boolean = {
+     if (!doc.dirty) {
+       confirmed.value = true
+       return false
+     }
 
-      val options = Array[ AnyRef ]("Save...", "Cancel", "Don't Save"
-//        getResourceString( "buttonSave" ),
-//        getResourceString( "buttonCancel" ),
-//        getResourceString( "buttonDontSave" )
-      )
-      val dont = Flag.False()
+     val options = Array[AnyRef]("Save...", "Cancel", "Don't Save"
+       // getResourceString( "buttonSave" ),
+       // getResourceString( "buttonCancel" ),
+       // getResourceString( "buttonDontSave" )
+     )
+     val dont = Flag.False()
+     val name = doc.displayName
 
-      val name = doc.displayName
-
-      val op = new JOptionPane(s"<html><body><p><b>Do you want to save the changes you made in\nthe document $name?</b></p>" +
-        "<p>Your changes will be lost if you don't save them.</p></body></html>",
-                            JOptionPane.WARNING_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION, null,
-                            options, options( 1 ))
-      val d = op.createDialog( component.peer, actionName )
-      val rp = d.getRootPane
-      if( rp != null ) {
-         rp.getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW ).put(
-           KeyStroke.getKeyStroke( KeyEvent.VK_D, BasicMenuFactory.MENU_SHORTCUT ), "dont" )
-         rp.getActionMap.put( "dont", new AbstractAction {
-            def actionPerformed( e: ActionEvent ) {
-               dont() = true
-               d.dispose()
-            }
-         })
-      }
-      showDialog( d )
+     val op = new JOptionPane(s"<html><body><p><b>Do you want to save the changes you made in\nthe document $name?</b></p>" +
+       "<p>Your changes will be lost if you don't save them.</p></body></html>",
+       JOptionPane.WARNING_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION, null,
+       options, options(1))
+     val d = op.createDialog(component.peer, actionName)
+     val rp = d.getRootPane
+     if (rp != null) {
+       rp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+         KeyStroke.getKeyStroke(KeyEvent.VK_D, WindowHandler.menuShortcut), "dont")
+       rp.getActionMap.put("dont", new AbstractAction {
+         def actionPerformed(e: ActionEvent) {
+           dont() = true
+           d.dispose()
+         }
+       })
+     }
+     showDialog(d, "Close")
      val choice = if (dont()) {
        2
      } else {
