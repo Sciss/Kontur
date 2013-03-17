@@ -227,7 +227,7 @@ trait SessionFrame {
          }
        })
      }
-     showDialog(d, "Close")
+     showDialog(d)
      val choice = if (dont()) {
        2
      } else {
@@ -294,7 +294,7 @@ trait SessionFrame {
             if( !asCopy ) {
                app.getMenuFactory.addRecent( file )
                doc.path = Some( file )
-               doc.getUndoManager.discardAllEdits()
+               doc.undoManager.clear()
             }
             if( openAfterSave ) {
                app.getMenuFactory.openDocument( file )

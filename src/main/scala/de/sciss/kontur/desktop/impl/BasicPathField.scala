@@ -13,8 +13,8 @@ object BasicPathField {
     }
   }
 }
-class BasicPathField(prefs: Preferences.Entry[File])(tpe: Int, dialogText: String)
-  extends PrefPathField(prefs)(tpe, dialogText) {
+class BasicPathField(prefs: Preferences.Entry[File], default: File)(tpe: Int, dialogText: String)
+  extends PrefPathField(prefs, default: File)(tpe, dialogText) {
 
 	protected def createPathButton(tpe: Int): PathButton  = new BasicPathField.Button(tpe, dialogText)
 }

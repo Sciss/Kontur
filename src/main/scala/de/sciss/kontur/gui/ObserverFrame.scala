@@ -30,19 +30,26 @@ import java.awt.Dimension
 import javax.swing.{JComponent, JTabbedPane}
 import javax.swing.event.{ChangeEvent, ChangeListener}
 import swing.Component
+import session.Session
+import desktop.DocumentHandler
 
-class ObserverFrame extends desktop.impl.WindowImpl with DocumentListener {
+class ObserverFrame extends desktop.impl.WindowImpl {
   protected def style = desktop.Window.Palette
 
-    private val ggTabPane = new JTabbedPane()
-    private var mapTabs   = Map[ String, ObserverPage ]()
-    private var shown: Option[ ObserverPage ] = None
+  private val ggTabPane = new JTabbedPane()
+  private var mapTabs = Map[String, ObserverPage]()
+  private var shown: Option[ObserverPage] = None
 
   title     = "Observer" // getResourceString("paletteObserver")
 
-  closeOperation = desktop.Window.CloseHide
-  // init()
+//  closeOperation = desktop.Window.CloseHide
+//  // init()
   size = new Dimension(300, 300)
+
+  private val listener = Kontur.documentHandler.addListener {
+    case DocumentHandler.Activated(newDoc) =>
+      mapTabs.foreach { case (_, page) => page.documentChanged(newDoc) }
+  }
 
   // ---- constructor ----
     {
@@ -70,6 +77,11 @@ class ObserverFrame extends desktop.impl.WindowImpl with DocumentListener {
   override protected def autoUpdatePrefs = true
 
   override protected def alwaysPackSize = false
+
+  override def dispose() {
+    Kontur.documentHandler.removeListener(listener)
+    super.dispose()
+  }
 
   def addPage(page: ObserverPage) {
     if (containsPage(page.id)) removePage(page.id)
@@ -100,21 +112,6 @@ class ObserverFrame extends desktop.impl.WindowImpl with DocumentListener {
   def containsPage(id: String) = mapTabs.contains(id)
 
   def getPage(id: String) = mapTabs.get(id)
-
-  // ---- DocumentListener interface ----
-
-  def documentFocussed(e: DocumentEvent) {
-    val newDoc = e.getDocument
-    mapTabs.foreach(entry => entry._2.documentChanged(newDoc))
-  }
-
-  def documentAdded(e: DocumentEvent) {
-    /* ignore */
-  }
-
-  def documentRemoved(e: DocumentEvent) {
-    /* ignore */
-  }
 }
 
 trait ObserverPage /* extends DynamicListening */ {
@@ -128,7 +125,7 @@ trait ObserverPage /* extends DynamicListening */ {
 
   def pageHidden(): Unit
 
-  def documentChanged(newDoc: Document)
+  def documentChanged(newDoc: Session)
 }
 
 object DiffusionObserverPage {

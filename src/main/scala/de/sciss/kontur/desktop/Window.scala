@@ -51,25 +51,25 @@ object Window {
     def apply(window: Window, peer: WindowEvent): Event = {
       import WindowEvent._
       (peer.getID: @switch) match {
-        case WINDOW_ACTIVATED   => WindowActivated  (window)
-        case WINDOW_CLOSED      => WindowClosed     (window)
-        case WINDOW_CLOSING     => WindowClosing    (window)
-        case WINDOW_DEACTIVATED => WindowDeactivated(window)
-        case WINDOW_DEICONIFIED => WindowDeiconified(window)
-        case WINDOW_ICONIFIED   => WindowIconified  (window)
-        case WINDOW_OPENED      => WindowOpened     (window)
+        case WINDOW_ACTIVATED   => Activated  (window)
+        case WINDOW_CLOSED      => Closed     (window)
+        case WINDOW_CLOSING     => Closing    (window)
+        case WINDOW_DEACTIVATED => Deactivated(window)
+        case WINDOW_DEICONIFIED => Deiconified(window)
+        case WINDOW_ICONIFIED   => Iconified  (window)
+        case WINDOW_OPENED      => Opened     (window)
       }
     }
     def apply(window: Window, peer: InternalFrameEvent): Event = {
       import InternalFrameEvent._
       (peer.getID: @switch) match {
-        case INTERNAL_FRAME_ACTIVATED   => WindowActivated  (window)
-        case INTERNAL_FRAME_CLOSED      => WindowClosed     (window)
-        case INTERNAL_FRAME_CLOSING     => WindowClosing    (window)
-        case INTERNAL_FRAME_DEACTIVATED => WindowDeactivated(window)
-        case INTERNAL_FRAME_DEICONIFIED => WindowDeiconified(window)
-        case INTERNAL_FRAME_ICONIFIED   => WindowIconified  (window)
-        case INTERNAL_FRAME_OPENED      => WindowOpened     (window)
+        case INTERNAL_FRAME_ACTIVATED   => Activated  (window)
+        case INTERNAL_FRAME_CLOSED      => Closed     (window)
+        case INTERNAL_FRAME_CLOSING     => Closing    (window)
+        case INTERNAL_FRAME_DEACTIVATED => Deactivated(window)
+        case INTERNAL_FRAME_DEICONIFIED => Deiconified(window)
+        case INTERNAL_FRAME_ICONIFIED   => Iconified  (window)
+        case INTERNAL_FRAME_OPENED      => Opened     (window)
       }
     }
   }
@@ -77,13 +77,13 @@ object Window {
     def source: Window
   }
 
-  final case class WindowActivated  (source: Window) extends Event
-  final case class WindowClosed     (source: Window) extends Event
-  final case class WindowClosing    (source: Window) extends Event
-  final case class WindowDeactivated(source: Window) extends Event
-  final case class WindowDeiconified(source: Window) extends Event
-  final case class WindowIconified  (source: Window) extends Event
-  final case class WindowOpened     (source: Window) extends Event
+  final case class Activated  (source: Window) extends Event
+  final case class Closed     (source: Window) extends Event
+  final case class Closing    (source: Window) extends Event
+  final case class Deactivated(source: Window) extends Event
+  final case class Deiconified(source: Window) extends Event
+  final case class Iconified  (source: Window) extends Event
+  final case class Opened     (source: Window) extends Event
 }
 /** Interface that unites functionality
   *	from inhomogeneous classes such as JFrame, JDialog, JInternalFrame

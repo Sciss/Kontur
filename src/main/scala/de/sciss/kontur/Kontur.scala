@@ -30,6 +30,7 @@ import desktop.WindowHandler
 import io.EisenkrautClient
 import javax.swing.UIManager
 import gui.{MainFrame, SuperColliderFrame}
+import session.Session
 import util.{Flag, PrefsUtil}
 import sc.SuperColliderClient
 import swing.Swing
@@ -56,6 +57,7 @@ import legacy.ProcessingThread
  */
 
 object Kontur extends desktop.SwingApplication with desktop.impl.ApplicationImpl with App {
+  type Document = Session
   /*
    *  The MacOS file creator string.
    */
@@ -165,7 +167,7 @@ object Kontur extends desktop.SwingApplication with desktop.impl.ApplicationImpl
       if( pt != null ) {
 //println( "---2" )
          pt.addListener( quitAfterSaveListener )
-         pt.getClientArg( "doc" ).asInstanceOf[ BasicDocument ].start( pt )
+         pt.getClientArg( "doc" ).asInstanceOf[Session].start( pt )
       } else if(confirmed()) {
 //println( "---3" )
 //       OSCRoot.getInstance().quit();

@@ -27,9 +27,11 @@ package de.sciss.kontur.gui
 
 import java.beans.{ PropertyChangeEvent, PropertyChangeListener }
 import de.sciss.kontur.desktop.impl.BasicPathField
+import java.io.File
+import de.sciss.kontur.desktop.Preferences
 
-class PathField(typ: Int, title: String)
-  extends BasicPathField(typ, title) {
+class PathField(prefs: Preferences.Entry[File], default: File)(typ: Int, title: String)
+  extends BasicPathField(prefs, default)(typ, title) {
 
   addPropertyChangeListener("JComponent.sizeVariant", new PropertyChangeListener {
     def propertyChange(pce: PropertyChangeEvent) {

@@ -283,15 +283,19 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
   }
 
   // ---- ObserverPage interface ----+
-    def component: JComponent = this
-    def id = DiffusionObserverPage.id
-    def title = "Diffusion" // XXX getResourceString
+  def component: JComponent = this
 
-    def pageShown() {}
-    def pageHidden() {}
-    def documentChanged( newDoc: Document ) {}
+  def id = DiffusionObserverPage.id
 
-    // ---- internal clases ----
+  def title = "Diffusion" // XXX getResourceString
+
+  def pageShown() {}
+
+  def pageHidden() {}
+
+  def documentChanged(newDoc: Session) {}
+
+  // ---- internal clases ----
    private object MatrixBorder extends Border {
 //      private val fnt = AbstractApplication.getApplication.getGraphicsHandler.getFont( GraphicsHandler.FONT_SMALL )
 

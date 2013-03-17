@@ -34,7 +34,7 @@ import desktop.{Window, WindowHandler}
 import swing.Component
 
 final class MainFrame(implicit protected val handler: WindowHandler)
-  extends desktop.impl.DefaultWindowImpl {
+  extends desktop.impl.MainWindowImpl {
 
   // --- constructor ---
   {
@@ -80,14 +80,14 @@ final class MainFrame(implicit protected val handler: WindowHandler)
     component.background = new Color(0, 0, 0, 0x7F)
 
 //    app.getMenuBarRoot.putMimic("edit.clear", this, lta.getClearAction)
-    val winListener = new AbstractWindow.Adapter {
-      override def windowClosing(e: AbstractWindow.Event) {
-        handler.application.quit()
-      }
-    }
-    addListener(winListener)
-
-    closeOperation = desktop.Window.CloseIgnore
+//    val winListener = new AbstractWindow.Adapter {
+//      override def windowClosing(e: AbstractWindow.Event) {
+//        handler.application.quit()
+//      }
+//    }
+//    addListener(winListener)
+//
+//    closeOperation = desktop.Window.CloseIgnore
 
 //    init()
 //    app.addComponent(Kontur.COMP_MAIN, this)

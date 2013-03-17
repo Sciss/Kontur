@@ -95,8 +95,12 @@ trait WindowImpl extends Window {
   }
 }
 
-trait DefaultWindowImpl extends WindowImpl {
+trait MainWindowImpl extends WindowImpl {
   final protected def style = Window.Regular
 
   handler.setDefaultBorrower(this)
+  closeOperation = Window.CloseIgnore
+  reactions += {
+    case Window.Closing(_) => application.quit()
+  }
 }
