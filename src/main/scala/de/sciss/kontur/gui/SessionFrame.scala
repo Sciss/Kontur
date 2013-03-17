@@ -35,7 +35,7 @@ import util.{Flag, Model}
 import legacy.MenuAction
 
 trait SessionFrame {
-   frame: desktop.Window =>
+   frame: desktop.impl.WindowImpl =>
 
    private var writeProtected	= false
    private var wpHaveWarned	= false
@@ -100,45 +100,45 @@ trait SessionFrame {
       dispose()
    }
 
-	/**
-	 *  Recreates the main frame's title bar
-	 *  after a sessions name changed (clear/load/save as session)
-	 */
-   protected def updateTitle() {
-      writeProtected	= doc.path.map( !_.canWrite ) getOrElse false
+  /**
+   * Recreates the main frame's title bar
+   * after a sessions name changed (clear/load/save as session)
+   */
+  protected def updateTitle() {
+    writeProtected = doc.path.map(!_.canWrite) getOrElse false
 
-      val name = doc.displayName
-      setTitle( (if( !internalFrames ) app.getName else "") +
-                (if( doc.isDirty() ) " - \u2022" else " - ") + name + (elementName.map( e => " - " + e ) getOrElse "") )
+    val name = doc.displayName
+    title = (if (!handler.usesInternalFrames) handler.application.name else "") +
+      (if (doc.isDirty) " - \u2022" else " - ") + name + (elementName.map(e => " - " + e) getOrElse "")
 
-      actionShowWindow.putValue( Action.NAME, name )
-		actionSave.setEnabled( !writeProtected && doc.isDirty() )
-		setDirty( doc.isDirty() )
-        setWindowFile( doc.path getOrElse null )
+    actionShowWindow.putValue(Action.NAME, name)
+    actionSave.setEnabled(!writeProtected && doc.isDirty)
+    dirty = doc.isDirty
+    file  = doc.path
 
-//		final AudioFileInfoPalette infoBox = (AudioFileInfoPalette) app.getComponent( Main.COMP_AUDIOINFO )
-//		if( infoBox != null ) infoBox.updateDocumentName( doc )
+    //		final AudioFileInfoPalette infoBox = (AudioFileInfoPalette) app.getComponent( Main.COMP_AUDIOINFO )
+    //		if( infoBox != null ) infoBox.updateDocumentName( doc )
 
-		if( writeProtected && !wpHaveWarned && doc.isDirty() ) {
-			val op = new JOptionPane( getResourceString( "warnWriteProtected" ), JOptionPane.WARNING_MESSAGE )
-			BasicWindowHandler.showDialog( op, getWindow, getResourceString( "msgDlgWarn" ))
-			wpHaveWarned = true
-		}
-	}
+    if (writeProtected && !wpHaveWarned && doc.isDirty) {
+      val op = new JOptionPane(getResourceString("warnWriteProtected"), JOptionPane.WARNING_MESSAGE)
+      BasicWindowHandler.showDialog(op, getWindow, getResourceString("msgDlgWarn"))
+      wpHaveWarned = true
+    }
+  }
 
-//   override def dispose() {
+  //   override def dispose() {
 //      frame.dispose()
 //   }
 
    protected def documentClosed() {
-      app.getDocumentHandler.removeDocument( this, doc )	// XXX
+      app.documentHandler.removeDocument( this, doc )	// XXX
       invokeDispose() // dispose()
    }
 
    def closeDocument( force: Boolean, wasClosed: Flag ) {
 //      doc.getTransport().stop();
       val okToClose = force || {
-         val name = getResourceString( "menuClose" )
+         val name = "Close" // getResourceString( "menuClose" )
 //         if( !confirmCancel( name )) {
 //            wasClosed.set( false );
 //            return null;
@@ -156,7 +156,7 @@ trait SessionFrame {
 //            });
 //            return pt;
 //         }
-         saved || wasClosed.isSet  // aka confirmed.isSet
+         saved || wasClosed() // aka confirmed.isSet
       }
 //println( "wasClosed : " + wasClosed.isSet )
       if( okToClose ) {
@@ -195,81 +195,80 @@ trait SessionFrame {
     *	@see	de.sciss.eisenkraut.util.ProcessingThread#start
     */
    def confirmUnsaved( actionName: String, confirmed: Flag ) : Boolean = {
-      if( !doc.isDirty() ) {
-         confirmed.set( true )
+      if( !doc.isDirty ) {
+         confirmed.value = true
          return false
       }
 
-      val options = Array[ AnyRef ]( getResourceString( "buttonSave" ),
-                           getResourceString( "buttonCancel" ),
-                           getResourceString( "buttonDontSave" ))
-      val dont = new Flag( false )
+      val options = Array[ AnyRef ]("Save", "Cancel", "Do not save"
+//        getResourceString( "buttonSave" ),
+//        getResourceString( "buttonCancel" ),
+//        getResourceString( "buttonDontSave" )
+      )
+      val dont = Flag.False()
 
       val name = doc.displayName
 
       val op = new JOptionPane( name + " :\n" + getResourceString( "optionDlgUnsaved" ),
                             JOptionPane.WARNING_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION, null,
                             options, options( 1 ))
-      val d = op.createDialog( getWindow, actionName )
+      val d = op.createDialog( component, actionName )
       val rp = d.getRootPane
       if( rp != null ) {
          rp.getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW ).put(
            KeyStroke.getKeyStroke( KeyEvent.VK_D, BasicMenuFactory.MENU_SHORTCUT ), "dont" )
          rp.getActionMap.put( "dont", new AbstractAction {
             def actionPerformed( e: ActionEvent ) {
-               dont.set(  true )
+               dont() = true
                d.dispose()
             }
          })
       }
-      BasicWindowHandler.showDialog( d )
-      val choice = if( dont.isSet ) {
+      showDialog( d )
+     val choice = if (dont()) {
+       2
+     } else {
+       val value = op.getValue
+       if ((value == null) || (value == options(1))) {
+         1
+       } else if (value == options(0)) {
+         0
+       } else if (value == options(2)) {
          2
-      } else {
-         val value = op.getValue
-         if( (value == null) || (value == options( 1 ))) {
-            1
-         } else if( value == options( 0 )) {
-            0
-         } else if( value == options( 2 )) {
-            2
-         } else {
-            -1	// throws assertion error in switch block
-         }
-      }
+       } else {
+         -1 // throws assertion error in switch block
+       }
+     }
 
-      choice match {
-      case JOptionPane.CLOSED_OPTION | 1 => {
-         confirmed.set( false )
+     choice match {
+       case JOptionPane.CLOSED_OPTION | 1 =>
+         confirmed() = false
          false
-      }
-      case 2 => {	// don't save
-         confirmed.set( true )
+
+       case 2 =>
+         // don't save
+         confirmed() = true
          false
-      }
-      case 0 => {
-         confirmed.set( false )
-         val path = if( doc.path.isEmpty || writeProtected ) {
-            actionSaveAs.query( actionSave.getValue( Action.NAME ).toString )
+
+       case 0 =>
+         confirmed() = false
+         val path = if (doc.path.isEmpty || writeProtected) {
+           actionSaveAs.query(actionSave.getValue(Action.NAME).toString)
          } else {
-            doc.path
+           doc.path
          }
-         path.map( p => {
-            actionSave.perform( actionSave.getValue( Action.NAME ).toString, p, asCopy = false, openAfterSave = false )
+         path.map(p => {
+           actionSave.perform(actionSave.getValue(Action.NAME).toString, p, asCopy = false, openAfterSave = false)
          }) getOrElse false
-      }
-      case _ => {
-         assert( assertion = false )
-         false
-      }}
+     }
    }
 
    protected class ActionClose extends MenuAction {
       def actionPerformed( e: ActionEvent ) { perform() }
 
-      def perform() {
-         closeDocument( force = false, new Flag( false ))
-      }
+     def perform() {
+       closeDocument(force = false, Flag.False())
+     }
    }
 
    // action for the Save-Session menu item
@@ -302,28 +301,28 @@ trait SessionFrame {
             true
          }
          catch { case e1: IOException =>
-            BasicWindowHandler.showErrorDialog( getWindow, e1, name )
+            showErrorDialog( e1, name )
             false
          }
       }
    }
 
-   // action for the Save-Session-As menu item
-   private class ActionSaveAs( asCopy: Boolean )
-   extends MenuAction {
-      private val openAfterSave = new Flag( false )
+  // action for the Save-Session-As menu item
+  private class ActionSaveAs(asCopy: Boolean)
+    extends MenuAction {
+    private val openAfterSave = Flag.False()
 
-      /*
-       *  Query a file name from the user and save the Session
-       */
-      def actionPerformed( e: ActionEvent ) {
-         val name = getValue( Action.NAME ).toString
-         query( name ).foreach( f => {
-            actionSave.perform( name, f, asCopy, openAfterSave.isSet )
-         })
+    /*
+     *  Query a file name from the user and save the Session
+     */
+    def actionPerformed(e: ActionEvent) {
+      val name = getValue(Action.NAME).toString
+      query(name).foreach { f =>
+        actionSave.perform(name, f, asCopy = asCopy, openAfterSave = openAfterSave())
       }
+    }
 
-		/**
+     /**
 		 *  Open a file chooser so the user
 		 *  can select a new output file and format for the session.
 		 *

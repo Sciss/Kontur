@@ -30,20 +30,22 @@ import java.awt.{Color, Font}
 import java.awt.geom.Point2D
 import javax.swing.{BorderFactory, JInternalFrame}
 import de.sciss.scalainterpreter.LogPane
+import desktop.{Window, WindowHandler}
+import swing.Component
 
-class MainFrame extends desktop.impl.WindowImpl {
-  protected def style = desktop.Window.Regular
+final class MainFrame(implicit protected val handler: WindowHandler)
+  extends desktop.impl.DefaultWindowImpl {
 
   // --- constructor ---
   {
 //	  val app     = AbstractApplication.getApplication()
-      val strMain = app.getResourceString( "frameMain" )
+//      val strMain = app.getResourceString( "frameMain" )
 
-    if (app.getWindowHandler.usesInternalFrames) {
-      title = strMain
-      getWindow.asInstanceOf[JInternalFrame].setClosable(false)
+    if (handler.usesInternalFrames) {
+      title = "Main"
+      closeOperation = Window.CloseIgnore
     } else {
-      title = app.name + " : " + strMain
+      title = handler.application.name + " : Main"
     }
 
     val lta       = LogPane()
@@ -65,7 +67,7 @@ class MainFrame extends desktop.impl.WindowImpl {
 //      val vp = ggScroll.getViewport
 //      vp.setBackground( new Color( 0, 0, 0, 0 ))
 //      vp.setOpaque( false )
-     contents = lta.component
+     contents = Component.wrap(lta.component)
 
 //      cp.setBackground( new Color( 0, 0, 0, 0 ))
 //      cp.setOpaque( false )
@@ -77,10 +79,10 @@ class MainFrame extends desktop.impl.WindowImpl {
 
     component.background = new Color(0, 0, 0, 0x7F)
 
-    app.getMenuBarRoot.putMimic("edit.clear", this, lta.getClearAction)
+//    app.getMenuBarRoot.putMimic("edit.clear", this, lta.getClearAction)
     val winListener = new AbstractWindow.Adapter {
       override def windowClosing(e: AbstractWindow.Event) {
-        app.quit()
+        handler.application.quit()
       }
     }
     addListener(winListener)
@@ -88,7 +90,7 @@ class MainFrame extends desktop.impl.WindowImpl {
     closeOperation = desktop.Window.CloseIgnore
 
 //    init()
-    app.addComponent(Kontur.COMP_MAIN, this)
+//    app.addComponent(Kontur.COMP_MAIN, this)
     visible = true
 
     // println( "Testin one two")
@@ -96,8 +98,8 @@ class MainFrame extends desktop.impl.WindowImpl {
 
   override protected def getPreferredLocation: Point2D = new Point2D.Float(0f, 0f)
 
-  override def dispose() {
-    app.removeComponent(Kontur.COMP_MAIN)
-    super.dispose()
-  }
+//  override def dispose() {
+//    app.removeComponent(Kontur.COMP_MAIN)
+//    super.dispose()
+//  }
 }

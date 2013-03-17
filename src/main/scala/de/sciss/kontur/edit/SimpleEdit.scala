@@ -48,6 +48,6 @@ extends BasicUndoableEdit {
   }
 
   override def getPresentationName : String = {
-     AbstractApplication.getApplication.getResourceString( name )
+     name // AbstractApplication.getApplication.getResourceString( name )
   }
 }

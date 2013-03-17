@@ -31,6 +31,7 @@ import java.awt.Component
 import de.sciss.kontur.session.Timeline
 import legacy.{MenuAction, GUIUtil, SpringPanel, DefaultUnitTranslator, ParamSpace, Param}
 import de.sciss.kontur.desktop.impl.BasicParamField
+import de.sciss.kontur.desktop.WindowHandler
 
 abstract class ActionQueryDuration extends MenuAction {
   private var value = Option.empty[Param]
@@ -59,14 +60,14 @@ abstract class ActionQueryDuration extends MenuAction {
     space.foreach(ggDuration.space = _)
 
     val op = new JOptionPane(msgPane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
-    val result = BasicWindowHandler.showDialog(op, parent, getValue(Action.NAME).toString)
+    val result = WindowHandler.showDialog(parent, op, getValue(Action.NAME).toString)
 
     if (result == JOptionPane.OK_OPTION) {
       val v = ggDuration.value
       value = Some(v)
-        space = Some(ggDuration.space)
-      //         val durationSmps = timeTrans.translate( v, ParamSpace.spcTimeSmps ).`val`
-      //         initiate( durationSmps.toLong )
+      space = ggDuration.space
+      // val durationSmps = timeTrans.translate( v, ParamSpace.spcTimeSmps ).`val`
+      // initiate( durationSmps.toLong )
       initiate(v, timeTrans)
     } else {
       value = None

@@ -254,11 +254,12 @@ class PrefsFrame extends desktop.impl.WindowImpl {
     val ggInterfaces = createAudioBoxGUI(prefs.node(NODE_AUDIOBOXES))
 
     val lbRate = new JLabel( getResourceString( "prefsAudioRate" ))
-		val ggRateParam = new PrefParamField(prefs, KEY_AUDIORATE)
+    val rate0 = new Param(    0, ParamSpace.FREQ | ParamSpace.HERTZ)
+		val ggRateParam = new PrefParamField(prefs, KEY_AUDIORATE, rate0)
 		ggRateParam.addSpace( ParamSpace.spcFreqHertz )
     val ggRate = new JComboBox()
     val RATE_ITEMS = List(
-      new StringItem(new Param(0, ParamSpace.FREQ | ParamSpace.HERTZ).toString, "System Default"),
+      new StringItem(rate0.toString, "System Default"),
       new StringItem(new Param(44100, ParamSpace.FREQ | ParamSpace.HERTZ).toString, "44.1 kHz"),
       new StringItem(new Param(48000, ParamSpace.FREQ | ParamSpace.HERTZ).toString, "48 kHz"),
       new StringItem(new Param(88200, ParamSpace.FREQ | ParamSpace.HERTZ).toString, "88.2 kHz"),
@@ -270,7 +271,7 @@ class PrefsFrame extends desktop.impl.WindowImpl {
     ggRate.setEditable(true)
     ggRateParam.setBackground(bg)
 
-    val lbAdvanced = new JLabel(getResourceString("prefsAdvanced"))
+    val lbAdvanced = new JLabel("Advanced") // getResourceString("prefsAdvanced"))
     val ggAdvanced = new TreeExpanderButton()
 
     layout.setHorizontalGroup(layout.createSequentialGroup()
@@ -317,4 +318,6 @@ class PrefsFrame extends desktop.impl.WindowImpl {
     )
     panel
   }
+
+  private def getResourceString(key: String) = key  // XXX TODO
 }

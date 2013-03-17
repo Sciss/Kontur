@@ -30,8 +30,8 @@ import java.io.IOException
 import scala.xml.Node
 import de.sciss.kontur.edit.Editor
 import de.sciss.kontur.util.SerializerContext
-import de.sciss.app.AbstractCompoundEdit
 import de.sciss.span.Span
+import legacy.AbstractCompoundEdit
 
 object Track {
    val flavor = new DataFlavor( classOf[ Track ], "Track" )

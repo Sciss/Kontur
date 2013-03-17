@@ -4,7 +4,7 @@ package impl
 import java.awt.{Insets, Point, Rectangle, Dimension}
 import java.io.File
 import javax.swing.RootPaneContainer
-import swing.Component
+import swing.{Dialog, Component}
 
 object WindowImpl {
   object Delegate {
@@ -17,6 +17,8 @@ object WindowImpl {
 }
 trait WindowImpl extends Window {
   import WindowImpl._
+
+  protected def handler: WindowHandler
 
   final def size = component.size
   final def size_=(value: Dimension) { component.peer.setSize(value) }
@@ -59,4 +61,14 @@ trait WindowImpl extends Window {
 //      throw new IllegalStateException()
 //    }
 //  }
+
+  protected def showDialog(dialog: Dialog) {
+ 		handler.showDialog(this, dialog)
+ 	}
+}
+
+trait DefaultWindowImpl extends WindowImpl {
+  final protected def style = Window.Regular
+
+  handler.setDefaultBorrower(this)
 }

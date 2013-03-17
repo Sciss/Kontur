@@ -58,8 +58,10 @@ object ScalaInterpreterFrame {
       )
    }
 
-   class REPLSupport( val app: BasicApplication ) {
-      def doc : Session             = app.getDocumentHandler.getActiveDocument.asInstanceOf[ Session ]
+   class REPLSupport( val app: desktop.Application { type Document = Session }) {
+      def doc : Session             = app.documentHandler.activeDocument.getOrElse {
+        sys.error("No active document")
+      }
       def sc : SuperColliderClient  = SuperColliderClient.instance
       def scp : SuperColliderPlayer = { val d = doc; (if( d != null ) sc.getPlayer( d ) else None).orNull }
       def con : SynthContext        = { val p = scp; (if( p != null ) p.context else None).orNull }
@@ -78,7 +80,7 @@ class ScalaInterpreterFrame extends desktop.impl.WindowImpl {
 
   import ScalaInterpreterFrame._
 
-  title = getResourceString("frameScalaInterpreter")
+  title = "Scala Interpreter" // getResourceString("frameScalaInterpreter")
 
   // ---- constructor ----
    {
@@ -150,7 +152,7 @@ class ScalaInterpreterFrame extends desktop.impl.WindowImpl {
 //      val sp = new JSplitPane( SwingConstants.HORIZONTAL )
 //      sp.setTopComponent( ip )
 //      sp.setBottomComponent( lp )
-      content = Component.wrap(sp.component)
+      contents = Component.wrap(sp.component)
 //      val b = GraphicsEnvironment.getLocalGraphicsEnvironment.getMaximumWindowBounds
 //      setSize( b.width / 2, b.height * 7 / 8 )
 //      sp.setDividerLocation( b.height * 2 / 3 )

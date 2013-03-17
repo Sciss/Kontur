@@ -25,6 +25,8 @@
 
 package de.sciss.kontur
 
+import desktop.impl.WindowHandlerImpl
+import desktop.WindowHandler
 import javax.swing.UIManager
 import gui.{MainFrame, SuperColliderFrame}
 import util.{Flag, PrefsUtil}
@@ -140,14 +142,14 @@ object Kontur extends desktop.SwingApplication with desktop.impl.ApplicationImpl
 		// ---- component views ----
 
     val mainFrame = new MainFrame()
-    getWindowHandler.asInstanceOf[BasicWindowHandler].setDefaultBorrower(mainFrame)
-    val scFrame = new SuperColliderFrame()
+    val scFrame   = new SuperColliderFrame()
     scFrame.visible = true
   }
 
-	protected def createMenuFactory() : BasicMenuFactory = new MenuFactory( this )
-	protected def createDocumentHandler() : DocumentHandler = new de.sciss.kontur.session.DocumentHandler( this )
-	protected def createWindowHandler() : BasicWindowHandler = new BasicWindowHandler( this )
+  lazy implicit val windowHandler: WindowHandler = new WindowHandlerImpl(this)
+
+//	protected def createMenuFactory() : BasicMenuFactory = new MenuFactory( this )
+//	protected def createDocumentHandler() : DocumentHandler = new de.sciss.kontur.session.DocumentHandler( this )
 
 	private var shouldForceQuit = false
 
@@ -161,7 +163,7 @@ object Kontur extends desktop.SwingApplication with desktop.impl.ApplicationImpl
 //println( "---2" )
          pt.addListener( quitAfterSaveListener )
          pt.getClientArg( "doc" ).asInstanceOf[ BasicDocument ].start( pt )
-      } else if(confirmed) {
+      } else if(confirmed()) {
 //println( "---3" )
 //       OSCRoot.getInstance().quit();
          SuperColliderClient.instance.quit()

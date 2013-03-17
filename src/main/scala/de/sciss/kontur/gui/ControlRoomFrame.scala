@@ -35,14 +35,14 @@ import de.sciss.kontur.sc.SuperColliderClient
 import javax.swing.JPanel
 import legacy.{MultiStateButton, SpringPanel}
 import swing.Component
-import de.sciss.audiowidgets.j.PeakMeterBar
+import de.sciss.audiowidgets.j.{PeakMeter, PeakMeterBar}
 
 class ControlRoomFrame extends desktop.impl.WindowImpl {
   protected val style = desktop.Window.Auxiliary
 
   private val ggVolume    = new VolumeFader()
   private val ggLimiter   = new MultiStateButton()
-  private val pmg         = new PeakMeterBar()
+  private val pmg         = new PeakMeter()
   private val b1          = new SpringPanel(2, 4, 2, 4)
   private var isListening = false
 
@@ -68,8 +68,8 @@ class ControlRoomFrame extends desktop.impl.WindowImpl {
   })
   if (superCollider.limiter) ggLimiter.setSelectedIndex(1)
 
-  pmg.setBorder(true)
-  pmg.setCaption(true)
+  pmg.borderVisible = true
+  pmg.hasCaption    = true
   // 		oCfg = superCollider.getOutputConfig()
   rebuildMeters()
 
@@ -127,7 +127,7 @@ class ControlRoomFrame extends desktop.impl.WindowImpl {
   }
 
   private def rebuildMeters() {
-    pmg.setNumChannels(8) // XXX
+    pmg.numChannels = 8 // XXX
     b1.makeCompactGrid()
     pack()
   }

@@ -32,11 +32,8 @@ import scala.xml.Node
 import de.sciss.kontur.io.SonagramOverview
 import de.sciss.kontur.util.SerializerContext
 import de.sciss.synth.io.AudioFile
-import de.sciss.app.AbstractCompoundEdit
+import legacy.AbstractCompoundEdit
 
-/**
- *    @version 0.11, 17-Apr-10
- */
 object AudioFileElement {
     val XML_NODE = "audioFile"
 

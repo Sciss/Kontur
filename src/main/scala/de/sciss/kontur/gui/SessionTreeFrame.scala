@@ -23,24 +23,26 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
-import de.sciss.app.AbstractWindow
-import de.sciss.kontur.session.Session
+import session.Session
 import java.awt.BorderLayout
 import java.awt.event.{ MouseAdapter, MouseEvent }
 import javax.swing.{ DropMode, JScrollPane, JTree, ScrollPaneConstants }
+import swing.Component
+import desktop.Window
 
-class SessionTreeFrame( val doc: Session )
-extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
+class SessionTreeFrame( val doc: Session ) extends desktop.impl.WindowImpl with SessionFrame {
    frame =>
+
+  protected def style = Window.Regular
 
    // ---- constructor ----
    {
       // ---- menus and actions ----
 //		val mr = app.getMenuBarRoot
 
-      val cp = getContentPane
       val sessionTreeModel = new SessionTreeModel( doc )
       val ggTree = new JTree( sessionTreeModel )
       ggTree.setDropMode( DropMode.ON_OR_INSERT )
@@ -82,17 +84,16 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
       new TreeDragSource( ggTree )
       new TreeDropTarget( ggTree )
 
-      cp.add( ggScroll, BorderLayout.CENTER )
+      contents = Component.wrap(ggScroll)
 //      app.getMenuFactory().addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
 
       addDynamicListening( sessionTreeModel )
 
-      init()
+//      init()
 
 //      initBounds	// be sure this is after documentUpdate!
 
-	  setVisible( true )
-	  toFront()
+	  visible = true
    }
 
    protected def windowClosing() { actionClose.perform() }

@@ -26,9 +26,6 @@
 package de.sciss.kontur
 package gui
 
-import de.sciss.app.DynamicListening
-import de.sciss.common.BasicWindowHandler
-import de.sciss.gui.{MenuGroup, MenuItem}
 import java.awt.{FileDialog, Frame}
 import java.awt.datatransfer.DataFlavor
 import java.awt.dnd.DnDConstants
@@ -42,7 +39,7 @@ import util.Model
 
 abstract class DynamicTreeNode( model: SessionTreeModel, obj: AnyRef, canExpand: Boolean )
 extends DefaultMutableTreeNode( obj, canExpand )
-with DynamicListening {
+/* with DynamicListening */ {
 
 //  type Tr = Track[ _ <: Stake[ _ ]]
 
@@ -103,7 +100,7 @@ with DynamicListening {
 
 class SessionTreeModel( val doc: Session )
 extends DefaultTreeModel( null )
-with DynamicListening {
+/* with DynamicListening */ {
 
    private val docRoot = new SessionTreeRoot( this )
 
