@@ -25,8 +25,12 @@ object WindowHandlerImpl {
   def showDialog(parent: Component, pane: JOptionPane, title: String) {
     findWindow(parent) match {
       case Some(w)  => w.handler.showDialog(w, pane, title)
-      case _        => ???
+      case _        => showDialog(pane, title)
     }
+  }
+
+  def showDialog(pane: JOptionPane, title: String) {
+    ???
   }
 
   private final class DialogWindow(dialog: Dialog) extends WindowImpl {

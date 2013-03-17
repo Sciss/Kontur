@@ -26,12 +26,11 @@
 package de.sciss.kontur
 package gui
 
-import java.awt.{ Adjustable, BasicStroke, Color, Graphics, Graphics2D, Insets, Shape }
-import java.awt.event.{ AdjustmentEvent, AdjustmentListener }
-import java.awt.geom.{ Line2D, Rectangle2D }
-import javax.swing.{ JScrollBar, UIManager }
+import java.awt.{Adjustable, BasicStroke, Color, Graphics, Graphics2D, Insets, Shape}
+import java.awt.event.{AdjustmentEvent, AdjustmentListener}
+import java.awt.geom.{Line2D, Rectangle2D}
+import javax.swing.{JScrollBar, UIManager}
 
-import de.sciss.app.{ DynamicAncestorAdapter, DynamicListening }
 import session.Timeline
 import util.Model
 import de.sciss.span.Span

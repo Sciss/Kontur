@@ -125,8 +125,9 @@ with desktop.impl.DynamicComponentImpl /* with Disposable */ {
 		setLayout( lay )
 //        setPreferredSize( new Dimension( 64, 64 )) // XXX
 
- 		lbTrackName.setFont( AbstractApplication.getApplication.getGraphicsHandler.getFont(
-            GraphicsHandler.FONT_SYSTEM | GraphicsHandler.FONT_SMALL ))
+// XXX TODO
+// 		lbTrackName.setFont( AbstractApplication.getApplication.getGraphicsHandler.getFont(
+//            GraphicsHandler.FONT_SYSTEM | GraphicsHandler.FONT_SMALL ))
 		val cons = lay.getConstraints( lbTrackName )
 		cons.setX( Spring.constant( 7 ))
 		cons.setY( Spring.minus( Spring.max(	// min( X, Y ) = -max( -X, -Y )

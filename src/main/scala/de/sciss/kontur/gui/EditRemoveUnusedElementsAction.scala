@@ -26,39 +26,39 @@
 package de.sciss.kontur.gui
 
 import java.awt.BorderLayout
-import java.awt.event.ActionEvent
 import de.sciss.kontur.session.SessionElementSeqEditor
 import javax.swing.{JPanel, JLabel, JList, DefaultListSelectionModel, JScrollPane, JOptionPane}
-import legacy.MenuAction
+import swing.Action
+import de.sciss.kontur.desktop.WindowHandler
 
-class EditRemoveUnusedElementsAction[ T ]( elemName: String, ed: SessionElementSeqEditor[ T ],
-                                           collect: => Seq[ T ], display: T => String = (e: T) => e.toString,
-                                           nameInAction: Boolean = false )
-extends MenuAction( "Remove Unused " + (if( nameInAction ) elemName else "") + "..." ) {
-   private def fullName    = "Remove Unused " + elemName
-//   private def actionName  = getValue( Action.NAME ).toString
+final class EditRemoveUnusedElementsAction[T](elemName: String, ed: SessionElementSeqEditor[T],
+                                              collect: => Seq[T], display: T => String = (e: T) => e.toString,
+                                              nameInAction: Boolean = false)
+  extends Action("Remove Unused " + (if (nameInAction) elemName else "") + "...") {
 
-   def actionPerformed( e: ActionEvent ) {
-      val unused = collect //
-      if( unused.isEmpty ) {
-         val op = new JOptionPane( "There are currently no unused " + elemName + ".", JOptionPane.INFORMATION_MESSAGE )
-         BasicWindowHandler.showDialog( op, null, fullName )
-      } else {
-         val pane = new JPanel( new BorderLayout( 4, 4 ))
-         pane.add( new JLabel( "The following " + elemName + " will be removed:" ), BorderLayout.NORTH )
-         val list = new JList( unused.map( display( _ )).toArray[ AnyRef ])
-         list.setSelectionModel( new DefaultListSelectionModel {
-            override def addSelectionInterval( index0: Int, index1: Int ) {}
-            override def setSelectionInterval( index0: Int, index1: Int ) {}
-         })
-         pane.add( new JScrollPane( list ), BorderLayout.CENTER )
-         val op = new JOptionPane( pane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )
-         val result = BasicWindowHandler.showDialog( op, null, fullName )
-         if( result == JOptionPane.OK_OPTION ) {
-            val ce = ed.editBegin( fullName )
-            unused.foreach( ed.editRemove( ce, _ ))
-            ed.editEnd( ce )
-         }
+  private def fullName = "Remove Unused " + elemName
+
+  def apply() {
+    val unused = collect //
+    if (unused.isEmpty) {
+      val op = new JOptionPane("There are currently no unused " + elemName + ".", JOptionPane.INFORMATION_MESSAGE)
+      WindowHandler.showDialog(op, fullName)
+    } else {
+      val pane = new JPanel(new BorderLayout(4, 4))
+      pane.add(new JLabel("The following " + elemName + " will be removed:"), BorderLayout.NORTH)
+      val list = new JList(unused.map(display(_)).toArray[AnyRef])
+      list.setSelectionModel(new DefaultListSelectionModel {
+        override def addSelectionInterval(index0: Int, index1: Int) {}
+        override def setSelectionInterval(index0: Int, index1: Int) {}
+      })
+      pane.add(new JScrollPane(list), BorderLayout.CENTER)
+      val op = new JOptionPane(pane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
+      val result = WindowHandler.showDialog(op, fullName)
+      if (result == JOptionPane.OK_OPTION) {
+        val ce = ed.editBegin(fullName)
+        unused.foreach(ed.editRemove(ce, _))
+        ed.editEnd(ce)
       }
-   }
+    }
+  }
 }

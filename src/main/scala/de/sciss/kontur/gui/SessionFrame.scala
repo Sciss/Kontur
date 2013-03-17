@@ -29,10 +29,11 @@ package gui
 import java.awt.{FileDialog, Frame}
 import java.awt.event.{ActionEvent, KeyEvent}
 import java.io.{File, IOException}
-import javax.swing.{AbstractAction, Action, JComponent, JOptionPane, KeyStroke, WindowConstants}
+import javax.swing.{AbstractAction, JComponent, JOptionPane, KeyStroke, WindowConstants}
 import session.Session
 import util.{Flag, Model}
-import legacy.MenuAction
+import desktop.WindowHandler
+import swing.Action
 
 trait SessionFrame {
    frame: desktop.impl.WindowImpl =>
@@ -111,7 +112,7 @@ trait SessionFrame {
     title = (if (!handler.usesInternalFrames) handler.application.name else "") +
       (if (doc.isDirty) " - \u2022" else " - ") + name + (elementName.map(e => " - " + e) getOrElse "")
 
-    actionShowWindow.putValue(Action.NAME, name)
+    actionShowWindow.title = name
     actionSave.setEnabled(!writeProtected && doc.isDirty)
     dirty = doc.isDirty
     file  = doc.path
@@ -253,7 +254,7 @@ trait SessionFrame {
        case 0 =>
          confirmed() = false
          val path = if (doc.path.isEmpty || writeProtected) {
-           actionSaveAs.query(actionSave.getValue(Action.NAME).toString)
+           actionSaveAs.query(actionSave.title)
          } else {
            doc.path
          }
@@ -263,24 +264,22 @@ trait SessionFrame {
      }
    }
 
-   protected class ActionClose extends MenuAction {
-      def actionPerformed( e: ActionEvent ) { perform() }
-
-     def perform() {
+   protected class ActionClose extends Action("Close") {
+     def apply() {
        closeDocument(force = false, Flag.False())
      }
    }
 
    // action for the Save-Session menu item
    private class ActionSave
-   extends MenuAction {
+    extends Action("Save") {
       /**
        *  Saves a Session. If the file
        *  wasn't saved before, a file chooser
        *  is shown before.
        */
       def actionPerformed( e: ActionEvent ) {
-         val name = getValue( Action.NAME ).toString
+         val name = title
          (doc.path orElse actionSaveAs.query( name )).foreach( f =>
             perform( name, f, asCopy = false, openAfterSave = false ))
       }
@@ -309,14 +308,15 @@ trait SessionFrame {
 
   // action for the Save-Session-As menu item
   private class ActionSaveAs(asCopy: Boolean)
-    extends MenuAction {
+    extends Action("Save As") {
+
     private val openAfterSave = Flag.False()
 
     /*
      *  Query a file name from the user and save the Session
      */
-    def actionPerformed(e: ActionEvent) {
-      val name = getValue(Action.NAME).toString
+    def apply() {
+      val name = title
       query(name).foreach { f =>
         actionSave.perform(name, f, asCopy = asCopy, openAfterSave = openAfterSave())
       }
@@ -334,7 +334,7 @@ trait SessionFrame {
 		 */
 		protected[gui] def query( name: String ) : Option[ File ] = {
           val dlg = new FileDialog( null.asInstanceOf[ Frame ], name, FileDialog.SAVE )
-          BasicWindowHandler.showDialog( dlg )
+          WindowHandler.showDialog( dlg )
           val dirName   = dlg.getDirectory
           val fileName  = dlg.getFile
           if( dirName != null && fileName != null ) {

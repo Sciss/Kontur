@@ -23,25 +23,21 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
-import java.awt.event.ActionEvent
-import javax.swing.{Action, JOptionPane}
-import de.sciss.kontur.session.Timeline
-import legacy.{MenuAction, GUIUtil, SpringPanel, DefaultUnitTranslator, ParamSpace, Param}
-import de.sciss.kontur.desktop.impl.BasicParamField
-import de.sciss.kontur.desktop.WindowHandler
-import swing.Component
+import javax.swing.JOptionPane
+import session.Timeline
+import legacy.{GUIUtil, SpringPanel, DefaultUnitTranslator, ParamSpace, Param}
+import desktop.impl.BasicParamField
+import desktop.WindowHandler
+import swing.{Action, Component}
 
-abstract class ActionQueryDuration extends MenuAction {
+abstract class ActionQueryDuration(title: String) extends Action(title) {
   private var value = Option.empty[Param]
   private var space = Option.empty[ParamSpace]
 
-  def actionPerformed(e: ActionEvent) {
-    perform()
-  }
-
-  def perform() {
+  final def apply() {
     val msgPane     = new SpringPanel(4, 2, 4, 2)
     val timeTrans   = new DefaultUnitTranslator()
     val ggDuration  = new BasicParamField(timeTrans)
@@ -60,7 +56,7 @@ abstract class ActionQueryDuration extends MenuAction {
     ggDuration.space = space
 
     val op = new JOptionPane(msgPane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
-    val result = WindowHandler.showDialog(parent, op, getValue(Action.NAME).toString)
+    val result = WindowHandler.showDialog(parent, op, title)
 
     if (result == JOptionPane.OK_OPTION) {
       val v = ggDuration.value
@@ -75,8 +71,8 @@ abstract class ActionQueryDuration extends MenuAction {
     }
   }
 
-  protected def editName: String = {
-    val name = getValue(Action.NAME).toString
+  final protected def editName: String = {
+    val name = title
     if (name endsWith "...") name.substring(0, name.length - 3) else name
   }
 

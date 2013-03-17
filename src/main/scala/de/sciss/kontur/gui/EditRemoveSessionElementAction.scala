@@ -27,13 +27,13 @@ package de.sciss.kontur.gui
 
 import java.awt.event.ActionEvent
 import de.sciss.kontur.session.SessionElementSeqEditor
-import legacy.MenuAction
+import swing.Action
 
-class EditRemoveSessionElementAction[T](elemName: String, elem: T, ed: SessionElementSeqEditor[T],
-                                        nameInAction: Boolean = false)
-  extends MenuAction(if (nameInAction) "Remove " + elemName else "Remove") {
+final class EditRemoveSessionElementAction[T](elemName: String, elem: T, ed: SessionElementSeqEditor[T],
+                                              nameInAction: Boolean = false)
+  extends Action(if (nameInAction) "Remove " + elemName else "Remove") {
 
-  def actionPerformed(a: ActionEvent) {
+  def apply(a: ActionEvent) {
     val ce = ed.editBegin("Remove " + elemName)
     ed.editRemove(ce, elem)
     ed.editEnd(ce)

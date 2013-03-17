@@ -1,12 +1,8 @@
-//package legacy;
+//package de.sciss.kontur
+//package desktop
+//package impl
 //
-//import java.awt.event.ActionEvent;
-//import javax.swing.Action;
-//import javax.swing.ActionMap;
-//import javax.swing.AbstractAction;
-//import javax.swing.InputMap;
-//import javax.swing.JComponent;
-//import javax.swing.KeyStroke;
+//import swing.Action
 //
 ///**
 // *  A simple extension of <code>AbstractAction</code>
@@ -14,17 +10,8 @@
 // *  <code>ACCELERATOR_KEY</code> field. This field
 // *  is read when the action is attached to a
 // *  <code>JMenuItem</code>.
-// *
-// *  @author		Hanns Holger Rutz
-// *  @version	0.2, 01-Oct-05
-// *
-// *  @see	javax.swing.JMenuItem#setAccelerator( KeyStroke )
-// *  @see	javax.swing.JMenuItem#configurePropertiesFromAction( Action )
-// *  @see	javax.swing.AbstractButton#setAction( Action )
 // */
-//public abstract class MenuAction
-//extends AbstractAction
-//{
+//abstract class MenuActionImpl(title: String) extends MenuAction(String) {
 //	/**
 //	 *  Constructs a new <code>MenuAction</code> with the given
 //	 *  text and accelerator shortcut which will be

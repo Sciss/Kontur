@@ -13,6 +13,7 @@ object WindowImpl {
   sealed trait Delegate {
     var contents: Component
     def component: Component
+    var closeOperation: Window.CloseOperation
     var title: String
     var resizable: Boolean
     def putRootPaneProperty(name: String, value: Any): Unit
@@ -34,6 +35,8 @@ trait WindowImpl extends Window {
   final protected def title_=(value: String) { delegate.title = value }
   final def resizable = delegate.resizable
   final protected def resizable_=(value: Boolean) { delegate.resizable = value }
+  final protected def closeOperation = delegate.closeOperation
+  final protected def closeOperation_=(value: Window.CloseOperation) { delegate.closeOperation = value }
 
   final protected def pack() { delegate.pack() }
   final protected def contents = delegate.contents

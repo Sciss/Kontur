@@ -29,27 +29,28 @@ import java.awt.event.ActionEvent
 import javax.swing.JOptionPane
 import de.sciss.kontur.edit.Editor
 import de.sciss.kontur.session.Renamable
-import legacy.MenuAction
+import swing.Action
 
-class EditRenameAction( r: Renamable, ed: Editor, name: String = "Rename..." )
-extends MenuAction( name ) {
-   def actionPerformed( a: ActionEvent ) {
-      val op = new JOptionPane( "Enter new name:", JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )
-      op.setWantsInput( true )
-      op.setInitialSelectionValue( r.name )
-      val result = BasicWindowHandler.showDialog( op, null, name )
+class EditRenameAction(r: Renamable, ed: Editor, name: String = "Rename...")
+  extends Action(name) {
 
-      if( result == JOptionPane.OK_OPTION ) {
-         val newName = op.getInputValue.toString
-         val ce = ed.editBegin( name )
-         r.editRename( ce, newName )
-//         val edit = new SimpleEdit( name ) {
-//            lazy val oldName = r.name
-//            def apply() { oldName; r.name = newName }
-//            def unapply() { r.name = oldName }
-//         }
-//         ce.addPerform( edit )
-         ed.editEnd( ce )
-      }
-   }
+  def actionPerformed(a: ActionEvent) {
+    val op = new JOptionPane("Enter new name:", JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
+    op.setWantsInput(true)
+    op.setInitialSelectionValue(r.name)
+    val result = BasicWindowHandler.showDialog(op, null, name)
+
+    if (result == JOptionPane.OK_OPTION) {
+      val newName = op.getInputValue.toString
+      val ce = ed.editBegin(name)
+      r.editRename(ce, newName)
+      // val edit = new SimpleEdit( name ) {
+      //   lazy val oldName = r.name
+      //   def apply() { oldName; r.name = newName }
+      //   def unapply() { r.name = oldName }
+      // }
+      // ce.addPerform( edit )
+      ed.editEnd(ce)
+    }
+  }
 }

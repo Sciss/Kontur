@@ -31,12 +31,14 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.dnd.DnDConstants
 import java.awt.event.ActionEvent
 import java.io.{File, FilenameFilter, IOException}
-import javax.swing.{AbstractAction, Action, JOptionPane}
+import javax.swing.{AbstractAction, JOptionPane}
 import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel}
 import de.sciss.synth.io.AudioFile
 import session.{MatrixDiffusion, Diffusions, AudioFileElement, AudioFileSeq, AudioTrack, BasicTimeline, Diffusion, Renamable, Session, SessionElement, SessionElementSeq, Timeline, Track}
 import util.Model
 import de.sciss.desktop.Menu
+import swing.Action
+import desktop.WindowHandler
 
 abstract class DynamicTreeNode( model: SessionTreeModel, obj: AnyRef, canExpand: Boolean )
 extends DefaultMutableTreeNode( obj, canExpand )
@@ -99,13 +101,13 @@ extends DefaultMutableTreeNode( obj, canExpand )
   }
 }
 
-class SessionTreeModel( val doc: Session )
-extends DefaultTreeModel( null )
-/* with DynamicListening */ {
+class SessionTreeModel(val doc: Session)
+  extends DefaultTreeModel(null)
+  /* with DynamicListening */ {
 
-   private val docRoot = new SessionTreeRoot( this )
+  private val docRoot = new SessionTreeRoot(this)
 
-  setRoot( docRoot )
+  setRoot(docRoot)
 
   def startListening() {
     docRoot.startListening()
@@ -128,157 +130,160 @@ trait UniqueCount {
 }
 */
 
-class SessionTreeRoot( val model: SessionTreeModel )
-extends DynamicTreeNode( model, model.doc, true ) {
-  private val timelines   = new TimelinesTreeIndex( model, model.doc.timelines )
-  private val audioFiles  = new AudioFilesTreeIndex( model, model.doc.audioFiles )
-  private val diffusions  = new DiffusionsTreeIndex( model, model.doc.diffusions )
+class SessionTreeRoot(val model: SessionTreeModel)
+  extends DynamicTreeNode(model, model.doc, true) {
+
+  private val timelines  = new TimelinesTreeIndex (model, model.doc.timelines)
+  private val audioFiles = new AudioFilesTreeIndex(model, model.doc.audioFiles)
+  private val diffusions = new DiffusionsTreeIndex(model, model.doc.diffusions)
 
   // ---- constructor ----
-  addDyn( timelines )
-  addDyn( audioFiles )
-  addDyn( diffusions )
+  addDyn(timelines)
+  addDyn(audioFiles)
+  addDyn(diffusions)
 
   override def toString = model.doc.displayName
 }
 
-abstract class SessionElementSeqTreeNode[ El <: SessionElement ](
-  model: SessionTreeModel, seq: SessionElementSeq[ El ])
-extends DynamicTreeNode( model, seq, true )
-// with HasContextMenu
-{
-    protected def wrap( elem: El ) : DynamicTreeNode
+abstract class SessionElementSeqTreeNode[El <: SessionElement](model: SessionTreeModel, seq: SessionElementSeq[El])
+  extends DynamicTreeNode(model, seq, true) {
 
-    private val seqListener: Model.Listener = {
-      case seq.ElementAdded( idx, elem ) => insertDyn( idx, wrap( elem ))
-      case seq.ElementRemoved( idx, elem ) => removeDyn( idx )
-    }
-    
-    override def startListening() {
-      // cheesy shit ...
-      // that is why eventually we should use
-      // our own tree model instead of the defaulttreemodel...
-//      removeAllChildren()
-      seq.foreach( elem => add( wrap( elem ))) // not addDyn, because super does that
-      seq.addListener( seqListener )
-      super.startListening()
-    }
-    
-    override def stopListening() {
-      seq.removeListener( seqListener )
-      super.stopListening()
-      removeAllChildren()
-    }
+  protected def wrap(elem: El): DynamicTreeNode
 
-   override def toString = seq.name
+  private val seqListener: Model.Listener = {
+    case seq.ElementAdded(idx, elem) => insertDyn(idx, wrap(elem))
+    case seq.ElementRemoved(idx, elem) => removeDyn(idx)
+  }
+
+  override def startListening() {
+    // cheesy shit ...
+    // that is why eventually we should use
+    // our own tree model instead of the defaulttreemodel...
+    //      removeAllChildren()
+    seq.foreach(elem => add(wrap(elem))) // not addDyn, because super does that
+    seq.addListener(seqListener)
+    super.startListening()
+  }
+
+  override def stopListening() {
+    seq.removeListener(seqListener)
+    super.stopListening()
+    removeAllChildren()
+  }
+
+  override def toString = seq.name
 }
 
-class TimelinesTreeIndex( model: SessionTreeModel, timelines: SessionElementSeq[ Timeline ])
-extends SessionElementSeqTreeNode( model, timelines )
-with HasContextMenu {
+class TimelinesTreeIndex(model: SessionTreeModel, timelines: SessionElementSeq[Timeline])
+  extends SessionElementSeqTreeNode(model, timelines)
+  with HasContextMenu {
 
-    def createContextMenu() : Option[ PopupRoot ] = {
-     val root = new PopupRoot()
-     val miAddNew = Menu.Item( "new", new AbstractAction( "New Timeline" ) {
-        def actionPerformed( a: ActionEvent ) {
-           timelines.editor.foreach( ed => {
-             val ce = ed.editBegin( getValue( Action.NAME ).toString )
-             val tl = BasicTimeline.newEmpty( model.doc )
-//             timelines += tl
-              ed.editInsert( ce, timelines.size, tl )
-              ed.editEnd( ce )
-           })
+  def createContextMenu(): Option[PopupRoot] = {
+    val root = new PopupRoot()
+    val miAddNew = Menu.Item("new", new Action("New Timeline") {
+      def apply() {
+        timelines.editor.foreach { ed =>
+          val ce = ed.editBegin(title)
+          val tl = BasicTimeline.newEmpty(model.doc)
+          //             timelines += tl
+          ed.editInsert(ce, timelines.size, tl)
+          ed.editEnd(ce)
         }
-     })
-     root.add( miAddNew )
-     Some( root )
-   }
+      }
+    })
+    root.add(miAddNew)
+    Some(root)
+  }
 
-  protected def wrap( elem: Timeline ): DynamicTreeNode =
-    new TimelineTreeIndex( model, timelines, elem ) // with UniqueCount
+  protected def wrap(elem: Timeline): DynamicTreeNode =
+    new TimelineTreeIndex(model, timelines, elem) // with UniqueCount
 }
 
-class AudioFilesTreeIndex( model: SessionTreeModel, audioFiles: AudioFileSeq )
-extends SessionElementSeqTreeNode( model, audioFiles )
-with HasContextMenu with CanBeDropTarget {
+class AudioFilesTreeIndex(model: SessionTreeModel, audioFiles: AudioFileSeq)
+  extends SessionElementSeqTreeNode(model, audioFiles)
+  with HasContextMenu with CanBeDropTarget {
 
-   def createContextMenu() : Option[ PopupRoot ] = {
-      val root = new PopupRoot()
-      val miAddNew = Menu.Item( "new", new AbstractAction( "Add..." )
-                                 with FilenameFilter {
-         def actionPerformed( a: ActionEvent ) {
-            audioFiles.editor.foreach( ed => {
-               getPath.foreach( path => {
-                  val name = "Add Audio File" // getValue( Action.NAME ).toString
-                  try {
-                     val spec = AudioFile.readSpec( path )
-                     val ce = ed.editBegin( name )
-                     val afe = new AudioFileElement( path, spec.numFrames, spec.numChannels, spec.sampleRate )
-                     ed.editInsert( ce, audioFiles.size, afe )
-                     ed.editEnd( ce )
-                  }
-                  catch { case e1: IOException => BasicWindowHandler.showErrorDialog( null, e1, name )}
-               })
-            })
-         }
-
-         private def getPath: Option[ File ] = {
-            val dlg = new FileDialog( null.asInstanceOf[ Frame ], getValue( Action.NAME ).toString )
-            dlg.setFilenameFilter( this )
-//          dlg.show
-            BasicWindowHandler.showDialog( dlg )
-            val dirName   = dlg.getDirectory
-            val fileName  = dlg.getFile
-            if( dirName != null && fileName != null ) {
-               Some( new File( dirName, fileName ))
-            } else {
-               None
-            }
-         }
-
-         def accept( dir: File, name: String ) : Boolean = {
-            val f = new File( dir, name )
+  def createContextMenu(): Option[PopupRoot] = {
+    val root = new PopupRoot()
+    val miAddNew = Menu.Item("new", new AbstractAction("Add...")
+      with FilenameFilter {
+      def actionPerformed(a: ActionEvent) {
+        audioFiles.editor.foreach(ed => {
+          getPath.foreach(path => {
+            val name = "Add Audio File" // getValue( Action.NAME ).toString
             try {
-               AudioFile.identify( f ).isDefined
+              val spec = AudioFile.readSpec(path)
+              val ce = ed.editBegin(name)
+              val afe = new AudioFileElement(path, spec.numFrames, spec.numChannels, spec.sampleRate)
+              ed.editInsert(ce, audioFiles.size, afe)
+              ed.editEnd(ce)
             }
-            catch { case e1: IOException => false }
-         }
-      })
-      root.add( miAddNew )
+            catch {
+              case e1: IOException => WindowHandler.showErrorDialog(e1, name)
+            }
+          })
+        })
+      }
 
-      val miRemoveUnused = Menu.Item( "removeUnused",
-         new EditRemoveUnusedElementsAction[ AudioFileElement ]( "Audio Files", audioFiles, audioFiles.unused,
-            _.path.getName ))
-      root.add( miRemoveUnused )
+      private def getPath: Option[File] = {
+        val dlg = new FileDialog(null.asInstanceOf[Frame], getValue(Action.NAME).toString)
+        dlg.setFilenameFilter(this)
+        // dlg.show
+        WindowHandler.showDialog(dlg)
+        val dirName = dlg.getDirectory
+        val fileName = dlg.getFile
+        if (dirName != null && fileName != null) {
+          Some(new File(dirName, fileName))
+        } else {
+          None
+        }
+      }
 
-      Some( root )
-   }
+      def accept(dir: File, name: String): Boolean = {
+        val f = new File(dir, name)
+        try {
+          AudioFile.identify(f).isDefined
+        }
+        catch {
+          case e1: IOException => false
+        }
+      }
+    })
+    root.add(miAddNew)
 
-  protected def wrap( elem: AudioFileElement ): DynamicTreeNode =
-    new AudioFileTreeLeaf( model, audioFiles, elem ) // with UniqueCount
+    val miRemoveUnused = Menu.Item("removeUnused",
+      new EditRemoveUnusedElementsAction[AudioFileElement]("Audio Files", audioFiles, audioFiles.unused,
+        _.path.getName))
+    root.add(miRemoveUnused)
 
-   // ---- CanBeDropTarget ----
-    def pickImport( flavors: List[ DataFlavor ], actions: Int ) : Option[ (DataFlavor, Int) ] = {
-       flavors.find( _ == AudioFileElement.flavor ).map( f => {
-          val action  = actions & DnDConstants.ACTION_COPY
-          (f, action)
-       })
+    Some(root)
+  }
+
+  protected def wrap(elem: AudioFileElement): DynamicTreeNode =
+    new AudioFileTreeLeaf(model, audioFiles, elem) // with UniqueCount
+
+  // ---- CanBeDropTarget ----
+  def pickImport(flavors: List[DataFlavor], actions: Int): Option[(DataFlavor, Int)] = {
+    flavors.find(_ == AudioFileElement.flavor).map { f =>
+      val action = actions & DnDConstants.ACTION_COPY
+      (f, action)
     }
+  }
 
-    def importData( data: AnyRef, flavor: DataFlavor, action: Int ) : Boolean = data match {
-       case afe: AudioFileElement => {
-          audioFiles.editor.map( ed => {
-             val success = !audioFiles.contains( afe )
-             if( success ) {
-                val ce = ed.editBegin( "addAudioFile" )
-                ed.editInsert( ce, audioFiles.size, afe )
-                ed.editEnd( ce )
-             }
-             success
-          }) getOrElse false
-       }
-       case _ => false
+  def importData(data: AnyRef, flavor: DataFlavor, action: Int): Boolean = data match {
+    case afe: AudioFileElement => {
+      audioFiles.editor.map { ed =>
+        val success = !audioFiles.contains(afe)
+        if (success) {
+          val ce = ed.editBegin("addAudioFile")
+          ed.editInsert(ce, audioFiles.size, afe)
+          ed.editEnd(ce)
+        }
+        success
+      } getOrElse false
     }
+    case _ => false
+  }
 }
 
 class DiffusionsTreeIndex( model: SessionTreeModel, diffusions: Diffusions ) // SessionElementSeq[ Diffusion ]
@@ -290,36 +295,34 @@ with HasContextMenu with CanBeDropTarget {
       val strNew = "New" // XXX getResourceString
       val mgAdd = Menu.Group( "new", strNew )
 
-      DiffusionGUIFactory.registered.foreach { entry =>
-         val (name, gf) = entry
-         val fullName = strNew + " " + gf.factory.humanReadableName
-         val miAddNew = Menu.Item( name, new AbstractAction( gf.factory.humanReadableName ) {
-            def actionPerformed( a: ActionEvent ) {
-               val panel = gf.createPanel( model.doc )
-               val op = new JOptionPane( panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )
-               val result = BasicWindowHandler.showDialog( op, null, fullName )
-               if( result == JOptionPane.OK_OPTION ) {
-                  val diffO = gf.fromPanel( panel )
-                  diffO.foreach( diff => {
-                     val ce = diffusions.editBegin( fullName )
-                     diffusions.editInsert( ce, diffusions.size, diff )
-                     diffusions.editEnd( ce )
-                  })
-               }
-            }
-         })
-         mgAdd.add( miAddNew )
-      }
-      root.add( mgAdd )
+     DiffusionGUIFactory.registered.foreach { entry =>
+       val (name, gf) = entry
+       val fullName = strNew + " " + gf.factory.humanReadableName
+       val miAddNew = Menu.Item(name, Action(gf.factory.humanReadableName) {
+         val panel  = gf.createPanel(model.doc)
+         val op     = new JOptionPane(panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
+         val result = WindowHandler.showDialog(op, fullName)
+         if (result == JOptionPane.OK_OPTION) {
+           val diffO = gf.fromPanel(panel)
+           diffO.foreach(diff => {
+             val ce = diffusions.editBegin(fullName)
+             diffusions.editInsert(ce, diffusions.size, diff)
+             diffusions.editEnd(ce)
+           })
+         }
+       })
+       mgAdd.add(miAddNew)
+     }
+     root.add(mgAdd)
 
-      val miRemoveUnused = Menu.Item( "removeUnused",
-         new EditRemoveUnusedElementsAction[ Diffusion ]( "Diffusions", diffusions, diffusions.unused, _.name ))
-      root.add( miRemoveUnused )
+     val miRemoveUnused = Menu.Item("removeUnused",
+       new EditRemoveUnusedElementsAction[Diffusion]("Diffusions", diffusions, diffusions.unused, _.name))
+     root.add(miRemoveUnused)
 
-      Some( root )
+     Some(root)
    }
-   
-   protected def wrap( elem: Diffusion ): DynamicTreeNode =
+
+  protected def wrap( elem: Diffusion ): DynamicTreeNode =
       new DiffusionTreeLeaf( model, elem ) // with UniqueCount
 
    // ---- CanBeDropTarget ----
@@ -391,59 +394,60 @@ with HasDoubleClickAction {
   override def toString = "View"
 }
 
-class TracksTreeIndex( model: SessionTreeModel, tl: Timeline )
-extends SessionElementSeqTreeNode( model, tl.tracks )
-with HasContextMenu with CanBeDropTarget {
-   def createContextMenu() : Option[ PopupRoot ] = {
-      val root = new PopupRoot()
-      val miAddNewAudio = Menu.Item( "new", new AbstractAction( "New Audio Track" ) {
-         def actionPerformed( a: ActionEvent ) {
-            tl.tracks.editor.foreach( ed => {
-               val ce = ed.editBegin( getValue( Action.NAME ).toString )
-               val t = new AudioTrack( model.doc )
-               ed.editInsert( ce, tl.tracks.size, t )
-               ed.editEnd( ce )
-            })
-         }
-      })
+final class TracksTreeIndex(model: SessionTreeModel, tl: Timeline)
+  extends SessionElementSeqTreeNode(model, tl.tracks)
+  with HasContextMenu with CanBeDropTarget {
 
-      tl.tracks.editor.foreach { ed =>
-         root.add( Menu.Item( "removeUnused",
-            new EditRemoveUnusedElementsAction[ Track ]( "Tracks", ed, tl.tracks.filter( _.trail.isEmpty ), _.name )))
+  def createContextMenu(): Option[PopupRoot] = {
+    val root = new PopupRoot()
+    val miAddNewAudio = Menu.Item("new", new Action("New Audio Track") {
+      def apply() {
+        tl.tracks.editor.foreach { ed =>
+          val ce = ed.editBegin(title)
+          val t = new AudioTrack(model.doc)
+          ed.editInsert(ce, tl.tracks.size, t)
+          ed.editEnd(ce)
+        }
       }
+    })
 
-      root.add( miAddNewAudio )
-      Some( root )
-   }
+    tl.tracks.editor.foreach { ed =>
+      root.add(Menu.Item("removeUnused",
+        new EditRemoveUnusedElementsAction[Track]("Tracks", ed, tl.tracks.filter(_.trail.isEmpty), _.name)))
+    }
 
-   protected def wrap( elem: Track ): DynamicTreeNode =
-      new TrackTreeLeaf( model, tl.tracks, elem )
+    root.add(miAddNewAudio)
+    Some(root)
+  }
 
-   // ---- CanBeDropTarget ----
-   def pickImport( flavors: List[ DataFlavor ], actions: Int ) : Option[ (DataFlavor, Int) ] = {
-      flavors.find( _ == Track.flavor ).map( f => {
-         val action  = actions & DnDConstants.ACTION_COPY_OR_MOVE
-         (f, action)
-      })
-   }
+  protected def wrap(elem: Track): DynamicTreeNode =
+    new TrackTreeLeaf(model, tl.tracks, elem)
 
-   def importData( data: AnyRef, flavor: DataFlavor, action: Int ) : Boolean = data match {
-      case t: Track => {
-         tl.tracks.editor.map( ed => {
-            val success = !tl.tracks.contains( t )
-            if( success ) {
-// XXX
-//               if( !model.doc.diffusions.contains( t.diffusion )) ...
-//               if( !model.doc.audioFiles.contains( t.trail.audiofiles....)) ...
-               val ce = ed.editBegin( "addTrack" )
-               ed.editInsert( ce, tl.tracks.size, t )
-               ed.editEnd( ce )
-            }
-            success
-         }) getOrElse false
-      }
-      case _ => false
-   }
+  // ---- CanBeDropTarget ----
+  def pickImport(flavors: List[DataFlavor], actions: Int): Option[(DataFlavor, Int)] = {
+    flavors.find(_ == Track.flavor).map(f => {
+      val action = actions & DnDConstants.ACTION_COPY_OR_MOVE
+      (f, action)
+    })
+  }
+
+  def importData(data: AnyRef, flavor: DataFlavor, action: Int): Boolean = data match {
+    case t: Track =>
+      tl.tracks.editor.map(ed => {
+        val success = !tl.tracks.contains(t)
+        if (success) {
+          // XXX
+          //               if( !model.doc.diffusions.contains( t.diffusion )) ...
+          //               if( !model.doc.audioFiles.contains( t.trail.audiofiles....)) ...
+          val ce = ed.editBegin("addTrack")
+          ed.editInsert(ce, tl.tracks.size, t)
+          ed.editEnd(ce)
+        }
+        success
+      }) getOrElse false
+
+    case _ => false
+  }
 }
 
 class TrackTreeLeaf( model: SessionTreeModel, trs: SessionElementSeq[ Track ], t: Track )
@@ -506,7 +510,7 @@ with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
                               "\" (old file) and\n\"" + newFile.path.getPath + "\" (new file):\n\n" +
                               warnings.mkString( "\n" ) +
                               "\n\nDo you still want to replace it?", JOptionPane.WARNING_MESSAGE, JOptionPane.YES_NO_OPTION )
-                           val result = BasicWindowHandler.showDialog( op, null, name )
+                           val result = WindowHandler.showDialog( op, name )
                            result == JOptionPane.YES_OPTION
                         } else true
 
@@ -516,7 +520,7 @@ with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
                            afs.editEnd( ce )
                         }
                      }
-                     catch { case e: IOException => BasicWindowHandler.showErrorDialog( null, e, name )}
+                     catch { case e: IOException => WindowHandler.showErrorDialog( e, name )}
                   })
                }
 

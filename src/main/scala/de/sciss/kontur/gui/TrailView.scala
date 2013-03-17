@@ -27,12 +27,12 @@ package de.sciss.kontur
 package gui
 
 import javax.swing.undo.UndoManager
-import de.sciss.app.AbstractCompoundEdit
 import edit.{ Editor, SimpleEdit }
 import session.{ Session, Stake, Trail }
 import util.Model
 import de.sciss.span.Span
 import de.sciss.span.Span.SpanOrVoid
+import legacy.AbstractCompoundEdit
 
 object TrailView {
    // FUCKING SCHEISS DOES NOT COMPILE ANY MORE
@@ -152,15 +152,4 @@ extends TrailView[ T ] with TrailViewEditor[ T ] {
         ce.addPerform( edit )
     }
   }
-
-//  private class StakeView {
-//    var selected = false
-//  }
 }
-
-/*
-trait TrailsView extends Model {
-    def isSelected[ T <: Stake[ T ]]( s: T ) : Boolean
-    def selectedStakes: Set[ _ <: Stake[ _ ]]
-}
-*/

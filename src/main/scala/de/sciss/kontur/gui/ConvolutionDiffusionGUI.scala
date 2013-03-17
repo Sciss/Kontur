@@ -60,7 +60,7 @@ extends JPanel with desktop.impl.DynamicComponentImpl with FilenameFilter {
    private val ggPath         = new PathField( legacy.PathField.TYPE_INPUTFILE | legacy.PathField.TYPE_FORMATFIELD, "Choose Impulse Response Audiofile" )
    private val ggGain         = new BasicParamField()
    private val ggDelay        = new BasicParamField()
-   private val msgPtrn		   = "{0,choice,0#no channels|1#mono|2#stereo|2<{0,number,integer}-ch}, {1,number,########} frames / fft {2,number,########}, {3,number,0.###} kHz, {4,number,integer}:{5,number,00.000}";
+   private val msgPtrn		   = "{0,choice,0#no channels|1#mono|2#stereo|2<{0,number,integer}-ch}, {1,number,########} frames / fft {2,number,########}, {3,number,0.###} kHz, {4,number,integer}:{5,number,00.000}"
    private val msgForm		   = new MessageFormat( msgPtrn, Locale.US )
 
    private val diffListener: Model.Listener = {
@@ -100,21 +100,23 @@ extends JPanel with desktop.impl.DynamicComponentImpl with FilenameFilter {
          def pathChanged( e: PathEvent ) { editSetPath( e.getPath )}
       })
 
-      ggGain.addListener( new legacy.PathField.Listener {
-         def paramValueChanged( e: legacy.PathField.Event ) {
-            if( !e.isAdjusting ) editSetGain( e.getTranslatedValue( spcAbsGain ).`val`.toFloat )
-         }
-         def paramSpaceChanged( e: legacy.PathField.Event ) {}
-      })
+     ggGain.addListener(new BasicParamField.Listener {
+       def paramValueChanged(e: BasicParamField.Event) {
+         if (!e.isAdjusting) editSetGain(e.getTranslatedValue(spcAbsGain).value.toFloat)
+       }
 
-      ggDelay.addListener( new legacy.PathField.Listener {
-         def paramValueChanged( e: legacy.PathField.Event ) {
-            if( !e.isAdjusting ) editSetDelay( (e.getValue.`val` / 1000).toFloat )
-         }
-         def paramSpaceChanged( e: legacy.PathField.Event ) {}
-      })
+       def paramSpaceChanged(e: BasicParamField.Event) {}
+     })
 
-      layout.setHorizontalGroup( layout.createSequentialGroup()
+     ggDelay.addListener(new BasicParamField.Listener {
+       def paramValueChanged(e: BasicParamField.Event) {
+         if (!e.isAdjusting) editSetDelay((e.value.value / 1000).toFloat)
+       }
+
+       def paramSpaceChanged(e: BasicParamField.Event) {}
+     })
+
+     layout.setHorizontalGroup( layout.createSequentialGroup()
          .addGroup( layout.createParallelGroup()
             .addComponent( lbName )
             .addComponent( lbPath )
@@ -219,7 +221,7 @@ extends JPanel with desktop.impl.DynamicComponentImpl with FilenameFilter {
                msgForm.format( Array( int2Integer( cdiff.numOutputChannels ),
                   long2Long( cdiff.numFrames ), int2Integer( fftSize ),
                   float2Float( (cdiff.sampleRate / 1000).toFloat ),
-                  int2Integer( (millis / 60000).toInt ),
+                  int2Integer( millis / 60000 ),
                   double2Double( (millis % 60000).toDouble / 1000 ))) // stupid shit XXX
             }) getOrElse "<No Path Chosen>", true )
          }

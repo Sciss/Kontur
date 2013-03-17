@@ -3,6 +3,7 @@ package de.sciss.kontur.desktop
 import swing.{Component, Dialog}
 import impl.{WindowHandlerImpl => Impl}
 import javax.swing.{JOptionPane, JFrame, RootPaneContainer, JInternalFrame, SwingUtilities}
+import java.awt.{Rectangle, GraphicsEnvironment, Toolkit}
 
 object WindowHandler {
 //  final val OPTION_EXCLUDE_FONT: AnyRef = "excludefont"
@@ -12,6 +13,11 @@ object WindowHandler {
 
   def showDialog(parent: Component, dialog: Dialog)                   { Impl.showDialog(parent, dialog) }
   def showDialog(parent: Component, pane: JOptionPane, title: String) { Impl.showDialog(parent, pane, title) }
+  def showDialog(pane: JOptionPane, title: String)                    { Impl.showDialog(pane, title) }
+
+  def menuShortcut: Int = Toolkit.getDefaultToolkit.getMenuShortcutKeyMask
+
+  def availableSpace: Rectangle = GraphicsEnvironment.getLocalGraphicsEnvironment.getMaximumWindowBounds
 }
 trait WindowHandler {
   def application: SwingApplication

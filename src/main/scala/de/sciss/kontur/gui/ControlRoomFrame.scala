@@ -102,8 +102,6 @@ class ControlRoomFrame extends desktop.impl.WindowImpl {
 
   updateVolume()
 
-  closeOperation = desktop.Window.CloseDispose // CloseIgnore // window listener see above!
-  // init()
   application.addComponent(Kontur.COMP_CTRLROOM, this)
 
   private def superCollider = SuperColliderClient.instance

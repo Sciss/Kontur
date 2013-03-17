@@ -30,17 +30,17 @@ import io.EisenkrautClient
 import session.{AudioRegion, AudioTrack, Session, SessionUtil, Stake, ResizableStake, Timeline, Track}
 import util.PrefsUtil
 import java.awt.event.{ActionEvent, ActionListener, InputEvent, KeyEvent}
-import java.awt.{Component, Dimension, Point, Rectangle}
+import java.awt.{Dimension, Point, Rectangle}
 import java.io.File
-import javax.swing.{AbstractAction, Action, Box, ButtonGroup, JButton, JComponent, JLabel, JOptionPane, JProgressBar, JRadioButton, KeyStroke, SwingUtilities}
+import javax.swing.{Box, ButtonGroup, JButton, JComponent, JLabel, JOptionPane, JProgressBar, JRadioButton, KeyStroke, SwingUtilities}
 import scala.math._
 import de.sciss.synth.io.{AudioFileType, SampleFormat, AudioFileSpec}
 import de.sciss.span.Span
 import Span.SpanOrVoid
 import language.reflectiveCalls
-import legacy.{MenuAction, DefaultUnitTranslator, Param, ParamSpace, GUIUtil}
-import swing.BorderPanel
-import desktop.Window
+import legacy.{DefaultUnitTranslator, Param, ParamSpace, GUIUtil}
+import swing.{Action, Component, BorderPanel}
+import desktop.{WindowHandler, Window}
 
 object TimelineFrame {
   protected val lastLeftTop		= new Point()
@@ -85,14 +85,14 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
     	// ---- actions ----
 		val imap		= getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW )
 		val amap		= getActionMap
-		val myMeta		= if( BasicMenuFactory.MENU_SHORTCUT == InputEvent.CTRL_MASK )
-			InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK else BasicMenuFactory.MENU_SHORTCUT	// META on Mac, CTRL+SHIFT on PC
+		val myMeta		= if( WindowHandler.menuShortcut== InputEvent.CTRL_MASK )
+			InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK else WindowHandler.menuShortcut	// META on Mac, CTRL+SHIFT on PC
 
 		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_LEFT, InputEvent.CTRL_MASK ), "inch" )
-		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_OPEN_BRACKET, BasicMenuFactory.MENU_SHORTCUT ), "inch" )
+		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_OPEN_BRACKET, WindowHandler.menuShortcut), "inch" )
 		amap.put( "inch", new ActionSpanWidth( 2.0 ))
 		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT, InputEvent.CTRL_MASK ), "dech" )
-		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_CLOSE_BRACKET, BasicMenuFactory.MENU_SHORTCUT ), "dech" )
+		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_CLOSE_BRACKET, WindowHandler.menuShortcut ), "dech" )
 		amap.put( "dech", new ActionSpanWidth( 0.5 ))
 //		imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT, myMeta ), "samplvl" )
 //		amap.put( "samplvl", new ActionSpanWidth( 0.0 ))
@@ -191,8 +191,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
 
   private def initBounds() {
 		val cp	= getClassPrefs
-		val bwh	= handler
-		val sr	= bwh.getWindowSpace
+		val sr	= WindowHandler.availableSpace
       val dt	= /* AppWindow.*/ stringToDimension( cp.get( TimelineFrame.KEY_TRACKSIZE, null ))
 		val d	= if( dt == null ) new Dimension() else dt
 		val hf	= 1f // Math.sqrt( Math.max( 1, waveView.getNumChannels() )).toFloat
@@ -269,92 +268,92 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
       })
     }
 
-   private object ActionNudgeAmount extends ActionQueryDuration {
-      protected def timeline : Timeline = timelineView.timeline
-      protected def parent : Component = frame.component
+   private object ActionNudgeAmount extends ActionQueryDuration("Nudge Amount") {
+     protected def timeline: Timeline   = timelineView.timeline
+     protected def parent  : Component  = frame.component
 
-      protected def initiate( v: Param, trans: ParamSpace.Translator ) {
-         prefs.put( PrefsUtil.KEY_NUDGEAMOUNT, v.toString )
-      }
+     protected def initiate(v: Param, trans: ParamSpace.Translator) {
+       prefs.put(PrefsUtil.KEY_NUDGEAMOUNT, v.toString)
+     }
 
-      private def prefs = application.userPrefs.node( PrefsUtil.NODE_GUI )
+     private def prefs = application.userPrefs.node(PrefsUtil.NODE_GUI)
 
-      protected def initialValue : Param = Param.fromPrefs( prefs, PrefsUtil.KEY_NUDGEAMOUNT, new Param( 0.1, ParamSpace.TIME | ParamSpace.SECS ))
+     protected def initialValue: Param = Param.fromPrefs(prefs, PrefsUtil.KEY_NUDGEAMOUNT, new Param(0.1, ParamSpace.TIME | ParamSpace.SECS))
 
-      def numFrames: Long = {
-         val v       = initialValue
-         val trans   = new DefaultUnitTranslator()
-         val tl      = timeline
-         trans.setLengthAndRate( tl.span.length, tl.rate )
-         (trans.translate( v, ParamSpace.spcTimeSmps ).`val` + 0.5).toLong
-      }
+     def numFrames: Long = {
+       val v      = initialValue
+       val trans  = new DefaultUnitTranslator()
+       val tl     = timeline
+       trans.setLengthAndRate(tl.span.length, tl.rate)
+       (trans.translate(v, ParamSpace.spcTimeSmps).value + 0.5).toLong
+     }
    }
 
-   private object ActionInsertSpan extends ActionQueryDuration {
-      protected def timeline : Timeline = timelineView.timeline
-      protected def parent : Component = frame.component
-      protected def initialValue : Param = new Param( 60.0, ParamSpace.TIME | ParamSpace.SECS )
+  private object ActionInsertSpan extends ActionQueryDuration("Insert Span") {
+    protected def timeline: Timeline = timelineView.timeline
 
-      protected def initiate(v: Param, trans: ParamSpace.Translator) {
-        val delta = (trans.translate(v, ParamSpace.spcTimeSmps).`val` + 0.5).toLong
-        if (delta <= 0L) return
-        val pos = timelineView.cursor.position
-        val span = Span(pos, pos + delta)
+    protected def parent: Component = frame.component
 
-        val tl = timeline
+    protected def initialValue: Param = new Param(60.0, ParamSpace.TIME | ParamSpace.SECS)
 
-        require( (pos >= tl.span.start) && (pos <= tl.span.stop), span.toString )
+    protected def initiate(v: Param, trans: ParamSpace.Translator) {
+      val delta = (trans.translate(v, ParamSpace.spcTimeSmps).value + 0.5).toLong
+      if (delta <= 0L) return
+      val pos   = timelineView.cursor.position
+      val span  = Span(pos, pos + delta)
+      val tl    = timeline
 
-         val affectedSpan = Span( pos, tl.span.stop )
+      require((pos >= tl.span.start) && (pos <= tl.span.stop), span.toString)
 
-         tl.editor.foreach( ed => {
-            val ce = ed.editBegin( editName )
-            try {
-               ed.editSpan( ce, Span(tl.span.start, tl.span.stop + delta ))
-               timelineView.editor.foreach( ved => {
-                  if( timelineView.span.isEmpty ) {
-        		         ved.editScroll( ce, span )
-                  }
-                  ved.editSelect( ce, span )
-               })
-               tracksPanel.filter( _.selected ).foreach( elem => {
-                  val t = elem.track // "stable"
-                  val tvCast = elem.trailView.asInstanceOf[ TrailView[ t.T ]] // que se puede...
-                  tvCast.editor.foreach( ed2 => {
-                     val stakes = tvCast.trail.getRange( affectedSpan )
-                     ed2.editDeselect( ce, stakes: _* )
-                     tvCast.trail.editor.foreach( ed3 => {
-                        ed3.editRemove( ce, stakes: _* )
-                     })
-                     val (split, nosplit) = stakes.partition( _.span.contains( pos ))
-                     val newStakes = split.flatMap( _ match {
-                        case rs: ResizableStake[ _ ] => {
-                           val (nomove, move) = rs.split( pos )
-                           List( nomove, move.move( delta ))
-                        }
-                        case x => List( x )
-                     }) ++ nosplit.map( _.move( delta ))
-                     tvCast.trail.editor.foreach( ed3 => {
-                        ed3.editAdd( ce, newStakes: _* )
-                     })
-                     ed2.editSelect( ce, newStakes: _* )
-                  })
-               })
-               ed.editEnd( ce )
+      val affectedSpan = Span(pos, tl.span.stop)
+
+      tl.editor.foreach { ed =>
+        val ce = ed.editBegin(editName)
+        try {
+          ed.editSpan(ce, Span(tl.span.start, tl.span.stop + delta))
+          timelineView.editor.foreach { ved =>
+            if (timelineView.span.isEmpty) {
+              ved.editScroll(ce, span)
             }
-            catch {
-               case e: Throwable => { ed.editCancel( ce ); throw e }
+            ved.editSelect(ce, span)
+          }
+          tracksPanel.filter(_.selected).foreach { elem =>
+            val t = elem.track // "stable"
+            val tvCast = elem.trailView.asInstanceOf[TrailView[t.T]] // que se puede...
+            tvCast.editor.foreach { ed2 =>
+              val stakes = tvCast.trail.getRange(affectedSpan)
+              ed2.editDeselect(ce, stakes: _*)
+              tvCast.trail.editor.foreach { ed3 =>
+                ed3.editRemove(ce, stakes: _*)
+              }
+              val (split, nosplit) = stakes.partition(_.span.contains(pos))
+              val newStakes = split.flatMap(_ match {
+                case rs: ResizableStake[_] =>
+                  val (nomove, move) = rs.split(pos)
+                  List(nomove, move.move(delta))
+                case x => List(x)
+              }) ++ nosplit.map(_.move(delta))
+              tvCast.trail.editor.foreach { ed3 =>
+                ed3.editAdd(ce, newStakes: _*)
+              }
+              ed2.editSelect(ce, newStakes: _*)
             }
-         })
+          }
+          ed.editEnd(ce)
+        }
+        catch {
+          case e: Throwable => {
+            ed.editCancel(ce); throw e
+          }
+        }
       }
-   }
+    }
+  }
 
-   private object ActionRemoveSpan extends MenuAction {
-      def actionPerformed( e: ActionEvent ) { perform() }
+  private object ActionRemoveSpan extends Action("Remove Span") {
+      private def editName = title
 
-      private def editName = getValue( Action.NAME ).toString
-
-      def perform() {
+      def apply() {
          timelineView.selection.span match {
            case sp @ Span(_, _) if sp.nonEmpty => perform(sp)
            case _ =>
@@ -443,12 +442,10 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
       }
    }
 
-   private object ActionClearSpan extends MenuAction {
-      def actionPerformed( e: ActionEvent ) { perform() }
+   private object ActionClearSpan extends Action("Clear Span") {
+      private def editName = title
 
-      private def editName = getValue( Action.NAME ).toString
-
-      def perform() {
+      def apply() {
          timelineView.selection.span match {
            case sp @ Span(_, _) if sp.nonEmpty => perform(sp)
            case _ =>
@@ -508,12 +505,10 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
       }
    }
 
-   private object ActionDupSpanToPos extends MenuAction {
-      def actionPerformed( e: ActionEvent ) { perform() }
+   private object ActionDupSpanToPos extends Action("Duplicate Span to Position") {
+      private def editName = title
 
-      private def editName = getValue( Action.NAME ).toString
-
-      def perform() {
+      def apply() {
          timelineView.selection.span match {
            case sp @ Span(_, _) if sp.nonEmpty => perform(sp)
            case _ =>
@@ -589,10 +584,8 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
 	 *  of the visible time span
 	 */
    private class ActionSpanWidth( factor: Double )
-	extends AbstractAction {
-	   def actionPerformed( e: ActionEvent ) { perform() }
-
-      def perform() {
+	extends Action("Span Width") {
+      def apply() {
 		   val visiSpan	= timelineView.span
 			val visiLen		= visiSpan.length
 			val pos			= timelineView.cursor.position
@@ -643,10 +636,9 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
 	 *				to be fine. haven't checked with really long files!!
 	 */
 	private class ActionSelToPos( weight: Double, deselect: Boolean )
-	extends AbstractAction {
-		def actionPerformed( e: ActionEvent ) { perform() }
+	  extends Action("Extends Selection to Position") {
 
-    private def perform() {
+    def apply() {
       timelineView.selection.span match {
         case sel @ Span(selStart, _) =>
           timelineView.editor.foreach { ed =>
@@ -670,12 +662,10 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
    }
 
    private class ActionScroll( mode: Int )
-   extends AbstractAction {
+     extends Action("Scroll") {
       import ActionScroll._
 
-      def actionPerformed( e: ActionEvent ) { perform() }
-
-      def perform() {
+      def apply() {
          timelineView.editor.foreach { ed =>
             val pos       = timelineView.cursor.position
             val visiSpan  = timelineView.span
@@ -740,12 +730,11 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
     }
 
    private class ActionSelect( mode: Int )
-   extends AbstractAction {
+    extends Action("Select") {
+
       import ActionSelect._
 
-      def actionPerformed( e: ActionEvent ) { perform() }
-
-      def perform() {
+      def apply() {
          timelineView.editor.foreach { ed =>
             val pos = timelineView.cursor.position
             val selSpan = timelineView.selection.span match {
@@ -780,267 +769,265 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
 //        def actionPerformed( e: ActionEvent ) : Unit = debugGenerator
 //    }
 
-    private object ActionCut
-    extends MenuAction {
-        def actionPerformed( e: ActionEvent ) { perform() }
+  private object ActionCut
+    extends Action("Cut") {
 
-        def perform() {
-            println( "CUT NOT YET IMPLEMENTED")
+    def apply() {
+      println("CUT NOT YET IMPLEMENTED")
+    }
+  }
+
+  private object ActionCopy
+    extends Action("Copy") {
+
+    def apply() {
+      println("COPY NOT YET IMPLEMENTED")
+    }
+  }
+
+  private object ActionPaste
+    extends Action("Paste") {
+
+    def apply() {
+      println("PASTE NOT YET IMPLEMENTED")
+    }
+  }
+
+  private object ActionDelete
+    extends Action("Delete") {
+
+    def apply() {
+      tracksPanel.editor.foreach { ed =>
+        val ce = ed.editBegin(title)
+        tracksPanel.foreach { elem =>
+          val t = elem.track // "stable"
+          val tvCast = elem.trailView.asInstanceOf[TrailView[t.T]] // que se puede...
+          tvCast.editor.foreach { ed2 =>
+            val stakes = tvCast.selectedStakes.toList
+            ed2.editDeselect(ce, stakes: _*)
+            tvCast.trail.editor.foreach { ed3 =>
+              ed3.editRemove(ce, stakes: _*)
+            }
+          }
         }
+        ed.editEnd(ce)
+      }
+    }
+  }
+
+  private class ActionNudge(factor: Double)
+    extends Action("Nudge") {
+
+    def apply() {
+      // val pos	      = timelineView.cursor.position
+      val delta = (factor * nudgeFrames + 0.5).toLong
+      transformSelectedStakes(title, stake => Some(List(stake.move(delta))))
+    }
+  }
+
+  private class ActionSplitObjects
+    extends Action("Split Objects") {
+
+    def apply() {
+      val pos = timelineView.cursor.position
+      transformSelectedStakes(title, {
+        case rStake: ResizableStake[_] if rStake.span.contains(pos) =>
+          val (stake1, stake2) = rStake.split(pos)
+          Some(List(stake1, stake2))
+
+        case _ => None
+      })
+    }
+  }
+
+  private class ActionSelectFollowingObjects
+    extends Action("Select Following Objects") {
+
+    def apply() {
+      val pos   = timelineView.cursor.position
+      val stop  = timelineView.timeline.span.length
+      val span  = Span(pos, stop)
+      timelineView.timeline.editor.foreach { ed =>
+        val ce = ed.editBegin(title)
+        tracksPanel.foreach { elem =>
+          val track = elem.track // "stable"
+          if (elem.selected) {
+            val tvCast = elem.trailView.asInstanceOf[TrailView[track.T]]
+            tvCast.editor.foreach { ed2 =>
+              val trail = tvCast.trail
+              val toSelect = trail.getRange(span, byStart = true, overlap = false)
+              ed2.editSelect(ce, toSelect: _*)
+            }
+          }
+        }
+        ed.editEnd(ce)
+      }
+    }
+  }
+
+  private class ActionAlignObjectsStartToTimelinePosition extends Action("Align Objects Start to Timeline Position") {
+    def apply() {
+      val pos = timelineView.cursor.position
+      transformSelectedStakes(title, {
+        case rStake: ResizableStake[_] if rStake.span.start != pos =>
+          Some(List(rStake.move(pos - rStake.span.start)))
+
+        case _ => None
+      })
+    }
+  }
+
+   private class ActionShowInEisK extends Action("Show in Eisenraut") {
+     def apply() {
+       tracksPanel.find(_.trailView.selectedStakes.headOption match {
+         case Some(ar: AudioRegion) =>
+           val delta      = ar.offset - ar.span.start
+           val cursor     = Some(timelineView.cursor.position + delta)
+           val selection  = timelineView.selection.span match {
+             case sp @ Span(_, _) if sp.nonEmpty => sp.shift(delta)
+             case _ => Span.Void
+           }
+           EisenkrautClient.instance.openAudioFile(ar.audioFile.path, cursor, selection)
+           true
+
+         case _ => false
+       })
+     }
+   }
+
+  private class ActionBounce extends Action("Bounce") {
+    def apply() {
+      query.foreach {
+        case (tls, span@Span(_, _), path, spec) =>
+          perform(tls, span, path, spec)
+        case _ =>
+      }
     }
 
-    private object ActionCopy
-    extends MenuAction {
-        def actionPerformed( e: ActionEvent ) { perform() }
-
-        def perform() {
-            println( "COPY NOT YET IMPLEMENTED")
+    def perform(tracks: List[Track], span: Span, path: File, spec: AudioFileSpec) {
+      val ggProgress = new JProgressBar()
+      val name = title
+      val ggCancel = new JButton("Abort") // getResourceString("buttonAbort"))
+      ggCancel.setFocusable(false)
+      val options = Array[AnyRef](ggCancel)
+      val op = new JOptionPane(ggProgress, JOptionPane.INFORMATION_MESSAGE, 0, null, options)
+      def fDispose() {
+        val w = SwingUtilities.getWindowAncestor(op); if (w != null) w.dispose()
+      }
+      ggCancel.addActionListener(new ActionListener {
+        def actionPerformed(e: ActionEvent) {
+          fDispose()
         }
+      })
+      var done = false
+      try {
+        val process = SessionUtil.bounce(doc, timelineView.timeline, tracks, span, path, spec, msg => msg match {
+          case "done" => {
+            done = true; fDispose()
+          }
+          case ("progress", i: Int) => ggProgress.setValue(i)
+          // case _ => println( "received: " + msg )
+        })
+        showDialog(op, name)
+        if (!done) process.cancel()
+      }
+      catch {
+        case e: Exception =>
+          fDispose()
+          showErrorDialog(e, name)
+      }
     }
 
-    private object ActionPaste
-    extends MenuAction {
-        def actionPerformed( e: ActionEvent ) { perform() }
+    def query: Option[(List[Track], SpanOrVoid, File, AudioFileSpec)] = {
+      val trackElems = tracksPanel.toList
+      // val numTracks     = trackElems.size
+      val selTrackElems = trackElems.filter(_.selected)
+      val span = timelineView.timeline.span
+      val selSpan = timelineView.selection.span
+      val selAllowed = selTrackElems.nonEmpty && !selSpan.isEmpty
 
-        def perform() {
-            println( "PASTE NOT YET IMPLEMENTED")
+      // val okOption      = new JButton( getResourceString( "buttonOK" ))
+      // val cancelOption  = new JButton( getResourceString( "Cancel" ))
+      // val options       = Array( cancelOption, okOption )
+
+      val name = title
+      val pane = Box.createVerticalBox
+      val ggAll = new JRadioButton("All") // getResourceString("bounceDlgAll"))
+      val ggSel = new JRadioButton("Selection") // getResourceString("bounceDlgSel"))
+      val bg = new ButtonGroup()
+      bg.add(ggAll)
+      bg.add(ggSel)
+      bg.setSelected(ggAll.getModel, true)
+      val ggPath = new PathField(PathF.TYPE_OUTPUTFILE, name)
+      val affp = new AudioFileFormatPane(AudioFileFormatPane.FORMAT | AudioFileFormatPane.ENCODING)
+      val descr = new AudioFileDescr
+      affp.toDescr(descr)
+      val path0 = doc.path getOrElse {
+        val home = new File(System.getProperty("user.home"))
+        val desktop = new File(home, "Desktop")
+        new File(if (desktop.isDirectory) desktop else home, "Untitled") // getResourceString("labelUntitled"))
+      }
+      ggPath.setPath(IOUtil.setFileSuffix(path0, AudioFileDescr.getFormatSuffix(descr.`type`)))
+      affp.automaticFileSuffix(ggPath)
+      pane.add(ggPath)
+      pane.add(affp)
+      pane.add(ggAll)
+      pane.add(ggSel)
+      if (!selAllowed) {
+        ggSel.setEnabled(false)
+        // val p2 = Box.createHorizontalBox
+        // p2.add( Box.createHorizontalStrut( 24 ))
+        // p2.add( )
+        pane.add(new JLabel("   " + getResourceString("bounceDlgNoSel")))
+      }
+
+      val op = new JOptionPane(pane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
+      val result = showDialog(op, name)
+      if (result != JOptionPane.OK_OPTION) return None
+
+      val path = ggPath.getPath
+      if (path.exists) {
+        val opCancel = "Cancel" // getResourceString("buttonCancel")
+        val opOverwrite = "Overwrite" // getResourceString("buttonOverwrite")
+        val options = Array[AnyRef](opOverwrite, opCancel)
+        val op2 = new JOptionPane(getResourceString("warnFileExists") + ":\n" + path.toString + "\n" +
+          getResourceString("warnOverwriteFile"), JOptionPane.WARNING_MESSAGE, JOptionPane.OK_CANCEL_OPTION,
+          null, options)
+        op2.setInitialSelectionValue(opCancel)
+        /* val result2 = */ BasicWindowHandler.showDialog(op2, getWindow, name)
+        if (op2.getValue != opOverwrite) return None
+      }
+
+      val all = bg.isSelected(ggAll.getModel)
+      // val descr      = new AudioFileDescr
+      affp.toDescr(descr)
+      val sampleRate = timelineView.timeline.rate
+      // descr.file     = path
+      val tracks = (if (all) trackElems else selTrackElems).map(_.track)
+      val numChannels = tracks.collect(_ match {
+        case at: AudioTrack if (at.diffusion.isDefined) => at.diffusion.get
+      })
+        .foldLeft(0)((maxi, diff) => max(maxi, diff.numOutputChannels))
+
+      val spec = AudioFileSpec(descr.`type` match {
+        case AudioFileDescr.TYPE_AIFF => AudioFileType.AIFF
+        case AudioFileDescr.TYPE_WAVE => AudioFileType.Wave
+        case AudioFileDescr.TYPE_WAVE64 => AudioFileType.Wave64
+        case AudioFileDescr.TYPE_IRCAM => AudioFileType.IRCAM
+        case AudioFileDescr.TYPE_SND => AudioFileType.NeXT
+      }, descr.sampleFormat match {
+        case AudioFileDescr.FORMAT_INT => descr.bitsPerSample match {
+          case 16 => SampleFormat.Int16
+          case 24 => SampleFormat.Int24
+          case 32 => SampleFormat.Int32
         }
-    }
-
-    private object ActionDelete
-    extends MenuAction {
-        def actionPerformed( e: ActionEvent ) { perform() }
-
-        def perform() {
-            tracksPanel.editor.foreach( ed => {
-                val ce = ed.editBegin( getValue( Action.NAME ).toString )
-                tracksPanel.foreach( elem => {
-                     val t = elem.track // "stable"
-                     val tvCast = elem.trailView.asInstanceOf[ TrailView[ t.T ]] // que se puede...
-                     tvCast.editor.foreach( ed2 => {
-                         val stakes = tvCast.selectedStakes.toList
-                         ed2.editDeselect( ce, stakes: _* )
-                         tvCast.trail.editor.foreach( ed3 => {
-                             ed3.editRemove( ce, stakes: _* )
-                         })
-                     })
-                })
-                ed.editEnd( ce )
-            })
+        case AudioFileDescr.FORMAT_FLOAT => descr.bitsPerSample match {
+          case 32 => SampleFormat.Float
+          case 64 => SampleFormat.Double
         }
+      }, numChannels, sampleRate)
+
+      Some((tracks, if (all) span else selSpan, path, spec))
     }
-
-   private class ActionNudge( factor: Double )
-   extends MenuAction {
-      def actionPerformed( e: ActionEvent ) { perform() }
-
-      def perform() {
-//         val pos	      = timelineView.cursor.position
-         val delta      = (factor * nudgeFrames + 0.5).toLong
-         transformSelectedStakes( getValue( Action.NAME ).toString, stake => Some( List( stake.move( delta ))))
-      }
-   }
-
-    private class ActionSplitObjects
-    extends MenuAction {
-        def actionPerformed( e: ActionEvent ) { perform() }
-
-    	def perform() {
-        	val pos	= timelineView.cursor.position
-         transformSelectedStakes( getValue( Action.NAME ).toString, stake => stake match {
-            case rStake: ResizableStake[ _ ] if( stake.span.contains( pos )) => {
-               val (stake1, stake2) = rStake.split( pos )
-               Some( List( stake1, stake2 ))
-            }
-            case _ => None
-         })
-    	}
-   }
-
-   private class ActionSelectFollowingObjects
-   extends MenuAction {
-      def actionPerformed( e: ActionEvent ) { perform() }
-
-      def perform() {
-         val pos	= timelineView.cursor.position
-         val stop = timelineView.timeline.span.length
-         val span = Span( pos, stop )
-         timelineView.timeline.editor.foreach( ed => {
-            val ce = ed.editBegin( getValue( Action.NAME ).toString )
-            tracksPanel.foreach( elem => {
-               val track = elem.track // "stable"
-               if( elem.selected ) {
-                  val tvCast = elem.trailView.asInstanceOf[ TrailView[ track.T ]]
-                  tvCast.editor.foreach( ed2 => {
-                     val trail      = tvCast.trail
-                     val toSelect   = trail.getRange( span, byStart = true, overlap = false )
-                     ed2.editSelect( ce, toSelect: _* )
-                  })
-               }
-            })
-            ed.editEnd( ce )
-         })
-      }
-   }
-
-   private class ActionAlignObjectsStartToTimelinePosition extends MenuAction {
-      def actionPerformed( e: ActionEvent ) { perform() }
-
-      def perform() {
-         val pos	= timelineView.cursor.position
-         transformSelectedStakes( getValue( Action.NAME ).toString, stake => stake match {
-            case rStake: ResizableStake[ _ ] if( stake.span.start != pos ) => {
-               Some( List( rStake.move( pos - rStake.span.start )))
-            }
-            case _ => None
-         })
-      }
-   }
-
-   private class ActionShowInEisK extends MenuAction {
-      def actionPerformed( e: ActionEvent ) { perform() }
-
-      def perform() {
-         tracksPanel.find( _.trailView.selectedStakes.headOption match {
-            case Some( ar: AudioRegion ) => {
-               val delta      = ar.offset - ar.span.start
-               val cursor     = Some( timelineView.cursor.position + delta )
-               val selection  = timelineView.selection.span match {
-                 case sp @ Span(_, _) if sp.nonEmpty => sp.shift( delta )
-                 case _ => Span.Void
-               }
-               EisenkrautClient.instance.openAudioFile( ar.audioFile.path, cursor, selection )
-               true
-            }
-            case _ => false
-         })
-      }
-   }
-
-   private class ActionBounce extends MenuAction {
-      def actionPerformed( e: ActionEvent ) {
-         query.foreach {
-           case (tls, span @ Span(_, _), path, spec) =>
-            perform( tls, span, path, spec )
-           case _ =>
-         }
-      }
-
-      def perform( tracks: List[ Track ], span: Span, path: File, spec: AudioFileSpec ) {
-         val ggProgress = new JProgressBar()
-         val name = getValue( Action.NAME ).toString
-         val ggCancel = new JButton( getResourceString( "buttonAbort" ))
-         ggCancel.setFocusable( false )
-         val options = Array[ AnyRef]( ggCancel )
-         val op = new JOptionPane( ggProgress, JOptionPane.INFORMATION_MESSAGE, 0, null, options )
-         def fDispose() { val w = SwingUtilities.getWindowAncestor( op ); if( w != null ) w.dispose() }
-         ggCancel.addActionListener( new ActionListener {
-            def actionPerformed( e: ActionEvent ) { fDispose() }
-         })
-         var done = false
-         try {
-            val process = SessionUtil.bounce( doc, timelineView.timeline, tracks, span, path, spec, msg => msg match {
-               case "done" => { done = true; fDispose() }
-               case ("progress", i: Int) => ggProgress.setValue( i )
-//               case _ => println( "received: " + msg ) 
-            })
-            BasicWindowHandler.showDialog( op, getWindow, name )
-            if( !done ) process.cancel()
-         }
-         catch { case e: Exception =>
-            fDispose()
-            BasicWindowHandler.showErrorDialog( frame.getWindow, e, name )}
-      }
-
-      def query: Option[ (List[ Track ], SpanOrVoid, File, AudioFileSpec) ] = {
-         val trackElems    = tracksPanel.toList
-//         val numTracks     = trackElems.size
-         val selTrackElems = trackElems.filter( _.selected )
-         val span          = timelineView.timeline.span
-         val selSpan       = timelineView.selection.span
-         val selAllowed    = selTrackElems.nonEmpty && !selSpan.isEmpty
-
-//         val okOption      = new JButton( getResourceString( "buttonOK" ))
-//         val cancelOption  = new JButton( getResourceString( "Cancel" ))
-//         val options       = Array( cancelOption, okOption )
-
-         val name          = getValue( Action.NAME ).toString
-         val pane          = Box.createVerticalBox
-         val ggAll         = new JRadioButton( getResourceString( "bounceDlgAll" ))
-         val ggSel         = new JRadioButton( getResourceString( "bounceDlgSel" ))
-         val bg            = new ButtonGroup()
-         bg.add( ggAll )
-         bg.add( ggSel )
-         bg.setSelected( ggAll.getModel, true )
-         val ggPath        = new PathField( PathF.TYPE_OUTPUTFILE, name )
-         val affp          = new AudioFileFormatPane( AudioFileFormatPane.FORMAT | AudioFileFormatPane.ENCODING
-            /* | AudioFileFormatPane.GAIN_NORMALIZE */ )
-         val descr         = new AudioFileDescr
-         affp.toDescr( descr )
-         val path0         = doc.path getOrElse {
-            val home       = new File( System.getProperty( "user.home" ))
-            val desktop    = new File( home, "Desktop" )
-            new File( if( desktop.isDirectory ) desktop else home, getResourceString( "labelUntitled" ))
-         }
-         ggPath.setPath( IOUtil.setFileSuffix( path0, AudioFileDescr.getFormatSuffix( descr.`type` )))
-         affp.automaticFileSuffix( ggPath )
-         pane.add( ggPath )
-         pane.add( affp )
-         pane.add( ggAll )
-         pane.add( ggSel )
-         if( !selAllowed ) {
-            ggSel.setEnabled( false )
-//            val p2 = Box.createHorizontalBox
-//            p2.add( Box.createHorizontalStrut( 24 ))
-//            p2.add( )
-            pane.add( new JLabel( "   " + getResourceString( "bounceDlgNoSel" )))
-         }
-
-         val op = new JOptionPane( pane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )
-         val result = BasicWindowHandler.showDialog( op, getWindow, name )
-         if( result != JOptionPane.OK_OPTION ) return None
-
-         val path       = ggPath.getPath
-         if( path.exists ) {
-            val opCancel      = getResourceString( "buttonCancel" )
-            val opOverwrite   = getResourceString( "buttonOverwrite" )
-            val options       = Array[ AnyRef ]( opOverwrite, opCancel )
-            val op2           = new JOptionPane( getResourceString( "warnFileExists" ) + ":\n" + path.toString + "\n" +
-               getResourceString( "warnOverwriteFile" ), JOptionPane.WARNING_MESSAGE, JOptionPane.OK_CANCEL_OPTION,
-               null, options )
-            op2.setInitialSelectionValue( opCancel )
-            /* val result2 = */ BasicWindowHandler.showDialog( op2, getWindow, name )
-            if( op2.getValue != opOverwrite ) return None
-         }
-
-         val all        = bg.isSelected( ggAll.getModel )
-//         val descr      = new AudioFileDescr
-         affp.toDescr( descr )
-         val sampleRate = timelineView.timeline.rate
-//         descr.file     = path
-         val tracks     = (if( all ) trackElems else selTrackElems).map( _.track )
-         val numChannels = tracks.collect( _ match { case at: AudioTrack if( at.diffusion.isDefined ) => at.diffusion.get })
-            .foldLeft( 0 )( (maxi, diff) => max( maxi, diff.numOutputChannels ))
-
-         val spec          = AudioFileSpec( descr.`type` match {
-            case AudioFileDescr.TYPE_AIFF    => AudioFileType.AIFF
-            case AudioFileDescr.TYPE_WAVE    => AudioFileType.Wave
-            case AudioFileDescr.TYPE_WAVE64  => AudioFileType.Wave64
-            case AudioFileDescr.TYPE_IRCAM   => AudioFileType.IRCAM
-            case AudioFileDescr.TYPE_SND     => AudioFileType.NeXT
-         }, descr.sampleFormat match {
-            case AudioFileDescr.FORMAT_INT => descr.bitsPerSample match {
-               case 16 => SampleFormat.Int16
-               case 24 => SampleFormat.Int24
-               case 32 => SampleFormat.Int32
-            }
-            case AudioFileDescr.FORMAT_FLOAT => descr.bitsPerSample match {
-               case 32 => SampleFormat.Float
-               case 64 => SampleFormat.Double
-            }
-         }, numChannels, sampleRate )
-
-         Some( (tracks, if( all ) span else selSpan, path, spec) )
-      }
-   }
+  }
 }

@@ -27,45 +27,44 @@ package de.sciss.kontur.session
 
 import javax.swing.undo.UndoManager
 import scala.xml.Node
-import de.sciss.app.AbstractCompoundEdit
 import de.sciss.kontur.edit.{ Editor, SimpleEdit }
 import de.sciss.kontur.util.SerializerContext
 import de.sciss.span.Span
+import legacy.AbstractCompoundEdit
 
 object Timeline {
-  case class SpanChanged( oldSpan: Span, newSpan: Span )
-  case class RateChanged( oldRate: Double, newRate: Double )
+  final case class SpanChanged(oldSpan: Span, newSpan: Span)
+  final case class RateChanged(oldRate: Double, newRate: Double)
 }
 
 trait Timeline extends SessionElement {
-//  type Tr = Track[ _ <: Stake[ _ ]]
-
   def span: Span
   def rate: Double
-  def tracks: SessionElementSeq[ Track ]
-  def transport: Option[ Transport ]
-  def editor: Option[ TimelineEditor ]
+
+  def tracks: SessionElementSeq[Track]
+  def transport: Option[Transport]
+  def editor: Option[TimelineEditor]
 }
 
 trait TimelineEditor extends Editor {
-  	 def editSpan( ce: AbstractCompoundEdit, newSpan: Span ) : Unit
-	 def editRate( ce: AbstractCompoundEdit, newRate: Double ) : Unit
-  }
-
-object BasicTimeline {
-    val XML_NODE = "timeline"
-    
-    def fromXML( c: SerializerContext, doc: Session, node: Node ) : BasicTimeline = {
-       val tl = new BasicTimeline( doc )
-       c.id( tl, node )
-       tl.fromXML( c, node )
-       tl
-    }
-
-    def newEmpty( doc: Session ) = new BasicTimeline( doc )
+  def editSpan(ce: AbstractCompoundEdit, newSpan: Span  ): Unit
+  def editRate(ce: AbstractCompoundEdit, newRate: Double): Unit
 }
 
-class BasicTimeline( doc: Session )
+object BasicTimeline {
+  val XML_NODE = "timeline"
+
+  def fromXML(c: SerializerContext, doc: Session, node: Node): BasicTimeline = {
+    val tl = new BasicTimeline(doc)
+    c.id(tl, node)
+    tl.fromXML(c, node)
+    tl
+  }
+
+  def newEmpty(doc: Session) = new BasicTimeline(doc)
+}
+
+final class BasicTimeline( doc: Session )
 extends Timeline with Renamable with TimelineEditor {
    import Timeline._
 
