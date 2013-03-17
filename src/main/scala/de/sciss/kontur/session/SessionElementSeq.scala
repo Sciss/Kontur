@@ -27,12 +27,12 @@ package de.sciss.kontur
 package session
 
 import java.io.IOException
-import javax.swing.undo.UndoManager
 import collection.mutable.ArrayBuffer
 import xml.Node
 import edit.{ Editor, SimpleEdit }
 import util.{Model, SerializerContext}
 import legacy.AbstractCompoundEdit
+import desktop.UndoManager
 
 trait SessionElementSeq[ T <: SessionElement ]
 extends SessionElement {
@@ -69,7 +69,7 @@ with SessionElementSeqEditor[ T ] {
 // with ObservableBuffer[T]
   private val coll = new ArrayBuffer[T]()
 
-  def undoManager: UndoManager = doc.getUndoManager
+  def undoManager: UndoManager = doc.undoManager
 
   protected def innerToXML( context: SerializerContext ) = <coll>
   {coll.map( _.toXML( context ))}

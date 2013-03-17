@@ -30,6 +30,7 @@ import javax.swing.JOptionPane
 import de.sciss.kontur.edit.Editor
 import de.sciss.kontur.session.Renamable
 import swing.Action
+import de.sciss.kontur.desktop.WindowHandler
 
 class EditRenameAction(r: Renamable, ed: Editor, name: String = "Rename...")
   extends Action(name) {
@@ -38,7 +39,7 @@ class EditRenameAction(r: Renamable, ed: Editor, name: String = "Rename...")
     val op = new JOptionPane("Enter new name:", JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
     op.setWantsInput(true)
     op.setInitialSelectionValue(r.name)
-    val result = BasicWindowHandler.showDialog(op, null, name)
+    val result = WindowHandler.showDialog(op, name)
 
     if (result == JOptionPane.OK_OPTION) {
       val newName = op.getInputValue.toString

@@ -293,7 +293,7 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
 
     // ---- internal clases ----
    private object MatrixBorder extends Border {
-      private val fnt = AbstractApplication.getApplication.getGraphicsHandler.getFont( GraphicsHandler.FONT_SMALL )
+//      private val fnt = AbstractApplication.getApplication.getGraphicsHandler.getFont( GraphicsHandler.FONT_SMALL )
 
       def isBorderOpaque   = false
       def getBorderInsets( c: Component ) = new Insets( 20, 20, 0, 0 )
@@ -302,7 +302,7 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
          val g2 = g.asInstanceOf[ Graphics2D ]
          g2.setColor( Color.black )
          g2.drawLine( x, y, x + 19, y + 19 )
-         g2.setFont( fnt )
+//         g2.setFont( fnt )
          val fm = g2.getFontMetrics
          g2.drawString( "Outputs \u2192", 24, 18 - fm.getDescent )
          val atOrig = g2.getTransform

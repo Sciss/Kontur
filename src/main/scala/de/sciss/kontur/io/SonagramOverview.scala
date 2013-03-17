@@ -32,11 +32,10 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, Da
 import javax.swing.SwingWorker
 import scala.collection.immutable.Queue
 import scala.math._
-import de.sciss.app.AbstractApplication
-import de.sciss.io.{AudioFile, AudioFileDescr}
 import de.sciss.kontur.gui.IntensityColorScheme
 import de.sciss.kontur.util.PrefsUtil
 import de.sciss.dsp.{ConstQ, FastLog}
+import de.sciss.synth.io.{AudioFileType, SampleFormat, AudioFileSpec, AudioFile}
 
 object SonagramSpec {
    def decode( dis: DataInputStream ) : Option[ SonagramSpec ] = {
@@ -196,53 +195,48 @@ object SonagramOverview {
    def fromPath( path: File ) : SonagramOverview = {
       sync.synchronized {
          val cPath         = path.getCanonicalFile
-         val af            = AudioFile.openAsRead( cPath )
-         val afDescr       = af.getDescr
+         val af            = AudioFile.openRead( cPath )
+         val afDescr       = af.spec
          af.close() // render loop will re-open it if necessary...
-         val sampleRate    = afDescr.rate
+         val sampleRate    = afDescr.sampleRate
          val stepSize      = max( 64, (sampleRate * 0.0116 + 0.5).toInt ) // 11.6ms spacing
          val sonaSpec      = SonagramSpec( sampleRate, 32, min( 16384, sampleRate / 2 ).toFloat, 24,
                                 (stepSize / sampleRate * 1000).toFloat, 4096, stepSize )
          val decim         = List( 1, 6, 6, 6, 6 )
-         val fileSpec      = new SonagramFileSpec( sonaSpec, afDescr.file.lastModified, afDescr.file,
-                             afDescr.length, afDescr.channels, sampleRate, decim )
+         val fileSpec      = new SonagramFileSpec( sonaSpec, cPath.lastModified, cPath,
+                             afDescr.numFrames, afDescr.numChannels, sampleRate, decim )
          val cachePath     = fileCache.createCacheFileName( cPath )
 
          // try to retrieve existing overview file from cache
-         val decimAFO      = if( cachePath.isFile ) {
-            try {
-               val cacheAF    = AudioFile.openAsRead( cachePath )
-               try {
-                  cacheAF.readAppCode()
-                  val cacheDescr = cacheAF.getDescr
-                  val blob       = cacheDescr.getProperty( AudioFileDescr.KEY_APPCODE ).asInstanceOf[ Array[ Byte ]]
-                  if( (cacheDescr.appCode == APPCODE) && (blob != null) && (SonagramFileSpec.decode( blob ) == Some( fileSpec ))
-                      && (cacheDescr.length == fileSpec.expectedDecimNumFrames) ) {
-                     af.cleanUp() // do not need it anymore for reading
-                     fileSpec.makeAllAvailable()
-                     Some( cacheAF )
-                  } else {
-                     cacheAF.cleanUp()
+         val decimAFO      = None
+//        if( cachePath.isFile ) {
+//            try {
+//               val cacheAF    = AudioFile.openRead( cachePath )
+//               try {
+//                  cacheAF.readAppCode()
+//                  val cacheDescr = cacheAF.getDescr
+//                  val blob       = cacheDescr.getProperty( AudioFileDescr.KEY_APPCODE ).asInstanceOf[ Array[ Byte ]]
+//                  if( (cacheDescr.appCode == APPCODE) && (blob != null) && (SonagramFileSpec.decode( blob ) == Some( fileSpec ))
+//                      && (cacheDescr.length == fileSpec.expectedDecimNumFrames) ) {
+//                     af.cleanUp() // do not need it anymore for reading
+//                     fileSpec.makeAllAvailable()
+//                     Some( cacheAF )
+//                  } else {
+//                     cacheAF.cleanUp()
                      None
-                  }
-               }
-               catch { case e: IOException => { cacheAF.cleanUp(); None }}
-            }
-            catch { case e: IOException => { None }}
-         } else None
+//                  }
+//               }
+//               catch { case e: IOException => { cacheAF.cleanUp(); None }}
+//            }
+//            catch { case e: IOException => { None }}
+//         } else None
 
          // on failure, create new cache file
          val decimAF = decimAFO getOrElse {
-            val d             = new AudioFileDescr()
-            d.file            = cachePath
-            d.`type`          = AudioFileDescr.TYPE_AIFF
-            d.channels        = afDescr.channels
-            d.rate            = afDescr.rate
-            d.bitsPerSample   = 32  // XXX really?
-            d.sampleFormat    = AudioFileDescr.FORMAT_FLOAT
-            d.appCode         = APPCODE
-            d.setProperty( AudioFileDescr.KEY_APPCODE, fileSpec.encode )
-            AudioFile.openAsWrite( d ) // XXX eventually should use shared buffer!!
+            val d             = afDescr.copy(fileType = AudioFileType.AIFF, sampleFormat = SampleFormat.Float)
+//            d.appCode         = APPCODE
+//            d.setProperty( AudioFileDescr.KEY_APPCODE, fileSpec.encode )
+            AudioFile.openWrite(cachePath, d)
          }
 
          val so = new SonagramOverview( fileSpec, decimAF )
@@ -432,8 +426,8 @@ class SonagramOverview @throws( classOf[ IOException ]) private (
    // caller must have sync
    private def seekWindow( decim: SonagramDecimSpec, idx: Long ) {
       val framePos = idx * numKernels + decim.offset
-      if( /* (decim.windowsReady > 0L) && */ (decimAF.getFramePosition != framePos) ) {
-         decimAF.seekFrame( framePos )
+      if( /* (decim.windowsReady > 0L) && */ (decimAF.position != framePos) ) {
+         decimAF.seek( framePos )
       }
    }
 
@@ -475,7 +469,7 @@ class SonagramOverview @throws( classOf[ IOException ]) private (
       try {
          g2.translate( tx + transX, ty )
          g2.scale( scaleW, scaleH )
-         var xOff = 0; var yOff = 0; var fOff = 0; var iOff = 0;
+         var xOff = 0; var yOff = 0; var fOff = 0; var iOff = 0
          var x = 0; var v = 0; var i = 0; var sum = 0f
          var xReset = 0
          var firstPass = true
@@ -486,7 +480,7 @@ class SonagramOverview @throws( classOf[ IOException ]) private (
             while( windowsRead < numWindows ) {
                val chunkLen2 = min( imgW - xReset, numWindows - windowsRead ).toInt
                val chunkLen = chunkLen2 + xReset
-               decimAF.readFrames( sonaImg.fileBuf, 0, chunkLen2 * numKernels )
+               decimAF.read( sonaImg.fileBuf, 0, chunkLen2 * numKernels )
                windowsRead += chunkLen2
                if( firstPass ) {
                   firstPass = false
@@ -552,7 +546,7 @@ if( verbose ) println( "drawImage( img<" + sonaImg.img.getWidth + "," + sonaImg.
 //      val fftSize = constQ.getFFTSize
       val t1 = System.currentTimeMillis
       try {
-         val af = AudioFile.openAsRead( fileSpec.audioPath )
+         val af = AudioFile.openRead( fileSpec.audioPath )
          try {
             primaryRender( ws, constQ, af )
          }
@@ -590,7 +584,7 @@ if( verbose ) println( "drawImage( img<" + sonaImg.img.getWidth + "," + sonaImg.
 
       { var step = 0; while( step < out.numWindows && !ws.isCancelled ) {
          val chunkLen = min( inLen, numFrames - framesRead ).toInt
-         in.readFrames( inBuf, inOff, chunkLen )
+         in.read( inBuf, inOff, chunkLen )
          framesRead += chunkLen
          if( chunkLen < inLen ) {
             { var ch = 0; while( ch < numChannels ) {
@@ -604,7 +598,7 @@ if( verbose ) println( "drawImage( img<" + sonaImg.img.getWidth + "," + sonaImg.
 
          sync.synchronized {
             seekWindow( out, out.windowsReady )
-            decimAF.writeFrames( outBuf, 0, numKernels )
+            decimAF.write( outBuf, 0, numKernels )
             out.windowsReady += 1
          }
 
@@ -636,7 +630,7 @@ if( verbose ) println( "drawImage( img<" + sonaImg.img.getWidth + "," + sonaImg.
          val chunkLen = min( inLen, (in.numWindows - windowsRead) * numKernels ).toInt
          sync.synchronized {
             seekWindow( in, windowsRead )
-            decimAF.readFrames( buf, inOff, chunkLen )
+            decimAF.read( buf, inOff, chunkLen )
          }
          windowsRead += chunkLen / numKernels
          if( chunkLen < inLen ) {
@@ -657,7 +651,7 @@ if( verbose ) println( "drawImage( img<" + sonaImg.img.getWidth + "," + sonaImg.
 
          sync.synchronized {
             seekWindow( out, out.windowsReady )
-            decimAF.writeFrames( buf, 0, numKernels )
+            decimAF.write( buf, 0, numKernels )
             out.windowsReady += 1
          }
 

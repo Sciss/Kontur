@@ -4,6 +4,7 @@ package impl
 
 import swing.{Component, Dialog}
 import javax.swing.{JOptionPane, RootPaneContainer, SwingUtilities}
+import java.util.StringTokenizer
 
 object WindowHandlerImpl {
   def findWindow(component: Component): Option[Window] = {
@@ -17,20 +18,50 @@ object WindowHandlerImpl {
   def showDialog(parent: Component, dialog: Dialog) {
     findWindow(parent) match {
       case Some(w)  => w.handler.showDialog(w, dialog)
-      case _        =>
-        dialog.open()
+      case _        => showDialog(dialog)
     }
   }
 
-  def showDialog(parent: Component, pane: JOptionPane, title: String) {
+  def showDialog(dialog: Dialog) {
+    dialog.open()
+  }
+
+  def showDialog(parent: Component, pane: JOptionPane, title: String): Any = {
     findWindow(parent) match {
       case Some(w)  => w.handler.showDialog(w, pane, title)
       case _        => showDialog(pane, title)
     }
   }
 
-  def showDialog(pane: JOptionPane, title: String) {
-    ???
+  def showDialog(pane: JOptionPane, title: String): Any = {
+    val jdlg  = pane.createDialog(title)
+    val owner = new Window { val peer = jdlg }
+    val dlg   = new Dialog(owner)
+    showDialog(dlg)
+    pane.getValue
+  }
+
+  def showErrorDialog(exception: Exception, title: String) {
+    val strBuf = new StringBuffer("Exception: ")
+    val message = if (exception == null) "null" else (exception.getClass.getName + " - " + exception.getLocalizedMessage)
+    var lineLen = 0
+    val options = Array[AnyRef]("Ok", "Show Stack Trace")
+    val tok = new StringTokenizer(message)
+    strBuf.append(":\n")
+    while (tok.hasMoreTokens) {
+      val word = tok.nextToken()
+      if (lineLen > 0 && lineLen + word.length() > 40) {
+        strBuf.append("\n")
+        lineLen = 0
+      }
+      strBuf.append(word)
+      strBuf.append(' ')
+      lineLen += word.length() + 1
+    }
+    val op = new JOptionPane(strBuf.toString, JOptionPane.ERROR_MESSAGE, JOptionPane.YES_NO_OPTION, null, options, options(0))
+    if (showDialog(op, title) == 1) {
+      exception.printStackTrace()
+    }
   }
 
   private final class DialogWindow(dialog: Dialog) extends WindowImpl {

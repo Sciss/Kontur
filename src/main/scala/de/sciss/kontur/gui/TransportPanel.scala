@@ -34,6 +34,9 @@ import javax.swing.{AbstractAction, BorderFactory, Box, BoxLayout, ImageIcon, JB
 import session.{Timeline, Transport}
 import de.sciss.osc
 import util.Model
+import legacy.{TimeFormat, GUIUtil, DefaultUnitTranslator, Param, ParamSpace}
+import desktop.impl.BasicParamField
+import desktop.WindowHandler
 
 // temporary hack to get osc synced video
 class TransportPanel( tlv: TimelineView )
@@ -127,7 +130,8 @@ extends SegmentedButtonPanel /* with DynamicListening */ {
       add( Box.createHorizontalStrut( 8 ), 1 )
       add( ggOSC )
 
-      new DynamicAncestorAdapter( this ).addTo( this )
+// XXX TODO
+//      new DynamicAncestorAdapter( this ).addTo( this )
    }
 
    private var spaceGoToTime: Option[ ParamSpace ] = None
@@ -135,7 +139,7 @@ extends SegmentedButtonPanel /* with DynamicListening */ {
 
    private def showGoToTimeDialog() {
       val timeTrans  = new DefaultUnitTranslator()
-      val ggTime     = new ParamField( timeTrans )
+      val ggTime     = new BasicParamField( timeTrans )
       ggTime.addSpace( ParamSpace.spcTimeHHMMSS )
       ggTime.addSpace( ParamSpace.spcTimeSmps )
       ggTime.addSpace( ParamSpace.spcTimeMillis )
@@ -145,18 +149,18 @@ extends SegmentedButtonPanel /* with DynamicListening */ {
       val tl = tlv.timeline
       timeTrans.setLengthAndRate( tl.span.length, tl.rate )
 
-      ggTime.setValue( valueGoToTime getOrElse new Param( 0.0, ParamSpace.TIME | ParamSpace.SECS ))
-      spaceGoToTime.foreach( sp => ggTime.setSpace( sp ))
+      ggTime.value  = valueGoToTime getOrElse new Param( 0.0, ParamSpace.TIME | ParamSpace.SECS )
+      ggTime.space  = spaceGoToTime
 
       val op = new JOptionPane( ggTime, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )
-      val app = AbstractApplication.getApplication
-      val result = BasicWindowHandler.showDialog( op, null, app.getResourceString( "inputDlgGoToTime" ))
+//      val app = AbstractApplication.getApplication
+      val result = WindowHandler.showDialog( op, "Go to Time") // app.getResourceString( "inputDlgGoToTime" ))
 
       if( result == JOptionPane.OK_OPTION ) {
-         val v          = ggTime.getValue
+         val v          = ggTime.value
          valueGoToTime	= Some( v )
-         spaceGoToTime	= Some( ggTime.getSpace )
-         val pos = math.max( tl.span.start, math.min( tl.span.stop, timeTrans.translate( v, ParamSpace.spcTimeSmps ).`val`.toLong ))
+         spaceGoToTime	= ggTime.space
+         val pos = math.max( tl.span.start, math.min( tl.span.stop, timeTrans.translate( v, ParamSpace.spcTimeSmps ).value.toLong ))
          tlv.editor.foreach( ed => {
             val ce = ed.editBegin( "pos" )
             ed.editPosition( ce, pos )

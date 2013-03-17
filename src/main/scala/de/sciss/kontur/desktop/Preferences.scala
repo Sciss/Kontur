@@ -29,7 +29,7 @@ object Preferences {
       }
     }
   }
-  sealed trait Type[A] {
+  trait Type[A] {
     private[desktop] def toString(value: A): String
     private[desktop] def valueOf(string: String): Option[A]
 
@@ -45,7 +45,7 @@ trait Preferences {
   import Preferences.Type
 
   def get[A: Type](key: String): Option[A]
-  def getOrElse[A: Type](key: String, default: A): A
+  def getOrElse[A: Type](key: String, default: => A): A
   def put[A: Type](key: String, value: A): Unit
   def node(key: String): Preferences
 }

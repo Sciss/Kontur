@@ -3,8 +3,8 @@ package impl
 
 import java.awt.{Insets, Point, Rectangle, Dimension}
 import java.io.File
-import javax.swing.RootPaneContainer
-import swing.{Dialog, Component}
+import javax.swing.{JOptionPane, RootPaneContainer}
+import swing.{Action, Dialog, Component}
 
 object WindowImpl {
   object Delegate {
@@ -80,6 +80,15 @@ trait WindowImpl extends Window {
   protected def showDialog(dialog: Dialog) {
  		handler.showDialog(this, dialog)
  	}
+
+  protected def showDialog(pane: JOptionPane, title: String) {
+ 		handler.showDialog(this, pane, title)
+ 	}
+
+  protected def addAction(action: Action) {
+    import Implicits._
+    component.addAction(action, FocusType.Window)
+  }
 }
 
 trait DefaultWindowImpl extends WindowImpl {

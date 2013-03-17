@@ -226,7 +226,7 @@ class AudioFilesTreeIndex(model: SessionTreeModel, audioFiles: AudioFileSeq)
       }
 
       private def getPath: Option[File] = {
-        val dlg = new FileDialog(null.asInstanceOf[Frame], getValue(Action.NAME).toString)
+        val dlg = new FileDialog(null: Frame, title)
         dlg.setFilenameFilter(this)
         // dlg.show
         WindowHandler.showDialog(dlg)
@@ -493,9 +493,9 @@ with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
       coll match {
          case afs: AudioFileSeq => {
             val name = "Replace With Other File"
-            val miReplace = Menu.Item( "replace", new AbstractAction( name + "..." ) with FilenameFilter {
-               def actionPerformed( a: ActionEvent ) {
-                  getPath.foreach( path => {
+            val miReplace = Menu.Item( "replace", new Action( name + "..." ) with FilenameFilter {
+               def apply() {
+                  getPath.foreach { path =>
                      try {
                         val newFile = AudioFileElement.fromPath( model.doc, path )
                         var warnings: List[ String ] = Nil
@@ -521,11 +521,11 @@ with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
                         }
                      }
                      catch { case e: IOException => WindowHandler.showErrorDialog( e, name )}
-                  })
+                  }
                }
 
                private def getPath: Option[ File ] = {
-                  val dlg = new FileDialog( null.asInstanceOf[ Frame ], getValue( Action.NAME ).toString )
+                  val dlg = new FileDialog(null: Frame, title)
                   dlg.setFilenameFilter( this )
                   BasicWindowHandler.showDialog( dlg )
                   val dirName   = dlg.getDirectory
@@ -580,13 +580,11 @@ with HasContextMenu with HasDoubleClickAction with CanBeDragSource {
             case md: MatrixDiffusion =>
                val strEdit    = "Edit"
                val fullName   = strEdit + " " + MatrixDiffusion.humanReadableName + " " + diff.name
-               val miEdit     = Menu.Item( "edit", new AbstractAction( strEdit + "..." ) {
-                  def actionPerformed( a: ActionEvent ) {
-                     val panel   = new MatrixDiffusionGUI()
-                     panel.setObjects( diff )
-                     val op      = new JOptionPane( panel, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION )
-                     /* val result = */ BasicWindowHandler.showDialog( op, null, fullName )
-                  }
+               val miEdit     = Menu.Item( "edit", Action( strEdit + "..." ) {
+                   val panel   = new MatrixDiffusionGUI()
+                   panel.setObjects( diff )
+                   val op      = new JOptionPane( panel, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION )
+                   /* val result = */ WindowHandler.showDialog( op, fullName )
                })
                items :+= miEdit
             case _ =>

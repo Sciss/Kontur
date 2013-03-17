@@ -26,13 +26,13 @@
 package de.sciss.kontur
 package gui
 
-import javax.swing.undo.UndoManager
 import edit.{ Editor, SimpleEdit }
 import session.{ Session, Stake, Trail }
 import util.Model
 import de.sciss.span.Span
 import de.sciss.span.Span.SpanOrVoid
 import legacy.AbstractCompoundEdit
+import desktop.UndoManager
 
 object TrailView {
    // FUCKING SCHEISS DOES NOT COMPILE ANY MORE
@@ -136,7 +136,7 @@ extends TrailView[ T ] with TrailViewEditor[ T ] {
   def editor: Option[ TrailViewEditor[ T ]] = Some( this )
    // ---- TrailViewEditor ----
 
-  def undoManager: UndoManager = doc.getUndoManager
+  def undoManager: UndoManager = doc.undoManager
 
   def editSelect( ce: AbstractCompoundEdit, stakes: T* ) { editSetSelection( ce, stakes, state = true )}
 

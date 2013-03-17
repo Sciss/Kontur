@@ -23,7 +23,7 @@ object PreferencesImpl {
       if (s == null) None else tpe.valueOf(s)
     }
 
-    def getOrElse[A](key: String, default: A)(implicit tpe: Type[A]): A = {
+    def getOrElse[A](key: String, default: => A)(implicit tpe: Type[A]): A = {
       val s = peer.get(key, null)
       if (s == null) default else tpe.valueOf(s).getOrElse(default)
     }

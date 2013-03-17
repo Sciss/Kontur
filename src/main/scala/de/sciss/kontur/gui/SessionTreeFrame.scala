@@ -87,7 +87,8 @@ class SessionTreeFrame( val doc: Session ) extends desktop.impl.WindowImpl with 
       contents = Component.wrap(ggScroll)
 //      app.getMenuFactory().addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
 
-      addDynamicListening( sessionTreeModel )
+// XXX TODO
+//      addDynamicListening( sessionTreeModel )
 
 //      init()
 
@@ -96,7 +97,7 @@ class SessionTreeFrame( val doc: Session ) extends desktop.impl.WindowImpl with 
 	  visible = true
    }
 
-   protected def windowClosing() { actionClose.perform() }
+   protected def windowClosing() { actionClose() }
 
    override protected def autoUpdatePrefs = true
    override protected def alwaysPackSize = false

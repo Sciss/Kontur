@@ -25,11 +25,11 @@
 
 package de.sciss.kontur.session
 
-import javax.swing.undo.UndoManager
 import scala.xml.Node
 import de.sciss.kontur.edit.SimpleEdit
 import de.sciss.kontur.util.SerializerContext
 import legacy.AbstractCompoundEdit
+import de.sciss.kontur.desktop.UndoManager
 
 object AudioTrack {
    val XML_NODE = "audioTrack"
@@ -52,7 +52,7 @@ extends Track with TrackEditor with Renamable {
 
    protected var nameVar = "Audio" // XXX
 
-   def undoManager: UndoManager = doc.getUndoManager
+   def undoManager: UndoManager = doc.undoManager
 
    val trail: AudioTrail = new AudioTrail( doc )
    private var diffusionVar: Option[ Diffusion ] = None

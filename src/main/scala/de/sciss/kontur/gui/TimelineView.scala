@@ -26,13 +26,13 @@
 package de.sciss.kontur
 package gui
 
-import javax.swing.undo.UndoManager
 import edit.{Editor, SimpleEdit}
 import session.{Session, Timeline}
 import util.Model
 import de.sciss.span.Span
 import Span.SpanOrVoid
 import legacy.AbstractCompoundEdit
+import desktop.UndoManager
 
 object TimelineView {
    case class SpanChanged( oldSpan: Span, newSpan: Span )
@@ -89,7 +89,7 @@ extends TimelineView with TimelineViewEditor {
   def editor: Option[ TimelineViewEditor ] = Some( this )
     // ---- TimelineViewEditor ----
 
-  def undoManager: UndoManager = doc.getUndoManager
+  def undoManager: UndoManager = doc.undoManager
 
   def editPosition( ce: AbstractCompoundEdit, newPos: Long ) {
     val edit = new SimpleEdit( "editTimelinePosition", false ) {

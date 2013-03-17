@@ -32,6 +32,7 @@ import edit.{ Editor, SimpleEdit }
 import session.{ AudioTrack, Session, Stake, Track }
 import util.Model
 import legacy.AbstractCompoundEdit
+import desktop.UndoManager
 
 object TrackList {
     case class ElementAdded( idx: Int, e: TrackListElement )
@@ -217,7 +218,7 @@ extends TrackList with TrackListEditor {
     def editor: Option[ TrackListEditor ] = Some( this )
    // ---- TrackListEditor trait ----
 
-   def undoManager: UndoManager = doc.getUndoManager
+   def undoManager: UndoManager = doc.undoManager
 
    def editSelect( ce: AbstractCompoundEdit, e: TrackListElement* ) { editSetSelection( ce, e, state = true )}
 

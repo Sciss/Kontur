@@ -23,14 +23,15 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.session
+package de.sciss.kontur
+package session
 
-import javax.swing.undo.UndoManager
-import scala.xml.Node
-import de.sciss.kontur.edit.{ Editor, SimpleEdit }
-import de.sciss.kontur.util.SerializerContext
+import xml.Node
+import edit.{Editor, SimpleEdit}
+import util.SerializerContext
 import de.sciss.span.Span
 import legacy.AbstractCompoundEdit
+import desktop.UndoManager
 
 object Timeline {
   final case class SpanChanged(oldSpan: Span, newSpan: Span)
@@ -73,7 +74,7 @@ extends Timeline with Renamable with TimelineEditor {
    protected var nameVar = "Timeline"
    private val transportVar = new BasicTransport( this )
 
-   def undoManager: UndoManager = doc.getUndoManager
+   def undoManager: UndoManager = doc.undoManager
 
    def transport: Option[ Transport ] = Some( transportVar )
 

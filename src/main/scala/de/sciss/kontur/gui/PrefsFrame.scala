@@ -51,12 +51,12 @@ class PrefsFrame extends desktop.impl.WindowImpl {
 
     //	  val app = AbstractApplication.getApplication()
 
-    val cp = content
+    val cp = contents.peer
     val tb = new JToolBar()
     val bg = new ButtonGroup()
     tb.setFloatable(false)
     val layout = new BorderLayout()
-    cp.peer.setLayout(layout)
+    cp.setLayout(layout)
 
     def activateTab(tab: AbstractAction) {
       val panel = tab.getValue("de.sciss.tabpanel").asInstanceOf[JComponent]

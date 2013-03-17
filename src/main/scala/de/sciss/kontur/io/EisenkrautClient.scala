@@ -23,32 +23,33 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.io
+package de.sciss.kontur
+package io
 
-import java.io.{ File, IOException }
+import java.io.{File, IOException}
 import java.net.InetSocketAddress
-import java.util.prefs.{ PreferenceChangeListener, PreferenceChangeEvent }
-import de.sciss.app.AbstractApplication
-import de.sciss.kontur.util.PrefsUtil
-import scala.actors.{ Actor, TIMEOUT }
+import java.util.prefs.{PreferenceChangeListener, PreferenceChangeEvent}
+import util.PrefsUtil
+import actors.{Actor, TIMEOUT}
 import de.sciss.osc
 import de.sciss.span.Span
-import de.sciss.span.Span.SpanOrVoid
+import Span.SpanOrVoid
+import desktop.Application
 
-object EisenkrautClient {
-   val verbose = true
-   lazy val instance = new EisenkrautClient
-}
+//object EisenkrautClient {
+//   val verbose = true
+//   lazy val instance = new EisenkrautClient
+//}
 
-class EisenkrautClient {
-   import EisenkrautClient._ 
+class EisenkrautClient()(implicit application: Application) {
+//  import EisenkrautClient._
 
-   private var oscVar: Option[ osc.Client ]  = None
-   private var actorVar: Option[ OSCActor ]  = None
-   private val prefs                         = AbstractApplication.getApplication.getUserPrefs.node( PrefsUtil.NODE_IO )
-   private var queryIDCount                  = 0
+  private var oscVar        = Option.empty[osc.Client]
+  private var actorVar      = Option.empty[OSCActor]
+  private val prefs         = application.userPrefs.node(PrefsUtil.NODE_IO)
+  private var queryIDCount  = 0
 
-   private val prefsListener = new PreferenceChangeListener {
+  private val prefsListener = new PreferenceChangeListener {
       def preferenceChange( e: PreferenceChangeEvent ) { e.getKey match {
          case PrefsUtil.KEY_EISKOSCPORT     => shutDown()
          case PrefsUtil.KEY_EISKOSCPROTOCOL => shutDown()
@@ -172,11 +173,11 @@ class EisenkrautClient {
    private def oscClient: Option[ osc.Client ] = {
       if( oscVar.isEmpty ) {
          // tcp is actual default, but scalaosc does not support it yet
-         val proto = prefs.get( PrefsUtil.KEY_EISKOSCPROTOCOL, "tcp" ) match {
+         val proto = prefs.getOrElse( PrefsUtil.KEY_EISKOSCPROTOCOL, "tcp" ) match {
             case "udp" => osc.UDP
             case "tcp" => osc.TCP
          }
-         val port  = prefs.getInt( PrefsUtil.KEY_EISKOSCPORT, 0x4549 )
+         val port  = prefs.getOrElse( PrefsUtil.KEY_EISKOSCPORT, 0x4549 )
          try {
             val target = new InetSocketAddress( "127.0.0.1", port )
             val c = proto match {
@@ -191,7 +192,7 @@ class EisenkrautClient {
             }
             var success = false
             try {
-               if( verbose ) c.dump()
+//               if( verbose ) c.dump()
                println( "OSC Client talking " + proto.name + " to " + target.getHostName + ":" + target.getPort )
                c.connect()
                c.action = receiveAction

@@ -26,19 +26,19 @@
 package de.sciss.kontur
 package gui
 
-import java.awt.{ Dimension, Point, Rectangle }
-import javax.swing.{ JComponent, JViewport }
-import de.sciss.app.{ DynamicAncestorAdapter, DynamicListening }
+import java.awt.{Dimension, Point, Rectangle}
+import javax.swing.{JComponent, JViewport}
 import util.Model
 import de.sciss.span.Span
 
-class TimelineViewport( timelineView: TimelineView )
-extends JViewport with DynamicListening {
-   var verbose = false
+class TimelineViewport(timelineView: TimelineView)
+  extends JViewport /* with DynamicListening */ {
+
+  var verbose = false
 
   // ---- constructor ----
 //  {
-     new DynamicAncestorAdapter( this ).addTo( this )
+//     new DynamicAncestorAdapter( this ).addTo( this )
 //  }
 
   def startListening() {

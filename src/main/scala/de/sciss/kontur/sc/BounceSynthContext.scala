@@ -26,10 +26,9 @@
 package de.sciss.kontur
 package sc
 
-import java.io.{ BufferedReader, File, InputStreamReader, IOException, RandomAccessFile }
+import java.io.{BufferedReader, File, InputStreamReader, IOException, RandomAccessFile}
 import java.nio.ByteBuffer
 import javax.swing.SwingWorker
-import de.sciss.io.IOUtil
 import de.sciss.osc
 import de.sciss.synth._
 import collection.mutable

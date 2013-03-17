@@ -26,7 +26,6 @@
 package de.sciss.kontur
 package gui
 
-import io.EisenkrautClient
 import session.{AudioRegion, AudioTrack, Session, SessionUtil, Stake, ResizableStake, Timeline, Track}
 import util.PrefsUtil
 import java.awt.event.{ActionEvent, ActionListener, InputEvent, KeyEvent}
@@ -37,10 +36,10 @@ import scala.math._
 import de.sciss.synth.io.{AudioFileType, SampleFormat, AudioFileSpec}
 import de.sciss.span.Span
 import Span.SpanOrVoid
-import language.reflectiveCalls
 import legacy.{DefaultUnitTranslator, Param, ParamSpace, GUIUtil}
 import swing.{Action, Component, BorderPanel}
 import desktop.{WindowHandler, Window}
+import language.reflectiveCalls
 
 object TimelineFrame {
   protected val lastLeftTop		= new Point()
@@ -179,8 +178,6 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
   //    // nada
   //  }
 
-  def document: Session = doc
-
   protected def elementName = Some(tl.name)
 
   protected def windowClosing() {
@@ -190,10 +187,10 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
   def nudgeFrames: Long = ActionNudgeAmount.numFrames
 
   private def initBounds() {
-		val cp	= getClassPrefs
+		val cp	= application.userPrefs.node("TimelineFrame")
 		val sr	= WindowHandler.availableSpace
-      val dt	= /* AppWindow.*/ stringToDimension( cp.get( TimelineFrame.KEY_TRACKSIZE, null ))
-		val d	= if( dt == null ) new Dimension() else dt
+    import desktop.Implicits._
+    val d 	= cp.getOrElse[Dimension](TimelineFrame.KEY_TRACKSIZE, new Dimension())
 		val hf	= 1f // Math.sqrt( Math.max( 1, waveView.getNumChannels() )).toFloat
 		var w	= d.width
 		var h	= d.height
@@ -887,7 +884,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
              case sp @ Span(_, _) if sp.nonEmpty => sp.shift(delta)
              case _ => Span.Void
            }
-           EisenkrautClient.instance.openAudioFile(ar.audioFile.path, cursor, selection)
+           Kontur.eisenkraut.openAudioFile(ar.audioFile.path, cursor, selection)
            true
 
          case _ => false
@@ -958,7 +955,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
       bg.add(ggAll)
       bg.add(ggSel)
       bg.setSelected(ggAll.getModel, true)
-      val ggPath = new PathField(PathF.TYPE_OUTPUTFILE, name)
+      val ggPath = new PathField(legacy.PathField.TYPE_OUTPUTFILE, name)
       val affp = new AudioFileFormatPane(AudioFileFormatPane.FORMAT | AudioFileFormatPane.ENCODING)
       val descr = new AudioFileDescr
       affp.toDescr(descr)
@@ -978,7 +975,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
         // val p2 = Box.createHorizontalBox
         // p2.add( Box.createHorizontalStrut( 24 ))
         // p2.add( )
-        pane.add(new JLabel("   " + getResourceString("bounceDlgNoSel")))
+        pane.add(new JLabel("   " + "No Selection")) // getResourceString("bounceDlgNoSel")))
       }
 
       val op = new JOptionPane(pane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
@@ -990,11 +987,11 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
         val opCancel = "Cancel" // getResourceString("buttonCancel")
         val opOverwrite = "Overwrite" // getResourceString("buttonOverwrite")
         val options = Array[AnyRef](opOverwrite, opCancel)
-        val op2 = new JOptionPane(getResourceString("warnFileExists") + ":\n" + path.toString + "\n" +
-          getResourceString("warnOverwriteFile"), JOptionPane.WARNING_MESSAGE, JOptionPane.OK_CANCEL_OPTION,
+        val op2 = new JOptionPane("Warning: File already exists" /* getResourceString("warnFileExists") */ + ":\n" + path.toString + "\n" +
+          "Overwrite file?" /* getResourceString("warnOverwriteFile") */, JOptionPane.WARNING_MESSAGE, JOptionPane.OK_CANCEL_OPTION,
           null, options)
         op2.setInitialSelectionValue(opCancel)
-        /* val result2 = */ BasicWindowHandler.showDialog(op2, getWindow, name)
+        /* val result2 = */ showDialog(op2, name)
         if (op2.getValue != opOverwrite) return None
       }
 

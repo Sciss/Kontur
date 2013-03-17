@@ -39,12 +39,12 @@ import io.SonagramPaintController
 import session.{AudioFileElement, AudioRegion, AudioTrack,
                                 BasicTrail, FadeSpec, RegionTrait,
                                 ResizableStake, Session, SlidableStake, Stake, Track}
-import de.sciss.app.{AbstractApplication, AbstractCompoundEdit, DynamicAncestorAdapter,DynamicListening, GraphicsHandler}
 import de.sciss.dsp.Util.ampdb
 import de.sciss.synth.{curveShape, linShape}
 import util.Model
-import de.sciss.span.{SpanLike, Span}
-import de.sciss.span.Span.SpanOrVoid
+import de.sciss.span.Span
+import Span.SpanOrVoid
+import legacy.AbstractCompoundEdit
 
 object DefaultTrackComponent {
    protected[gui] case class PaintContext( g2: Graphics2D, x: Int, y: Int, p_off: Long, p_scale: Double, height: Int,
@@ -75,10 +75,10 @@ trait TrackComponent {
    def paintTrack( g2: Graphics2D, x: Int, y: Int, width: Int, height: Int, span: Span ) : Unit
 }
 
-class DefaultTrackComponent( doc: Session, val track: Track, trackList: TrackList, timelineView: TimelineView )
-extends JComponent with TrackComponent with TrackToolsListener with DynamicListening {
+class DefaultTrackComponent(doc: Session, val track: Track, trackList: TrackList, timelineView: TimelineView)
+  extends JComponent with TrackComponent with TrackToolsListener /* with DynamicListening */ {
 
-   import DefaultTrackComponent._
+  import DefaultTrackComponent._
 
 //    protected val track     = t // necessary for trail.trail (DO NOT ASK WHY)
    protected val trail     = track.trail // "stable"
@@ -212,9 +212,8 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
          case _ => None
       }
    
-    {
-      setFont( AbstractApplication.getApplication.getGraphicsHandler
-        .getFont( GraphicsHandler.FONT_LABEL | GraphicsHandler.FONT_MINI ))
+//      setFont( AbstractApplication.getApplication.getGraphicsHandler
+//        .getFont( GraphicsHandler.FONT_LABEL | GraphicsHandler.FONT_MINI ))
 
 // WARNING: would destroy laziness
 //       if( trailViewEditor.isDefined ) {
@@ -222,8 +221,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
 //           addMouseMotionListener( mia )
 //       }
 
-       new DynamicAncestorAdapter( this ).addTo( this )
-    }
+//       new DynamicAncestorAdapter( this ).addTo( this )
 
    def registerTools( tools: TrackTools ) {
       visualBoostVar          = tools.visualBoost

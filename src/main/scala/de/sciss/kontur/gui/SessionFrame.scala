@@ -110,19 +110,19 @@ trait SessionFrame {
 
     val name = doc.displayName
     title = (if (!handler.usesInternalFrames) handler.application.name else "") +
-      (if (doc.isDirty) " - \u2022" else " - ") + name + (elementName.map(e => " - " + e) getOrElse "")
+      (if (doc.dirty) " - \u2022" else " - ") + name + (elementName.map(e => " - " + e) getOrElse "")
 
     actionShowWindow.title = name
-    actionSave.setEnabled(!writeProtected && doc.isDirty)
-    dirty = doc.isDirty
+    actionSave.setEnabled(!writeProtected && doc.dirty)
+    dirty = doc.dirty
     file  = doc.path
 
     //		final AudioFileInfoPalette infoBox = (AudioFileInfoPalette) app.getComponent( Main.COMP_AUDIOINFO )
     //		if( infoBox != null ) infoBox.updateDocumentName( doc )
 
-    if (writeProtected && !wpHaveWarned && doc.isDirty) {
+    if (writeProtected && !wpHaveWarned && doc.dirty) {
       val op = new JOptionPane(getResourceString("warnWriteProtected"), JOptionPane.WARNING_MESSAGE)
-      BasicWindowHandler.showDialog(op, getWindow, getResourceString("msgDlgWarn"))
+      showDialog(op, "Warning") // getResourceString("msgDlgWarn"))
       wpHaveWarned = true
     }
   }
@@ -196,12 +196,12 @@ trait SessionFrame {
     *	@see	de.sciss.eisenkraut.util.ProcessingThread#start
     */
    def confirmUnsaved( actionName: String, confirmed: Flag ) : Boolean = {
-      if( !doc.isDirty ) {
+      if( !doc.dirty ) {
          confirmed.value = true
          return false
       }
 
-      val options = Array[ AnyRef ]("Save", "Cancel", "Do not save"
+      val options = Array[ AnyRef ]("Save...", "Cancel", "Don't Save"
 //        getResourceString( "buttonSave" ),
 //        getResourceString( "buttonCancel" ),
 //        getResourceString( "buttonDontSave" )
@@ -210,7 +210,8 @@ trait SessionFrame {
 
       val name = doc.displayName
 
-      val op = new JOptionPane( name + " :\n" + getResourceString( "optionDlgUnsaved" ),
+      val op = new JOptionPane(s"<html><body><p><b>Do you want to save the changes you made in\nthe document $name?</b></p>" +
+        "<p>Your changes will be lost if you don't save them.</p></body></html>",
                             JOptionPane.WARNING_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION, null,
                             options, options( 1 ))
       val d = op.createDialog( component.peer, actionName )
@@ -259,7 +260,7 @@ trait SessionFrame {
            doc.path
          }
          path.map(p => {
-           actionSave.perform(actionSave.getValue(Action.NAME).toString, p, asCopy = false, openAfterSave = false)
+           actionSave.perform(actionSave.title, p, asCopy = false, openAfterSave = false)
          }) getOrElse false
      }
    }

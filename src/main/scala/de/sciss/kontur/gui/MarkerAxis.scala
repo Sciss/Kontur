@@ -245,7 +245,7 @@ with desktop.impl.DynamicComponentImpl {
 	}
 
 	protected def getResourceString( key: String ) =
-		AbstractApplication.getApplication.getResourceString( key )
+		key // XXX TODO AbstractApplication.getApplication.getResourceString( key )
 
 	private def recalcDisplay( fm: FontMetrics ) {
 		val scale = recentWidth.toDouble / visibleSpan.length

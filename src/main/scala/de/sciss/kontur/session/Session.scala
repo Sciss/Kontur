@@ -26,12 +26,15 @@
 package de.sciss.kontur
 package session
 
-import util.{Model, BasicSerializerContext, SerializerContext}
+import util.{Flag, Model, BasicSerializerContext, SerializerContext}
 import java.awt.EventQueue
 import java.io.{ File, IOException }
 import scala.xml.{ Node, XML }
 import collection.JavaConversions
 import de.sciss.kontur.gui.SessionFrame
+import legacy.ProcessingThread
+import desktop.impl.UndoManagerImpl
+import desktop.UndoManager
 
 object Session {
     def newEmpty = new Session( None )
@@ -57,14 +60,18 @@ object Session {
 
 class Session( private var pathVar: Option[ File ] )
 extends BasicDocument with Model {
+  doc =>
 
-    import Session._
+  import Session._
 
-	 private var pt: Option[ ProcessingThread ] = None
-	 private val undo  = new de.sciss.app.UndoManager( this )
-    private var dirty = false
+  private var pt: Option[ProcessingThread] = None
+  private val undo = new UndoManagerImpl {
+    def dirty = doc.dirty
+    def dirty_=(value: Boolean) { doc.dirty = value}
+  }
+  private var _dirty = false
 
-//  private var path: Option[ File ] = None
+  //  private var path: Option[ File ] = None
 
     val timelines   = new Timelines( this )
     val audioFiles  = new AudioFileSeq( this )
@@ -138,7 +145,7 @@ extends BasicDocument with Model {
 
          case None =>
             println( "Wooop -- no document frame found ?!" )
-            confirmed.set( true )
+            confirmed() = true
       }
       null
 
@@ -170,22 +177,21 @@ extends BasicDocument with Model {
     def displayName =
        name getOrElse getResourceString( "frameUntitled" )
 
-  	protected def getResourceString( key: String ) : String =
-		getApplication().getResourceString( key )
-      
-	def isDirty : Boolean = dirty
+  	protected def getResourceString( key: String ) : String = key // XXX TODO getApplication().getResourceString( key )
 
-    def setDirty( newDirty: Boolean ) {
-		if( dirty != newDirty ) {
-			dirty = newDirty
-         dispatch( DirtyChanged( newDirty ))
-		}
-	}
+  def dirty: Boolean = _dirty
 
-	def getApplication : de.sciss.app.Application =
-      AbstractApplication.getApplication
+  def dirty_=(value: Boolean) {
+    if (_dirty != value) {
+      _dirty = value
+      dispatch(DirtyChanged(value))
+    }
+  }
 
-	def getUndoManager : de.sciss.app.UndoManager = undo
+  //	def getApplication : de.sciss.app.Application =
+//      AbstractApplication.getApplication
+
+	def undoManager: UndoManager = undo
 
     def dispose() {
        // nada

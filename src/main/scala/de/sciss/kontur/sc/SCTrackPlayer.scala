@@ -23,23 +23,28 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.sc
+package de.sciss.kontur
+package sc
 
-import de.sciss.util.Disposable
-import de.sciss.kontur.session.Track
+import session.Track
 import de.sciss.span.Span
 
-trait SCTrackPlayer extends Disposable {
-   def track: Track
-   def step( currentPos: Long, span: Span )
-   def play()
-   def stop()
+trait SCTrackPlayer /* extends Disposable */ {
+  def track: Track
+
+  def step(currentPos: Long, span: Span): Unit
+
+  def play(): Unit
+  def stop(): Unit
+  def dispose(): Unit
 }
 
-class SCDummyPlayer( val track: Track )
-extends SCTrackPlayer {
-   def dispose() {}
-   def step( currentPos: Long, span: Span ) {}
-   def play() {}
-   def stop() {}
+final class SCDummyPlayer(val track: Track)
+  extends SCTrackPlayer {
+
+  def step(currentPos: Long, span: Span) {}
+
+  def play() {}
+  def stop() {}
+  def dispose() {}
 }

@@ -26,20 +26,19 @@
 package de.sciss.kontur
 package gui
 
-import java.awt.{ Cursor, Point, Toolkit }
-import javax.swing.{ Box, JLabel, JOptionPane, SwingUtilities }
+import java.awt.{Cursor, Point, Toolkit}
+import javax.swing.{Box, JLabel, JOptionPane, SwingUtilities}
 import javax.swing.event.MouseInputAdapter
-import de.sciss.app.{ AbstractApplication, AbstractCompoundEdit }
-import de.sciss.common.BasicWindowHandler
 import de.sciss.dsp.Util.dbamp
-import de.sciss.gui.GUIUtil
-import de.sciss.util.{ DefaultUnitTranslator, ParamSpace }
 import util.{Model, PrefsUtil}
 import session.{Session, AudioRegion, MuteableStake, Stake}
 import sc.{SCAudioTrackPlayer, SuperColliderClient}
 import java.awt.event.{MouseAdapter, KeyEvent, KeyListener, MouseEvent}
-import language.reflectiveCalls
 import de.sciss.span.Span
+import language.reflectiveCalls
+import legacy.{GUIUtil, ParamSpace, DefaultUnitTranslator, AbstractCompoundEdit}
+import desktop.WindowHandler
+import desktop.impl.BasicParamField
 
 object TrackTools {
    case class ToolChanged( oldTool: TrackTool, newTool: TrackTool )
@@ -167,21 +166,22 @@ trait TrackStakeTool extends TrackTool {
          }
       })
 
-      // handle linked timeline selection
-      if( AbstractApplication.getApplication.getUserPrefs.getBoolean( PrefsUtil.KEY_LINKOBJTIMELINESEL, false )) {
-         val oldSel     = timelineView.selection.span
-         val newSel     = trackList.toList.flatMap(_.trailView.selectedStakes.map(_.span)) match {
-           case head :: tail => tail.foldLeft(head)(_ union _)
-           case Nil => Span.Void
-         }
-         if( newSel != oldSel ) {
-            timelineView.editor.foreach( ed => {
-               val ce = ed.editBegin( "select" )
-               ed.editSelect( ce, newSel )
-               ed.editEnd( ce )
-            })
-         }
-      }
+// XXX TODO
+//      // handle linked timeline selection
+//      if( AbstractApplication.getApplication.getUserPrefs.getBoolean( PrefsUtil.KEY_LINKOBJTIMELINESEL, false )) {
+//         val oldSel     = timelineView.selection.span
+//         val newSel     = trackList.toList.flatMap(_.trailView.selectedStakes.map(_.span)) match {
+//           case head :: tail => tail.foldLeft(head)(_ union _)
+//           case Nil => Span.Void
+//         }
+//         if( newSel != oldSel ) {
+//            timelineView.editor.foreach( ed => {
+//               val ce = ed.editBegin( "select" )
+//               ed.editSelect( ce, newSel )
+//               ed.editEnd( ce )
+//            })
+//         }
+//      }
 
       // now go on if stake is selected
       stakeOCast.foreach( stake => if( tvCast.isSelected( stake )) {
@@ -267,7 +267,7 @@ extends TrackStakeTool {
 
    protected def showDialog( message: AnyRef ) : Boolean = {
       val op = new JOptionPane( message, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )
-      val result = BasicWindowHandler.showDialog( op, null, name )
+      val result = WindowHandler.showDialog( op, name )
       result == JOptionPane.OK_OPTION
    }
 
@@ -366,7 +366,7 @@ extends BasicTrackStakeTool[ TrackMoveTool.Move ]( trackList, timelineView ) {
    protected def dialog: Option[ Move ] = {
       val box        = Box.createHorizontalBox
       val timeTrans  = new DefaultUnitTranslator()
-      val ggTime     = new ParamField( timeTrans )
+      val ggTime     = new BasicParamField( timeTrans )
       val spcTimeHHMMSSD	= new ParamSpace( Double.NegativeInfinity, Double.PositiveInfinity, 0.0, 1, 3, 0.0,
                                              ParamSpace.TIME | ParamSpace.SECS | ParamSpace.HHMMSS | ParamSpace.OFF )
       ggTime.addSpace( spcTimeHHMMSSD )
@@ -380,7 +380,7 @@ extends BasicTrackStakeTool[ TrackMoveTool.Move ]( trackList, timelineView ) {
       val tl = timelineView.timeline
       timeTrans.setLengthAndRate( tl.span.length, tl.rate )
       if( showDialog( box )) {
-         val delta = timeTrans.translate( ggTime.getValue, ParamSpace.spcTimeSmpsD ).`val`.toLong
+         val delta = timeTrans.translate( ggTime.value, ParamSpace.spcTimeSmpsD ).value.toLong
          Some( Move( delta, 0, copy = false ))
       } else None
    }

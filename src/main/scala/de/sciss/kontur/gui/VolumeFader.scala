@@ -1,6 +1,6 @@
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
-import de.sciss.app.{GraphicsHandler, AbstractApplication}
 import javax.swing.{JLabel, JSlider, SwingConstants}
 import java.awt.event.{MouseEvent, MouseAdapter}
 import javax.swing.event.{ChangeListener, ChangeEvent}
@@ -14,8 +14,8 @@ class VolumeFader extends JSlider( SwingConstants.VERTICAL, -72, 18, 0 ) {
       putClientProperty( "JSlider.isFilled", java.lang.Boolean.TRUE ) // used by Metal-lnf
       setMinorTickSpacing( 3 )
       setMajorTickSpacing( 12 )
-      val fnt = AbstractApplication.getApplication.getGraphicsHandler.getFont(
-         GraphicsHandler.FONT_LABEL | GraphicsHandler.FONT_MINI )
+//      val fnt = AbstractApplication.getApplication.getGraphicsHandler.getFont(
+//         GraphicsHandler.FONT_LABEL | GraphicsHandler.FONT_MINI )
 
       val dictVolume = createStandardLabels( 12 )
       var lbZeroTmp: JLabel = null
@@ -28,7 +28,7 @@ class VolumeFader extends JSlider( SwingConstants.VERTICAL, -72, 18, 0 ) {
                lb.setText( "0\u25C0" )
             case _ =>
          }
-         lb.setFont( fnt )
+//         lb.setFont( fnt )
       }
 
       val lbZero = lbZeroTmp

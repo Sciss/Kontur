@@ -28,13 +28,13 @@ package gui
 
 import sc.SuperColliderClient
 import de.sciss.synth.Server
-import java.awt.event.{ActionEvent, InputEvent, KeyEvent}
-import javax.swing.{AbstractAction, JComponent, KeyStroke}
+import java.awt.event.{InputEvent, KeyEvent}
+import javax.swing.{JComponent, KeyStroke}
 import de.sciss.osc
 import de.sciss.synth.swing.j.JServerStatusPanel
 import util.Model
 import desktop.Window
-import swing.Component
+import swing.{Action, Component}
 
 // note: should be PALETTE, but then we loose the key actions...
 class SuperColliderFrame extends desktop.impl.WindowImpl {
@@ -59,45 +59,43 @@ class SuperColliderFrame extends desktop.impl.WindowImpl {
   title     = "SuperCollider Server"  // XXX getResource
   resizable = false
 
-   // ---- constructor ----
-   {
+  // ---- actions ----
+  addAction(new ActionDumpTree(controls = false, stroke = KeyStroke.getKeyStroke(KeyEvent.VK_N, 0)))
+  addAction(new ActionDumpTree(controls = true , stroke = KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.SHIFT_MASK)))
+  addAction(ActionDumpOSC)
 
-      // ---- actions ----
-      val imap		= getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW )
-      val amap		= getActionMap
-      imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_N, 0 ), "dumptree" )
-      amap.put( "dumptree", new ActionDumpTree( false ))
-      imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_N, InputEvent.SHIFT_MASK ), "dumptreec" )
-      amap.put( "dumptreec", new ActionDumpTree( true ))
-      imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_D, 0 ), "dumposc" )
-      amap.put( "dumposc", new ActionDumpOSC )
+  contents = Component.wrap(serverPanel)
 
-     contents = Component.wrap(serverPanel)
+  superCollider.addListener(clientListener)
 
-     superCollider.addListener(clientListener)
-     // init()
-   }
+  // init()
 
-   override protected def autoUpdatePrefs = true
+  override protected def autoUpdatePrefs = true
 
-   private class ActionDumpTree( controls: Boolean  )
-   extends AbstractAction {
-      def actionPerformed( e: ActionEvent ) {
-         superCollider.server.foreach( s => {
-             if( s.condition == Server.Running ) {
-                s.dumpTree( controls )
-             }
-         })
+  private class ActionDumpTree(controls: Boolean, stroke: KeyStroke)
+    extends Action(s"Dump Tree ($controls)") {
+
+    accelerator = Some(stroke)
+
+    def apply() {
+      superCollider.server.foreach { s =>
+        if (s.condition == Server.Running) {
+          s.dumpTree(controls)
+        }
       }
-   }
+    }
+  }
 
-   private class ActionDumpOSC
-   extends AbstractAction {
-      private var dumping = false
-      def actionPerformed( e: ActionEvent ) {
-         dumping = !dumping
-         println( "Dumping is " + (if( dumping ) "on" else "off") ) // XXX resource
-         superCollider.dumpOSC( if( dumping ) osc.Dump.Text else osc.Dump.Off )
-      }
-   }
+  private object ActionDumpOSC
+    extends Action("Dump OSC") {
+    private var dumping = false
+
+    accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0))
+
+    def apply() {
+      dumping = !dumping
+      println("Dumping is " + (if (dumping) "on" else "off")) // XXX resource
+      superCollider.dumpOSC(if (dumping) osc.Dump.Text else osc.Dump.Off)
+    }
+  }
 }

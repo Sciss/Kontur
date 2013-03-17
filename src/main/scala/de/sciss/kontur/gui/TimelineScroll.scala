@@ -66,7 +66,7 @@ object TimelineScroll {
 
 class TimelineScroll( timelineView: TimelineView )
 extends JScrollBar( Adjustable.HORIZONTAL )
-with AdjustmentListener with DynamicListening {
+with AdjustmentListener /* with DynamicListening */ {
     import TimelineScroll._
 
 	private var recentSize = getMinimumSize
@@ -107,7 +107,7 @@ with AdjustmentListener with DynamicListening {
 
 		// --- Listener ---
 
-		new DynamicAncestorAdapter( this ).addTo( this )
+//		new DynamicAncestorAdapter( this ).addTo( this )
         this.addAdjustmentListener( this )
 
 		setFocusable( false )

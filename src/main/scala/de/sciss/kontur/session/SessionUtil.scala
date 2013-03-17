@@ -23,26 +23,25 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.session
+package de.sciss.kontur
+package session
 
-import java.beans.{ PropertyChangeEvent, PropertyChangeListener }
+import java.beans.{PropertyChangeEvent, PropertyChangeListener}
 import javax.swing.SwingWorker
-import de.sciss.app.AbstractApplication
-import de.sciss.util.Param
-import de.sciss.kontur.sc.{ BounceSynthContext, SCSession, SCTimeline }
-import de.sciss.kontur.util.PrefsUtil
+import sc.{BounceSynthContext, SCSession, SCTimeline}
+import util.PrefsUtil
 import de.sciss.synth.io.AudioFileSpec
-import java.io.{File, IOException}
+import java.io.File
 import de.sciss.synth.Server
 import de.sciss.span.Span
+import legacy.Param
 
 object SessionUtil {
    private def getResourceString( key: String ) =
-      AbstractApplication.getApplication.getResourceString( key )
+      key // XXX TODO AbstractApplication.getApplication.getResourceString( key )
 
-   @throws( classOf[ IOException ])
    def bounce( doc: Session, tl: Timeline, tracks: List[ Track ], span: Span, path: File, spec: AudioFileSpec,
-               upd: AnyRef => Unit = _ => () ) : { def cancel(): Unit } = {
+               upd: AnyRef => Unit = _ => () )(implicit application: desktop.Application): () => Unit = {
       
       val so                        = Server.Config()
       so.nrtOutputPath              = path.getCanonicalPath
@@ -54,7 +53,7 @@ object SessionUtil {
       val audioPrefs                = AbstractApplication.getApplication.getUserPrefs.node( PrefsUtil.NODE_AUDIO )
       val pMemSize = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCMEMSIZE, null )
       if( pMemSize != null ) {
-         so.memorySize              = pMemSize.`val`.toInt << 10
+         so.memorySize              = pMemSize.value.toInt << 10
       }
       so.blockSize                  = 1
       so.loadSynthDefs              = false
@@ -115,11 +114,10 @@ object SessionUtil {
          }
       })
       worker.execute()
-      new {
-         def cancel() {
-            println( "WARNING: CANCEL DOES NOT WORK YET PROPERLY" )
-            worker.cancel( true )
-         }
-      }
+
+     () => {
+       println("WARNING: CANCEL DOES NOT WORK YET PROPERLY")
+       worker.cancel(true)
+     }
    }
 }

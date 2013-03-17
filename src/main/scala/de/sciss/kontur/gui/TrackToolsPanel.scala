@@ -23,16 +23,16 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
 import java.awt.event.{ ActionEvent, ActionListener, KeyEvent }
 import javax.swing.{ AbstractAction, Box, BoxLayout, JComboBox, JComponent, JPanel, JSlider, KeyStroke }
 import javax.swing.event.{ ChangeEvent, ChangeListener }
-import de.sciss.common.BasicMenuFactory
-import de.sciss.kontur.util.PrefsUtil
-import de.sciss.app.{AbstractApplication, DynamicPrefChangeManager, DynamicAncestorAdapter}
+import util.PrefsUtil
 import java.util.prefs.{PreferenceChangeEvent, PreferenceChangeListener}
-import de.sciss.kontur.session.Session
+import session.Session
+import desktop.WindowHandler
 
 object TrackToolsPanel {
    private def linexp( x: Double, inLo: Double, inHi: Double, outLo: Double, outHi: Double ) =
@@ -62,9 +62,9 @@ extends JPanel with TrackTools with PreferenceChangeListener {
 
    // ---- constructor ----
    {
-      val imap	= ggCombo.getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW )
+      val imap	  = ggCombo.getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW )
       val amap    = ggCombo.getActionMap
-      val meta    = BasicMenuFactory.MENU_SHORTCUT
+      val meta    = WindowHandler.menuShortcut
 
       var i = 1; tools.foreach { t =>
          val key = "tool" + i
@@ -104,10 +104,11 @@ extends JPanel with TrackTools with PreferenceChangeListener {
       add( ggVisualBoost )
       add( Box.createHorizontalGlue )
 
-      new DynamicAncestorAdapter( new DynamicPrefChangeManager(
-         AbstractApplication.getApplication.getUserPrefs,
-         Array( PrefsUtil.KEY_FADEVIEWMODE, PrefsUtil.KEY_STAKEBORDERVIEWMODE ), this
-      )).addTo( this )
+// XXX TODO
+//      new DynamicAncestorAdapter( new DynamicPrefChangeManager(
+//         AbstractApplication.getApplication.getUserPrefs,
+//         Array( PrefsUtil.KEY_FADEVIEWMODE, PrefsUtil.KEY_STAKEBORDERVIEWMODE ), this
+//      )).addTo( this )
    }
 
    private def slidToBoost( v: Int ) = linexp( v, 0, 128, 1, 512 ).toFloat

@@ -26,14 +26,13 @@
 package de.sciss.kontur
 package sc
 
-import de.sciss.app.{ AbstractApplication, DocumentEvent, DocumentListener }
 import session.Session
 import util.{Model, PrefsUtil}
-import de.sciss.util.Param
 import java.awt.EventQueue
 import java.io.IOException
 import de.sciss.{synth, osc}
 import synth.{Model => _, _}
+import legacy.Param
 
 object SuperColliderClient {
    lazy val instance = new SuperColliderClient
@@ -220,23 +219,23 @@ class SuperColliderClient extends Model {
       val so = Server.Config()
 
 		val pRate = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_AUDIORATE, null )
-		if( pRate != null ) so.sampleRate = pRate.`val`.toInt
+		if( pRate != null ) so.sampleRate = pRate.value.toInt
       so.memorySize = 64 << 10
 
       val pAudioBuses = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_AUDIOBUSSES, null )
       if( pAudioBuses != null ) {
-         so.audioBusChannels = pAudioBuses.`val`.toInt
+         so.audioBusChannels = pAudioBuses.value.toInt
       } else {
          so.audioBusChannels = 512  // XXX hack around the missing prefs GUI
       }
 
 		val pBlockSize = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCBLOCKSIZE, null )
-		if( pBlockSize != null ) so.blockSize = pBlockSize.`val`.toInt
+		if( pBlockSize != null ) so.blockSize = pBlockSize.value.toInt
    	so.loadSynthDefs  = false
 	 	so.zeroConf       = audioPrefs.getBoolean( PrefsUtil.KEY_SCZEROCONF, false )
 
 		val pPort = Param.fromPrefs( audioPrefs, PrefsUtil.KEY_SCPORT, null )
-		val serverPort = if( pPort == null ) 0 else pPort.`val`.toInt
+		val serverPort = if( pPort == null ) 0 else pPort.value.toInt
       so.port = serverPort
 		val proto = audioPrefs.get( PrefsUtil.KEY_SCPROTOCOL, "tcp" ) match {
          case "udp" => osc.UDP

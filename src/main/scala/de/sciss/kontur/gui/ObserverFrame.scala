@@ -26,10 +26,10 @@
 package de.sciss.kontur
 package gui
 
-import java.awt.{ BorderLayout, Dimension }
-import javax.swing.{ JComponent, JTabbedPane, WindowConstants }
-import javax.swing.event.{ ChangeEvent, ChangeListener }
-import WindowConstants._
+import java.awt.Dimension
+import javax.swing.{JComponent, JTabbedPane}
+import javax.swing.event.{ChangeEvent, ChangeListener}
+import swing.Component
 
 class ObserverFrame extends desktop.impl.WindowImpl with DocumentListener {
   protected def style = desktop.Window.Palette
@@ -38,7 +38,7 @@ class ObserverFrame extends desktop.impl.WindowImpl with DocumentListener {
     private var mapTabs   = Map[ String, ObserverPage ]()
     private var shown: Option[ ObserverPage ] = None
 
-  title     = getResourceString("paletteObserver")
+  title     = "Observer" // getResourceString("paletteObserver")
 
   closeOperation = desktop.Window.CloseHide
   // init()
@@ -62,53 +62,59 @@ class ObserverFrame extends desktop.impl.WindowImpl with DocumentListener {
             }
         })
 //        ggTabPane.putClientProperty( "JComponent.sizeVariant", "small" )
-        contents = ggTabPane
+        contents = Component.wrap(ggTabPane)
 
       application.addComponent(Kontur.COMP_OBSERVER, this)
     }
 
-    override protected def autoUpdatePrefs = true
-	override protected def alwaysPackSize = false
+  override protected def autoUpdatePrefs = true
 
-    def addPage( page: ObserverPage ) {
-       if( containsPage( page.id )) removePage( page.id )
-       ggTabPane.addTab( page.title, page.component )
-//       pack()
-    }
+  override protected def alwaysPackSize = false
 
-    def removePage( id: String ) {
-        mapTabs.get( id ).foreach( page => {
-            mapTabs -= id
-            ggTabPane.remove( page.component )
-        })
-    }
+  def addPage(page: ObserverPage) {
+    if (containsPage(page.id)) removePage(page.id)
+    ggTabPane.addTab(page.title, page.component)
+    //       pack()
+  }
 
-    def selectPage( id: String ) {
-        mapTabs.get( id ).foreach( page => {
-            ggTabPane.setSelectedComponent( page.component )
-        })
-    }
+  def removePage(id: String) {
+    mapTabs.get(id).foreach(page => {
+      mapTabs -= id
+      ggTabPane.remove(page.component)
+    })
+  }
 
-    def setPageEnabled( id: String, enabled: Boolean ) {
-        mapTabs.get( id ).foreach( page => {
-            val idx = ggTabPane.indexOfTabComponent( page.component )
-            if( idx >= 0 ) ggTabPane.setEnabledAt( idx, enabled )
-        })
-    }
+  def selectPage(id: String) {
+    mapTabs.get(id).foreach(page => {
+      ggTabPane.setSelectedComponent(page.component)
+    })
+  }
 
-    def containsPage( id: String ) = mapTabs.contains( id )
+  def setPageEnabled(id: String, enabled: Boolean) {
+    mapTabs.get(id).foreach(page => {
+      val idx = ggTabPane.indexOfTabComponent(page.component)
+      if (idx >= 0) ggTabPane.setEnabledAt(idx, enabled)
+    })
+  }
 
-    def getPage( id: String ) = mapTabs.get( id )
+  def containsPage(id: String) = mapTabs.contains(id)
 
-    // ---- DocumentListener interface ----
-    
-	def documentFocussed( e: DocumentEvent ) {
-        val newDoc = e.getDocument
-        mapTabs.foreach( entry => entry._2.documentChanged( newDoc ))
-	}
+  def getPage(id: String) = mapTabs.get(id)
 
-	def documentAdded( e: DocumentEvent ) { /* ignore */ }
-	def documentRemoved( e: DocumentEvent ) { /* ignore */ }
+  // ---- DocumentListener interface ----
+
+  def documentFocussed(e: DocumentEvent) {
+    val newDoc = e.getDocument
+    mapTabs.foreach(entry => entry._2.documentChanged(newDoc))
+  }
+
+  def documentAdded(e: DocumentEvent) {
+    /* ignore */
+  }
+
+  def documentRemoved(e: DocumentEvent) {
+    /* ignore */
+  }
 }
 
 trait ObserverPage /* extends DynamicListening */ {

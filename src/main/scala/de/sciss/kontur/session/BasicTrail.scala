@@ -26,14 +26,14 @@
 package de.sciss.kontur
 package session
 
-import de.sciss.app.AbstractCompoundEdit
-import de.sciss.trees.{ Interval, LongManager, ManagedLong, Rect, RTree, Shaped }
+import de.sciss.trees.{Interval, LongManager, ManagedLong, Rect, RTree, Shaped}
 import edit.SimpleEdit
-import javax.swing.undo.UndoManager
 import collection.mutable.ListBuffer
-import language.implicitConversions
 import de.sciss.span.Span
-import de.sciss.span.Span.SpanOrVoid
+import Span.SpanOrVoid
+import legacy.AbstractCompoundEdit
+import language.implicitConversions
+import desktop.UndoManager
 
 /**
  *  Basic trail structure using R-Tree
@@ -165,5 +165,5 @@ with TrailEditor[ T ] {
 
 	def defaultTouchMode: TouchMode = TouchSplit
 
-    def undoManager: UndoManager = doc.getUndoManager
+    def undoManager: UndoManager = doc.undoManager
 }

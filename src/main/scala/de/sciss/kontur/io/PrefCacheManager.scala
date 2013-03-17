@@ -26,12 +26,12 @@
  *		28-Jul-07	refactored from de.sciss.eisenkraut.io.CacheManager
  */
 
-package de.sciss.kontur.io
+package de.sciss.kontur
+package io
 
 import java.io.File
 import java.util.prefs.{ PreferenceChangeEvent, PreferenceChangeListener, Preferences }
-import de.sciss.io.CacheManager
-import de.sciss.util.{ Param, ParamSpace }
+import legacy.{CacheManager, ParamSpace, Param}
 
 /**
  *  @author		Hanns Holger Rutz
@@ -52,32 +52,32 @@ extends CacheManager
 with PreferenceChangeListener {
    import PrefCacheManager._
 
-   private val defaultCapacityP = new Param( defaultCapacity, ParamSpace.NONE | ParamSpace.ABS )
+  private val defaultCapacityP = new Param(defaultCapacity, ParamSpace.NONE | ParamSpace.ABS)
 
-   // ---- constructor ---
-   {
-      val capacity = Param.fromPrefs( preferences, KEY_CAPACITY, defaultCapacityP ).`val`.toInt
-		val folder = new File( preferences.get( KEY_FOLDER, defaultFolder.getAbsolutePath ))
-		val active = preferences.getBoolean( KEY_ACTIVE, defaultActive )
-		setFolderAndCapacity( folder, capacity )
-		setActive( active )
-		preferences.addPreferenceChangeListener( this )
-	}
+  // ---- constructor ---
+  {
+    val capacity = Param.fromPrefs(preferences, KEY_CAPACITY, defaultCapacityP).value.toInt
+    val folder = new File(preferences.get(KEY_FOLDER, defaultFolder.getAbsolutePath))
+    val active = preferences.getBoolean(KEY_ACTIVE, defaultActive)
+    setFolderAndCapacity(folder, capacity)
+    setActive(active)
+    preferences.addPreferenceChangeListener(this)
+  }
 
-   def dispose() {
-      preferences.removePreferenceChangeListener( this )
-   }
+  def dispose() {
+    preferences.removePreferenceChangeListener(this)
+  }
 
-	override def setActive( onOff: Boolean ) {
-		super.setActive( onOff )
-		preferences.putBoolean( KEY_ACTIVE, onOff )
-	}
+  override def setActive(onOff: Boolean) {
+    super.setActive(onOff)
+    preferences.putBoolean(KEY_ACTIVE, onOff)
+  }
 
-	override def setFolderAndCapacity( folder: File, capacity: Int ) {
-		super.setFolderAndCapacity( folder, capacity )
-		preferences.put( KEY_FOLDER, folder.getPath )
-		preferences.put( KEY_CAPACITY, new Param( capacity, ParamSpace.NONE | ParamSpace.ABS ).toString )
-	}
+  override def setFolderAndCapacity(folder: File, capacity: Int) {
+    super.setFolderAndCapacity(folder, capacity)
+    preferences.put(KEY_FOLDER, folder.getPath)
+    preferences.put(KEY_CAPACITY, new Param(capacity, ParamSpace.NONE | ParamSpace.ABS).toString)
+  }
 
 // ------- PreferenceChangeListener interface -------
 
@@ -90,7 +90,7 @@ with PreferenceChangeListener {
 				setFolder( f )
 			}
       } else if( key == KEY_CAPACITY ) {
-			val c = Param.fromPrefs( preferences, key, defaultCapacityP ).`val`.toInt
+			val c = Param.fromPrefs( preferences, key, defaultCapacityP ).value.toInt
 			if( getCapacity != c ) {
 				setCapacity( c )
 			}

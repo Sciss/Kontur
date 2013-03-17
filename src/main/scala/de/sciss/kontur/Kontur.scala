@@ -27,6 +27,7 @@ package de.sciss.kontur
 
 import desktop.impl.WindowHandlerImpl
 import desktop.WindowHandler
+import io.EisenkrautClient
 import javax.swing.UIManager
 import gui.{MainFrame, SuperColliderFrame}
 import util.{Flag, PrefsUtil}
@@ -86,6 +87,8 @@ object Kontur extends desktop.SwingApplication with desktop.impl.ApplicationImpl
   final val COMP_HELP = "Help"
 
   final val COMP_CTRLROOM = "ControlRoom"
+
+  lazy val eisenkraut = new EisenkrautClient()(this)
 
   private val quitAfterSaveListener = new ProcessingThread.Listener {
     def processStarted(e: ProcessingThread.Event) {

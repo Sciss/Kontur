@@ -11,9 +11,11 @@ object WindowHandler {
 
   def findWindow(component: Component): Option[Window] = Impl.findWindow(component)
 
-  def showDialog(parent: Component, dialog: Dialog)                   { Impl.showDialog(parent, dialog) }
-  def showDialog(parent: Component, pane: JOptionPane, title: String) { Impl.showDialog(parent, pane, title) }
-  def showDialog(pane: JOptionPane, title: String)                    { Impl.showDialog(pane, title) }
+  def showDialog(dialog: Dialog)                                           { Impl.showDialog(dialog) }
+  def showDialog(parent: Component, dialog: Dialog)                        { Impl.showDialog(parent, dialog) }
+  def showDialog(parent: Component, pane: JOptionPane, title: String): Any = Impl.showDialog(parent, pane, title)
+  def showDialog(pane: JOptionPane, title: String): Any =                    Impl.showDialog(pane, title)
+  def showErrorDialog(exception: Exception, title: String)                 { Impl.showErrorDialog(exception, title) }
 
   def menuShortcut: Int = Toolkit.getDefaultToolkit.getMenuShortcutKeyMask
 
