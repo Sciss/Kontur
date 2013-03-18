@@ -35,6 +35,8 @@ import language.implicitConversions
 import de.sciss.scalainterpreter.{SplitPane, NamedParam, InterpreterPane, Interpreter, CodePane}
 import java.io.{File, FileInputStream}
 import swing.Component
+import de.sciss.desktop.Window
+import de.sciss.desktop.impl.WindowImpl
 
 object ScalaInterpreterFrame {
    final class ProvideEditing private[ScalaInterpreterFrame] ( e: Editor ) {
@@ -58,7 +60,7 @@ object ScalaInterpreterFrame {
       )
    }
 
-   class REPLSupport( val app: desktop.Application { type Document = Session }) {
+   class REPLSupport( val app: de.sciss.desktop.Application { type Document = Session }) {
       def doc : Session             = app.documentHandler.activeDocument.getOrElse {
         sys.error("No active document")
       }
@@ -75,8 +77,8 @@ object ScalaInterpreterFrame {
    }
 }
 
-class ScalaInterpreterFrame extends desktop.impl.WindowImpl {
-  protected def style = desktop.Window.Regular
+class ScalaInterpreterFrame extends WindowImpl {
+  protected def style = Window.Regular
 
   import ScalaInterpreterFrame._
 

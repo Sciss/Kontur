@@ -26,15 +26,15 @@
 package de.sciss.kontur
 package gui
 
-import java.awt.{Color, Font}
+import java.awt.Color
 import java.awt.geom.Point2D
-import javax.swing.{BorderFactory, JInternalFrame}
 import de.sciss.scalainterpreter.LogPane
-import desktop.{Window, WindowHandler}
 import swing.Component
+import de.sciss.desktop.{Window, WindowHandler}
+import de.sciss.desktop.impl.MainWindowImpl
 
 final class MainFrame(implicit protected val handler: WindowHandler)
-  extends desktop.impl.MainWindowImpl {
+  extends MainWindowImpl {
 
   // --- constructor ---
   {

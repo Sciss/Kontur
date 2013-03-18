@@ -45,7 +45,7 @@ object SessionUtil {
   }
 
    def bounce( doc: Session, tl: Timeline, tracks: List[ Track ], span: Span, path: File, spec: AudioFileSpec,
-               upd: AnyRef => Unit = _ => () )(implicit application: desktop.Application): Process = {
+               upd: AnyRef => Unit = _ => () )(implicit application: de.sciss.desktop.Application): Process = {
 
      import desktop.Implicits._
 

@@ -30,15 +30,14 @@ import java.awt.{Cursor, Point, Toolkit}
 import javax.swing.{Box, JLabel, JOptionPane, SwingUtilities}
 import javax.swing.event.MouseInputAdapter
 import de.sciss.dsp.Util.dbamp
-import util.{Model, PrefsUtil}
+import util.Model
 import session.{Session, AudioRegion, MuteableStake, Stake}
 import sc.{SCAudioTrackPlayer, SuperColliderClient}
 import java.awt.event.{MouseAdapter, KeyEvent, KeyListener, MouseEvent}
-import de.sciss.span.Span
 import language.reflectiveCalls
 import legacy.{GUIUtil, ParamSpace, DefaultUnitTranslator, AbstractCompoundEdit}
-import desktop.WindowHandler
 import desktop.impl.BasicParamField
+import de.sciss.desktop.Window
 
 object TrackTools {
    case class ToolChanged( oldTool: TrackTool, newTool: TrackTool )
@@ -265,13 +264,13 @@ extends TrackStakeTool {
       })
    }
 
-   protected def showDialog( message: AnyRef ) : Boolean = {
-      val op = new JOptionPane( message, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )
-      val result = WindowHandler.showDialog( op, name )
-      result == JOptionPane.OK_OPTION
-   }
+  protected def showDialog(message: AnyRef): Boolean = {
+    val op      = new JOptionPane(message, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
+    val result  = Window.showDialog(op -> name)
+    result == JOptionPane.OK_OPTION
+  }
 
-   protected class Drag( val firstEvent: MouseEvent, val firstTLE: TrackListElement,
+  protected class Drag( val firstEvent: MouseEvent, val firstTLE: TrackListElement,
                         val firstPos: Long, val firstStake: Stake[ _ ])
    extends MouseInputAdapter with KeyListener {
       private var started = false

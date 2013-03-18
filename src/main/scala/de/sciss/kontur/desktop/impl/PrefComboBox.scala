@@ -2,8 +2,8 @@ package de.sciss.kontur
 package desktop
 package impl
 
-import legacy.StringItem
 import javax.swing.JComboBox
+import de.sciss.desktop.Preferences
 
 /**
  *  Equips a normal JComboBox with

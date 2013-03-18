@@ -7,6 +7,7 @@ import javax.swing.undo.{UndoableEdit, CannotRedoException, CannotUndoException,
 import swing.Action
 import javax.swing.KeyStroke
 import java.awt.event.{InputEvent, KeyEvent}
+import de.sciss.desktop.{Window, WindowHandler}
 
 trait UndoManagerImpl /* (implicit application: Application) */ extends UndoManager {
   manager =>
@@ -192,7 +193,7 @@ trait UndoManagerImpl /* (implicit application: Application) */ extends UndoMana
 //	}
 
 	object undoAction extends Action("Undo") {
-    accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_Z, WindowHandler.menuShortcut))
+    accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Window.menuShortcut))
 
     def apply() {
 			try {
@@ -207,9 +208,9 @@ trait UndoManagerImpl /* (implicit application: Application) */ extends UndoMana
     val isMac = sys.props("os.name").contains("Mac OS")
 
     accelerator = Some(if (isMac)
-      KeyStroke.getKeyStroke(KeyEvent.VK_Z, WindowHandler.menuShortcut | InputEvent.SHIFT_MASK)
+      KeyStroke.getKeyStroke(KeyEvent.VK_Z, Window.menuShortcut | InputEvent.SHIFT_MASK)
     else
-      KeyStroke.getKeyStroke(KeyEvent.VK_Y, WindowHandler.menuShortcut)
+      KeyStroke.getKeyStroke(KeyEvent.VK_Y, Window.menuShortcut)
     )
 
 		def apply() {

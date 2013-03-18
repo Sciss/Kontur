@@ -33,7 +33,7 @@ import java.io.{File, IOException}
 import de.sciss.{synth, osc}
 import synth.{Model => _, _}
 import legacy.Param
-import desktop.DocumentHandler
+import de.sciss.desktop.DocumentHandler
 
 object SuperColliderClient {
    lazy val instance = new SuperColliderClient

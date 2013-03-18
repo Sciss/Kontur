@@ -29,66 +29,69 @@ package gui
 import java.awt.{FileDialog, Frame}
 import java.awt.event.{ActionEvent, KeyEvent}
 import java.io.{File, IOException}
-import javax.swing.{AbstractAction, JComponent, JOptionPane, KeyStroke, WindowConstants}
+import javax.swing.{SwingUtilities, AbstractAction, JComponent, JOptionPane, KeyStroke}
 import session.Session
 import util.{Flag, Model}
-import desktop.WindowHandler
 import swing.Action
+import de.sciss.desktop.{FocusType, Window}
+import de.sciss.desktop.impl.WindowImpl
 
 trait SessionFrame {
-   frame: desktop.impl.WindowImpl =>
+   frame: WindowImpl =>
 
-  protected def application: desktop.Application { type Document = Session }
+  protected def application: de.sciss.desktop.Application { type Document = Session }
 
    private var writeProtected	= false
    private var wpHaveWarned	= false
 
-   private val actionShowWindow= WindowHandler.showAction(this)
+   private val actionShowWindow= Window.showAction(this)
    protected val actionClose  = new ActionClose()
    private val actionSave     = new ActionSave()
    private val actionSaveAs	= new ActionSaveAs( false )
 
-   private val winListener = new AbstractWindow.Adapter() {
-        override def windowClosing( e: AbstractWindow.Event ) {
-            frame.windowClosing()
-        }
+// XXX TODO
+//   private val winListener = new AbstractWindow.Adapter() {
+//        override def windowClosing( e: AbstractWindow.Event ) {
+//            frame.windowClosing()
+//        }
+//
+//        override def windowActivated( e: AbstractWindow.Event ) {
+//            // need to check 'disposed' to avoid runtime exception in doc handler if document was just closed
+//            if( !disposed ) {
+//                application.documentHandler.activeDocument = Some(document)
+//                handler.setMenuBarBorrower( frame )
+//            }
+//        }
+//    }
 
-        override def windowActivated( e: AbstractWindow.Event ) {
-            // need to check 'disposed' to avoid runtime exception in doc handler if document was just closed
-            if( !disposed ) {
-                application.documentHandler.activeDocument = document
-                handler.setMenuBarBorrower( frame )
-            }
-        }
-    }
+  private val docListener: Model.Listener = {
+    case Session.DirtyChanged(_)    => updateTitle()
+    case Session.PathChanged(_, _)  => updateTitle()
+  }
 
-   private val docListener: Model.Listener = {
-      case Session.DirtyChanged( _ ) => updateTitle()
-      case Session.PathChanged( _, _ ) => updateTitle()
-   }
+  private var disposed = false; // compiler problem, we cannot name it disposed
 
-   private var disposed   = false;  // compiler problem, we cannot name it disposed
-   
-   // ---- constructor ----
-   {
-      // ---- menus and actions ----
-      val mr = app.getMenuBarRoot
-      mr.putMimic( "file.close",  this, actionClose )
-      mr.putMimic( "file.save",   this, actionSave )
-      mr.putMimic( "file.saveAs", this, actionSaveAs )
+  // ---- constructor ----
+  {
+    // ---- menus and actions ----
+    val mr = application.getMenuBarRoot
+    mr.putMimic("file.close", this, actionClose)
+    mr.putMimic("file.save", this, actionSave)
+    mr.putMimic("file.saveAs", this, actionSaveAs)
 
-      mr.putMimic( "edit.undo", this, document.undoManager.undoAction )
-      mr.putMimic( "edit.redo", this, document.undoManager.redoAction )
-      
-      updateTitle()
-     document.addListener( docListener )
+    mr.putMimic("edit.undo", this, document.undoManager.undoAction)
+    mr.putMimic("edit.redo", this, document.undoManager.redoAction)
 
-      application.getMenuFactory.addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
-      closeOperation = desktop.Window.CloseIgnore
-      addListener( winListener )
-   }
+    updateTitle()
+    document.addListener(docListener)
 
-   def document: Session
+    application.getMenuFactory.addToWindowMenu(actionShowWindow) // MUST BE BEFORE INIT()!!
+    closeOperation = Window.CloseIgnore
+    // XXX TODO
+    //      addListener( winListener )
+  }
+
+  def document: Session
 
    protected def elementName: Option[ String ]
 
@@ -96,7 +99,8 @@ trait SessionFrame {
 
    protected def invokeDispose() {
       disposed = true	// important to avoid "too late window messages" to be processed; fucking swing doesn't kill them despite listener being removed
-      removeListener( winListener )
+     // XXX TODO
+//      removeListener( winListener )
      document.removeListener( docListener )
       application.getMenuFactory.removeFromWindowMenu( actionShowWindow )
 // XXX TODO
@@ -125,7 +129,7 @@ trait SessionFrame {
 
     if (writeProtected && !wpHaveWarned && document.dirty) {
       val op = new JOptionPane(getResourceString("warnWriteProtected"), JOptionPane.WARNING_MESSAGE)
-      showDialog(op, "Warning") // getResourceString("msgDlgWarn"))
+      showDialog(op -> "Warning") // getResourceString("msgDlgWarn"))
       wpHaveWarned = true
     }
   }
@@ -217,19 +221,30 @@ trait SessionFrame {
        "<p>Your changes will be lost if you don't save them.</p></body></html>",
        JOptionPane.WARNING_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION, null,
        options, options(1))
-     val d = op.createDialog(component.peer, actionName)
-     val rp = d.getRootPane
-     if (rp != null) {
-       rp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-         KeyStroke.getKeyStroke(KeyEvent.VK_D, WindowHandler.menuShortcut), "dont")
-       rp.getActionMap.put("dont", new AbstractAction {
-         def actionPerformed(e: ActionEvent) {
+//     val d = op.createDialog(component.peer, actionName)
+//     val rp = d.getRootPane
+//     if (rp != null) {
+//       rp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+//         KeyStroke.getKeyStroke(KeyEvent.VK_D, Window.menuShortcut), "dont")
+//       rp.getActionMap.put("dont", new AbstractAction {
+//         def actionPerformed(e: ActionEvent) {
+//           dont() = true
+//           d.dispose()
+//         }
+//       })
+//     }
+     op.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+       KeyStroke.getKeyStroke(KeyEvent.VK_D, Window.menuShortcut), "dont")
+     op.getActionMap.put("dont", new AbstractAction {
+       def actionPerformed(e: ActionEvent) {
+         val w = SwingUtilities.getWindowAncestor(op)
+         if (w != null) {
            dont() = true
-           d.dispose()
+           w.dispose()
          }
-       })
-     }
-     showDialog(d)
+       }
+     })
+     showDialog(op -> actionName)
      val choice = if (dont()) {
        2
      } else {
@@ -304,7 +319,7 @@ trait SessionFrame {
             true
          }
          catch { case e1: IOException =>
-            showErrorDialog( e1, name )
+            showDialog( e1 -> name )
             false
          }
       }
@@ -326,7 +341,7 @@ trait SessionFrame {
       }
     }
 
-     /**
+    /**
 		 *  Open a file chooser so the user
 		 *  can select a new output file and format for the session.
 		 *
@@ -336,16 +351,9 @@ trait SessionFrame {
 		 *
 		 *	@todo	should warn user if saveMarkers is true and format does not support it
 		 */
-		protected[gui] def query( name: String ) : Option[ File ] = {
-          val dlg = new FileDialog( null.asInstanceOf[ Frame ], name, FileDialog.SAVE )
-          WindowHandler.showDialog( dlg )
-          val dirName   = dlg.getDirectory
-          val fileName  = dlg.getFile
-          if( dirName != null && fileName != null ) {
-            Some( new File( dirName, fileName ))
-          } else {
-            None
-          }
-		}
-	}
+     protected[gui] def query(name: String): Option[File] = {
+       val dlg = new FileDialog(null.asInstanceOf[Frame], name, FileDialog.SAVE)
+       Window.showDialog(dlg)
+     }
+  }
 }

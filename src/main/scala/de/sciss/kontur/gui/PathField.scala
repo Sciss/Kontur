@@ -23,12 +23,13 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.gui
+package de.sciss.kontur
+package gui
 
 import java.beans.{ PropertyChangeEvent, PropertyChangeListener }
-import de.sciss.kontur.desktop.impl.BasicPathField
+import desktop.impl.BasicPathField
 import java.io.File
-import de.sciss.kontur.desktop.Preferences
+import de.sciss.desktop.Preferences
 
 class PathField(prefs: Preferences.Entry[File], default: File)(typ: Int, title: String)
   extends BasicPathField(prefs, default)(typ, title) {

@@ -32,7 +32,7 @@ package io
 import java.io.File
 import java.util.prefs.{ PreferenceChangeEvent, PreferenceChangeListener }
 import legacy.{CacheManager, ParamSpace, Param}
-import desktop.Preferences
+import de.sciss.desktop.Preferences
 
 object PrefCacheManager {
    /**

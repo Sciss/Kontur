@@ -2,8 +2,8 @@ package de.sciss.kontur
 package desktop
 package impl
 
-import java.util.prefs.{PreferenceChangeEvent, PreferenceChangeListener}
 import java.awt.EventQueue
+import de.sciss.desktop.Preferences
 
 trait PreferencesWidgetImpl[A] extends DynamicComponentImpl {
   protected def prefs: Preferences.Entry[A]

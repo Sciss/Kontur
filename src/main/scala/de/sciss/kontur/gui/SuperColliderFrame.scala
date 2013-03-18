@@ -29,15 +29,16 @@ package gui
 import sc.SuperColliderClient
 import de.sciss.synth.Server
 import java.awt.event.{InputEvent, KeyEvent}
-import javax.swing.{JComponent, KeyStroke}
+import javax.swing.KeyStroke
 import de.sciss.osc
 import de.sciss.synth.swing.j.JServerStatusPanel
 import util.Model
-import desktop.Window
 import swing.{Action, Component}
+import de.sciss.desktop.Window
+import de.sciss.desktop.impl.WindowImpl
 
 // note: should be PALETTE, but then we loose the key actions...
-class SuperColliderFrame extends desktop.impl.WindowImpl {
+class SuperColliderFrame extends WindowImpl {
   protected def style = Window.Auxiliary
 
   private val superCollider = SuperColliderClient.instance

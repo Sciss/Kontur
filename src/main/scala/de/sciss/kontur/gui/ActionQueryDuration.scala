@@ -30,8 +30,8 @@ import javax.swing.JOptionPane
 import session.Timeline
 import legacy.{GUIUtil, SpringPanel, DefaultUnitTranslator, ParamSpace, Param}
 import desktop.impl.BasicParamField
-import desktop.WindowHandler
-import swing.{Action, Component}
+import swing.{RootPanel, Action, Component}
+import de.sciss.desktop.Window
 
 abstract class ActionQueryDuration(title: String) extends Action(title) {
   private var value = Option.empty[Param]
@@ -56,7 +56,7 @@ abstract class ActionQueryDuration(title: String) extends Action(title) {
     ggDuration.space = space
 
     val op = new JOptionPane(msgPane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
-    val result = WindowHandler.showDialog(parent, op, title)
+    val result = Window.showDialog(parent, op -> title)
 
     if (result == JOptionPane.OK_OPTION) {
       val v = ggDuration.value

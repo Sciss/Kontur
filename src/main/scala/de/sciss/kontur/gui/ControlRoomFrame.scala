@@ -35,10 +35,12 @@ import de.sciss.kontur.sc.SuperColliderClient
 import javax.swing.JPanel
 import legacy.{MultiStateButton, SpringPanel}
 import swing.Component
-import de.sciss.audiowidgets.j.{PeakMeter, PeakMeterBar}
+import de.sciss.audiowidgets.j.PeakMeter
+import de.sciss.desktop.Window
+import de.sciss.desktop.impl.WindowImpl
 
-class ControlRoomFrame extends desktop.impl.WindowImpl {
-  protected val style = desktop.Window.Auxiliary
+class ControlRoomFrame extends WindowImpl {
+  protected val style = Window.Auxiliary
 
   private val ggVolume    = new VolumeFader()
   private val ggLimiter   = new MultiStateButton()

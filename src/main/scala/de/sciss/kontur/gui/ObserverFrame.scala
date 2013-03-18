@@ -31,10 +31,11 @@ import javax.swing.{JComponent, JTabbedPane}
 import javax.swing.event.{ChangeEvent, ChangeListener}
 import swing.Component
 import session.Session
-import desktop.DocumentHandler
+import de.sciss.desktop.{Window, DocumentHandler}
+import de.sciss.desktop.impl.WindowImpl
 
-class ObserverFrame extends desktop.impl.WindowImpl {
-  protected def style = desktop.Window.Palette
+class ObserverFrame extends WindowImpl {
+  protected def style = Window.Palette
 
   private val ggTabPane = new JTabbedPane()
   private var mapTabs = Map[String, ObserverPage]()

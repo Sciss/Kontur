@@ -5,11 +5,12 @@ package impl
 import legacy.PathButton
 import swing.{Dialog, Component}
 import java.io.File
+import de.sciss.desktop.{Window, Preferences}
 
 object BasicPathField {
   private final class Button(tpe: Int, title: String) extends PathButton(tpe, title) {
     protected def showDialog(dialog: Dialog) {
-      WindowHandler.showDialog(Component.wrap(this), dialog)
+      Window.showDialog(Component.wrap(this), dialog)
     }
   }
 }

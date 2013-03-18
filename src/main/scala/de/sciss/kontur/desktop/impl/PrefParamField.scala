@@ -3,6 +3,7 @@ package desktop
 package impl
 
 import legacy.{Param, ParamSpace, DefaultUnitTranslator}
+import de.sciss.desktop.Preferences
 
 class PrefParamField(protected val prefs: Preferences.Entry[Param], default: Param)
                     (translator: ParamSpace.Translator = new DefaultUnitTranslator)

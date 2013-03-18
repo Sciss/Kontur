@@ -30,9 +30,10 @@ import session.Session
 import java.awt.event.{MouseAdapter, MouseEvent}
 import javax.swing.{DropMode, JScrollPane, JTree, ScrollPaneConstants}
 import swing.{Frame, Component}
-import desktop.Window
+import de.sciss.desktop.impl.WindowImpl
+import de.sciss.desktop.Window
 
-class SessionTreeFrame(val document: Session) extends desktop.impl.WindowImpl with SessionFrame {
+class SessionTreeFrame(val document: Session) extends WindowImpl with SessionFrame {
   frame =>
 
   protected def style = Window.Regular

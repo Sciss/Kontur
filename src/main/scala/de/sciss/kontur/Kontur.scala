@@ -25,8 +25,6 @@
 
 package de.sciss.kontur
 
-import desktop.impl.WindowHandlerImpl
-import desktop.WindowHandler
 import io.EisenkrautClient
 import javax.swing.UIManager
 import gui.{MainFrame, SuperColliderFrame}
@@ -35,6 +33,8 @@ import util.{Flag, PrefsUtil}
 import sc.SuperColliderClient
 import swing.Swing
 import legacy.ProcessingThread
+import de.sciss.desktop.impl.{WindowHandlerImpl, ApplicationImpl}
+import de.sciss.desktop.{SwingApplication, WindowHandler}
 
 /**
  *  The <code>Main</code> class contains the java VM
@@ -56,7 +56,7 @@ import legacy.ProcessingThread
  *				; seems to be a problem of menuFactory.closeAll!
  */
 
-object Kontur extends desktop.SwingApplication with desktop.impl.ApplicationImpl with App {
+object Kontur extends SwingApplication with ApplicationImpl with App {
   type Document = Session
   /*
    *  The MacOS file creator string.

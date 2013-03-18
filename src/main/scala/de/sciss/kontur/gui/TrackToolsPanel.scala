@@ -32,7 +32,7 @@ import javax.swing.event.{ ChangeEvent, ChangeListener }
 import util.PrefsUtil
 import java.util.prefs.{PreferenceChangeEvent, PreferenceChangeListener}
 import session.Session
-import desktop.WindowHandler
+import de.sciss.desktop.Window
 
 object TrackToolsPanel {
    private def linexp( x: Double, inLo: Double, inHi: Double, outLo: Double, outHi: Double ) =
@@ -64,7 +64,7 @@ extends JPanel with TrackTools with PreferenceChangeListener {
    {
       val imap	  = ggCombo.getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW )
       val amap    = ggCombo.getActionMap
-      val meta    = WindowHandler.menuShortcut
+      val meta    = Window.menuShortcut
 
       var i = 1; tools.foreach { t =>
          val key = "tool" + i

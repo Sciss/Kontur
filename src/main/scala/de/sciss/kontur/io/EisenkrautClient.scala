@@ -28,20 +28,18 @@ package io
 
 import java.io.{File, IOException}
 import java.net.InetSocketAddress
-import java.util.prefs.{PreferenceChangeListener, PreferenceChangeEvent}
 import util.PrefsUtil
 import actors.{Actor, TIMEOUT}
 import de.sciss.osc
 import de.sciss.span.Span
 import Span.SpanOrVoid
-import desktop.Application
 
 //object EisenkrautClient {
 //   val verbose = true
 //   lazy val instance = new EisenkrautClient
 //}
 
-class EisenkrautClient()(implicit application: Application) {
+class EisenkrautClient()(implicit application: de.sciss.desktop.Application) {
 //  import EisenkrautClient._
 
   private var oscVar        = Option.empty[osc.Client]

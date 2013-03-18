@@ -36,15 +36,17 @@ import javax.swing.{AbstractAction, AbstractButton, ButtonGroup, GroupLayout,
   JTable, JToggleButton, JToolBar, ScrollPaneConstants,
   SwingConstants, UIManager}
 import language.reflectiveCalls
-import legacy.{ComboBoxEditorBorder, TreeExpanderButton, PreferenceEntrySync, Param, ParamSpace, StringItem}
+import legacy.{ComboBoxEditorBorder, TreeExpanderButton, Param, ParamSpace, StringItem}
 import desktop.impl.{BasicPathField, PrefPathField, PrefComboBox, PrefParamField}
 import java.io.File
-import desktop.{WindowHandler, Preferences}
+import de.sciss.desktop.{WindowHandler, Preferences, Window}
+import de.sciss.desktop.impl.WindowImpl
+import swing.Component
 
-class PrefsFrame extends desktop.impl.WindowImpl {
-  protected def style = desktop.Window.Auxiliary
+class PrefsFrame extends WindowImpl {
+  protected def style = Window.Auxiliary
 
-  title     = getResourceString( "framePrefs" )
+  title     = "Preferences" // getResourceString( "framePrefs" )
   makeUnifiedLook()
 
   // ---- constructor ----
@@ -52,12 +54,12 @@ class PrefsFrame extends desktop.impl.WindowImpl {
 
     //	  val app = AbstractApplication.getApplication()
 
-    val cp = contents.peer
+    val cp = new JPanel(new BorderLayout())
     val tb = new JToolBar()
     val bg = new ButtonGroup()
     tb.setFloatable(false)
     val layout = new BorderLayout()
-    cp.setLayout(layout)
+    contents = Component.wrap(cp)
 
     def activateTab(tab: AbstractAction) {
       val panel = tab.getValue("de.sciss.tabpanel").asInstanceOf[JComponent]

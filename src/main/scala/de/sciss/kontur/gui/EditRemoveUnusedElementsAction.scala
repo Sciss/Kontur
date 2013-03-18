@@ -29,7 +29,7 @@ import java.awt.BorderLayout
 import de.sciss.kontur.session.SessionElementSeqEditor
 import javax.swing.{JPanel, JLabel, JList, DefaultListSelectionModel, JScrollPane, JOptionPane}
 import swing.Action
-import de.sciss.kontur.desktop.WindowHandler
+import de.sciss.desktop.Window
 
 final class EditRemoveUnusedElementsAction[T](elemName: String, ed: SessionElementSeqEditor[T],
                                               collect: => Seq[T], display: T => String = (e: T) => e.toString,
@@ -42,7 +42,7 @@ final class EditRemoveUnusedElementsAction[T](elemName: String, ed: SessionEleme
     val unused = collect //
     if (unused.isEmpty) {
       val op = new JOptionPane("There are currently no unused " + elemName + ".", JOptionPane.INFORMATION_MESSAGE)
-      WindowHandler.showDialog(op, fullName)
+      Window.showDialog(op -> fullName)
     } else {
       val pane = new JPanel(new BorderLayout(4, 4))
       pane.add(new JLabel("The following " + elemName + " will be removed:"), BorderLayout.NORTH)
@@ -53,7 +53,7 @@ final class EditRemoveUnusedElementsAction[T](elemName: String, ed: SessionEleme
       })
       pane.add(new JScrollPane(list), BorderLayout.CENTER)
       val op = new JOptionPane(pane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
-      val result = WindowHandler.showDialog(op, fullName)
+      val result = Window.showDialog(op -> fullName)
       if (result == JOptionPane.OK_OPTION) {
         val ce = ed.editBegin(fullName)
         unused.foreach(ed.editRemove(ce, _))

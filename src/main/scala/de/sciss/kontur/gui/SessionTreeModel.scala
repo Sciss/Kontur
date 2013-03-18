@@ -29,16 +29,14 @@ package gui
 import java.awt.{FileDialog, Frame}
 import java.awt.datatransfer.DataFlavor
 import java.awt.dnd.DnDConstants
-import java.awt.event.ActionEvent
 import java.io.{File, FilenameFilter, IOException}
-import javax.swing.{AbstractAction, JOptionPane}
+import javax.swing.JOptionPane
 import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel}
 import de.sciss.synth.io.AudioFile
 import session.{MatrixDiffusion, Diffusions, AudioFileElement, AudioFileSeq, AudioTrack, BasicTimeline, Diffusion, Renamable, Session, SessionElement, SessionElementSeq, Timeline, Track}
 import util.Model
-import de.sciss.desktop.Menu
+import de.sciss.desktop.{Window, Menu}
 import swing.Action
-import desktop.WindowHandler
 
 abstract class DynamicTreeNode( model: SessionTreeModel, obj: AnyRef, canExpand: Boolean )
 extends DefaultMutableTreeNode( obj, canExpand )
@@ -218,7 +216,7 @@ class AudioFilesTreeIndex(model: SessionTreeModel, audioFiles: AudioFileSeq)
               ed.editEnd(ce)
             }
             catch {
-              case e1: IOException => WindowHandler.showErrorDialog(e1, name)
+              case e1: IOException => Window.showDialog(e1 -> name)
             }
           }
         }
@@ -227,14 +225,7 @@ class AudioFilesTreeIndex(model: SessionTreeModel, audioFiles: AudioFileSeq)
       private def getPath: Option[File] = {
         val dlg = new FileDialog(null: Frame, title)
         dlg.setFilenameFilter(this)
-        WindowHandler.showDialog(dlg)
-        val dirName   = dlg.getDirectory
-        val fileName  = dlg.getFile
-        if (dirName != null && fileName != null) {
-          Some(new File(dirName, fileName))
-        } else {
-          None
-        }
+        Window.showDialog(dlg)
       }
 
       def accept(dir: File, name: String): Boolean = {
@@ -299,7 +290,7 @@ with HasContextMenu with CanBeDropTarget {
        val miAddNew = Menu.Item(name, Action(gf.factory.humanReadableName) {
          val panel  = gf.createPanel(model.doc)
          val op     = new JOptionPane(panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
-         val result = WindowHandler.showDialog(op, fullName)
+         val result = Window.showDialog(op -> fullName)
          if (result == JOptionPane.OK_OPTION) {
            val diffO = gf.fromPanel(panel)
            diffO.foreach(diff => {
@@ -508,7 +499,7 @@ with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
                               "\" (old file) and\n\"" + newFile.path.getPath + "\" (new file):\n\n" +
                               warnings.mkString( "\n" ) +
                               "\n\nDo you still want to replace it?", JOptionPane.WARNING_MESSAGE, JOptionPane.YES_NO_OPTION )
-                           val result = WindowHandler.showDialog( op, name )
+                           val result = Window.showDialog( op -> name )
                            result == JOptionPane.YES_OPTION
                         } else true
 
@@ -518,21 +509,14 @@ with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
                            afs.editEnd( ce )
                         }
                      }
-                     catch { case e: IOException => WindowHandler.showErrorDialog( e, name )}
+                     catch { case e: IOException => Window.showDialog( e -> name )}
                   }
                }
 
               private def getPath: Option[File] = {
                 val dlg = new FileDialog(null: Frame, title)
                 dlg.setFilenameFilter(this)
-                WindowHandler.showDialog(dlg)
-                val dirName   = dlg.getDirectory
-                val fileName  = dlg.getFile
-                if (dirName != null && fileName != null) {
-                  Some(new File(dirName, fileName))
-                } else {
-                  None
-                }
+                Window.showDialog(dlg)
               }
 
                def accept( dir: File, name: String ) : Boolean = {
@@ -582,7 +566,7 @@ with HasContextMenu with HasDoubleClickAction with CanBeDragSource {
                    val panel   = new MatrixDiffusionGUI()
                    panel.setObjects( diff )
                    val op      = new JOptionPane( panel, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION )
-                   /* val result = */ WindowHandler.showDialog( op, fullName )
+                   /* val result = */ Window.showDialog( op -> fullName )
                })
                items :+= miEdit
             case _ =>

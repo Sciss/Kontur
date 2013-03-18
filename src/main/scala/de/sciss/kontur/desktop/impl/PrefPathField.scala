@@ -4,6 +4,7 @@ package impl
 
 import legacy.PathField
 import java.io.File
+import de.sciss.desktop.Preferences
 
 class PrefPathField(protected val prefs: Preferences.Entry[File], default: File)(tpe: Int, dialogText: String)
   extends PathField(tpe, dialogText) with PreferencesWidgetImpl[File] {

@@ -31,22 +31,23 @@ import util.PrefsUtil
 import java.awt.event.{ActionEvent, ActionListener, InputEvent, KeyEvent}
 import java.awt.{Dimension, Point, Rectangle}
 import java.io.File
-import javax.swing.{Box, ButtonGroup, JButton, JComponent, JLabel, JOptionPane, JProgressBar, JRadioButton, KeyStroke, SwingUtilities}
+import javax.swing.{Box, ButtonGroup, JButton, JLabel, JOptionPane, JProgressBar, JRadioButton, KeyStroke, SwingUtilities}
 import scala.math._
 import de.sciss.synth.io.{AudioFileType, SampleFormat, AudioFileSpec}
 import de.sciss.span.Span
 import Span.SpanOrVoid
 import legacy.{DefaultUnitTranslator, Param, ParamSpace, GUIUtil}
-import swing.{Action, Component, BorderPanel}
-import desktop.{WindowHandler, Window}
+import swing.{RootPanel, Action, Component, BorderPanel}
 import language.reflectiveCalls
+import de.sciss.desktop.Window
+import de.sciss.desktop.impl.WindowImpl
 
 object TimelineFrame {
   protected val lastLeftTop		= new Point()
   protected val KEY_TRACKSIZE	= "tracksize"
 }
 
-final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.impl.WindowImpl with SessionFrame {
+final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImpl with SessionFrame {
   frame =>
 
   protected def style = Window.Regular
@@ -89,7 +90,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
     import KeyEvent._
     import KeyStroke.{getKeyStroke => stroke}
 
-    val meta1 = WindowHandler.menuShortcut
+    val meta1 = Window.menuShortcut
     val meta2 = if (meta1 == CTRL_MASK) CTRL_MASK | SHIFT_MASK else meta1 // META on Mac, CTRL+SHIFT on PC
 
     addAction("inch1",    new ActionSpanWidth(2.0, stroke(VK_LEFT,          CTRL_MASK)))
@@ -113,7 +114,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
     addAction("posselend",  new ActionSelToPos(1.0, deselect = false, stroke(VK_DOWN, ALT_MASK)))
 
     // ---- menus and actions ----
-    val mr = app.getMenuBarRoot
+    val mr = application.getMenuBarRoot
 
     mr.putMimic("file.bounce", this, ActionBounce)
 
@@ -167,8 +168,8 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
 
   private def initBounds() {
 		val cp	= application.userPrefs / "TimelineFrame"
-		val sr	= WindowHandler.availableSpace
-    import desktop.Implicits._
+		val sr	= Window.availableSpace
+    import de.sciss.desktop.Implicits._
     val d 	= cp.getOrElse[Dimension](TimelineFrame.KEY_TRACKSIZE, new Dimension())
 		val hf	= 1f // Math.sqrt( Math.max( 1, waveView.getNumChannels() )).toFloat
 		var w	= d.width
@@ -246,7 +247,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
 
    private object ActionNudgeAmount extends ActionQueryDuration("Nudge Amount") {
      protected def timeline: Timeline   = timelineView.timeline
-     protected def parent  : Component  = frame.component
+     protected def parent  : RootPanel  = frame.component
 
      protected def initiate(v: Param, trans: ParamSpace.Translator) {
        prefs.put(PrefsUtil.KEY_NUDGEAMOUNT, v.toString)
@@ -271,7 +272,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
   private object ActionInsertSpan extends ActionQueryDuration("Insert Span") {
     protected def timeline: Timeline = timelineView.timeline
 
-    protected def parent: Component = frame.component
+    protected def parent: RootPanel = frame.component
 
     protected def initialValue: Param = new Param(60.0, ParamSpace.TIME | ParamSpace.SECS)
 
@@ -927,7 +928,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
       catch {
         case e: Exception =>
           fDispose()
-          showErrorDialog(e, name)
+          showDialog(e -> name)
       }
     }
 
