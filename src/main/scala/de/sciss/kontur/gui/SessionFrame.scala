@@ -43,7 +43,7 @@ trait SessionFrame {
    private var writeProtected	= false
    private var wpHaveWarned	= false
 
-   private val actionShowWindow= new ShowWindowAction( this )
+   private val actionShowWindow= WindowHandler.showAction(this)
    protected val actionClose  = new ActionClose()
    private val actionSave     = new ActionSave()
    private val actionSaveAs	= new ActionSaveAs( false )
@@ -56,7 +56,7 @@ trait SessionFrame {
         override def windowActivated( e: AbstractWindow.Event ) {
             // need to check 'disposed' to avoid runtime exception in doc handler if document was just closed
             if( !disposed ) {
-                application.documentHandler.activeDocument = doc
+                application.documentHandler.activeDocument = document
                 handler.setMenuBarBorrower( frame )
             }
         }
@@ -99,7 +99,8 @@ trait SessionFrame {
       removeListener( winListener )
      document.removeListener( docListener )
       application.getMenuFactory.removeFromWindowMenu( actionShowWindow )
-      actionShowWindow.dispose()
+// XXX TODO
+//      actionShowWindow.dispose()
       dispose()
    }
 
@@ -115,7 +116,7 @@ trait SessionFrame {
       (if (document.dirty) " - \u2022" else " - ") + name + (elementName.map(e => " - " + e) getOrElse "")
 
     actionShowWindow.title = name
-    actionSave.enabled = !writeProtected && doc.dirty
+    actionSave.enabled = !writeProtected && document.dirty
     dirty = document.dirty
     file  = document.path
 

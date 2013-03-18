@@ -18,7 +18,7 @@ libraryDependencies ++= Seq(
   "de.sciss" %% "scalacolliderswing" % "1.5.+",
   "de.sciss" %% "span" % "1.1.+",
   "de.sciss" %% "scissdsp" % "1.1.+",
-  "de.sciss" %% "desktop" % "0.0.+"
+  "de.sciss" %% "desktop" % "0.1.+"
 )
 
 retrieveManaged := true

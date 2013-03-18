@@ -178,8 +178,8 @@ class TimelinesTreeIndex(model: SessionTreeModel, timelines: SessionElementSeq[T
   extends SessionElementSeqTreeNode(model, timelines)
   with HasContextMenu {
 
-  def createContextMenu(): Option[PopupRoot] = {
-    val root = new PopupRoot()
+  def createContextMenu(): Option[Menu.Popup] = {
+    val root = Menu.Popup()
     val miAddNew = Menu.Item("new", new Action("New Timeline") {
       def apply() {
         timelines.editor.foreach { ed =>
@@ -203,8 +203,8 @@ class AudioFilesTreeIndex(model: SessionTreeModel, audioFiles: AudioFileSeq)
   extends SessionElementSeqTreeNode(model, audioFiles)
   with HasContextMenu with CanBeDropTarget {
 
-  def createContextMenu(): Option[PopupRoot] = {
-    val root = new PopupRoot()
+  def createContextMenu(): Option[Menu.Popup] = {
+    val root = Menu.Popup()
     val miAddNew = Menu.Item("new", new Action("Add...") with FilenameFilter {
       def apply() {
         audioFiles.editor.foreach { ed =>
@@ -288,8 +288,8 @@ class DiffusionsTreeIndex( model: SessionTreeModel, diffusions: Diffusions ) // 
 extends SessionElementSeqTreeNode( model, diffusions )
 with HasContextMenu with CanBeDropTarget {
 
-   def createContextMenu() : Option[ PopupRoot ] = {
-      val root = new PopupRoot()
+   def createContextMenu() : Option[Menu.Popup] = {
+      val root = Menu.Popup()
       val strNew = "New" // XXX getResourceString
       val mgAdd = Menu.Group( "new", strNew )
 
@@ -362,7 +362,7 @@ with HasContextMenu {
    addDyn( new TimelineTreeLeaf( model, tl ))
    addDyn( tracks )
 
-   def createContextMenu() : Option[ PopupRoot ] = {
+   def createContextMenu() : Option[Menu.Popup] = {
       var items = Vector.empty[ Menu.Item ]
       tl.editor.foreach { ed =>
          tl match {
@@ -376,7 +376,7 @@ with HasContextMenu {
          items :+= Menu.Item( "remove", new EditRemoveSessionElementAction( "Timeline", tl, ed ))
       }
       if( items.isEmpty ) None else {
-         val root = new PopupRoot()
+         val root = Menu.Popup()
          items.foreach( root.add( _ ))
          Some( root )
       }
@@ -451,7 +451,7 @@ final class TracksTreeIndex(model: SessionTreeModel, tl: Timeline)
 class TrackTreeLeaf( model: SessionTreeModel, trs: SessionElementSeq[ Track ], t: Track )
 extends SessionElementTreeNode( model, t, false )
 with HasContextMenu with CanBeDragSource {
-   def createContextMenu() : Option[ PopupRoot ] = {
+   def createContextMenu() : Option[Menu.Popup] = {
       var items = Vector.empty[ Menu.Item ]
       t.editor.foreach { ed =>
          t match {
@@ -465,7 +465,7 @@ with HasContextMenu with CanBeDragSource {
       }
 
       if( items.isEmpty ) None else {
-         val root = new PopupRoot()
+         val root = Menu.Popup()
          items.foreach( root.add( _ ))
          Some( root )
       }
@@ -486,8 +486,8 @@ with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
 //      println( "DANG" )
    }
 
-   def createContextMenu() : Option[ PopupRoot ] = {
-      val root = new PopupRoot()
+   def createContextMenu() : Option[Menu.Popup] = {
+      val root = Menu.Popup()
       coll match {
          case afs: AudioFileSeq => {
             val name = "Replace With Other File"
@@ -566,7 +566,7 @@ with HasContextMenu with HasDoubleClickAction with CanBeDragSource {
 
    }
 
-   def createContextMenu() : Option[ PopupRoot ] = {
+   def createContextMenu() : Option[Menu.Popup] = {
       var items = Vector.empty[ Menu.Item ]
       diff.editor.foreach { ed =>
          diff match {
@@ -590,7 +590,7 @@ with HasContextMenu with HasDoubleClickAction with CanBeDragSource {
       }
 
       if( items.isEmpty ) None else {
-         val root = new PopupRoot()
+         val root = Menu.Popup()
          items.foreach( root.add( _ ))
          Some( root )
       }

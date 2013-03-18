@@ -27,80 +27,84 @@ package de.sciss.kontur
 package gui
 
 import session.Session
-import java.awt.BorderLayout
-import java.awt.event.{ MouseAdapter, MouseEvent }
-import javax.swing.{ DropMode, JScrollPane, JTree, ScrollPaneConstants }
-import swing.Component
+import java.awt.event.{MouseAdapter, MouseEvent}
+import javax.swing.{DropMode, JScrollPane, JTree, ScrollPaneConstants}
+import swing.{Frame, Component}
 import desktop.Window
 
-class SessionTreeFrame( val doc: Session ) extends desktop.impl.WindowImpl with SessionFrame {
-   frame =>
+class SessionTreeFrame(val document: Session) extends desktop.impl.WindowImpl with SessionFrame {
+  frame =>
 
   protected def style = Window.Regular
 
-   // ---- constructor ----
-   {
-      // ---- menus and actions ----
-//		val mr = app.getMenuBarRoot
+  // ---- constructor ----
+  {
+    // ---- menus and actions ----
+    // val mr = app.getMenuBarRoot
 
-      val sessionTreeModel = new SessionTreeModel( doc )
-      val ggTree = new JTree( sessionTreeModel )
-      ggTree.setDropMode( DropMode.ON_OR_INSERT )
-      ggTree.setRootVisible( false )
-//    ggTree.setShowsRootHandles( true )
-      val ggScroll = new JScrollPane( ggTree, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
-		                         	   ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER )
+    val sessionTreeModel = new SessionTreeModel(document)
+    val ggTree = new JTree(sessionTreeModel)
+    ggTree.setDropMode(DropMode.ON_OR_INSERT)
+    ggTree.setRootVisible(false)
+    // ggTree.setShowsRootHandles( true )
+    val ggScroll = new JScrollPane(ggTree, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+      ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
 
-      ggTree.addMouseListener( new MouseAdapter() {
-       override def mousePressed( e: MouseEvent ) {
-          val selRow  = ggTree.getRowForLocation( e.getX, e.getY )
-          if( selRow == -1 ) return
-          val selPath = ggTree.getPathForLocation( e.getX, e.getY )
-          val node = selPath.getLastPathComponent
+    ggTree.addMouseListener(new MouseAdapter() {
+      override def mousePressed(e: MouseEvent) {
+        val selRow = ggTree.getRowForLocation(e.getX, e.getY)
+        if (selRow == -1) return
+        val selPath = ggTree.getPathForLocation(e.getX, e.getY)
+        val node = selPath.getLastPathComponent
 
-          if( e.isPopupTrigger ) popup( node, e )
-          else if( e.getClickCount == 2 ) doubleClick( node, e )
-       }
-       
-        private def popup( node: AnyRef, e: MouseEvent ) {
-           node match {
-              case hcm: HasContextMenu => {
-                  hcm.createContextMenu().foreach( root => {
-                      val pop = root.createPopup( frame )
-                      pop.show( e.getComponent, e.getX, e.getY )
-                  })
+        if (e.isPopupTrigger) popup(node, e)
+        else if (e.getClickCount == 2) doubleClick(node, e)
+      }
+
+      private def popup(node: AnyRef, e: MouseEvent) {
+        node match {
+          case hcm: HasContextMenu =>
+            hcm.createContextMenu().foreach { root =>
+              // XXX TODO - internal frame
+              frame.component match {
+                case f: Frame =>
+                  val pop = root.create(frame)
+                  pop.show(e.getComponent, e.getX, e.getY)
               }
-                case _ =>
             }
+          case _ =>
         }
+      }
 
-        private def doubleClick( node: AnyRef, e: MouseEvent ) {
-           node match {
-              case hdca: HasDoubleClickAction => hdca.doubleClickAction()
-              case _ =>
-           }
+      private def doubleClick(node: AnyRef, e: MouseEvent) {
+        node match {
+          case hdca: HasDoubleClickAction => hdca.doubleClickAction()
+          case _ =>
         }
-      })
-      new TreeDragSource( ggTree )
-      new TreeDropTarget( ggTree )
+      }
+    })
+    new TreeDragSource(ggTree)
+    new TreeDropTarget(ggTree)
 
-      contents = Component.wrap(ggScroll)
-//      app.getMenuFactory().addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
+    contents = Component.wrap(ggScroll)
+    //      app.getMenuFactory().addToWindowMenu( actionShowWindow )	// MUST BE BEFORE INIT()!!
 
-// XXX TODO
+    // XXX TODO
 //      addDynamicListening( sessionTreeModel )
 
 //      init()
 
 //      initBounds	// be sure this is after documentUpdate!
 
-	  visible = true
-   }
+    visible = true
+  }
 
-   protected def windowClosing() { actionClose() }
+  protected def windowClosing() {
+    actionClose()
+  }
 
-   override protected def autoUpdatePrefs = true
-   override protected def alwaysPackSize = false
+  override protected def autoUpdatePrefs  = true
+  override protected def alwaysPackSize   = false
 
-   protected def elementName = Some( "Tree" )
+  protected def elementName = Some("Tree")
 }

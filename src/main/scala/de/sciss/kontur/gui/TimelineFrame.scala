@@ -54,7 +54,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends desktop.i
   // private var writeProtected	= false
   //	private var wpHaveWarned	= false
   // private val actionShowWindow= new ShowWindowAction( this )
-  val timelineView = new BasicTimelineView(doc, tl)
+  val timelineView = new BasicTimelineView(document, tl)
   // private val trackList      = new BasicTrackList( doc, timelineView )
   private val timelinePanel = new TimelinePanel(timelineView)
   // private val trailView      = new javax.swing.JLabel( "Trail" )
