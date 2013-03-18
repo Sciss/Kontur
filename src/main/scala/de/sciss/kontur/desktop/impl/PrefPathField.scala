@@ -9,7 +9,7 @@ import de.sciss.desktop.Preferences
 class PrefPathField(protected val prefs: Preferences.Entry[File], default: File)(tpe: Int, dialogText: String)
   extends PathField(tpe, dialogText) with PreferencesWidgetImpl[File] {
 
-  protected def prefsType = Preferences.Type.File
+  protected def prefsType = Preferences.Type.file
 
   override protected def setPathAndDispatchEvent(path: File) {
     super.setPathAndDispatchEvent(path)

@@ -34,7 +34,7 @@ import sc.SuperColliderClient
 import swing.Swing
 import legacy.ProcessingThread
 import de.sciss.desktop.impl.{WindowHandlerImpl, ApplicationImpl}
-import de.sciss.desktop.{SwingApplication, WindowHandler}
+import de.sciss.desktop.{Preferences, SwingApplication, WindowHandler}
 
 /**
  *  The <code>Main</code> class contains the java VM
@@ -117,7 +117,7 @@ object Kontur extends SwingApplication with ApplicationImpl with App {
 	 */
 	private def preInit() {
 		val prefs   = userPrefs
-    var lafName = prefs.get[String](PrefsUtil.KEY_LOOKANDFEEL).orNull
+    var lafName = prefs.get[String](PrefsUtil.KEY_LOOKANDFEEL)(Preferences.Type.string).orNull  // XXX TODO: scalac bug
     var openDoc = scala.collection.immutable.Queue[String]()
     var i = 0
     while (i < args.length) {
