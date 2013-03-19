@@ -27,7 +27,7 @@ package de.sciss.kontur
 package gui
 
 import java.awt.event.{ ActionEvent, ActionListener }
-import java.io.{ File, FilenameFilter, IOException }
+import java.io.{FileFilter, File, FilenameFilter, IOException}
 import java.util.Locale
 import java.text.MessageFormat
 import javax.swing.{ GroupLayout, JLabel, JPanel, JTextField, SwingConstants }
@@ -37,7 +37,7 @@ import de.sciss.synth.io.AudioFile
 import session.{ Diffusion, DiffusionEditor, DiffusionFactory, ConvolutionDiffusion, Renamable, Session }
 import util.Model
 import legacy.{PathListener, PathEvent, ParamSpace, AbstractCompoundEdit}
-import desktop.impl.BasicParamField
+import desktop.impl.{PathField, BasicParamField}
 
 object ConvolutionDiffusionGUI extends DiffusionGUIFactory {
    type T = ConvolutionDiffusionGUI
@@ -53,11 +53,12 @@ object ConvolutionDiffusionGUI extends DiffusionGUIFactory {
 }
 
 class ConvolutionDiffusionGUI( autoApply: Boolean )
-extends JPanel with desktop.impl.DynamicComponentImpl with FilenameFilter {
+extends JPanel with desktop.impl.DynamicComponentImpl with FileFilter {
 
    private var objects: List[ Diffusion ] = Nil
    private val ggName         = new JTextField( 16 )
-   private val ggPath         = new PathField( legacy.PathField.TYPE_INPUTFILE | legacy.PathField.TYPE_FORMATFIELD, "Choose Impulse Response Audiofile" )
+   private val ggPath         = new PathField()
+  ggPath.dialogText = "Choose Impulse Response Audiofile"
    private val ggGain         = new BasicParamField()
    private val ggDelay        = new BasicParamField()
    private val msgPtrn		   = "{0,choice,0#no channels|1#mono|2#stereo|2<{0,number,integer}-ch}, {1,number,########} frames / fft {2,number,########}, {3,number,0.###} kHz, {4,number,integer}:{5,number,00.000}"
@@ -78,7 +79,7 @@ extends JPanel with desktop.impl.DynamicComponentImpl with FilenameFilter {
       layout.setAutoCreateContainerGaps( true )
       setLayout( layout )
 
-      ggPath.setFilter( this )
+      ggPath.filter = Some(this)
       ggGain.addSpace( ParamSpace.spcAmpDecibels )
       ggDelay.addSpace( ParamSpace.spcTimeMillis )
 
@@ -152,14 +153,16 @@ extends JPanel with desktop.impl.DynamicComponentImpl with FilenameFilter {
    }
 
    // ---- FilenameFilter ----
-   def accept( dir: File, name: String ) = {
-      try {
-         AudioFile.identify( new File( dir, name )).isDefined
-      }
-      catch { case e: IOException => false }
+   def accept(file: File): Boolean = {
+     try {
+       AudioFile.identify(file).isDefined
+     }
+     catch {
+       case e: IOException => false
+     }
    }
 
-   private def withEditor( editName: String, fun: (DiffusionEditor, AbstractCompoundEdit) => Unit ) {
+  private def withEditor( editName: String, fun: (DiffusionEditor, AbstractCompoundEdit) => Unit ) {
       val eds = objects.filter( _.editor.isDefined ).map( _.editor.get )
       if( eds.isEmpty ) return
       val ed = eds.head
@@ -214,8 +217,8 @@ extends JPanel with desktop.impl.DynamicComponentImpl with FilenameFilter {
          case List( cdiff: ConvolutionDiffusion ) => {
             val path = cdiff.path
             ggPath.setEditable( true )
-            ggPath.setPath( path getOrElse new File( "" ))
-            ggPath.setFormat( path.map( p => {
+            ggPath.file = path getOrElse new File( "" )
+            ggPath.format = (path.map( p => {
                val millis  = (cdiff.numFrames / cdiff.sampleRate * 1000 + 0.5).toInt
                val fftSize = nextPowerOfTwo( cdiff.numFrames.toInt ) << 1
                msgForm.format( Array( int2Integer( cdiff.numOutputChannels ),
@@ -227,8 +230,8 @@ extends JPanel with desktop.impl.DynamicComponentImpl with FilenameFilter {
          }
          case _ => {
             ggPath.setEditable( false )
-            ggPath.setPath( new File( "" ))
-            ggPath.setFormat( "", true )
+            ggPath.file = new File( "" )
+            ggPath.format = ("", true)
          }
       }
    }

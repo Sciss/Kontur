@@ -3,9 +3,6 @@ package legacy;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- *	@version	0.27, 25-Sep-05
- */
 public class DefaultUnitTranslator
 implements ParamSpace.Translator
 {
@@ -20,16 +17,16 @@ implements ParamSpace.Translator
 	public Param translate( Param oldParam, ParamSpace newSpace )
 	{
 		if( newSpace == null ) {
-			return new Param( oldParam.val, ParamSpace.NONE );
+			return new Param( oldParam.value, ParamSpace.NONE );
 		}
 		if( oldParam.unit == ParamSpace.NONE ) {
-			return fitParam( oldParam.val, ParamSpace.NONE, newSpace );
+			return fitParam( oldParam.value, ParamSpace.NONE, newSpace );
 		}
 
 		int			newUnit		= newSpace.unit & DIM_UNIT_REL_MASK;
 		int			tempUnit	= oldParam.unit & DIM_UNIT_REL_SCALE_MASK;
 		int			tempUnit2;
-		double		tempVal		= oldParam.val;
+		double		tempVal		= oldParam.value;
 		Coefficient	c;
 
 		tempVal	  = removeScaling( tempVal, tempUnit );
@@ -46,12 +43,12 @@ implements ParamSpace.Translator
 			if( (tempUnit & ParamSpace.UNIT_MASK) == 0 ) {
 				tempUnit2	= tempUnit | ParamSpace.DEFAULT_UNIT[ tempUnit & ParamSpace.DIM_MASK ];
 				c = getCoeff( tempUnit | ParamSpace.REL, tempUnit2 );
-				if( c == null ) return failParam( oldParam.val, newSpace );	// cannot resolve
+				if( c == null ) return failParam( oldParam.value, newSpace );	// cannot resolve
 				tempUnit	= tempUnit2;
 				tempVal		= (tempVal + 1.0) * c.coeff;
 			} else {
 				c = getCoeff( (tempUnit & ~ParamSpace.UNIT_MASK) | ParamSpace.REL, tempUnit );
-				if( c == null ) return failParam( oldParam.val, newSpace );	// cannot resolve
+				if( c == null ) return failParam( oldParam.value, newSpace );	// cannot resolve
 				tempVal += c.coeff;
 			}
 
@@ -64,7 +61,7 @@ implements ParamSpace.Translator
 			tempUnit &= ~ParamSpace.REL_MASK;
 			tempUnit |= ParamSpace.DEFAULT_UNIT[ tempUnit & ParamSpace.DIM_MASK ];
 			c = getCoeff( (tempUnit & ~ParamSpace.UNIT_MASK) | ParamSpace.REL, tempUnit );
-			if( c == null ) return failParam( oldParam.val, newSpace );	// cannot resolve
+			if( c == null ) return failParam( oldParam.value, newSpace );	// cannot resolve
 			tempVal *= c.coeff;
 
 			if( tempUnit == newUnit ) return fitParam( tempVal, tempUnit, newSpace );
@@ -81,7 +78,7 @@ implements ParamSpace.Translator
 //System.err.println( "None default : "+(tempUnit & ParamSpace.UNIT_MASK)+" != " +ParamSpace.DEFAULT_UNIT[ tempUnit & ParamSpace.DIM_MASK ]);
 			tempUnit2	= (tempUnit & ~ParamSpace.UNIT_MASK) | ParamSpace.DEFAULT_UNIT[ tempUnit & ParamSpace.DIM_MASK ];
 			c = getCoeff( tempUnit, tempUnit2 );
-			if( c == null ) return failParam( oldParam.val, newSpace );	// cannot resolve
+			if( c == null ) return failParam( oldParam.value, newSpace );	// cannot resolve
 
 			tempUnit = tempUnit2;
 			tempVal *= c.coeff;
@@ -93,7 +90,7 @@ implements ParamSpace.Translator
 		if( (tempUnit & ParamSpace.DIM_MASK) != (newUnit & ParamSpace.DIM_MASK) ) {
 			tempUnit2	= newUnit & DIM_UNIT_MASK;
 			c = getCoeff( tempUnit, tempUnit2 );
-			if( c == null ) return failParam( oldParam.val, newSpace );	// cannot resolve
+			if( c == null ) return failParam( oldParam.value, newSpace );	// cannot resolve
 
 			tempUnit = tempUnit2;
 			tempVal *= c.coeff;
@@ -104,12 +101,12 @@ implements ParamSpace.Translator
 		switch( newUnit & ParamSpace.REL_MASK ) {
 		case ParamSpace.REL:
 			c = getCoeff( tempUnit, newUnit );
-			if( c == null ) return failParam( oldParam.val, newSpace );	// cannot resolve
+			if( c == null ) return failParam( oldParam.value, newSpace );	// cannot resolve
 			return fitParam( tempVal * c.coeff, tempUnit, newSpace );
 
 		case ParamSpace.OFF:
 			c = getCoeff( tempUnit, (newUnit & ~(ParamSpace.REL_MASK | ParamSpace.UNIT_MASK)) | ParamSpace.REL );
-			if( c == null ) return failParam( oldParam.val, newSpace );	// cannot resolve
+			if( c == null ) return failParam( oldParam.value, newSpace );	// cannot resolve
 			if( (newUnit & ParamSpace.UNIT_MASK) == 0 ) {
 				return fitParam( tempVal * c.coeff - 1.0, newUnit, newSpace );
 			} else {
@@ -117,7 +114,7 @@ implements ParamSpace.Translator
 			}
 		default:
 //			assert false : newUnit;
-			return failParam( oldParam.val, newSpace );	// could not resolve
+			return failParam( oldParam.value, newSpace );	// could not resolve
 		}
 	}
 
@@ -130,7 +127,7 @@ implements ParamSpace.Translator
 
 	private Coefficient getCoeff( int sourceUnit, int targetUnit )
 	{
-		return (Coefficient) mapCoeffs.get( new Integer( (sourceUnit << 16) | targetUnit ));
+		return (Coefficient) mapCoeffs.get( (sourceUnit << 16) | targetUnit );
 	}
 
 	private static Param failParam( double val, ParamSpace space )
@@ -188,9 +185,9 @@ implements ParamSpace.Translator
 //		sourceUnit &= ParamSpace.CRUCIAL_MASK;
 //		targetUnit &= ParamSpace.CRUCIAL_MASK;
 
-		mapCoeffs.put( new Integer( (sourceUnit << 16) | targetUnit ),
+		mapCoeffs.put( (sourceUnit << 16) | targetUnit,
 			new Coefficient( sourceUnit, targetUnit, coeff ));
-		mapCoeffs.put( new Integer( (targetUnit << 16) | sourceUnit ),
+		mapCoeffs.put( (targetUnit << 16) | sourceUnit,
 			new Coefficient( targetUnit, sourceUnit, 1.0 / coeff ));
 	}
 

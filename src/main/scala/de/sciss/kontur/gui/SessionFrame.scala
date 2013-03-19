@@ -33,7 +33,7 @@ import javax.swing.{SwingUtilities, AbstractAction, JComponent, JOptionPane, Key
 import session.Session
 import util.{Flag, Model}
 import swing.Action
-import de.sciss.desktop.{FocusType, Window}
+import de.sciss.desktop.Window
 import de.sciss.desktop.impl.WindowImpl
 
 trait SessionFrame {
@@ -75,8 +75,8 @@ trait SessionFrame {
   {
     // ---- menus and actions ----
     val mr = application.getMenuBarRoot
-    mr.putMimic("file.close", this, actionClose)
-    mr.putMimic("file.save", this, actionSave)
+    mr.putMimic("file.close",  this, actionClose)
+    mr.putMimic("file.save",   this, actionSave)
     mr.putMimic("file.saveAs", this, actionSaveAs)
 
     mr.putMimic("edit.undo", this, document.undoManager.undoAction)
@@ -133,6 +133,8 @@ trait SessionFrame {
       wpHaveWarned = true
     }
   }
+
+  private def getResourceString(key: String): String = key  // XXX TODO
 
   //   override def dispose() {
 //      frame.dispose()

@@ -2,20 +2,19 @@ package de.sciss.kontur
 package desktop
 package impl
 
-import legacy.PathButton
 import swing.{Dialog, Component}
 import java.io.File
 import de.sciss.desktop.{Window, Preferences}
 
 object BasicPathField {
-  private final class Button(tpe: Int, title: String) extends PathButton(tpe, title) {
+  private final class Button(mode: PathField.Mode) extends PathButton(mode) {
     protected def showDialog(dialog: Dialog) {
       Window.showDialog(Component.wrap(this), dialog)
     }
   }
 }
-class BasicPathField(prefs: Preferences.Entry[File], default: File)(tpe: Int, dialogText: String)
-  extends PrefPathField(prefs, default: File)(tpe, dialogText) {
+class BasicPathField(prefs: Preferences.Entry[File], default: File)(mode: PathField.Mode = PathField.Input)
+  extends PrefPathField(prefs, default: File)(mode) {
 
-	protected def createPathButton(tpe: Int): PathButton  = new BasicPathField.Button(tpe, dialogText)
+	override protected def createPathButton(): PathButton  = new BasicPathField.Button(mode)
 }

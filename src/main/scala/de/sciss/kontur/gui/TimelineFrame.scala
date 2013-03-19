@@ -41,6 +41,7 @@ import swing.{RootPanel, Action, Component, BorderPanel}
 import language.reflectiveCalls
 import de.sciss.desktop.Window
 import de.sciss.desktop.impl.WindowImpl
+import desktop.impl.PathField
 
 object TimelineFrame {
   protected val lastLeftTop		= new Point()
@@ -952,7 +953,8 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
       bg.add(ggAll)
       bg.add(ggSel)
       bg.setSelected(ggAll.getModel, true)
-      val ggPath = new PathField(legacy.PathField.TYPE_OUTPUTFILE, name)
+      val ggPath = new PathField(PathField.Output)
+      ggPath.dialogText = name
       val affp = new AudioFileFormatPane(AudioFileFormatPane.FORMAT | AudioFileFormatPane.ENCODING)
       val descr = new AudioFileDescr
       affp.toDescr(descr)
@@ -961,7 +963,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
         val desktop = new File(home, "Desktop")
         new File(if (desktop.isDirectory) desktop else home, "Untitled") // getResourceString("labelUntitled"))
       }
-      ggPath.setPath(IOUtil.setFileSuffix(path0, AudioFileDescr.getFormatSuffix(descr.`type`)))
+      ggPath.file = IOUtil.setFileSuffix(path0, AudioFileDescr.getFormatSuffix(descr.`type`))
       affp.automaticFileSuffix(ggPath)
       pane.add(ggPath)
       pane.add(affp)
@@ -979,7 +981,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
       val result = showDialog(op, name)
       if (result != JOptionPane.OK_OPTION) return None
 
-      val path = ggPath.getPath
+      val path = ggPath.file
       if (path.exists) {
         val opCancel = "Cancel" // getResourceString("buttonCancel")
         val opOverwrite = "Overwrite" // getResourceString("buttonOverwrite")

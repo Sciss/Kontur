@@ -37,7 +37,7 @@ import javax.swing.{AbstractAction, AbstractButton, ButtonGroup, GroupLayout,
   SwingConstants, UIManager}
 import language.reflectiveCalls
 import legacy.{ComboBoxEditorBorder, TreeExpanderButton, Param, ParamSpace, StringItem}
-import desktop.impl.{BasicPathField, PrefPathField, PrefComboBox, PrefParamField}
+import desktop.impl.{PathField, PrefCheckBox, BasicPathField, PrefPathField, PrefComboBox, PrefParamField}
 import java.io.File
 import de.sciss.desktop.{WindowHandler, Preferences, Window}
 import de.sciss.desktop.impl.WindowImpl
@@ -212,7 +212,8 @@ class PrefsFrame extends WindowImpl {
     val txSonaCacheFolder = "Sonagram Cache Folder" // getResourceString("prefsSonaCacheFolder")
     val lbSonaCacheFolder = new JLabel(txSonaCacheFolder)
     val prefsSonaCacheFolder = (prefs / NODE_SONACACHE)[File](PrefCacheManager.KEY_FOLDER)
-    val ggSonaCacheFolder = new PrefPathField(prefsSonaCacheFolder, new File(""))(legacy.PathField.TYPE_FOLDER, txSonaCacheFolder)
+    val ggSonaCacheFolder = new PrefPathField(prefsSonaCacheFolder, new File(""))(PathField.Folder)
+    ggSonaCacheFolder.dialogText = txSonaCacheFolder
 
     layout.setHorizontalGroup(layout.createSequentialGroup()
       .addComponent(lbSonaCacheFolder)
@@ -235,7 +236,8 @@ class PrefsFrame extends WindowImpl {
     val resApp  = getResourceString("prefsSuperColliderApp")
     val lbApp   = new JLabel(resApp)
     val defaultApp = new File(sys.env.get("SC_HOME").getOrElse(""), "scsynth")
-    val ggApp   = new BasicPathField(prefs[File](KEY_SUPERCOLLIDERAPP), defaultApp)(legacy.PathField.TYPE_INPUTFILE, resApp)
+    val ggApp   = new BasicPathField(prefs[File](KEY_SUPERCOLLIDERAPP), defaultApp)(PathField.Input)
+    ggApp.dialogText = resApp
     ggApp.setBackground(bg)
 
     // val lbBoot  = new JLabel( getResourceString( "prefsAutoBoot" ))
@@ -248,7 +250,7 @@ class PrefsFrame extends WindowImpl {
 
     val lbRate = new JLabel("Sample Rate") // getResourceString( "prefsAudioRate" ))
     val rate0 = new Param(0, ParamSpace.FREQ | ParamSpace.HERTZ)
-		val ggRateParam = new PrefParamField(prefs[Param](KEY_AUDIORATE), rate0)
+		val ggRateParam = new PrefParamField(prefs[Param](KEY_AUDIORATE), rate0)()
 		ggRateParam.addSpace( ParamSpace.spcFreqHertz )
     val ggRate = new JComboBox()
     val RATE_ITEMS = List(

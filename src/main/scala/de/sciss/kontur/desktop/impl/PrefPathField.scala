@@ -2,22 +2,19 @@ package de.sciss.kontur
 package desktop
 package impl
 
-import legacy.PathField
 import java.io.File
 import de.sciss.desktop.Preferences
 
-class PrefPathField(protected val prefs: Preferences.Entry[File], default: File)(tpe: Int, dialogText: String)
-  extends PathField(tpe, dialogText) with PreferencesWidgetImpl[File] {
+class PrefPathField(protected val prefs: Preferences.Entry[File], default: File)(mode: PathField.Mode = PathField.Input)
+  extends PathField(mode) with PreferencesWidgetImpl[File] {
 
-  protected def prefsType = Preferences.Type.file
-
-  override protected def setPathAndDispatchEvent(path: File) {
-    super.setPathAndDispatchEvent(path)
+  override protected def setFileAndDispatchEvent(f: File) {
+    super.setFileAndDispatchEvent(f)
     updatePrefs()
   }
 
-  override def setPath(f: File) {
-    super.setPath(f)
+  override def file_=(value: File) {
+    super.file_=(value)
     updatePrefs()
   }
 
