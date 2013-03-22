@@ -916,10 +916,8 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
       })
       var done = false
       try {
-        val process = SessionUtil.bounce(document, timelineView.timeline, tracks, span, path, spec, msg => msg match {
-          case "done" => {
-            done = true; fDispose()
-          }
+        val process = SessionUtil.bounce(document, timelineView.timeline, tracks, span, path, spec, {
+          case "done"               => done = true; fDispose()
           case ("progress", i: Int) => ggProgress.setValue(i)
           // case _ => println( "received: " + msg )
         })(application)
@@ -955,16 +953,19 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
       bg.setSelected(ggAll.getModel, true)
       val ggPath = new PathField(PathField.Output)
       ggPath.dialogText = name
-      val affp = new AudioFileFormatPane(AudioFileFormatPane.FORMAT | AudioFileFormatPane.ENCODING)
-      val descr = new AudioFileDescr
-      affp.toDescr(descr)
+      val affp = new AudioFileSpecPane
+      affp.fileType     = true
+      affp.sampleFormat = true
+      val descr         = affp.toSpec
+      import io.Implicits._
       val path0 = document.path getOrElse {
-        val home = new File(System.getProperty("user.home"))
-        val desktop = new File(home, "Desktop")
-        new File(if (desktop.isDirectory) desktop else home, "Untitled") // getResourceString("labelUntitled"))
+        val home    = new File(sys.props("user.home"))
+        val desktop = home / "Desktop"
+        val dir     = if (desktop.isDirectory) desktop else home
+        dir / "Untitled"  // getResourceString("labelUntitled"))
       }
-      ggPath.file = IOUtil.setFileSuffix(path0, AudioFileDescr.getFormatSuffix(descr.`type`))
-      affp.automaticFileSuffix(ggPath)
+      ggPath.file = path0.updateSuffix(descr.fileType.extension)
+      affp.linkedPathField = Some(ggPath)
       pane.add(ggPath)
       pane.add(affp)
       pane.add(ggAll)
@@ -996,7 +997,6 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
 
       val all = bg.isSelected(ggAll.getModel)
       // val descr      = new AudioFileDescr
-      affp.toDescr(descr)
       val sampleRate = timelineView.timeline.rate
       // descr.file     = path
       val tracks = (if (all) trackElems else selTrackElems).map(_.track)
@@ -1005,23 +1005,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
       })
         .foldLeft(0)((maxi, diff) => max(maxi, diff.numOutputChannels))
 
-      val spec = AudioFileSpec(descr.`type` match {
-        case AudioFileDescr.TYPE_AIFF => AudioFileType.AIFF
-        case AudioFileDescr.TYPE_WAVE => AudioFileType.Wave
-        case AudioFileDescr.TYPE_WAVE64 => AudioFileType.Wave64
-        case AudioFileDescr.TYPE_IRCAM => AudioFileType.IRCAM
-        case AudioFileDescr.TYPE_SND => AudioFileType.NeXT
-      }, descr.sampleFormat match {
-        case AudioFileDescr.FORMAT_INT => descr.bitsPerSample match {
-          case 16 => SampleFormat.Int16
-          case 24 => SampleFormat.Int24
-          case 32 => SampleFormat.Int32
-        }
-        case AudioFileDescr.FORMAT_FLOAT => descr.bitsPerSample match {
-          case 32 => SampleFormat.Float
-          case 64 => SampleFormat.Double
-        }
-      }, numChannels, sampleRate)
+      val spec = affp.toSpec(AudioFileSpec(numChannels = numChannels, sampleRate = sampleRate))
 
       Some((tracks, if (all) span else selSpan, path, spec))
     }

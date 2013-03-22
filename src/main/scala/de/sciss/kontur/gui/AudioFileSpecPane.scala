@@ -1,27 +1,51 @@
-//package de.sciss.kontur
-//package gui
-//
-//import legacy.SpringPanel
-//
-///**
-// *  A multi component panel
-// *  that provides gadgets for
-// *  specification of the output
-// *  format of an audio file,
-// *  such as file format, resolution
-// *  or sample rate. It implements
-// *  the <code>PreferenceNodeSync</code>
-// *  interface, allowing the automatic
-// *  saving and recalling of its gadget's
-// *  values from/to preferences.
-// *
-// *  @todo   sample rates should be user adjustable through a
-// *			JComboBox with an editable field. this to-do has
-// *			low priority since meloncillo is not really
-// *			interested in audio files.
-// */
-//class AudioFileSpecPane extends SpringPanel {
-//
+package de.sciss.kontur
+package gui
+
+import legacy.SpringPanel
+import de.sciss.synth.io.{AudioFileSpec, AudioFileType, SampleFormat}
+import javax.swing.{JComponent, JComboBox}
+import desktop.impl.PathField
+import java.awt.Component
+import java.io.File
+
+object AudioFileSpecPane {
+ 	private final val sampleFormatItems = Vector[SampleFormat](
+    SampleFormat.Int16, SampleFormat.Int24, SampleFormat.Int32, SampleFormat.Float
+  )
+
+// 	private static final StringItem[] RATE_ITEMS = {
+// 		new StringItem( new Param( 32000, ParamSpace.FREQ | ParamSpace.HERTZ ).toString(), "32 kHz" ),
+// 		new StringItem( new Param( 44100, ParamSpace.FREQ | ParamSpace.HERTZ ).toString(), "44.1 kHz" ),
+// 		new StringItem( new Param( 48000, ParamSpace.FREQ | ParamSpace.HERTZ ).toString(), "48 kHz" ),
+// 		new StringItem( new Param( 88200, ParamSpace.FREQ | ParamSpace.HERTZ ).toString(), "88.2 kHz" ),
+// 		new StringItem( new Param( 96000, ParamSpace.FREQ | ParamSpace.HERTZ ).toString(), "96 kHz" )
+// 	};
+// 	private static final int			DEFAULT_ENCODING	= 1;		// default int24
+// 	private static final int			DEFAULT_RATE		= 1;		// default 44.1 kHz
+// 	private static final Param			DEFAULT_GAIN		= new Param(
+// 		0.0, ParamSpace.AMP | ParamSpace.REL | ParamSpace.DECIBEL );
+// 	private static final boolean		DEFAULT_NORMALIZE	= true;		// default normalization
+}
+/**
+*  A multi component panel
+*  that provides gadgets for
+*  specification of the output
+*  format of an audio file,
+*  such as file format, resolution
+*  or sample rate. It implements
+*  the <code>PreferenceNodeSync</code>
+*  interface, allowing the automatic
+*  saving and recalling of its gadget's
+*  values from/to preferences.
+*
+*  @todo   sample rates should be user adjustable through a
+*			JComboBox with an editable field. this to-do has
+*			low priority since meloncillo is not really
+*			interested in audio files.
+*/
+class AudioFileSpecPane extends SpringPanel {
+  import AudioFileSpecPane._
+
 ///**
 //	 *  Constructor-Flag : create file type gadget
 //	 */
@@ -62,34 +86,8 @@
 //	 *  of <code>GAIN</code> and <code>NORMALIZE</code>.
 //	 */
 //	public static final int GAIN_NORMALIZE			= GAIN | NORMALIZE;
-//
-//	private static final int[] BITSPERSMP			= { 16, 24, 32, 32 };   // idx corresp. to ENCODING_ITEMS
-//	private static final int[] ENCODINGS			= {						// idx corresp. to ENCODING_ITEMS
-//		AudioFileDescr.FORMAT_INT, AudioFileDescr.FORMAT_INT,
-//		AudioFileDescr.FORMAT_INT, AudioFileDescr.FORMAT_FLOAT
-//	};
-//	private static final StringItem[]   ENCODING_ITEMS  = {
-//		new StringItem( "int16", "16-bit int" ),
-//		new StringItem( "int24", "24-bit int" ),
-//		new StringItem( "int32", "32-bit int" ),
-//		new StringItem( "float32", "32-bit float" )
-//	};
-////	private static final float[] RATES = {    // idx corresp. to RATE_ITEMS
-////		32000.0f, 44100.0f, 48000.0f, 88200.0f, 96000.0f
-////	};
-//	private static final StringItem[] RATE_ITEMS = {
-//		new StringItem( new Param( 32000, ParamSpace.FREQ | ParamSpace.HERTZ ).toString(), "32 kHz" ),
-//		new StringItem( new Param( 44100, ParamSpace.FREQ | ParamSpace.HERTZ ).toString(), "44.1 kHz" ),
-//		new StringItem( new Param( 48000, ParamSpace.FREQ | ParamSpace.HERTZ ).toString(), "48 kHz" ),
-//		new StringItem( new Param( 88200, ParamSpace.FREQ | ParamSpace.HERTZ ).toString(), "88.2 kHz" ),
-//		new StringItem( new Param( 96000, ParamSpace.FREQ | ParamSpace.HERTZ ).toString(), "96 kHz" )
-//	};
-//	private static final int			DEFAULT_ENCODING	= 1;		// default int24
-//	private static final int			DEFAULT_RATE		= 1;		// default 44.1 kHz
-//	private static final Param			DEFAULT_GAIN		= new Param(
-//		0.0, ParamSpace.AMP | ParamSpace.REL | ParamSpace.DECIBEL );
-//	private static final boolean		DEFAULT_NORMALIZE	= true;		// default normalization
-//
+
+
 //	// prefs keys
 //	private static final String		KEY_FORMAT		= "format";
 //	private static final String		KEY_ENCODING	= "encoding";
@@ -97,49 +95,90 @@
 //	private static final String		KEY_GAIN		= "gain";
 //	private static final String		KEY_NORMALIZE	= "normalize";
 //	private static final String		KEY_CHANNELS	= "channels";
+
+//	private var lbGainType      = Option.empty[JLabel]
+//	private var ggNormalize     = Option.empty[JCheckBox]
+	private var ggFileType	    = Option.empty[JComboBox]
+	private var ggSampleFormat	= Option.empty[JComboBox]
+//	private var ggRate		      = Option.empty[BasicParamField]
+//	private var ggRateCombo	    = Option.empty[JComboBox]
+//	private var ggGain		      = Option.empty[BasicParamField]
+//	private var pChan		        = Option.empty[JToolBar]
+//	private var chanGroup	      = Option.empty[ButtonGroup]
+//	private var ggMono		      = Option.empty[JToggleButton]
+//	private var ggStereo	      = Option.empty[JToggleButton]
+//	private var ggMulti		      = Option.empty[JToggleButton]
+//	private var ggChanNum	      = Option.empty[BasicParamField]
+
+//	private var ggPaths		        = Vector.empty		// lazy; set with automaticFileSuffix method
 //
-//	private JLabel				lbGainType;
-//	private PrefCheckBox		ggNormalize = null;
-//	private PrefComboBox		ggFormat	= null;
-//	private PrefComboBox		ggEncoding	= null;
-//	private PrefParamField		ggRate		= null;
-//	private JComboBox			ggRateCombo	= null;
-//	private PrefParamField		ggGain		= null;
-//	private JToolBar			pChan		= null;
-//	private ButtonGroup			chanGroup	= null;
-//	private JToggleButton		ggMono		= null;
-//	private JToggleButton		ggStereo	= null;
-//	private JToggleButton		ggMulti		= null;
-//	private PrefParamField		ggChanNum	= null;
-//
-//	private List				ggPaths		= null;		// lazy; set with automaticFileSuffix method
-//
-//	private int					flags			= 0;
-//	private int					gainTypeWidth	= 0;
-//
-//	private SpringPanel			pEnc		= null;
-//	private SpringPanel			pGain		= null;
-//
-//	private Preferences			prefs		= null;
-//
-//	public AudioFileFormatPane()
-//	{
-//		super();
-//	}
-//
-//	/**
-//	 *  Construct a new AudioFileFormatPane with the
-//	 *  shown components specified by the given flags.
-//	 *
-//	 *  @param  flags   a bitwise OR combination of
-//	 *					gadget creation flags such as FORMAT or GAIN_NORMALIZE
-//	 */
-//	public AudioFileFormatPane( int flags )
-//	{
-//		this();
-//		setFlags( flags );
-//	}
-//
+//	private var					gainTypeWidth	= 0
+
+	private var pEnc		= Option.empty[SpringPanel]
+//	private var pGain   = Option.empty[SpringPanel]
+
+  private def pEncRemoval(opt: Option[Component]) {
+    opt.foreach { gg =>
+      val p = gg.getParent
+      assert(Some(p) == pEnc)
+      p.remove(gg)
+      if (p.getComponentCount == 0) {
+        remove(p)
+        pEnc = None
+      }
+    }
+  }
+
+  private def pEncAddition(c: JComponent, x: Int) {
+    val p = pEnc.getOrElse {
+      val res = new SpringPanel(4, 2, 4, 2)
+      gridAdd(res, 0, 0, -1, 1)
+      pEnc = Some(res)
+      res
+    }
+    p.gridAdd(c, x, 0)
+  }
+
+  def fileType: Boolean = ggFileType.isDefined
+  def fileType_=(value: Boolean) {
+    if (ggFileType.isDefined == value) return
+    pEncRemoval(ggFileType)
+    if (value) {
+      val gg = new JComboBox()
+      AudioFileType.writable.foreach(gg.addItem _)
+//      gg.setSelectedIndex(...)
+      pEncAddition(gg, 0)
+      ggFileType = Some(gg)
+    }
+  }
+  
+  def sampleFormat: Boolean = ggSampleFormat.isDefined
+  def sampleFormat_=(value: Boolean) {
+    if (ggSampleFormat.isDefined == value) return
+    pEncRemoval(ggSampleFormat)
+    if (value) {
+      val gg = new JComboBox()
+      sampleFormatItems.foreach(gg.addItem _)
+//      gg.setSelectedIndex( DEFAULT_ENCODING )
+      pEncAddition(gg, 1)
+      ggSampleFormat = Some(gg)
+    }
+  }
+
+  def toSpec: AudioFileSpec = toSpec(AudioFileSpec(numChannels = 1, sampleRate = 44100))
+
+  def toSpec(in: AudioFileSpec): AudioFileSpec = {
+    val out1 = ggFileType.map(_.getSelectedItem) match {
+        case Some(tpe: AudioFileType) => in.copy(fileType = tpe)
+        case _ => in
+    }
+
+    ggSampleFormat.map(_.getSelectedItem) match {
+      case Some(fmt: SampleFormat) => out1.copy(sampleFormat = fmt)
+      case _ => out1
+    }
+  }
+
 //	public void setFlags( int flags )
 //	{
 //		final int		flagsAdded		= flags & ~this.flags;
@@ -148,17 +187,6 @@
 //		StringItem[]	items;
 //
 //		if( (flagsRemoved & FORMAT_ENCODING_RATE) != 0 ) {
-//			if( (flagsRemoved & FORMAT) != 0 ) {
-//				ggFormat.removeItemListener( this );
-//				if( prefs != null ) ggFormat.setPreferences( null, null );
-//				pEnc.remove( ggFormat );
-//				ggFormat	= null;
-//			}
-//			if( (flagsRemoved & ENCODING) != 0 ) {
-//				if( prefs != null ) ggEncoding.setPreferences( null, null );
-//				pEnc.remove( ggEncoding );
-//				ggEncoding	= null;
-//			}
 //			if( (flagsRemoved & RATE) != 0 ) {
 //				if( prefs != null ) ggRate.setPreferences( null, null );
 //				pEnc.remove( ggRateCombo );
@@ -214,25 +242,25 @@
 //				gridAdd( pEnc, 0, 0, -1, 1 );
 //			}
 //			if( (flagsAdded & FORMAT) != 0 ) {
-//				ggFormat	= new PrefComboBox();
+//				ggFileType	= new PrefComboBox();
 //				items		= AudioFileDescr.getFormatItems();
 //				for( int i = 0; i < items.length; i++ ) {
-//					ggFormat.addItem( items[ i ]);
+//					ggFileType.addItem( items[ i ]);
 //				}
-//				ggFormat.setSelectedIndex( 0 );
-//				if( prefs != null ) ggFormat.setPreferences( prefs, KEY_FORMAT );
-//				ggFormat.addItemListener( this );
-//				pEnc.gridAdd( ggFormat, 0, 0 );
+//				ggFileType.setSelectedIndex( 0 );
+//				if( prefs != null ) ggFileType.setPreferences( prefs, KEY_FORMAT );
+//				ggFileType.addItemListener( this );
+//				pEnc.gridAdd( ggFileType, 0, 0 );
 //			}
 //			if( (flagsAdded & ENCODING) != 0 ) {
-//				ggEncoding	= new PrefComboBox();
+//				ggSampleFormat	= new PrefComboBox();
 //				items		= ENCODING_ITEMS;
 //				for( int i = 0; i < items.length; i++ ) {
-//					ggEncoding.addItem( items[ i ]);
+//					ggSampleFormat.addItem( items[ i ]);
 //				}
-//				ggEncoding.setSelectedIndex( DEFAULT_ENCODING );
-//				if( prefs != null ) ggEncoding.setPreferences( prefs, KEY_ENCODING );
-//				pEnc.gridAdd( ggEncoding, 1, 0 );
+//				ggSampleFormat.setSelectedIndex( DEFAULT_ENCODING );
+//				if( prefs != null ) ggSampleFormat.setPreferences( prefs, KEY_ENCODING );
+//				pEnc.gridAdd( ggSampleFormat, 1, 0 );
 //			}
 //			if( (flagsAdded & RATE) != 0 ) {
 //				ggRateCombo = new JComboBox();
@@ -314,17 +342,7 @@
 //			makeCompactGrid();
 //		}
 //	}
-//
-//	public int getFlags()
-//	{
-//		return flags;
-//	}
-//
-//	private String getResourceString( String key )
-//	{
-//		return IOUtil.getResourceString( key );
-//	}
-//
+
 //	/**
 //	 *  Copy the internal state of
 //	 *  the <code>AudioFileFormatPane</code> into the
@@ -340,12 +358,12 @@
 //	 */
 //	public void toDescr( AudioFileDescr target )
 //	{
-//		if( ggFormat != null ) {
-//			target.type = ggFormat.getSelectedIndex();
+//		if( ggFileType != null ) {
+//			target.type = ggFileType.getSelectedIndex();
 //		}
-//		if( ggEncoding != null ) {
-//			target.bitsPerSample	= BITSPERSMP[ ggEncoding.getSelectedIndex() ];
-//			target.sampleFormat		= ENCODINGS[ ggEncoding.getSelectedIndex() ];
+//		if( ggSampleFormat != null ) {
+//			target.bitsPerSample	= BITSPERSMP[ ggSampleFormat.getSelectedIndex() ];
+//			target.sampleFormat		= ENCODINGS[ ggSampleFormat.getSelectedIndex() ];
 //		}
 //		if( ggRate != null ) {
 //			target.rate				= ggRate.getValue().val;
@@ -360,7 +378,7 @@
 //			}
 //		}
 //	}
-//
+
 //	/**
 //	 *  Return the value of the
 //	 *  gain gadget (in decibels).
@@ -389,7 +407,7 @@
 //	 */
 //	public String getEncodingString()
 //	{
-//		return ((StringItem) ggEncoding.getSelectedItem()).getKey();
+//		return ((StringItem) ggSampleFormat.getSelectedItem()).getKey();
 //	}
 //
 //	/**
@@ -400,7 +418,7 @@
 //	 */
 //	public String getFormatString()
 //	{
-//		return ((StringItem) ggFormat.getSelectedItem()).getKey();
+//		return ((StringItem) ggFileType.getSelectedItem()).getKey();
 //	}
 //
 //	/**
@@ -420,24 +438,25 @@
 //			return false;
 //		}
 //	}
-//
-//	/**
-//	 *	Registers a <code>PathField</code> to
-//	 *	be updated upon format switches.
-//	 *	When the user selects a different format,
-//	 *	the path's suffix will be updated accordingly.
-//	 *
-//	 *	@param	ggPath	the path field to update
-//	 *					or <code>null</code> to stop
-//	 *					updating.
-//	 */
-//	public void automaticFileSuffix( PathField ggPath )
-//	{
-//		if( ggPaths == null ) ggPaths = new ArrayList();
-//		ggPaths.add( ggPath );
-//		updateFileSuffix();
-//	}
-//
+
+  private var _linkedPathField = Option.empty[PathField]
+  def linkedPathField = _linkedPathField
+
+	/**
+	 *	Registers a <code>PathField</code> to
+	 *	be updated upon format switches.
+	 *	When the user selects a different format,
+	 *	the path's suffix will be updated accordingly.
+	 *
+	 *	@param	value	the path field to update
+	 *					or `None` to stop
+	 *					updating.
+	 */
+	def linkedPathField_=(value: Option[PathField]) {
+		_linkedPathField = value
+		updateFileSuffix()
+	}
+
 //	/**
 //	 *  Copy a sound format from the given
 //	 *  <code>AudioFileDescr</code> to the
@@ -445,15 +464,15 @@
 //	 */
 //	public void fromDescr( AudioFileDescr source )
 //	{
-//		if( ggFormat != null ) {
-//			ggFormat.setSelectedIndex( source.type );
+//		if( ggFileType != null ) {
+//			ggFileType.setSelectedIndex( source.type );
 //		}
-//		if( ggEncoding != null ) {
+//		if( ggSampleFormat != null ) {
 //			for( int i = 0; i < ENCODINGS.length; i++ ) {
 //				if( (BITSPERSMP[ i ] == source.bitsPerSample) &&
 //					(ENCODINGS[ i ] == source.sampleFormat) ) {
 //
-//					ggEncoding.setSelectedIndex( i );
+//					ggSampleFormat.setSelectedIndex( i );
 //					break;
 //				}
 //			}
@@ -484,7 +503,7 @@
 //			}
 //		}
 //	}
-//
+
 //	// update the gain's label when the normalize checkbox is toggled
 //	private void setGainLabel()
 //	{
@@ -496,36 +515,32 @@
 //	{
 //		lbGainType.setText( getResourceString( normalize ? "labelPeak" : "labelGain" ));
 //	}
-//
-//	// sync's a path field's path extension
-//	// with the selected encoding
-//	private void updateFileSuffix()
-//	{
-//		if( ggFormat == null ) return;
-//
-//		final String		suffix	= AudioFileDescr.getFormatSuffix( ggFormat.getSelectedIndex() );
-//		File				path, newPath;
-//		PathField			ggPath;
-//
-//		if( ggPaths != null ) {
-//			for( int i = 0; i < ggPaths.size(); i++ ) {
-//				ggPath	= (PathField) ggPaths.get( i );
-//				path	= ggPath.getPath();
-//				newPath	= IOUtil.setFileSuffix( path, suffix );
-//
-//				if( newPath != path ) {	// IOUtil returns same ref in case of equality
-//					ggPath.setPath( newPath );
-//				}
-//			}
-//		}
-//	}
-//
+
+	// sync's a path field's path extension
+	// with the selected encoding
+	private def updateFileSuffix() {
+    ggFileType.foreach { ggSource =>
+      ggSource.getSelectedItem match {
+        case tpe: AudioFileType =>
+          _linkedPathField.foreach { ggTarget =>
+            import io.Implicits._
+            val file    = ggTarget.file
+            val newFile = file.updateSuffix(tpe.extension)
+            if (newFile != file) {
+              ggTarget.file = newFile
+            }
+          }
+        case _ =>
+      }
+    }
+	}
+
 //	// we're listening to the normalize checkbox + format combo + multi-channel
 //	public void itemStateChanged( ItemEvent e )
 //	{
 //		if( e.getSource() == ggNormalize ) {
 //			setGainLabel();
-//		} else if( e.getSource() == ggFormat ) {
+//		} else if( e.getSource() == ggFileType ) {
 //			updateFileSuffix();
 //		} else if( e.getSource() == ggMulti ) {
 //			final boolean isMulti = ggMulti.isSelected();
@@ -533,45 +548,4 @@
 //			if( isMulti ) ggChanNum.requestFocusInWindow(); // focusNumber();
 //		}
 //	}
-//
-//// --------------------- PreferenceNodeSync interface ---------------------
-//
-//	public void setPreferences( Preferences prefs )
-//	{
-//		if( ggFormat != null ) {
-//			ggFormat.setPreferences( prefs, KEY_FORMAT );
-//		}
-//		if( ggEncoding != null ) {
-//			ggEncoding.setPreferences( prefs, KEY_ENCODING );
-//		}
-//		if( ggRate != null ) {
-//			ggRate.setPreferences( prefs, KEY_RATE );
-//		}
-//		if( ggGain != null ) {
-//			ggGain.setPreferences( prefs, KEY_GAIN );
-//		}
-//		if( ggNormalize != null ) {
-//			ggNormalize.setPreferences( prefs, KEY_NORMALIZE );
-//		}
-//		if( ggChanNum != null ) {
-//			ggChanNum.setPreferences( prefs, KEY_CHANNELS );
-//			if( prefs != null ) {
-//				final int numCh = prefs.getInt( KEY_CHANNELS, 1 );
-//				switch( numCh ) {
-//				case 1:
-//					chanGroup.setSelected( ggMono.getModel(), true );
-//					ggChanNum.setEnabled( false );
-//					break;
-//				case 2:
-//					chanGroup.setSelected( ggStereo.getModel(), true );
-//					ggChanNum.setEnabled( false );
-//					break;
-//				default:
-//					chanGroup.setSelected( ggMulti.getModel(), true );
-//					ggChanNum.setEnabled( true );
-//					break;
-//				}
-//			}
-//		}
-//	}
-//}
+}
