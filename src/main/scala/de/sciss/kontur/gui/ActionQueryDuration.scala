@@ -30,7 +30,7 @@ import javax.swing.JOptionPane
 import session.Timeline
 import legacy.{GUIUtil, SpringPanel, DefaultUnitTranslator, ParamSpace, Param}
 import desktop.impl.BasicParamField
-import swing.{RootPanel, Action, Component}
+import swing.{UIElement, Action, Component}
 import de.sciss.desktop.Window
 
 abstract class ActionQueryDuration(title: String) extends Action(title) {
@@ -79,5 +79,5 @@ abstract class ActionQueryDuration(title: String) extends Action(title) {
   protected def initialValue: Param
   protected def timeline: Timeline
   protected def initiate(v: Param, trans: ParamSpace.Translator): Unit
-  protected def parent: Component
+  protected def parent: UIElement
 }

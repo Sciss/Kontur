@@ -41,6 +41,8 @@ import de.sciss.desktop.impl.WindowImpl
 class SuperColliderFrame extends WindowImpl {
   protected def style = Window.Auxiliary
 
+  def handler = Kontur.windowHandler
+
   private val superCollider = SuperColliderClient.instance
   private val serverPanel = new JServerStatusPanel(
     JServerStatusPanel.COUNTS | JServerStatusPanel.BOOT_BUTTON) {
@@ -71,7 +73,7 @@ class SuperColliderFrame extends WindowImpl {
 
   // init()
 
-  override protected def autoUpdatePrefs = true
+//  override protected def autoUpdatePrefs = true
 
   private class ActionDumpTree(controls: Boolean, stroke: KeyStroke)
     extends Action(s"Dump Tree ($controls)") {

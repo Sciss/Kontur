@@ -65,13 +65,15 @@ class DefaultTrackHeaderComponent( protected val track: Track, trackList: TrackL
 extends JPanel
 with desktop.impl.DynamicComponentImpl /* with Disposable */ {
   import DefaultTrackHeaderComponent._
+
+  protected def dynamicComponent = this
   
 	private val lbTrackName = new JLabel()
 
     protected lazy val trackListElement = trackList.getElement( track ).get
 //    protected val trailView = trackListElement.trailView.asInstanceOf[ TrailView[ track.T ]]
 
-	private var	isListening	= false
+//	private var	isListening	= false
 
     private val ml = new MouseAdapter() {
 			/**

@@ -126,7 +126,7 @@ implements	MouseListener, MouseMotionListener, FocusListener,
 	{
 		super();
 
-		setBorder( new AquaFocusBorder() );
+//		setBorder( new AquaFocusBorder() );
 		addMouseListener( this );
 		addMouseMotionListener( this );
 		addFocusListener( this );

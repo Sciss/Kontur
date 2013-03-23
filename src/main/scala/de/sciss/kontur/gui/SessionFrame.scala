@@ -32,24 +32,24 @@ import java.io.{File, IOException}
 import javax.swing.{SwingUtilities, AbstractAction, JComponent, JOptionPane, KeyStroke}
 import session.Session
 import util.{Flag, Model}
-import swing.Action
+import swing.{SwingApplication, Action}
 import de.sciss.desktop.Window
 import de.sciss.desktop.impl.WindowImpl
 
 trait SessionFrame {
-   frame: WindowImpl =>
+  frame: WindowImpl =>
 
-  protected def application: de.sciss.desktop.Application { type Document = Session }
+  // protected def application: SwingApplication {type Document = Session}
 
-   private var writeProtected	= false
-   private var wpHaveWarned	= false
+  private   var writeProtected    = false
+  private   var wpHaveWarned      = false
 
-   private val actionShowWindow= Window.showAction(this)
-   protected val actionClose  = new ActionClose()
-   private val actionSave     = new ActionSave()
-   private val actionSaveAs	= new ActionSaveAs( false )
+  private   val actionShowWindow  = Window.showAction(this)
+  protected val actionClose       = new ActionClose()
+  private   val actionSave        = new ActionSave()
+  private   val actionSaveAs      = new ActionSaveAs(false)
 
-// XXX TODO
+  // XXX TODO
 //   private val winListener = new AbstractWindow.Adapter() {
 //        override def windowClosing( e: AbstractWindow.Event ) {
 //            frame.windowClosing()
@@ -69,46 +69,44 @@ trait SessionFrame {
     case Session.PathChanged(_, _)  => updateTitle()
   }
 
-  private var disposed = false; // compiler problem, we cannot name it disposed
+  private var disposed = false
 
-  // ---- constructor ----
-  {
-    // ---- menus and actions ----
-    val mr = application.getMenuBarRoot
-    mr.putMimic("file.close",  this, actionClose)
-    mr.putMimic("file.save",   this, actionSave)
-    mr.putMimic("file.saveAs", this, actionSaveAs)
+  bindMenus(
+    "file.close"  -> actionClose,
+    "file.save"   -> actionSave,
+    "file.saveAs" -> actionSaveAs,
 
-    mr.putMimic("edit.undo", this, document.undoManager.undoAction)
-    mr.putMimic("edit.redo", this, document.undoManager.redoAction)
+    "edit.undo"   -> document.undoManager.undoAction,
+    "edit.redo"   -> document.undoManager.redoAction
+  )
 
-    updateTitle()
-    document.addListener(docListener)
+  updateTitle()
+  document.addListener(docListener)
 
-// XXX TODO
-//    application.getMenuFactory.addToWindowMenu(actionShowWindow) // MUST BE BEFORE INIT()!!
-    closeOperation = Window.CloseIgnore
-    // XXX TODO
-    //      addListener( winListener )
-  }
+  // XXX TODO
+  //    application.getMenuFactory.addToWindowMenu(actionShowWindow) // MUST BE BEFORE INIT()!!
+  closeOperation = Window.CloseIgnore
+
+  // XXX TODO
+  //      addListener( winListener )
 
   def document: Session
 
-   protected def elementName: Option[ String ]
+  protected def elementName: Option[String]
 
-   protected def windowClosing() : Unit
+  protected def windowClosing(): Unit
 
-   protected def invokeDispose() {
-      disposed = true	// important to avoid "too late window messages" to be processed; fucking swing doesn't kill them despite listener being removed
-     // XXX TODO
-//      removeListener( winListener )
-     document.removeListener( docListener )
-// XXX TODO
-//      application.getMenuFactory.removeFromWindowMenu( actionShowWindow )
-// XXX TODO
-//      actionShowWindow.dispose()
-      dispose()
-   }
+  protected def invokeDispose() {
+    disposed = true // important to avoid "too late window messages" to be processed; fucking swing doesn't kill them despite listener being removed
+    // XXX TODO
+    //      removeListener( winListener )
+    document.removeListener(docListener)
+    // XXX TODO
+    //      application.getMenuFactory.removeFromWindowMenu( actionShowWindow )
+    // XXX TODO
+    //      actionShowWindow.dispose()
+    dispose()
+  }
 
   /**
    * Recreates the main frame's title bar
@@ -301,7 +299,7 @@ trait SessionFrame {
        *  wasn't saved before, a file chooser
        *  is shown before.
        */
-      def actionPerformed( e: ActionEvent ) {
+      def apply() {
          val name = title
          (document.path orElse actionSaveAs.query( name )).foreach( f =>
             perform( name, f, asCopy = false, openAfterSave = false ))

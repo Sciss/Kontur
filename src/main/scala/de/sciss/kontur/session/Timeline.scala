@@ -31,7 +31,7 @@ import edit.{Editor, SimpleEdit}
 import util.SerializerContext
 import de.sciss.span.Span
 import legacy.AbstractCompoundEdit
-import desktop.UndoManager
+import de.sciss.desktop.UndoManager
 
 object Timeline {
   final case class SpanChanged(oldSpan: Span, newSpan: Span)

@@ -84,7 +84,7 @@ class ScalaInterpreterFrame extends WindowImpl {
 
   title = "Scala Interpreter" // getResourceString("frameScalaInterpreter")
 
-  def application = Kontur
+//  def application = Kontur
 
   // ---- constructor ----
    {
@@ -112,7 +112,7 @@ class ScalaInterpreterFrame extends WindowImpl {
          case e: Throwable => e.printStackTrace()
       }
 
-      val support = new REPLSupport( application )
+      val support = new REPLSupport(Kontur)
       ic.bindings = Seq(
 //         NamedParam( "app", app ),
          NamedParam( "replsupport", support )
@@ -167,6 +167,8 @@ class ScalaInterpreterFrame extends WindowImpl {
       visible = true
    }
 
-   override protected def autoUpdatePrefs = true
-   override protected def alwaysPackSize  = false
+  def handler = Kontur.windowHandler
+
+//   override protected def autoUpdatePrefs = true
+//   override protected def alwaysPackSize  = false
 }

@@ -106,13 +106,15 @@ class ControlRoomFrame extends WindowImpl {
 
   application.addComponent(Kontur.COMP_CTRLROOM, this)
 
+  def handler = Kontur.windowHandler
+
   private def superCollider = SuperColliderClient.instance
 
-  override protected def autoUpdatePrefs = true
-
-  override protected def restoreVisibility = true
-
-  override protected def getPreferredLocation: Point2D = new Point2D.Float(0.95f, 0.2f)
+//  override protected def autoUpdatePrefs = true
+//
+//  override protected def restoreVisibility = true
+//
+//  override protected def getPreferredLocation: Point2D = new Point2D.Float(0.95f, 0.2f)
 
   override def dispose() {
     application.removeComponent(Kontur.COMP_CTRLROOM)

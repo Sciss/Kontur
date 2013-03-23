@@ -113,6 +113,8 @@ class PrefsFrame extends WindowImpl {
     (panel, layout)
   }
 
+  def handler = Kontur.windowHandler
+
   override def dispose() {
     application.removeComponent(Kontur.COMP_PREFS)
     super.dispose()

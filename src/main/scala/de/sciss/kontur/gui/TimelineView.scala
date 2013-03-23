@@ -32,7 +32,7 @@ import util.Model
 import de.sciss.span.Span
 import Span.SpanOrVoid
 import legacy.AbstractCompoundEdit
-import desktop.UndoManager
+import de.sciss.desktop.UndoManager
 
 object TimelineView {
    case class SpanChanged( oldSpan: Span, newSpan: Span )

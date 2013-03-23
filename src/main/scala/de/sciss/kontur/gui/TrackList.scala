@@ -32,7 +32,7 @@ import edit.{ Editor, SimpleEdit }
 import session.{ AudioTrack, Session, Stake, Track }
 import util.Model
 import legacy.AbstractCompoundEdit
-import desktop.UndoManager
+import de.sciss.desktop.UndoManager
 
 object TrackList {
     case class ElementAdded( idx: Int, e: TrackListElement )
@@ -208,33 +208,40 @@ extends TrackList with TrackListEditor {
       }
    }
 
-   // ---- TrackList trait ----
-	def getBounds( e: TrackListElement ) : Rectangle = e.renderer.trackComponent.getBounds
+  // ---- TrackList trait ----
+  def getBounds(e: TrackListElement): Rectangle = e.renderer.trackComponent.getBounds
+  def numElements: Int = elements.size
+  def getElementAt(idx: Int): TrackListElement = elements(idx)
+  def getElement(t: Track): Option[TrackListElement] = mapElem.get(t)
+  def editor: Option[TrackListEditor] = Some(this)
 
-	def numElements: Int = elements.size
-	def getElementAt( idx: Int ) : TrackListElement = elements( idx )
-	def getElement( t: Track ) : Option[ TrackListElement ] = mapElem.get( t )
+  // ---- TrackListEditor trait ----
 
-    def editor: Option[ TrackListEditor ] = Some( this )
-   // ---- TrackListEditor trait ----
+  def undoManager: UndoManager = doc.undoManager
 
-   def undoManager: UndoManager = doc.undoManager
+  def editSelect(ce: AbstractCompoundEdit, e: TrackListElement*) {
+    editSetSelection(ce, e, state = true)
+  }
 
-   def editSelect( ce: AbstractCompoundEdit, e: TrackListElement* ) { editSetSelection( ce, e, state = true )}
+  def editDeselect(ce: AbstractCompoundEdit, e: TrackListElement*) {
+    editSetSelection(ce, e, state = false)
+  }
 
-   def editDeselect( ce: AbstractCompoundEdit, e: TrackListElement* ) { editSetSelection( ce, e, state = false )}
+  private def editSetSelection(ce: AbstractCompoundEdit, e: Seq[TrackListElement], state: Boolean) {
+    val ef = e.filterNot(_.selected == state)
+    if (!ef.isEmpty) {
+      val edit = new SimpleEdit("editTrackSelection", false) {
+        def apply() {
+          setSelection(ef, state)
+        }
 
-   private def editSetSelection( ce: AbstractCompoundEdit,
-                                 e: Seq[ TrackListElement ], state: Boolean ) {
-      val ef = e.filterNot( _.selected == state )
-      if( !ef.isEmpty ) {
-         val edit = new SimpleEdit( "editTrackSelection", false ) {
-            def apply() { setSelection( ef, state )}
-            def unapply() { setSelection( ef, !state )}
-         }
-         ce.addPerform( edit )
+        def unapply() {
+          setSelection(ef, !state)
+        }
       }
-   }
+      ce.addPerform(edit)
+    }
+  }
 }
 
 /*

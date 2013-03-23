@@ -9,7 +9,6 @@ import java.awt.{Component, GridBagLayout, GridBagConstraints}
 import collection.immutable.{IndexedSeq => IIdxSeq}
 import java.util.EventListener
 import java.awt.event.{ActionEvent, ActionListener}
-import annotation.switch
 
 object BasicParamField {
   trait UnitViewFactory {
@@ -39,9 +38,7 @@ object BasicParamField {
 class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTranslator)
   extends JPanel with PropertyChangeListener with EventManager.Processor with ComboBoxEditor {
 
-  import BasicParamField._
-
-	private val jog                  = new Jog()
+  private val jog                  = new Jog()
   final protected val numberField  = new NumberField()
 	final protected val unitLabel    = new UnitLabel()
 
@@ -128,7 +125,7 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
   addPropertyChangeListener("font", this)
   addPropertyChangeListener("enabled", this)
 
-	def requestFocusInWindow(): Boolean = numberField.requestFocusInWindow()
+	override def requestFocusInWindow(): Boolean = numberField.requestFocusInWindow()
 
 	def addSpace(space: ParamSpace) {
 		spaces :+= space
@@ -160,7 +157,7 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
   }
 
   def setValueAndSpace(newValue: Param) {
-    val spcIdx = spaces.indexWhere(spc => spc != currentSpace && spc.unit == newValue.unit)
+    val spcIdx = spaces.indexWhere(spc => Some(spc) != currentSpace && spc.unit == newValue.unit)
     val newSpc = spcIdx >= 0
     if (newSpc) {
       val spc = spaces(spcIdx)
@@ -309,14 +306,14 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
 
 	def getEditorComponent: Component = this
 
-	def item: Any =  {
+	def getItem: AnyRef = {
 		val a		  = unitLabel.getSelectedUnit
 		val unit	= if (a == null) null else a.getValue( Action.NAME ).toString
 		new StringItem( value.toString, if (unit == null)
 				numberField.getText else s"${numberField.getText} $unit")
 	}
 
-  def item_=(it: Any) {
+  def setItem(it: AnyRef) {
  		if( !comboGate || (it == null) ) return
 
     it match {

@@ -38,6 +38,8 @@ class SessionTreeFrame(val document: Session) extends WindowImpl with SessionFra
 
   protected def style = Window.Regular
 
+  def handler = Kontur.windowHandler
+
   // ---- constructor ----
   {
     // ---- menus and actions ----
@@ -45,6 +47,7 @@ class SessionTreeFrame(val document: Session) extends WindowImpl with SessionFra
 
     val sessionTreeModel = new SessionTreeModel(document)
     val ggTree = new JTree(sessionTreeModel)
+    val wrapTree = Component.wrap(ggTree)
     ggTree.setDropMode(DropMode.ON_OR_INSERT)
     ggTree.setRootVisible(false)
     // ggTree.setShowsRootHandles( true )
@@ -70,7 +73,7 @@ class SessionTreeFrame(val document: Session) extends WindowImpl with SessionFra
               frame.component match {
                 case f: Frame =>
                   val pop = root.create(frame)
-                  pop.show(e.getComponent, e.getX, e.getY)
+                  pop.show(wrapTree, e.getX, e.getY)
               }
             }
           case _ =>
@@ -104,8 +107,8 @@ class SessionTreeFrame(val document: Session) extends WindowImpl with SessionFra
     actionClose()
   }
 
-  override protected def autoUpdatePrefs  = true
-  override protected def alwaysPackSize   = false
+//  override protected def autoUpdatePrefs  = true
+//  override protected def alwaysPackSize   = false
 
   protected def elementName = Some("Tree")
 }

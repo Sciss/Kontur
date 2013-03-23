@@ -33,30 +33,32 @@ import de.sciss.span.Span
 import Span.SpanOrVoid
 import legacy.AbstractCompoundEdit
 import language.implicitConversions
-import desktop.UndoManager
+import de.sciss.desktop.UndoManager
 
 /**
  *  Basic trail structure using R-Tree
  *  in the background
  */
-class BasicTrail[ T <: Stake[ T ]]( doc: Session ) extends Trail[ T ]
-with TrailEditor[ T ] {
-    implicit private def numberView( num: Long ) = new ManagedLong( num )
-    implicit private val numberManager = LongManager
-    private type LongRect     = Rect[ Long ]
-    private type LongInterval = Interval[ Long ]
+class BasicTrail[T <: Stake[T]](doc: Session) extends Trail[T] with TrailEditor[T] {
 
-//    private val numberView = u => new ManagedLong( u )
-    private val tree = new RTree[ Long, StoredStake ]( 1 )
+  implicit private def numberView(num: Long) = new ManagedLong(num)
 
-    private def spanToRect( span: Span ) =
-      new LongRect( Vector( new LongInterval( span.start, span.stop )))
-/*
-    private def rectToSpan( r: LongRect ) : Span = {
-      val i = r.interval( 0 )
-      new Span( i.low, i.high )
-    }
-*/
+  implicit private val numberManager = LongManager
+  private type LongRect = Rect[Long]
+  private type LongInterval = Interval[Long]
+
+  //    private val numberView = u => new ManagedLong( u )
+  private val tree = new RTree[Long, StoredStake](1)
+
+  private def spanToRect(span: Span) =
+    new LongRect(Vector(new LongInterval(span.start, span.stop)))
+
+  /*
+      private def rectToSpan( r: LongRect ) : Span = {
+        val i = r.interval( 0 )
+        new Span( i.low, i.high )
+      }
+  */
     def visitRange( span: Span, byStart: Boolean = true )( f: (T) => Unit ) {
       tree.findOverlapping( spanToRect( span ), (ss: StoredStake) => {
         f( ss.stake )
@@ -126,44 +128,55 @@ with TrailEditor[ T ] {
       }
     }
 
-    def dispose() {}
+  def dispose() {}
 
-    private case class StoredStake( stake: T ) extends Shaped[ Long ] {
-      val shape = spanToRect( stake.span )
-    }
+  private case class StoredStake(stake: T) extends Shaped[Long] {
+    val shape = spanToRect(stake.span)
+  }
 
-    def editor: Option[ TrailEditor[ T ]] = Some( this )
-    // ---- TrailEditor ----
+  def editor: Option[TrailEditor[T]] = Some(this)
 
-	def editInsert( ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode ) {
-      throw new IllegalStateException( "Not yet implemented" ) // XXX
-    }
+  // ---- TrailEditor ----
 
-	def editRemove( ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode ) {
-      throw new IllegalStateException( "Not yet implemented" ) // XXX
-    }
+  def editInsert(ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode) {
+    ???
+  }
 
-	def editClear( ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode ) {
-      throw new IllegalStateException( "Not yet implemented" ) // XXX
-    }
+  def editRemove(ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode) {
+    ???
+  }
 
-	def editAdd( ce: AbstractCompoundEdit, stakes: T* ) {
-      val edit = new SimpleEdit( "editAddStakes" ) {
-        def apply() { add( stakes: _* )}
-        def unapply() { remove( stakes: _* )}
+  def editClear(ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode) {
+    ???
+  }
+
+  def editAdd(ce: AbstractCompoundEdit, stakes: T*) {
+    val edit = new SimpleEdit("editAddStakes") {
+      def apply() {
+        add(stakes: _*)
       }
-      ce.addPerform( edit )
-    }
 
-	def editRemove( ce: AbstractCompoundEdit, stakes: T* ) {
-      val edit = new SimpleEdit( "editRemoveStakes" ) {
-        def apply() { remove( stakes: _* )}
-        def unapply() { add( stakes: _* )}
+      def unapply() {
+        remove(stakes: _*)
       }
-      ce.addPerform( edit )
     }
+    ce.addPerform(edit)
+  }
 
-	def defaultTouchMode: TouchMode = TouchSplit
+  def editRemove(ce: AbstractCompoundEdit, stakes: T*) {
+    val edit = new SimpleEdit("editRemoveStakes") {
+      def apply() {
+        remove(stakes: _*)
+      }
 
-    def undoManager: UndoManager = doc.undoManager
+      def unapply() {
+        add(stakes: _*)
+      }
+    }
+    ce.addPerform(edit)
+  }
+
+  def defaultTouchMode: TouchMode = TouchSplit
+
+  def undoManager: UndoManager = doc.undoManager
 }

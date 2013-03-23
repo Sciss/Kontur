@@ -53,31 +53,31 @@ class ObserverFrame extends WindowImpl {
   }
 
   // ---- constructor ----
-    {
 
-//        ggTabPane.setPreferredSize( new Dimension( 400, 400 )) // XXX
-        ggTabPane.addChangeListener( new ChangeListener {
-            def stateChanged( e: ChangeEvent ) {
-                val c = ggTabPane.getSelectedComponent
-                val newShown  = if( c != null ) {
-                  mapTabs.find( _._2.component == c ).map( _._2 )
-                } else None
-                if( newShown != shown ) {
-                    shown.foreach( _.pageHidden() )
-                    shown = newShown
-                    shown.foreach( _.pageShown() )
-                }
-            }
-        })
-//        ggTabPane.putClientProperty( "JComponent.sizeVariant", "small" )
-        contents = Component.wrap(ggTabPane)
-
-      application.addComponent(Kontur.COMP_OBSERVER, this)
+  //        ggTabPane.setPreferredSize( new Dimension( 400, 400 )) // XXX
+  ggTabPane.addChangeListener(new ChangeListener {
+    def stateChanged(e: ChangeEvent) {
+      val c = ggTabPane.getSelectedComponent
+      val newShown = if (c != null) {
+        mapTabs.find(_._2.component == c).map(_._2)
+      } else None
+      if (newShown != shown) {
+        shown.foreach(_.pageHidden())
+        shown = newShown
+        shown.foreach(_.pageShown())
+      }
     }
+  })
+  //        ggTabPane.putClientProperty( "JComponent.sizeVariant", "small" )
+  contents = Component.wrap(ggTabPane)
 
-  override protected def autoUpdatePrefs = true
+  application.addComponent(Kontur.COMP_OBSERVER, this)
 
-  override protected def alwaysPackSize = false
+  //  override protected def autoUpdatePrefs = true
+//
+//  override protected def alwaysPackSize = false
+
+  def handler = Kontur.windowHandler
 
   override def dispose() {
     Kontur.documentHandler.removeListener(listener)

@@ -32,7 +32,7 @@ import xml.Node
 import edit.{ Editor, SimpleEdit }
 import util.{Model, SerializerContext}
 import legacy.AbstractCompoundEdit
-import desktop.UndoManager
+import de.sciss.desktop.UndoManager
 
 trait SessionElementSeq[ T <: SessionElement ]
 extends SessionElement {
@@ -57,9 +57,9 @@ extends SessionElement {
   case class ElementRemoved( index: Int, elem: T )
 }
 
-trait SessionElementSeqEditor[ T ] extends Editor {
-  def editInsert( ce: AbstractCompoundEdit, idx: Int, e: T ) : Unit
-  def editRemove( ce: AbstractCompoundEdit, e: T ) : Unit
+trait SessionElementSeqEditor[T] extends Editor {
+  def editInsert(ce: AbstractCompoundEdit, idx: Int, e: T): Unit
+  def editRemove(ce: AbstractCompoundEdit, e: T): Unit
 }
 
 abstract class BasicSessionElementSeq[ T <: SessionElement ]( doc: Session, val name: String )

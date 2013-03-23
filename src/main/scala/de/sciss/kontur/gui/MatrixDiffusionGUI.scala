@@ -73,100 +73,107 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
       case MatrixDiffusion.MatrixChanged( _, _ )      => updateGadgets()
    }
 
-   // ---- constructor ----
-   {
-      val layout  = new GroupLayout( this )
-      layout.setAutoCreateGaps( true )
-      layout.setAutoCreateContainerGaps( true )
-      setLayout( layout )
+  protected def dynamicComponent = this
 
-      val lbName = new JLabel( "Name:", RIGHT )
-      val lbNumInputChannels = new JLabel( "Input Channels:", RIGHT )
-      val lbNumOutputChannels = new JLabel( "Output Channels:", RIGHT )
-      val spcChannels = new ParamSpace( 1, 0x10000, 1, 0, 0, 1 )
-      ggNumInputChannels.addSpace( spcChannels )
-      ggNumOutputChannels.addSpace( spcChannels )
+  // ---- constructor ----
+  {
+    val layout = new GroupLayout(this)
+    layout.setAutoCreateGaps(true)
+    layout.setAutoCreateContainerGaps(true)
+    setLayout(layout)
 
-      val cellEditor = new MatrixCellEditor
-      tabMatrix.setShowGrid( true )
-      tabMatrix.setDefaultRenderer( classOf[ java.lang.Object ], MatrixCellRenderer )
-      tabMatrix.setDefaultEditor( classOf[ java.lang.Object ], cellEditor )
-      tabMatrix.setAutoResizeMode( JTable.AUTO_RESIZE_OFF )
-      tabMatrix.getTableHeader.setReorderingAllowed( false )
-      tabMatrix.getTableHeader.setResizingAllowed( false )
-      tabMatrix.setColumnModel( MatrixColumnModel )
-      scrollMatrix.getViewport.setBackground( Color.black /* SystemColor.control */)
-      ggMatrix.add( scrollMatrix )
-      ggMatrix.setBorder( MatrixBorder )
-      ggMatrixApply.putClientProperty( "JButton.buttonType", "bevel" )
-      ggMatrixApply.addActionListener( new ActionListener {
-         def actionPerformed( e: ActionEvent ) { applyMatrixChanges() }
-      })
-      val bTmp = Box.createHorizontalBox()
-      bTmp.add( Box.createHorizontalGlue ); bTmp.add( ggMatrixApply )
-      if( !autoApply ) ggMatrix.add( bTmp )
+    val lbName = new JLabel("Name:", RIGHT)
+    val lbNumInputChannels = new JLabel("Input Channels:", RIGHT)
+    val lbNumOutputChannels = new JLabel("Output Channels:", RIGHT)
+    val spcChannels = new ParamSpace(1, 0x10000, 1, 0, 0, 1)
+    ggNumInputChannels.addSpace(spcChannels)
+    ggNumOutputChannels.addSpace(spcChannels)
 
-      List( lbName, lbNumInputChannels, lbNumOutputChannels,
-         ggName, ggNumInputChannels, ggNumOutputChannels, ggMatrixApply ).foreach(
-            _.putClientProperty( "JComponent.sizeVariant", "small" )
-      )
+    val cellEditor = new MatrixCellEditor
+    tabMatrix.setShowGrid(true)
+    tabMatrix.setDefaultRenderer(classOf[java.lang.Object], MatrixCellRenderer)
+    tabMatrix.setDefaultEditor(classOf[java.lang.Object], cellEditor)
+    tabMatrix.setAutoResizeMode(JTable.AUTO_RESIZE_OFF)
+    tabMatrix.getTableHeader.setReorderingAllowed(false)
+    tabMatrix.getTableHeader.setResizingAllowed(false)
+    tabMatrix.setColumnModel(MatrixColumnModel)
+    scrollMatrix.getViewport.setBackground(Color.black /* SystemColor.control */)
+    ggMatrix.add(scrollMatrix)
+    ggMatrix.setBorder(MatrixBorder)
+    ggMatrixApply.putClientProperty("JButton.buttonType", "bevel")
+    ggMatrixApply.addActionListener(new ActionListener {
+      def actionPerformed(e: ActionEvent) {
+        applyMatrixChanges()
+      }
+    })
+    val bTmp = Box.createHorizontalBox()
+    bTmp.add(Box.createHorizontalGlue);
+    bTmp.add(ggMatrixApply)
+    if (!autoApply) ggMatrix.add(bTmp)
 
-      ggName.addActionListener( new ActionListener {
-         def actionPerformed( e: ActionEvent ) {
-            editRename( ggName.getText )
-         }
-      })
+    List(lbName, lbNumInputChannels, lbNumOutputChannels,
+      ggName, ggNumInputChannels, ggNumOutputChannels, ggMatrixApply).foreach(
+      _.putClientProperty("JComponent.sizeVariant", "small")
+    )
 
-      ggNumInputChannels.addListener( new BasicParamField.Listener {
-         def paramValueChanged( e: BasicParamField.Event ) {
-            if( !e.isAdjusting )
-               editSetNumInputChannels( e.value.value.toInt )
-         }
-         def paramSpaceChanged( e: BasicParamField.Event ) {}
-      })
+    ggName.addActionListener(new ActionListener {
+      def actionPerformed(e: ActionEvent) {
+        editRename(ggName.getText)
+      }
+    })
 
-      ggNumOutputChannels.addListener( new BasicParamField.Listener {
-         def paramValueChanged( e: BasicParamField.Event ) {
-            if( !e.isAdjusting )
-               editSetNumOutputChannels( e.value.value.toInt )
-         }
-         def paramSpaceChanged( e: BasicParamField.Event ) {}
-      })
+    ggNumInputChannels.addListener(new BasicParamField.Listener {
+      def paramValueChanged(e: BasicParamField.Event) {
+        if (!e.isAdjusting)
+          editSetNumInputChannels(e.value.value.toInt)
+      }
 
-      layout.setHorizontalGroup( layout.createParallelGroup()
-         .addGroup( layout.createSequentialGroup()
-            .addGroup( layout.createParallelGroup()
-               .addComponent( lbName )
-               .addComponent( lbNumInputChannels )
-               .addComponent( lbNumOutputChannels )
-            )
-            .addGroup( layout.createParallelGroup()
-               .addComponent( ggName )
-               .addComponent( ggNumInputChannels )
-               .addComponent( ggNumOutputChannels )
-            )
-         )
-         .addComponent( ggMatrix )
-      )
+      def paramSpaceChanged(e: BasicParamField.Event) {}
+    })
 
-      layout.setVerticalGroup( layout.createSequentialGroup()
-         .addGroup( layout.createParallelGroup( GroupLayout.Alignment.BASELINE )
-            .addComponent( lbName )
-            .addComponent( ggName )
-         )
-         .addGroup( layout.createParallelGroup( GroupLayout.Alignment.BASELINE )
-             .addComponent( lbNumInputChannels )
-             .addComponent( ggNumInputChannels )
-         )
-         .addGroup( layout.createParallelGroup( GroupLayout.Alignment.BASELINE )
-             .addComponent( lbNumOutputChannels )
-             .addComponent( ggNumOutputChannels )
-         )
-         .addComponent( ggMatrix )
-      )
-   }
+    ggNumOutputChannels.addListener(new BasicParamField.Listener {
+      def paramValueChanged(e: BasicParamField.Event) {
+        if (!e.isAdjusting)
+          editSetNumOutputChannels(e.value.value.toInt)
+      }
 
-   private def withEditor( editName: String, fun: (DiffusionEditor, AbstractCompoundEdit) => Unit ) {
+      def paramSpaceChanged(e: BasicParamField.Event) {}
+    })
+
+    layout.setHorizontalGroup(layout.createParallelGroup()
+      .addGroup(layout.createSequentialGroup()
+      .addGroup(layout.createParallelGroup()
+      .addComponent(lbName)
+      .addComponent(lbNumInputChannels)
+      .addComponent(lbNumOutputChannels)
+    )
+      .addGroup(layout.createParallelGroup()
+      .addComponent(ggName)
+      .addComponent(ggNumInputChannels)
+      .addComponent(ggNumOutputChannels)
+    )
+    )
+      .addComponent(ggMatrix)
+    )
+
+    layout.setVerticalGroup(layout.createSequentialGroup()
+      .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+      .addComponent(lbName)
+      .addComponent(ggName)
+    )
+      .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+      .addComponent(lbNumInputChannels)
+      .addComponent(ggNumInputChannels)
+    )
+      .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+      .addComponent(lbNumOutputChannels)
+      .addComponent(ggNumOutputChannels)
+    )
+      .addComponent(ggMatrix)
+    )
+  }
+
+  private def withEditor( editName: String, fun: (DiffusionEditor, AbstractCompoundEdit) => Unit ) {
       val eds = objects.filter( _.editor.isDefined ).map( _.editor.get )
       if( eds.isEmpty ) return
       val ed = eds.head

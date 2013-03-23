@@ -33,15 +33,15 @@ import java.awt.{Dimension, Point, Rectangle}
 import java.io.File
 import javax.swing.{Box, ButtonGroup, JButton, JLabel, JOptionPane, JProgressBar, JRadioButton, KeyStroke, SwingUtilities}
 import scala.math._
-import de.sciss.synth.io.{AudioFileType, SampleFormat, AudioFileSpec}
+import de.sciss.synth.io.AudioFileSpec
 import de.sciss.span.Span
 import Span.SpanOrVoid
 import legacy.{DefaultUnitTranslator, Param, ParamSpace, GUIUtil}
 import swing.{RootPanel, Action, Component, BorderPanel}
-import language.reflectiveCalls
 import de.sciss.desktop.Window
 import de.sciss.desktop.impl.WindowImpl
 import desktop.impl.PathField
+import language.reflectiveCalls
 
 object TimelineFrame {
   protected val lastLeftTop		= new Point()
@@ -52,6 +52,8 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
   frame =>
 
   protected def style = Window.Regular
+
+  def handler = Kontur.windowHandler
 
   // private var writeProtected	= false
   //	private var wpHaveWarned	= false
@@ -115,33 +117,33 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
     addAction("posselend",  new ActionSelToPos(1.0, deselect = false, stroke(VK_DOWN, ALT_MASK)))
 
     // ---- menus and actions ----
-    val mr = application.getMenuBarRoot
-
-    mr.putMimic("file.bounce", this, ActionBounce)
-
-    mr.putMimic("edit.cut", this, ActionCut)
-    mr.putMimic("edit.copy", this, ActionCopy)
-    mr.putMimic("edit.paste", this, ActionPaste)
-    mr.putMimic("edit.clear", this, ActionDelete)
-    mr.putMimic("edit.selectAll", this, new ActionSelect(ActionSelect.SELECT_ALL))
-
-    mr.putMimic("timeline.insertSpan", this, ActionInsertSpan)
-    mr.putMimic("timeline.clearSpan", this, ActionClearSpan)
-    mr.putMimic("timeline.removeSpan", this, ActionRemoveSpan)
-    mr.putMimic("timeline.dupSpanToPos", this, ActionDupSpanToPos)
-
-    mr.putMimic("timeline.nudgeAmount", this, ActionNudgeAmount)
-    mr.putMimic("timeline.nudgeLeft", this, new ActionNudge(-1))
-    mr.putMimic("timeline.nudgeRight", this, new ActionNudge(1))
-
-    mr.putMimic("timeline.splitObjects", this, new ActionSplitObjects)
-    mr.putMimic("timeline.selFollowingObj", this, new ActionSelectFollowingObjects)
-    mr.putMimic("timeline.alignObjStartToPos", this, new ActionAlignObjectsStartToTimelinePosition)
-
-    mr.putMimic("timeline.selStopToStart", this, new ActionSelect(ActionSelect.SELECT_BWD_BY_LEN))
-    mr.putMimic("timeline.selStartToStop", this, new ActionSelect(ActionSelect.SELECT_FWD_BY_LEN))
-
-    mr.putMimic("actions.showInEisK", this, new ActionShowInEisK)
+    bindMenus(
+      "file.bounce"                 -> ActionBounce,
+  
+      "edit.cut"                    -> ActionCut,
+      "edit.copy"                   -> ActionCopy,
+      "edit.paste"                  -> ActionPaste,
+      "edit.clear"                  -> ActionDelete,
+      "edit.selectAll"              -> new ActionSelect(ActionSelect.SELECT_ALL),
+  
+      "timeline.insertSpan"         -> ActionInsertSpan,
+      "timeline.clearSpan"          -> ActionClearSpan,
+      "timeline.removeSpan"         -> ActionRemoveSpan,
+      "timeline.dupSpanToPos"       -> ActionDupSpanToPos,
+  
+      "timeline.nudgeAmount"        -> ActionNudgeAmount,
+      "timeline.nudgeLeft"          -> new ActionNudge(-1),
+      "timeline.nudgeRight"         -> new ActionNudge(1),
+  
+      "timeline.splitObjects"       -> new ActionSplitObjects,
+      "timeline.selFollowingObj"    -> new ActionSelectFollowingObjects,
+      "timeline.alignObjStartToPos" -> new ActionAlignObjectsStartToTimelinePosition,
+  
+      "timeline.selStopToStart"     -> new ActionSelect(ActionSelect.SELECT_BWD_BY_LEN),
+      "timeline.selStartToStop"     -> new ActionSelect(ActionSelect.SELECT_FWD_BY_LEN),
+  
+      "actions.showInEisK"          -> new ActionShowInEisK
+    )
 
     makeUnifiedLook()
     // init()
@@ -153,7 +155,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
     visible = true
   }
 
-  override protected def alwaysPackSize() = false
+//  override protected def alwaysPackSize() = false
 
   //	protected def documentUpdate {
   //    // nada
@@ -248,7 +250,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
 
    private object ActionNudgeAmount extends ActionQueryDuration("Nudge Amount") {
      protected def timeline: Timeline   = timelineView.timeline
-     protected def parent  : RootPanel  = frame.component
+     protected def parent               = frame.component
 
      protected def initiate(v: Param, trans: ParamSpace.Translator) {
        prefs.put(PrefsUtil.KEY_NUDGEAMOUNT, v.toString)
@@ -720,10 +722,10 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
       val SELECT_FWD_BY_LEN       = 4
     }
 
-  private class ActionSelect(mode: Int, stroke: KeyStroke)
+  private class ActionSelect(mode: Int, stroke: KeyStroke = null)
     extends Action("Select") {
 
-    accelerator = Some(stroke)
+    accelerator = Option(stroke)
 
     import ActionSelect._
 
@@ -737,9 +739,9 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
 
         val wholeSpan = timelineView.timeline.span
         val newSpan = mode match {
-          case SELECT_TO_SESSION_START => Span(wholeSpan.start, selSpan.stop)
-          case SELECT_TO_SESSION_END => Span(selSpan.start, wholeSpan.stop)
-          case SELECT_ALL => wholeSpan
+          case SELECT_TO_SESSION_START  => Span(wholeSpan.start, selSpan.stop)
+          case SELECT_TO_SESSION_END    => Span(selSpan.start, wholeSpan.stop)
+          case SELECT_ALL               => wholeSpan
           case SELECT_BWD_BY_LEN =>
             val delta = -math.min(selSpan.start - wholeSpan.start, selSpan.length)
             selSpan.shift(delta)

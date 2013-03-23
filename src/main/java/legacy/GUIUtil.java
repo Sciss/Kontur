@@ -186,21 +186,21 @@ public class GUIUtil
 		}
 	}
 
-	public static void setPreferences( Container c, Preferences prefs )
-	{
-		final Component[] comp = c.getComponents();
-
-		if( c instanceof PreferenceEntrySync ) {
-			((PreferenceEntrySync) c).setPreferenceNode( prefs );
-		}
-		for( int i = 0; i < comp.length; i++ ) {
-			if( comp[ i ] instanceof Container ) {
-				setPreferences( (Container) comp[i], prefs );
-			} else if( c instanceof PreferenceEntrySync ) {
-				((PreferenceEntrySync) c).setPreferenceNode( prefs );
-			}
-		}
-	}
+//	public static void setPreferences( Container c, Preferences prefs )
+//	{
+//		final Component[] comp = c.getComponents();
+//
+//		if( c instanceof PreferenceEntrySync ) {
+//			((PreferenceEntrySync) c).setPreferenceNode( prefs );
+//		}
+//		for( int i = 0; i < comp.length; i++ ) {
+//			if( comp[ i ] instanceof Container ) {
+//				setPreferences( (Container) comp[i], prefs );
+//			} else if( c instanceof PreferenceEntrySync ) {
+//				((PreferenceEntrySync) c).setPreferenceNode( prefs );
+//			}
+//		}
+//	}
 
     /**
      *  A debugging utility that prints to stdout the component's
@@ -548,25 +548,25 @@ public class GUIUtil
 		return false;
 	}
 
-	public static boolean isAlwaysOnTop( Component c )
-	{
-		// setAlwaysOnTop doesn't exist in Java 1.4
-		try {
-			final Method m = c.getClass().getMethod( "isAlwaysOnTop", null );
-			final Object result = m.invoke( c, null );
-			if( result instanceof Boolean ) {
-				return ((Boolean) result).booleanValue();
-			}
-		}
-		catch( NoSuchMethodException e1 ) { /* ingore */ }
-		catch( NullPointerException e1 ) { /* ingore */ }
-		catch( SecurityException e1 ) { /* ingore */ }
-		catch( IllegalAccessException e1 ) { /* ingore */ }
-		catch( IllegalArgumentException e1 ) { /* ingore */ }
-		catch( InvocationTargetException e1 ) { /* ingore */ }
-		catch( ExceptionInInitializerError e1 ) { /* ingore */ }
-		return false;
-	}
+//	public static boolean isAlwaysOnTop( Component c )
+//	{
+//		// setAlwaysOnTop doesn't exist in Java 1.4
+//		try {
+//			final Method m = c.getClass().getMethod( "isAlwaysOnTop", null );
+//			final Object result = m.invoke( c, null );
+//			if( result instanceof Boolean ) {
+//				return ((Boolean) result).booleanValue();
+//			}
+//		}
+//		catch( NoSuchMethodException e1 ) { /* ingore */ }
+//		catch( NullPointerException e1 ) { /* ingore */ }
+//		catch( SecurityException e1 ) { /* ingore */ }
+//		catch( IllegalAccessException e1 ) { /* ingore */ }
+//		catch( IllegalArgumentException e1 ) { /* ingore */ }
+//		catch( InvocationTargetException e1 ) { /* ingore */ }
+//		catch( ExceptionInInitializerError e1 ) { /* ingore */ }
+//		return false;
+//	}
 
 	/**
 	 *	Same as SwingUtilities.convertPoint, but handles JViewports properly

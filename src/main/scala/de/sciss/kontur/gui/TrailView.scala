@@ -32,7 +32,7 @@ import util.Model
 import de.sciss.span.Span
 import de.sciss.span.Span.SpanOrVoid
 import legacy.AbstractCompoundEdit
-import desktop.UndoManager
+import de.sciss.desktop.UndoManager
 
 object TrailView {
    // FUCKING SCHEISS DOES NOT COMPILE ANY MORE
@@ -101,55 +101,70 @@ extends TrailView[ T ] with TrailViewEditor[ T ] {
 //     t.trail.removeListener( trailListener )
 //  }
 
-  def select(   stakes: T* ) { setSelection( stakes, state = true  )}
-  def deselect( stakes: T* ) { setSelection( stakes, state = false )}
+  def select(stakes: T*) {
+    setSelection(stakes, state = true)
+  }
 
-  private def unionSpan( stakes: T* ): SpanOrVoid = stakes match {
+  def deselect(stakes: T*) {
+    setSelection(stakes, state = false)
+  }
+
+  private def unionSpan(stakes: T*): SpanOrVoid = stakes match {
     case head +: tail => tail.foldLeft(head.span)(_ union _.span)
     case _ => Span.Void
   }
 
-  private def setSelection( stakes: Seq[ T ], state: Boolean ) {
-     val toChangeSet = stakes.toSet[ T ]
-     val (selected, unselected) = toChangeSet.partition( x => selectedStakesVar.contains( x ))
-//println( "setSelection : " + stakes + "; " + state + "; --> selected = " + selected.toList +
-//        "; unselected = " + unselected.toList )
+  private def setSelection(stakes: Seq[T], state: Boolean) {
+    val toChangeSet = stakes.toSet[T]
+    val (selected, unselected) = toChangeSet.partition(x => selectedStakesVar.contains(x))
+    //println( "setSelection : " + stakes + "; " + state + "; --> selected = " + selected.toList +
+    //        "; unselected = " + unselected.toList )
 
-     val changedStakes = (if( state ) {
-        if( unselected.isEmpty ) return
-        selectedStakesVar ++= unselected
-        unselected
-     } else {
-        if( selected.isEmpty ) return
-        selectedStakesVar --= selected
-        selected
-     }).toList
+    val changedStakes = (if (state) {
+      if (unselected.isEmpty) return
+      selectedStakesVar ++= unselected
+      unselected
+    } else {
+      if (selected.isEmpty) return
+      selectedStakesVar --= selected
+      selected
+    }).toList
 
-      unionSpan( changedStakes: _* ) match {
-        case sp @ Span(_, _) if sp.nonEmpty => dispatch( SelectionChanged( sp))
-        case _ =>
-      }
+    unionSpan(changedStakes: _*) match {
+      case sp @ Span(_, _) if sp.nonEmpty => dispatch(SelectionChanged(sp))
+      case _ =>
+    }
   }
 
-  def isSelected( stake: T ) : Boolean = selectedStakesVar.contains( stake )
+  def isSelected(stake: T): Boolean = selectedStakesVar.contains(stake)
 
-  def editor: Option[ TrailViewEditor[ T ]] = Some( this )
-   // ---- TrailViewEditor ----
+  def editor: Option[TrailViewEditor[T]] = Some(this)
+
+  // ---- TrailViewEditor ----
 
   def undoManager: UndoManager = doc.undoManager
 
-  def editSelect( ce: AbstractCompoundEdit, stakes: T* ) { editSetSelection( ce, stakes, state = true )}
+  def editSelect(ce: AbstractCompoundEdit, stakes: T*) {
+    editSetSelection(ce, stakes, state = true)
+  }
 
-  def editDeselect( ce: AbstractCompoundEdit, stakes: T* ) { editSetSelection( ce, stakes, state = false )}
+  def editDeselect(ce: AbstractCompoundEdit, stakes: T*) {
+    editSetSelection(ce, stakes, state = false)
+  }
 
-  private def editSetSelection( ce: AbstractCompoundEdit, stakes: Seq[ T ], state: Boolean ) {
-    val sf = stakes.filterNot( stake => isSelected( stake ) == state )
-    if( !sf.isEmpty ) {
-        val edit = new SimpleEdit( "editStakeSelection", false ) {
-            def apply() { setSelection( sf, state )}
-            def unapply() { setSelection( sf, !state )}
+  private def editSetSelection(ce: AbstractCompoundEdit, stakes: Seq[T], state: Boolean) {
+    val sf = stakes.filterNot(stake => isSelected(stake) == state)
+    if (!sf.isEmpty) {
+      val edit = new SimpleEdit("editStakeSelection", false) {
+        def apply() {
+          setSelection(sf, state)
         }
-        ce.addPerform( edit )
+
+        def unapply() {
+          setSelection(sf, !state)
+        }
+      }
+      ce.addPerform(edit)
     }
   }
 }

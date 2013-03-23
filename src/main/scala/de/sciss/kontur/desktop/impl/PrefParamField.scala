@@ -68,7 +68,7 @@ class PrefParamField(protected val prefs: Preferences.Entry[Param], default: Par
 //    }
 //  }
 	
-  override def item_=(it: Any) {
+  override def setItem(it: AnyRef) {
     if (!comboGate || it == null) return
 		super.setItem(it)
     updatePrefs()

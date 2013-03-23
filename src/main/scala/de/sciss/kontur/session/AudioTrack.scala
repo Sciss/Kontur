@@ -29,43 +29,45 @@ import scala.xml.Node
 import de.sciss.kontur.edit.SimpleEdit
 import de.sciss.kontur.util.SerializerContext
 import legacy.AbstractCompoundEdit
-import de.sciss.kontur.desktop.UndoManager
+import de.sciss.desktop.UndoManager
 
 object AudioTrack {
-   val XML_NODE = "audioTrack"
+  val XML_NODE = "audioTrack"
 
-   def fromXML( c: SerializerContext, node: Node, doc: Session ) : AudioTrack = {
-      val at    = new AudioTrack( doc )
-      c.id( at, node )
-      at.fromXML( c, node )
-      at
-   }
+  def fromXML(c: SerializerContext, node: Node, doc: Session): AudioTrack = {
+    val at = new AudioTrack(doc)
+    c.id(at, node)
+    at.fromXML(c, node)
+    at
+  }
 
-   case class DiffusionChanged( oldDiff: Option[ Diffusion ], newDiff: Option[ Diffusion ])
+  final case class DiffusionChanged(oldDiff: Option[Diffusion], newDiff: Option[Diffusion])
 }
+final class AudioTrack(doc: Session)
+  extends Track with TrackEditor with Renamable {
 
-class AudioTrack( doc: Session )
-extends Track with TrackEditor with Renamable {
-   import AudioTrack._
+  import AudioTrack._
 
-   type T = AudioRegion
+  type T = AudioRegion
 
-   protected var nameVar = "Audio" // XXX
+  protected var nameVar = "Audio" // XXX
 
-   def undoManager: UndoManager = doc.undoManager
+  def undoManager: UndoManager = doc.undoManager
 
-   val trail: AudioTrail = new AudioTrail( doc )
-   private var diffusionVar: Option[ Diffusion ] = None
-   def diffusion = diffusionVar
-   def diffusion_=( newDiff: Option[ Diffusion ]) {
-      if( newDiff != diffusionVar ) {
-         val change = DiffusionChanged( diffusionVar, newDiff )
-         diffusionVar = newDiff
-         dispatch( change )
-      }
-   }
+  val trail: AudioTrail = new AudioTrail(doc)
+  private var diffusionVar: Option[Diffusion] = None
 
-   def toXML( c: SerializerContext ) = if( c.exists( this ))
+  def diffusion = diffusionVar
+
+  def diffusion_=(newDiff: Option[Diffusion]) {
+    if (newDiff != diffusionVar) {
+      val change = DiffusionChanged(diffusionVar, newDiff)
+      diffusionVar = newDiff
+      dispatch(change)
+    }
+  }
+
+  def toXML( c: SerializerContext ) = if( c.exists( this ))
       <audioTrack idref={c.id( this ).toString}/>
    else
       <audioTrack id={c.id( this ).toString}>

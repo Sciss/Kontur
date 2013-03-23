@@ -26,26 +26,26 @@
 package de.sciss.kontur.edit
 
 import java.awt.EventQueue
-import javax.swing.undo.UndoManager
 import legacy.{BasicCompoundEdit, AbstractCompoundEdit}
+import de.sciss.desktop.UndoManager
 
 trait Editor {
-   def undoManager: UndoManager
+  def undoManager: UndoManager
 
-   def editBegin( name: String ) : AbstractCompoundEdit = {
-      if( !EventQueue.isDispatchThread ) throw new IllegalMonitorStateException()
-      new BasicCompoundEdit( name )
-   }
+  def editBegin(name: String): AbstractCompoundEdit = {
+    if (!EventQueue.isDispatchThread) throw new IllegalMonitorStateException()
+    new BasicCompoundEdit(name)
+  }
 
-   def editEnd( ce: AbstractCompoundEdit ) {
-      if( !EventQueue.isDispatchThread ) throw new IllegalMonitorStateException()
-      ce.perform()
-      ce.end()
-      undoManager.addEdit( ce )
-   }
+  def editEnd(ce: AbstractCompoundEdit) {
+    if (!EventQueue.isDispatchThread) throw new IllegalMonitorStateException()
+    ce.perform()
+    ce.end()
+    undoManager.add(ce)
+  }
 
-   def editCancel( ce: AbstractCompoundEdit ) {
-      if( !EventQueue.isDispatchThread ) throw new IllegalMonitorStateException()
-      ce.cancel()
-   }
+  def editCancel(ce: AbstractCompoundEdit) {
+    if (!EventQueue.isDispatchThread) throw new IllegalMonitorStateException()
+    ce.cancel()
+  }
 }

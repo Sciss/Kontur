@@ -18,6 +18,10 @@ class PrefPathField(protected val prefs: Preferences.Entry[File], default: File)
     updatePrefs()
   }
 
+  protected def dynamicComponent = this
+
+  protected def value = file
+  protected def value_=(file: File) { this.file = file }
 
 //	private def readPrefsFromString(prefsValue: Option[String]) {
 //    val s = prefsValue.getOrElse {

@@ -33,8 +33,8 @@ import util.{Flag, PrefsUtil}
 import sc.SuperColliderClient
 import swing.Swing
 import legacy.ProcessingThread
-import de.sciss.desktop.impl.{WindowHandlerImpl, ApplicationImpl}
-import de.sciss.desktop.{Preferences, SwingApplication, WindowHandler}
+import de.sciss.desktop.impl.{DocumentHandlerImpl, WindowHandlerImpl, ApplicationImpl}
+import de.sciss.desktop.{DocumentHandler, Application, Menu, Preferences, SwingApplication, WindowHandler}
 
 /**
  *  The <code>Main</code> class contains the java VM
@@ -150,10 +150,13 @@ object Kontur extends SwingApplication with ApplicationImpl with App {
     scFrame.visible = true
   }
 
-  lazy implicit val windowHandler: WindowHandler = new WindowHandlerImpl(this)
+  val name = "Kontur"
+
+  lazy implicit val windowHandler: WindowHandler = new WindowHandlerImpl(this, ???)
 
 //	protected def createMenuFactory() : BasicMenuFactory = new MenuFactory( this )
-//	protected def createDocumentHandler() : DocumentHandler = new de.sciss.kontur.session.DocumentHandler( this )
+
+	lazy val documentHandler: DocumentHandler { type Document = Session } = new DocumentHandlerImpl[Session] {}
 
 	private var shouldForceQuit = false
 
@@ -168,7 +171,7 @@ object Kontur extends SwingApplication with ApplicationImpl with App {
       case _ =>
         if (confirmed()) {
           SuperColliderClient.instance.quit()
-          super.quit()
+          sys.exit(0)
         }
     }
   }
@@ -177,6 +180,8 @@ object Kontur extends SwingApplication with ApplicationImpl with App {
     shouldForceQuit = true
     quit()
   }
+
+//  def menuBarRoot: Menu.Root = ...
 
   //	def getMacOSCreator : String = Kontur.CREATOR
 //	def getVersion: Double = Kontur.version

@@ -34,6 +34,11 @@ import de.sciss.desktop.Preferences
 class PrefComboBox[A](protected val prefs: Preferences.Entry[A])
   extends JComboBox with PreferencesWidgetImpl[A] {
 
+  protected def dynamicComponent = this
+
+  protected def value: A = getSelectedItem.asInstanceOf[A]
+  protected def value_=(a: A) { setSelectedItem(a) }
+
 //  /**
 //	 *  Because the items in the ComboBox
 //	 *  can be naturally moved, added and replaced,

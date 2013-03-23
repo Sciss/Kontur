@@ -80,6 +80,8 @@ trait DynamicComponentImpl {
     }
 
     def ancestorRemoved(e: AncestorEvent) { forgetWindow() }
+
+    def ancestorMoved(event: AncestorEvent) {}
   }
 
 //	def remove() {

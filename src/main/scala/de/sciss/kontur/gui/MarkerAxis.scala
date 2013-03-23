@@ -83,6 +83,8 @@ class MarkerAxis( timelineView: TimelineView, host: ComponentHost )
 extends JComponent
 with desktop.impl.DynamicComponentImpl {
 
+  protected def dynamicComponent = this
+
   import MarkerAxis._
 
   //	private String[]			markLabels		= new String[0];

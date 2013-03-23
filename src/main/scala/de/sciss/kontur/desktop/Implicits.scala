@@ -7,9 +7,9 @@ import de.sciss.desktop.Preferences
 
 object Implicits {
   implicit object ParamPrefs extends Preferences.Type[Param] {
-    private[desktop] def toString(value: Param): String = value.toString
+    def toString(value: Param): String = value.toString
 
-    private[desktop] def valueOf(string: String): Option[Param] = try {
+    def valueOf(string: String): Option[Param] = try {
       Some(Param.valueOf(string))
     } catch {
       case NonFatal(_) => None

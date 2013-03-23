@@ -26,16 +26,14 @@
 package de.sciss.kontur
 package session
 
-import util.{Flag, Model, BasicSerializerContext, SerializerContext}
+import util.{Model, BasicSerializerContext, SerializerContext}
 import java.awt.EventQueue
-import java.io.{ File, IOException }
-import scala.xml.{ Node, XML }
-import collection.JavaConversions
-import de.sciss.kontur.gui.SessionFrame
+import java.io.{File, IOException}
+import scala.xml.{Node, XML}
 import legacy.ProcessingThread
-import desktop.impl.UndoManagerImpl
-import desktop.UndoManager
 import scala.util.control.NonFatal
+import de.sciss.desktop.impl.UndoManagerImpl
+import de.sciss.desktop.UndoManager
 
 object Session {
   def newEmpty = new Session(None)

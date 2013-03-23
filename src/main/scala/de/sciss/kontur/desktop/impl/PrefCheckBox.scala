@@ -43,6 +43,8 @@ class PrefCheckBox(protected val prefs: Preferences.Entry[Boolean], protected va
 //    setAction(a)
 //  }
 
+  protected def dynamicComponent = this
+
   private object listener extends ActionListener {
     def actionPerformed(e: ActionEvent) {
       updatePrefs()

@@ -30,7 +30,7 @@ import scala.xml.Node
 import de.sciss.kontur.edit.Editor
 import de.sciss.kontur.util.SerializerContext
 import legacy.AbstractCompoundEdit
-import de.sciss.kontur.desktop.UndoManager
+import de.sciss.desktop.UndoManager
 
 object Diffusion {
    case class NumInputChannelsChanged( oldNum: Int, newNum: Int )

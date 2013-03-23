@@ -162,7 +162,7 @@ object GlobalActions {
         val doc = Session.newFrom(file)
 // XXX TODO
 //        addRecent(file)
-        Kontur.documentHandler.addDocument(this, doc)
+//        Kontur.documentHandler.addDocument(this, doc)
         new SessionTreeFrame(doc)
       }
       catch {
