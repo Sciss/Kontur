@@ -85,7 +85,8 @@ trait SessionFrame {
     updateTitle()
     document.addListener(docListener)
 
-    application.getMenuFactory.addToWindowMenu(actionShowWindow) // MUST BE BEFORE INIT()!!
+// XXX TODO
+//    application.getMenuFactory.addToWindowMenu(actionShowWindow) // MUST BE BEFORE INIT()!!
     closeOperation = Window.CloseIgnore
     // XXX TODO
     //      addListener( winListener )
@@ -102,7 +103,8 @@ trait SessionFrame {
      // XXX TODO
 //      removeListener( winListener )
      document.removeListener( docListener )
-      application.getMenuFactory.removeFromWindowMenu( actionShowWindow )
+// XXX TODO
+//      application.getMenuFactory.removeFromWindowMenu( actionShowWindow )
 // XXX TODO
 //      actionShowWindow.dispose()
       dispose()
@@ -311,12 +313,13 @@ trait SessionFrame {
             wpHaveWarned = false
 
             if( !asCopy ) {
-               application.getMenuFactory.addRecent( file )
+// XXX TODO
+//               application.getMenuFactory.addRecent( file )
               document.path = Some( file )
               document.undoManager.clear()
             }
             if( openAfterSave ) {
-               application.getMenuFactory.openDocument( file )
+               GlobalActions.openDocument( file )
             }
             true
          }

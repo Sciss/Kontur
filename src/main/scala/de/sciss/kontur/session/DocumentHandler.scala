@@ -26,7 +26,9 @@
 package de.sciss.kontur
 package session
 
-class DocumentHandler extends AbstractDocumentHandler( true ) {
+class DocumentHandler extends de.sciss.desktop.DocumentHandler {
+  type Document = Session
+
 //  	private val mapIDs = Map
 /*
 	def addDocument( Object source, Document doc ) {

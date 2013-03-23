@@ -119,18 +119,18 @@ extends Axis()
          }
      }
 
-    // note that the view rect change might be _before_
-    // the delivery of TimelineView.SpanChanged, therefore
-    // we need to synthesize the span from the view rect!
-    override protected def viewRectChanged( r: Rectangle ) {
-        val tlSpan      = view.timeline.span
-        val w           = getWidth
-        val scale       = tlSpan.length.toDouble / w
-        val start       = (r.x * scale + 0.5).toLong + tlSpan.start
-        val stop        = (r.width * scale + 0.5).toLong + start
-        timelineVis = Span( start, stop )
-        recalcSpace( trigger = false )
-    }
+  // note that the view rect change might be _before_
+  // the delivery of TimelineView.SpanChanged, therefore
+  // we need to synthesize the span from the view rect!
+  override protected def viewRectChanged(r: Rectangle) {
+    val tlSpan  = view.timeline.span
+    val w       = getWidth
+    val scale   = tlSpan.length.toDouble / w
+    val start   = (r.x * scale + 0.5).toLong + tlSpan.start
+    val stop    = (r.width * scale + 0.5).toLong + start
+    timelineVis = Span(start, stop)
+    recalcSpace(trigger = false)
+  }
 
   // ---- constructor ----
 //  setFont(application.getGraphicsHandler.getFont(GraphicsHandler.FONT_SYSTEM | GraphicsHandler.FONT_MINI))

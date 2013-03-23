@@ -69,7 +69,8 @@ with BasicTrackList with TrackToolsListener {
         setRowHeaderView( rowHeaderView )
         columnHeaderView.add( timelineAxis )
         setColumnHeaderView( columnHeaderView )
-        timelineAxis.viewPort = Some( getColumnHeader )
+// XXX TODO
+//        timelineAxis.viewPort = Some( getColumnHeader )
 
 		timelinePanel.trackList = this
 

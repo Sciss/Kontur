@@ -27,7 +27,7 @@ package de.sciss.kontur
 
 import io.EisenkrautClient
 import javax.swing.UIManager
-import gui.{MainFrame, SuperColliderFrame}
+import gui.{GlobalActions, MainFrame, SuperColliderFrame}
 import session.Session
 import util.{Flag, PrefsUtil}
 import sc.SuperColliderClient
@@ -157,29 +157,27 @@ object Kontur extends SwingApplication with ApplicationImpl with App {
 
 	private var shouldForceQuit = false
 
-   override def quit() {
-      val confirmed  = Flag(init = false)
-//println( "---0 " + shouldForceQuit )
-      val pt         = getMenuFactory.closeAll( shouldForceQuit, confirmed )
+  override def quit() {
+    val confirmed = Flag(init = false)
+    val ptOpt     = GlobalActions.closeAll(shouldForceQuit, confirmed)
 
-//println( "---1" )
-      if( pt != null ) {
-//println( "---2" )
-         pt.addListener( quitAfterSaveListener )
-         pt.getClientArg( "doc" ).asInstanceOf[Session].start( pt )
-      } else if(confirmed()) {
-//println( "---3" )
-//       OSCRoot.getInstance().quit();
-         SuperColliderClient.instance.quit()
-         super.quit()
-      }
-	}
+    ptOpt match {
+      case Some(pt) =>
+        pt.addListener(quitAfterSaveListener)
+        pt.getClientArg("doc").asInstanceOf[Session].start(pt)
+      case _ =>
+        if (confirmed()) {
+          SuperColliderClient.instance.quit()
+          super.quit()
+        }
+    }
+  }
 
-    def forceQuit() {
-		shouldForceQuit = true
-		quit()
-	}
+  def forceQuit() {
+    shouldForceQuit = true
+    quit()
+  }
 
-//	def getMacOSCreator : String = Kontur.CREATOR
+  //	def getMacOSCreator : String = Kontur.CREATOR
 //	def getVersion: Double = Kontur.version
 }
