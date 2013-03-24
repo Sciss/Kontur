@@ -27,7 +27,7 @@ package de.sciss.kontur
 
 import io.EisenkrautClient
 import javax.swing.UIManager
-import gui.{GlobalActions, MainFrame, SuperColliderFrame}
+import gui.{MenuFactory, GlobalActions, MainFrame, SuperColliderFrame}
 import session.Session
 import util.{Flag, PrefsUtil}
 import sc.SuperColliderClient
@@ -152,7 +152,7 @@ object Kontur extends SwingApplication with ApplicationImpl with App {
 
   val name = "Kontur"
 
-  lazy implicit val windowHandler: WindowHandler = new WindowHandlerImpl(this, ???)
+  lazy implicit val windowHandler: WindowHandler = new WindowHandlerImpl(this, (new MenuFactory).root)
 
 //	protected def createMenuFactory() : BasicMenuFactory = new MenuFactory( this )
 
