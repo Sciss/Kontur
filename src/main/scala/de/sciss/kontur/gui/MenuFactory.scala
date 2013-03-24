@@ -62,8 +62,9 @@ class MenuFactory {
   private def stroke(code: Int, modifiers: Int) = KeyStroke.getKeyStroke(code, modifiers)
 
   private def proxy(key: String, stroke: KeyStroke): Action = {
-    val a = Action(key)()
+    val a         = Action(key)()
     a.accelerator = Some(stroke)
+    a.enabled     = false
     a
   }
 
@@ -81,11 +82,25 @@ class MenuFactory {
           .add(Item("empty",            ActionNewEmpty))
           .add(Item("interpreter",      ActionScalaInterpreter))
         )
+        .add(Item("open",               GlobalActions.ActionOpen))
+        .add(Item("close",              proxy("Close",      stroke(VK_W, menuShortcut))))
         .addLine()
         .add(Item("bounce",             "Bounce to Disk..."))
+        .addLine()
+        .add(Item("save",               proxy("Save",       stroke(VK_S, menuShortcut))))
+        .add(Item("saveAs",             proxy("Save As...", stroke(VK_S, menuShortcut | SHIFT_MASK))))
     )
     .add(
       Group("edit", "Edit")
+        .add(Item("undo",               proxy("Undo",       stroke(VK_Z, menuShortcut))))
+        .add(Item("redo",               proxy("Redo",       stroke(VK_Z, menuShortcut | SHIFT_MASK))))
+        .addLine()
+        .add(Item("cut",                proxy("Cut",        stroke(VK_X, menuShortcut))))
+        .add(Item("copy",               proxy("Copy",       stroke(VK_C, menuShortcut))))
+        .add(Item("paste",              proxy("Paste",      stroke(VK_V, menuShortcut))))
+        .add(Item("delete",             proxy("Delete",     stroke(VK_DELETE, 0))))
+        .addLine()
+        .add(Item("selectAll",          proxy("Select All", stroke(VK_A, menuShortcut))))
     )
     .add(
       // --- timeline menu ---

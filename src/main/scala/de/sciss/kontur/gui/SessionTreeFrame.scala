@@ -104,7 +104,7 @@ class SessionTreeFrame(val document: Session) extends WindowImpl with SessionFra
   }
 
   protected def windowClosing() {
-    actionClose()
+    close()
   }
 
 //  override protected def autoUpdatePrefs  = true

@@ -44,9 +44,7 @@ trait SessionFrame {
   private   var writeProtected    = false
   private   var wpHaveWarned      = false
 
-  private   val actionShowWindow  = Window.showAction(this)
-  protected val actionClose       = new ActionClose()
-  private   val actionSave        = new ActionSave()
+  private   val actionShowWindow  = Window.Actions.show(this)
   private   val actionSaveAs      = new ActionSaveAs(false)
 
   // XXX TODO
@@ -72,8 +70,8 @@ trait SessionFrame {
   private var disposed = false
 
   bindMenus(
-    "file.close"  -> actionClose,
-    "file.save"   -> actionSave,
+    "file.close"  -> ActionClose,
+    "file.save"   -> ActionSave,
     "file.saveAs" -> actionSaveAs,
 
     "edit.undo"   -> document.undoManager.undoAction,
@@ -108,6 +106,8 @@ trait SessionFrame {
     dispose()
   }
 
+  final def close() { ActionClose() }
+
   /**
    * Recreates the main frame's title bar
    * after a sessions name changed (clear/load/save as session)
@@ -120,7 +120,7 @@ trait SessionFrame {
       (if (document.dirty) " - \u2022" else " - ") + name + (elementName.map(e => " - " + e) getOrElse "")
 
     actionShowWindow.title = name
-    actionSave.enabled = !writeProtected && document.dirty
+    ActionSave.enabled = !writeProtected && document.dirty
     dirty = document.dirty
     file  = document.path
 
@@ -275,24 +275,24 @@ trait SessionFrame {
        case 0 =>
          confirmed() = false
          val path = if (document.path.isEmpty || writeProtected) {
-           actionSaveAs.query(actionSave.title)
+           actionSaveAs.query(ActionSave.title)
          } else {
            document.path
          }
          path.map(p => {
-           actionSave.perform(actionSave.title, p, asCopy = false, openAfterSave = false)
+           ActionSave.perform(ActionSave.title, p, asCopy = false, openAfterSave = false)
          }) getOrElse false
      }
    }
 
-   protected class ActionClose extends Action("Close") {
+   private object ActionClose extends Action("Close") {
      def apply() {
        closeDocument(force = false, Flag.False())
      }
    }
 
    // action for the Save-Session menu item
-   private class ActionSave
+   private object ActionSave
     extends Action("Save") {
       /**
        *  Saves a Session. If the file
@@ -340,7 +340,7 @@ trait SessionFrame {
     def apply() {
       val name = title
       query(name).foreach { f =>
-        actionSave.perform(name, f, asCopy = asCopy, openAfterSave = openAfterSave())
+        ActionSave.perform(name, f, asCopy = asCopy, openAfterSave = openAfterSave())
       }
     }
 

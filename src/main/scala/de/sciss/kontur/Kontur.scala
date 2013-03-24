@@ -33,7 +33,7 @@ import util.{Flag, PrefsUtil}
 import sc.SuperColliderClient
 import swing.Swing
 import legacy.ProcessingThread
-import de.sciss.desktop.impl.{DocumentHandlerImpl, WindowHandlerImpl, ApplicationImpl}
+import de.sciss.desktop.impl.{SwingApplicationImpl, DocumentHandlerImpl, WindowHandlerImpl, ApplicationImpl}
 import de.sciss.desktop.{DocumentHandler, Application, Menu, Preferences, SwingApplication, WindowHandler}
 
 /**
@@ -56,8 +56,8 @@ import de.sciss.desktop.{DocumentHandler, Application, Menu, Preferences, SwingA
  *				; seems to be a problem of menuFactory.closeAll!
  */
 
-object Kontur extends SwingApplication with ApplicationImpl with App {
-  type Document = Session
+object Kontur extends SwingApplicationImpl[Session]("Kontur") {
+
   /*
    *  The MacOS file creator string.
    */
@@ -103,9 +103,6 @@ object Kontur extends SwingApplication with ApplicationImpl with App {
     }
   }
 
-  // ---- constructor ----
-  Swing.onEDT { preInit() }
-
 	/**
 	 *	The arguments may contain the following options:
 	 *	<UL>
@@ -115,7 +112,7 @@ object Kontur extends SwingApplication with ApplicationImpl with App {
 	 *	All other arguments not starting with a hyphen are considered to be paths to documents
 	 *	that will be opened after launch.
 	 */
-	private def preInit() {
+	protected def init() {
 		val prefs   = userPrefs
     var lafName = prefs.get[String](PrefsUtil.KEY_LOOKANDFEEL)(Preferences.Type.string).orNull  // XXX TODO: scalac bug
     var openDoc = scala.collection.immutable.Queue[String]()
@@ -128,12 +125,12 @@ object Kontur extends SwingApplication with ApplicationImpl with App {
             if (lafName == null) lafName = args(i + 2)
             i += 2
           } else {
-            System.err.println("Option -laf requires two additional arguments (screen-name and class-name).")
-            System.exit(1)
+            Console.err.println("Option -laf requires two additional arguments (screen-name and class-name).")
+            sys.exit(1)
           }
         } else {
-          System.err.println("Unknown option " + args(i))
-          System.exit(1)
+          Console.err.println("Unknown option " + args(i))
+          sys.exit(1)
         }
       } else {
         openDoc = openDoc.enqueue(args(i))
@@ -150,18 +147,14 @@ object Kontur extends SwingApplication with ApplicationImpl with App {
     scFrame.visible = true
   }
 
-  val name = "Kontur"
-
-  lazy implicit val windowHandler: WindowHandler = new WindowHandlerImpl(this, (new MenuFactory).root)
+  lazy protected val menuFactory = (new MenuFactory).root
 
 //	protected def createMenuFactory() : BasicMenuFactory = new MenuFactory( this )
 
-	lazy val documentHandler: DocumentHandler { type Document = Session } = new DocumentHandlerImpl[Session] {}
-
 	private var shouldForceQuit = false
 
-  override def quit() {
-    val confirmed = Flag(init = false)
+  def quit() {
+    val confirmed = Flag.False()
     val ptOpt     = GlobalActions.closeAll(shouldForceQuit, confirmed)
 
     ptOpt match {

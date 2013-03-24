@@ -4,7 +4,7 @@ package gui
 import util.{PrefsUtil, Flag}
 import session.Session
 import legacy.ProcessingThread
-import de.sciss.desktop.Window
+import de.sciss.desktop.{Preferences, Window}
 import collection.breakOut
 import java.io.{IOException, FileReader, FilenameFilter, File}
 import java.awt.{Frame, FileDialog}
@@ -47,7 +47,7 @@ object GlobalActions {
     None
   }
 
-  private object ActionOpen extends Action("Open Session") {
+  object ActionOpen extends Action("Open...") {
     accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_O, Window.menuShortcut))
 
     /*
@@ -69,6 +69,7 @@ object GlobalActions {
       val prefs = Kontur.userPrefs
 
       val fDlg = new FileDialog(frame, title, FileDialog.LOAD)
+      implicit val fuckYou = Preferences.Type.file
       fDlg.setDirectory(prefs.getOrElse(PrefsUtil.KEY_FILEOPENDIR, new File(sys.props("user.home"))).getPath)
       val accept = try {
         Some(new Acceptor)
