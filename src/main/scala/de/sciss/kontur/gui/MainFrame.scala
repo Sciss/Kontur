@@ -30,10 +30,12 @@ import java.awt.Color
 import de.sciss.scalainterpreter.LogPane
 import swing.Component
 import de.sciss.desktop.{Window, WindowHandler}
-import de.sciss.desktop.impl.MainWindowImpl
+import de.sciss.desktop.impl.WindowImpl
 
 final class MainFrame(implicit val handler: WindowHandler)
-  extends MainWindowImpl {
+  extends WindowImpl {
+
+  protected def style = Window.Regular
 
   // --- constructor ---
   //	  val app     = AbstractApplication.getApplication()

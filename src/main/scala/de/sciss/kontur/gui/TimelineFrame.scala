@@ -38,7 +38,7 @@ import de.sciss.span.Span
 import Span.SpanOrVoid
 import legacy.{DefaultUnitTranslator, Param, ParamSpace, GUIUtil}
 import swing.{RootPanel, Action, Component, BorderPanel}
-import de.sciss.desktop.Window
+import de.sciss.desktop.{Preferences, Window}
 import de.sciss.desktop.impl.WindowImpl
 import desktop.impl.PathField
 import language.reflectiveCalls
@@ -173,7 +173,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
 		val cp	= application.userPrefs / "TimelineFrame"
 		val sr	= Window.availableSpace
     import de.sciss.desktop.Implicits._
-    val d 	= cp.getOrElse[Dimension](TimelineFrame.KEY_TRACKSIZE, new Dimension())
+    val d 	= cp.getOrElse[Dimension](TimelineFrame.KEY_TRACKSIZE, new Dimension())(Preferences.Type.dimension)
 		val hf	= 1f // Math.sqrt( Math.max( 1, waveView.getNumChannels() )).toFloat
 		var w	= d.width
 		var h	= d.height
@@ -253,7 +253,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
      protected def parent               = frame.component
 
      protected def initiate(v: Param, trans: ParamSpace.Translator) {
-       prefs.put(PrefsUtil.KEY_NUDGEAMOUNT, v.toString)
+       prefs.put(PrefsUtil.KEY_NUDGEAMOUNT, v.toString)(Preferences.Type.string)
      }
 
      private def prefs = application.userPrefs / PrefsUtil.NODE_GUI

@@ -32,7 +32,7 @@ import java.io.{File, IOException}
 import javax.swing.{SwingUtilities, AbstractAction, JComponent, JOptionPane, KeyStroke}
 import session.Session
 import util.{Flag, Model}
-import swing.{SwingApplication, Action}
+import swing.Action
 import de.sciss.desktop.Window
 import de.sciss.desktop.impl.WindowImpl
 
@@ -219,8 +219,8 @@ trait SessionFrame {
      val dont = Flag.False()
      val name = document.displayName
 
-     val op = new JOptionPane(s"<html><body><p><b>Do you want to save the changes you made in\nthe document $name?</b></p>" +
-       "<p>Your changes will be lost if you don't save them.</p></body></html>",
+     val op = new JOptionPane(s"<html><body><p><b>Do you want to save the changes you made in<br>the document &ldquo;$name&rdquo;?</b>" +
+       "<p><p><small>Your changes will be lost if you don't save them.</small></body></html>",
        JOptionPane.WARNING_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION, null,
        options, options(1))
 //     val d = op.createDialog(component.peer, actionName)

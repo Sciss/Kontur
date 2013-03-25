@@ -113,7 +113,7 @@ object Kontur extends SwingApplicationImpl("Kontur") {
 	 *	All other arguments not starting with a hyphen are considered to be paths to documents
 	 *	that will be opened after launch.
 	 */
-	protected def init() {
+	override protected def init() {
 		val prefs   = userPrefs
     var lafName = prefs.get[String](PrefsUtil.KEY_LOOKANDFEEL)(Preferences.Type.string).orNull  // XXX TODO: scalac bug
     var openDoc = scala.collection.immutable.Queue[String]()
