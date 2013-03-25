@@ -51,7 +51,7 @@ import javax.swing.event.AncestorListener;
 public class GUIUtil
 {
 	private static final double VERSION	= 0.40;
-	private static final ResourceBundle resBundle = ResourceBundle.getBundle( "GUIUtilStrings" );
+//	private static final ResourceBundle resBundle = ResourceBundle.getBundle( "GUIUtilStrings" );
 	private static final Preferences prefs = Preferences.userNodeForPackage( GUIUtil.class );
 
 	private static Icon icnNoWrite = null;
@@ -70,12 +70,13 @@ public class GUIUtil
 
 	public static final String getResourceString( String key )
 	{
-		try {
-			return resBundle.getString( key );
-		}
-		catch( MissingResourceException e1 ) {
-			return( "[Missing Resource: " + key + "]" );
-		}
+        return key;
+//		try {
+//			return resBundle.getString( key );
+//		}
+//		catch( MissingResourceException e1 ) {
+//			return( "[Missing Resource: " + key + "]" );
+//		}
 	}
 
 	/**

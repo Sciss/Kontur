@@ -56,7 +56,8 @@ import de.sciss.desktop.{DocumentHandler, Application, Menu, Preferences, SwingA
  *				; seems to be a problem of menuFactory.closeAll!
  */
 
-object Kontur extends SwingApplicationImpl[Session]("Kontur") {
+object Kontur extends SwingApplicationImpl("Kontur") {
+  type Document = Session
 
   /*
    *  The MacOS file creator string.

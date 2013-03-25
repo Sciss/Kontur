@@ -37,7 +37,7 @@ import javax.xml.parsers.SAXParserFactory
 import org.xml.sax.{Attributes, InputSource, SAXException}
 import org.xml.sax.helpers.DefaultHandler
 import swing.Action
-import de.sciss.desktop.{Menu, Window}
+import de.sciss.desktop.{KeyStrokes, Menu, Window}
 
 class MenuFactory {
 //  private val actionOpen = new ActionOpen(getResourceString("menuOpen"),
@@ -55,22 +55,19 @@ class MenuFactory {
 
 //  protected def getOpenAction: Action = actionOpen
 
-  import Window.menuShortcut
+//  private def stroke(code: Int, modifiers: Int) = KeyStroke.getKeyStroke(code, modifiers)
+//
+//  private def proxy(key: String, stroke: KeyStroke): Action = {
+//    val a         = Action(key)()
+//    a.accelerator = Some(stroke)
+//    a.enabled     = false
+//    a
+//  }
+
   import KeyEvent._
-  import InputEvent.{ALT_MASK, CTRL_MASK, SHIFT_MASK}
-
-  private def stroke(code: Int, modifiers: Int) = KeyStroke.getKeyStroke(code, modifiers)
-
-  private def proxy(key: String, stroke: KeyStroke): Action = {
-    val a         = Action(key)()
-    a.accelerator = Some(stroke)
-    a.enabled     = false
-    a
-  }
+  import KeyStrokes._
 
   val root: Menu.Root = {
-    val myCtrl = if (menuShortcut == CTRL_MASK) CTRL_MASK | ALT_MASK else CTRL_MASK
-
     import Menu._
 
     val prefs = Kontur.userPrefs
@@ -83,41 +80,41 @@ class MenuFactory {
           .add(Item("interpreter",      ActionScalaInterpreter))
         )
         .add(Item("open",               GlobalActions.ActionOpen))
-        .add(Item("close",              proxy("Close",      stroke(VK_W, menuShortcut))))
+        .add(Item("close",              proxy("Close",      (menu1 + VK_W))))
         .addLine()
         .add(Item("bounce",             "Bounce to Disk..."))
         .addLine()
-        .add(Item("save",               proxy("Save",       stroke(VK_S, menuShortcut))))
-        .add(Item("saveAs",             proxy("Save As...", stroke(VK_S, menuShortcut | SHIFT_MASK))))
+        .add(Item("save",               proxy("Save",       (menu1 + VK_S))))
+        .add(Item("saveAs",             proxy("Save As...", (menu1 + shift + VK_S))))
     )
     .add(
       Group("edit", "Edit")
-        .add(Item("undo",               proxy("Undo",       stroke(VK_Z, menuShortcut))))
-        .add(Item("redo",               proxy("Redo",       stroke(VK_Z, menuShortcut | SHIFT_MASK))))
+        .add(Item("undo",               proxy("Undo",       (menu1 + VK_Z))))
+        .add(Item("redo",               proxy("Redo",       (menu1 + shift + VK_Z))))
         .addLine()
-        .add(Item("cut",                proxy("Cut",        stroke(VK_X, menuShortcut))))
-        .add(Item("copy",               proxy("Copy",       stroke(VK_C, menuShortcut))))
-        .add(Item("paste",              proxy("Paste",      stroke(VK_V, menuShortcut))))
-        .add(Item("delete",             proxy("Delete",     stroke(VK_DELETE, 0))))
+        .add(Item("cut",                proxy("Cut",        (menu1 + VK_X))))
+        .add(Item("copy",               proxy("Copy",       (menu1 + VK_C))))
+        .add(Item("paste",              proxy("Paste",      (menu1 + VK_V))))
+        .add(Item("delete",             proxy("Delete",     (plain + VK_DELETE))))
         .addLine()
-        .add(Item("selectAll",          proxy("Select All", stroke(VK_A, menuShortcut))))
+        .add(Item("selectAll",          proxy("Select All", (menu1 + VK_A))))
     )
     .add(
       // --- timeline menu ---
       Group("timeline", "Timeline")
-        .add(Item("trimToSelection",    proxy("Trim to Selection",        stroke(VK_F5, menuShortcut))))
-        .add(Item("insertSpan",         proxy("Insert Span...",           stroke(VK_E, menuShortcut | SHIFT_MASK))))
-        .add(Item("clearSpan",          proxy("Clear Selected Span",      stroke(VK_BACK_SLASH, menuShortcut))))
-        .add(Item("removeSpan",         proxy("Remove Selected Span",     stroke(VK_BACK_SLASH, menuShortcut | SHIFT_MASK))))
+        .add(Item("trimToSelection",    proxy("Trim to Selection",        (menu1 + VK_F5))))
+        .add(Item("insertSpan",         proxy("Insert Span...",           (menu1 + shift + VK_E))))
+        .add(Item("clearSpan",          proxy("Clear Selected Span",      (menu1 + VK_BACK_SLASH))))
+        .add(Item("removeSpan",         proxy("Remove Selected Span",     (menu1 + shift + VK_BACK_SLASH))))
         .add(Item("dupSpanToPos",       "Duplicate Span to Position"))
         .addLine()
         .add(Item("nudgeAmount",        "Nudge Amount..."))
-        .add(Item("nudgeLeft",          proxy("Nudge Objects Backward",   stroke(VK_MINUS, 0))))
-        .add(Item("nudgeRight",         proxy("Nudge Objects Forward",    stroke(VK_PLUS,  0))))
+        .add(Item("nudgeLeft",          proxy("Nudge Objects Backward",   (plain + VK_MINUS))))
+        .add(Item("nudgeRight",         proxy("Nudge Objects Forward",    (plain + VK_PLUS ))))
         .addLine()
-        .add(Item("selFollowingObj",    proxy("Select Following Objects", stroke(VK_F, myCtrl))))
+        .add(Item("selFollowingObj",    proxy("Select Following Objects", (menu2 + VK_F))))
         .add(Item("alignObjStartToPos", "Align Objects Start To Timeline Position"))
-        .add(Item("splitObjects",       proxy("Split Selected Objects",   stroke(VK_Y, myCtrl))))
+        .add(Item("splitObjects",       proxy("Split Selected Objects",   (menu2 + VK_Y))))
         .addLine()
         .add(Item("selStopToStart",     "Move Selection Stop To Its Start"))
         .add(Item("selStartToStop",     "Move Selection Start To Its Stop"))
@@ -187,7 +184,7 @@ class MenuFactory {
   // ---- internal classes ----
   // action for the New-Empty Document menu item
   private object ActionNewEmpty extends Action("New Empty Document") {
-    accelerator = Some(stroke(VK_N, menuShortcut))
+    accelerator = Some(menu1 + VK_N)
 
     def apply() {
       perform()
@@ -336,7 +333,7 @@ class MenuFactory {
 
   // action for the Control Room menu item
   private object ActionCtrlRoom extends Action("Control Room") {
-    accelerator = Some(stroke(VK_NUMPAD2, menuShortcut))
+    accelerator = Some(menu1 + VK_NUMPAD2)
 
     def apply() {
       val f = Kontur.getComponent[ControlRoomFrame](Kontur.COMP_CTRLROOM).getOrElse(new ControlRoomFrame())
@@ -347,7 +344,7 @@ class MenuFactory {
 
   // action for the Observer menu item
   private object ActionObserver extends Action("Observer") {
-    accelerator = Some(stroke(VK_NUMPAD3, menuShortcut))
+    accelerator = Some(menu1 + VK_NUMPAD3)
 
     def apply() {
       val f = Kontur.getComponent[ObserverFrame](Kontur.COMP_OBSERVER).getOrElse(new ObserverFrame())
