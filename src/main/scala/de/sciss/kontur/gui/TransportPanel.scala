@@ -35,13 +35,15 @@ import session.{Timeline, Transport}
 import de.sciss.osc
 import util.Model
 import legacy.{TimeFormat, GUIUtil, DefaultUnitTranslator, Param, ParamSpace}
-import desktop.impl.BasicParamField
+import desktop.impl.{DynamicComponentImpl, BasicParamField}
 import de.sciss.desktop.Window
 
 // temporary hack to get osc synced video
 class TransportPanel( tlv: TimelineView )
-extends SegmentedButtonPanel /* with DynamicListening */ {
+extends SegmentedButtonPanel with DynamicComponentImpl {
    import Transport._
+
+  protected def dynamicComponent = this
 
    private val transport= tlv.timeline.transport
    private val clz      = classOf[ TransportPanel ]
@@ -197,112 +199,111 @@ extends SegmentedButtonPanel /* with DynamicListening */ {
       if( sendOSC && oscEngaged ) oscClient ! osc.Message( "/kontur", "transport", oscID, "pos", secs )
    }
 
-  def startListening() {
-     transport.foreach( t => {
-        t.addListener( transportListener )
-        trnspChanged( t.isPlaying )
-     })
-     tlv.addListener( timelineViewListener )
+  protected def componentShown() {
+    transport.foreach { t =>
+      t.addListener(transportListener)
+      trnspChanged(t.isPlaying)
+    }
+    tlv.addListener(timelineViewListener)
   }
 
-  def stopListening() {
-     playTimer.stop()
-     tlv.removeListener( timelineViewListener )
-     transport.foreach( t => {
-        t.removeListener( transportListener )
-     })
-//     isPlaying = false
+  protected def componentHidden() {
+    playTimer.stop()
+    tlv.removeListener(timelineViewListener)
+    transport.foreach(_.removeListener(transportListener))
   }
 
-   private class ActionPlay extends AbstractAction {
-      def actionPerformed( e: ActionEvent ) {
-        transport.foreach( _.play( tlv.cursor.position, 1.0 ))
+  private class ActionPlay extends AbstractAction {
+    def actionPerformed(e: ActionEvent) {
+      transport.foreach(_.play(tlv.cursor.position, 1.0))
+    }
+  }
+
+  private class ActionStop extends AbstractAction {
+    def actionPerformed(e: ActionEvent) {
+      transport.foreach(_.stop())
+    }
+  }
+
+  private class TimeLabel extends JLabel("00:00:00.000", SwingConstants.CENTER) {
+    private var recentH = -1
+    private var recentW = -1
+    private var grad: LinearGradientPaint = null
+    private val shape1 = new RoundRectangle2D.Float()
+    // private val shape2 = new RoundRectangle2D.Float()
+    // private val shape3 = new RoundRectangle2D.Float()
+    private val colrBd1 = new Color(0x00, 0x00, 0x00, 0x40)
+    // private val colrBd2 = new Color( 0x00, 0x00, 0x00, 0x40 )
+    private val colrBd3 = new Color(0xFF, 0xFF, 0xFF, 0xC0)
+    private val frmt = new TimeFormat(0, null, null, 3, Locale.US)
+
+    // ---- constructor ----
+    setFont(new Font("Lucida Grande", Font.BOLD, 13))
+    setForeground(Color.black)
+    setBorder(BorderFactory.createEmptyBorder(3, 12, 4, 12))
+    private val pref = super.getPreferredSize
+
+    override def getPreferredSize: Dimension = pref
+
+    override def paintComponent(g: Graphics) {
+      val h = getHeight
+      val w = getWidth
+      if (h != recentH || w != recentW) {
+        recentH = getHeight
+        recentW = getWidth
+        recalcGrad()
+        recalcShape()
       }
-   }
+      val g2 = g.asInstanceOf[Graphics2D]
+      val atOrig = g2.getTransform
+      val clipOrig = g2.getClip
+      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+      g2.setPaint(grad)
+      //         g2.translate( 0, 1 )
+      g2.fill(shape1)
+      g2.translate(0, -1)
+      g2.setColor(colrBd1)
+      g2.draw(shape1)
+      g2.translate(0, 0.2f)
+      g2.clipRect(0, 0, w, 3)
+      g2.draw(shape1)
+      g2.setClip(clipOrig)
+      g2.translate(0, 1)
+      g2.setColor(colrBd3)
+      g2.clipRect(0, h - 5, w, 5)
+      g2.draw(shape1)
+      g2.setTransform(atOrig)
+      g2.setClip(clipOrig)
+      super.paintComponent(g)
+    }
 
-   private class ActionStop extends AbstractAction {
-      def actionPerformed( e: ActionEvent ) {
-        transport.foreach( _.stop() )
-      }
-   }
+    private def recalcShape() {
+      shape1.setRoundRect(0.2f, 1.2f, recentW - 1.4f, recentH - 2f, 8f, 8f)
+      //         shape1.setRoundRect( 0.5f, 0.5f, recentW - 2f, recentH - 2.5f, 8f, 8f )
+      //         shape3.setRoundRect( 0.2f, 1.2f, recentW - 1.4f, recentH - 2.4f, 8f, 8f )
+    }
 
-   private class TimeLabel extends JLabel( "00:00:00.000", SwingConstants.CENTER ) {
-      private var recentH = -1
-      private var recentW = -1
-      private var grad: LinearGradientPaint = null
-      private val shape1 = new RoundRectangle2D.Float()
-//      private val shape2 = new RoundRectangle2D.Float()
-//      private val shape3 = new RoundRectangle2D.Float()
-      private val colrBd1 = new Color( 0x00, 0x00, 0x00, 0x40 )
-//      private val colrBd2 = new Color( 0x00, 0x00, 0x00, 0x40 )
-      private val colrBd3 = new Color( 0xFF, 0xFF, 0xFF, 0xC0 )
-      private val frmt = new TimeFormat( 0, null, null, 3, Locale.US )
+    def setSeconds(secs: Double) {
+      setText(frmt.formatTime(secs))
+    }
 
-      // ---- constructor ----
-      setFont( new Font( "Lucida Grande", Font.BOLD, 13 ))
-      setForeground( Color.black )
-      setBorder( BorderFactory.createEmptyBorder( 3, 12, 4, 12 ))
-      private val pref = super.getPreferredSize
+    private def recalcGrad() {
+      val m6 = (recentH - 6).toFloat
+      val mid = (m6 / 2).toInt
+      //         grad = new LinearGradientPaint( 0, 2, 0, recentH - 6,
+      //            Array( 0f, mid / m6, (mid + 1) / m6, (m6 - 2) / m6, 1f ),
+      //            Array( new Color( 0xEC, 0xF2, 0xE0 ),
+      //                   new Color( 0xE5, 0xEC, 0xD4 ),
+      //                   new Color( 0xDE, 0xE5, 0xC6 ),
+      //                   new Color( 0xF6, 0xFC, 0xDF ),
+      //                   new Color( 0xF2, 0xF6, 0xDF )))
+      grad = new LinearGradientPaint(0, 2, 0, recentH - 6,
+        Array(0f, mid / m6, (mid + 1) / m6, 1f),
+        Array(new Color(0xEC, 0xF2, 0xE0),
+          new Color(0xE5, 0xEC, 0xD4),
+          new Color(0xDE, 0xE5, 0xC6),
+          new Color(0xF2, 0xF6, 0xDF)))
+    }
+  }
 
-      override def getPreferredSize : Dimension = pref
-
-      override def paintComponent( g: Graphics ) {
-         val h = getHeight; val w = getWidth
-         if( h != recentH || w != recentW ) {
-            recentH = getHeight
-            recentW = getWidth
-            recalcGrad()
-            recalcShape()
-         }
-         val g2 = g.asInstanceOf[ Graphics2D ]
-         val atOrig = g2.getTransform
-         val clipOrig = g2.getClip
-         g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON )
-         g2.setPaint( grad )
-//         g2.translate( 0, 1 )
-         g2.fill( shape1 )
-         g2.translate( 0, -1 )
-         g2.setColor( colrBd1 )
-         g2.draw( shape1 )
-         g2.translate( 0, 0.2f )
-         g2.clipRect( 0, 0, w, 3 )
-         g2.draw( shape1 )
-         g2.setClip( clipOrig )
-         g2.translate( 0, 1 )
-         g2.setColor( colrBd3 )
-         g2.clipRect( 0, h - 5, w, 5 )
-         g2.draw( shape1 )
-         g2.setTransform( atOrig )
-         g2.setClip( clipOrig )
-         super.paintComponent( g )
-      }
-
-      private def recalcShape() {
-         shape1.setRoundRect( 0.2f, 1.2f, recentW - 1.4f, recentH - 2f, 8f, 8f )
-//         shape1.setRoundRect( 0.5f, 0.5f, recentW - 2f, recentH - 2.5f, 8f, 8f )
-//         shape3.setRoundRect( 0.2f, 1.2f, recentW - 1.4f, recentH - 2.4f, 8f, 8f )
-      }
-
-      def setSeconds( secs: Double ) {
-         setText( frmt.formatTime( secs ))
-      }
-
-      private def recalcGrad() {
-         val m6 = (recentH - 6).toFloat
-         val mid = (m6 / 2).toInt
-//         grad = new LinearGradientPaint( 0, 2, 0, recentH - 6,
-//            Array( 0f, mid / m6, (mid + 1) / m6, (m6 - 2) / m6, 1f ),
-//            Array( new Color( 0xEC, 0xF2, 0xE0 ),
-//                   new Color( 0xE5, 0xEC, 0xD4 ),
-//                   new Color( 0xDE, 0xE5, 0xC6 ),
-//                   new Color( 0xF6, 0xFC, 0xDF ),
-//                   new Color( 0xF2, 0xF6, 0xDF )))
-         grad = new LinearGradientPaint( 0, 2, 0, recentH - 6,
-            Array( 0f, mid / m6, (mid + 1) / m6, 1f ),
-            Array( new Color( 0xEC, 0xF2, 0xE0 ),
-                   new Color( 0xE5, 0xEC, 0xD4 ),
-                   new Color( 0xDE, 0xE5, 0xC6 ),
-                   new Color( 0xF2, 0xF6, 0xDF )))
-      }
-   }
 }

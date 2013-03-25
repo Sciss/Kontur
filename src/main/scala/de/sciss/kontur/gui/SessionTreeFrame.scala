@@ -40,12 +40,13 @@ class SessionTreeFrame(val document: Session) extends WindowImpl with SessionFra
 
   def handler = Kontur.windowHandler
 
+  private val sessionTreeModel = new SessionTreeModel(document)
+
   // ---- constructor ----
   {
     // ---- menus and actions ----
     // val mr = app.getMenuBarRoot
 
-    val sessionTreeModel = new SessionTreeModel(document)
     val ggTree = new JTree(sessionTreeModel)
     val wrapTree = Component.wrap(ggTree)
     ggTree.setDropMode(DropMode.ON_OR_INSERT)
@@ -95,6 +96,7 @@ class SessionTreeFrame(val document: Session) extends WindowImpl with SessionFra
 
     // XXX TODO
 //      addDynamicListening( sessionTreeModel )
+    sessionTreeModel.startListening()
 
 //      init()
 
@@ -104,6 +106,7 @@ class SessionTreeFrame(val document: Session) extends WindowImpl with SessionFra
   }
 
   protected def windowClosing() {
+    sessionTreeModel.stopListening()
     close()
   }
 

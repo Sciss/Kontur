@@ -35,6 +35,7 @@ import javax.swing.{ BorderFactory, JLabel, JPanel, Spring, SpringLayout }
 import session.{ AudioTrack, Diffusion, Renamable, Track }
 import util.Model
 import legacy.GradientPanel
+import desktop.impl.DynamicComponentImpl
 
 //import Track.Tr
 
@@ -63,7 +64,7 @@ object DefaultTrackHeaderComponent {
 
 class DefaultTrackHeaderComponent( protected val track: Track, trackList: TrackList )
 extends JPanel
-with desktop.impl.DynamicComponentImpl /* with Disposable */ {
+with DynamicComponentImpl /* with Disposable */ {
   import DefaultTrackHeaderComponent._
 
   protected def dynamicComponent = this

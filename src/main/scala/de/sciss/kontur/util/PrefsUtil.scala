@@ -145,7 +145,7 @@ object PrefsUtil {
 	/**
 	 *  Value: String representing the name
 	 *  of the currently active audio box
-	 *  Has default value: ???<br>
+	 *  Has default value: ??<br>
 	 *  Node: audio
 	 */
 	val KEY_AUDIOBOX		= "audiobox"	// string : active audio box configuration

@@ -30,22 +30,25 @@ import java.awt.{Dimension, Point, Rectangle}
 import javax.swing.{JComponent, JViewport}
 import util.Model
 import de.sciss.span.Span
+import desktop.impl.DynamicComponentImpl
 
-class TimelineViewport(timelineView: TimelineView)
-  extends JViewport /* with DynamicListening */ {
+final class TimelineViewport(timelineView: TimelineView)
+  extends JViewport with DynamicComponentImpl {
 
   var verbose = false
+
+  protected def dynamicComponent = this
 
   // ---- constructor ----
 //  {
 //     new DynamicAncestorAdapter( this ).addTo( this )
 //  }
 
-  def startListening() {
+  protected def componentShown() {
      timelineView.addListener( timelineViewListener )
   }
 
-  def stopListening() {
+  protected def componentHidden() {
      timelineView.removeListener( timelineViewListener )
   }
 

@@ -84,9 +84,10 @@ trait SessionFrame {
   // XXX TODO
   //    application.getMenuFactory.addToWindowMenu(actionShowWindow) // MUST BE BEFORE INIT()!!
   closeOperation = Window.CloseIgnore
-
-  // XXX TODO
-  //      addListener( winListener )
+  reactions += {
+    case Window.Closing(_) => frame.windowClosing()
+    case Window.Activated(_) => Kontur.documentHandler.activeDocument = Some(document)
+  }
 
   def document: Session
 
@@ -102,7 +103,7 @@ trait SessionFrame {
     // XXX TODO
     //      application.getMenuFactory.removeFromWindowMenu( actionShowWindow )
     // XXX TODO
-    //      actionShowWindow.dispose()
+//    actionShowWindow.dispose()
     dispose()
   }
 

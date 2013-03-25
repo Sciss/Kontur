@@ -123,7 +123,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
       "edit.cut"                    -> ActionCut,
       "edit.copy"                   -> ActionCopy,
       "edit.paste"                  -> ActionPaste,
-      "edit.clear"                  -> ActionDelete,
+      "edit.delete"                 -> ActionDelete,
       "edit.selectAll"              -> new ActionSelect(ActionSelect.SELECT_ALL),
   
       "timeline.insertSpan"         -> ActionInsertSpan,

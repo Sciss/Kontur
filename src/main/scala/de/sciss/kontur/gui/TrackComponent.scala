@@ -45,6 +45,7 @@ import util.Model
 import de.sciss.span.Span
 import Span.SpanOrVoid
 import legacy.AbstractCompoundEdit
+import desktop.impl.DynamicComponentImpl
 
 object DefaultTrackComponent {
    protected[gui] case class PaintContext( g2: Graphics2D, x: Int, y: Int, p_off: Long, p_scale: Double, height: Int,
@@ -76,60 +77,63 @@ trait TrackComponent {
 }
 
 class DefaultTrackComponent(doc: Session, val track: Track, trackList: TrackList, timelineView: TimelineView)
-  extends JComponent with TrackComponent with TrackToolsListener /* with DynamicListening */ {
+  extends JComponent with TrackComponent with TrackToolsListener with DynamicComponentImpl {
 
   import DefaultTrackComponent._
 
-//    protected val track     = t // necessary for trail.trail (DO NOT ASK WHY)
-   protected val trail     = track.trail // "stable"
-   protected lazy val trackListElement = trackList.getElement( track ).get
-   protected lazy val trailView = trackListElement.trailView.asInstanceOf[ TrailView[ track.T ]]
-   protected lazy val trailViewEditor = trailView.editor
-/*
-    protected val p_rect    = new Rectangle()
-    protected var p_off     = -timelineView.timeline.span.start
-    protected var p_scale   = getWidth.toDouble / timelineView.timeline.span.getLength
-*/
-   protected var trackTools: Option[ TrackTools ] = None
+  protected def dynamicComponent = this
 
-   protected var painter: Painter = createDefaultPainter
+  //    protected val track     = t // necessary for trail.trail (DO NOT ASK WHY)
+  protected val trail = track.trail
+  // "stable"
+  protected lazy val trackListElement = trackList.getElement(track).get
+  protected lazy val trailView = trackListElement.trailView.asInstanceOf[TrailView[track.T]]
+  protected lazy val trailViewEditor = trailView.editor
+  /*
+      protected val p_rect    = new Rectangle()
+      protected var p_off     = -timelineView.timeline.span.start
+      protected var p_scale   = getWidth.toDouble / timelineView.timeline.span.getLength
+  */
+  protected var trackTools: Option[TrackTools] = None
 
-   private var visualBoostVar = 1f
-   private var fadeViewModeVar : FadeViewMode = FadeViewMode.Curve
-   private var stakeBorderViewModeVar: StakeBorderViewMode = StakeBorderViewMode.TitledBox
+  protected var painter: Painter = createDefaultPainter
 
-//    // finally we use some powerful functional shit. coooool
-//    protected val isSelected: track.T /* Stake[ _ ]*/ => Boolean =
-//        (trailView.map( _.isSelected _ ) getOrElse (_ => false))
+  private var visualBoostVar = 1f
+  private var fadeViewModeVar: FadeViewMode = FadeViewMode.Curve
+  private var stakeBorderViewModeVar: StakeBorderViewMode = StakeBorderViewMode.TitledBox
 
-   protected def checkSpanRepaint( span: Span, outcode: Int = 2, tm: Long = 0L ) {
-      if( span.overlaps( timelineView.span )) {
-         repaint( span, outcode, tm )
-      }
-   }
+  //    // finally we use some powerful functional shit. coooool
+  //    protected val isSelected: track.T /* Stake[ _ ]*/ => Boolean =
+  //        (trailView.map( _.isSelected _ ) getOrElse (_ => false))
 
-   private val trailViewListener: Model.Listener = {
-//    case TrailView.SelectionChanged( span, stakes @ _* ) => checkSpanRepaint( span )
-      case TrailView.SelectionChanged( span ) => checkSpanRepaint( span )
-   }
+  protected def checkSpanRepaint(span: Span, outcode: Int = 2, tm: Long = 0L) {
+    if (span.overlaps(timelineView.span)) {
+      repaint(span, outcode, tm)
+    }
+  }
 
-   private val trailListener: Model.Listener = {
-      case trail.StakesAdded( span, stakes @ _* ) => checkSpanRepaint( span )
-      case trail.StakesRemoved( span, stakes @ _* ) => checkSpanRepaint( span )
-   }
+  private val trailViewListener: Model.Listener = {
+    //    case TrailView.SelectionChanged( span, stakes @ _* ) => checkSpanRepaint( span )
+    case TrailView.SelectionChanged(span) => checkSpanRepaint(span)
+  }
 
-    private val mia = new MouseAdapter {
-      override def mousePressed( e: MouseEvent ) {
-          trackTools.foreach( tt => {
-              val pos    = screenToVirtual( e.getX )
-              val span   = Span( pos, pos + 1 )
-              val stakes = trail.getRange( span )
-              val stakeO = stakes.headOption
-              tt.currentTool.handleSelect( e, trackListElement, pos, stakeO )
-              if( (e.getClickCount == 2) && !stakes.isEmpty ) showObserverPage()
-          })
-      }
-   }
+  private val trailListener: Model.Listener = {
+    case trail.StakesAdded(span, stakes@_*) => checkSpanRepaint(span)
+    case trail.StakesRemoved(span, stakes@_*) => checkSpanRepaint(span)
+  }
+
+  private val mia = new MouseAdapter {
+    override def mousePressed(e: MouseEvent) {
+      trackTools.foreach(tt => {
+        val pos = screenToVirtual(e.getX)
+        val span = Span(pos, pos + 1)
+        val stakes = trail.getRange(span)
+        val stakeO = stakes.headOption
+        tt.currentTool.handleSelect(e, trackListElement, pos, stakeO)
+        if ((e.getClickCount == 2) && !stakes.isEmpty) showObserverPage()
+      })
+    }
+  }
 
    private val moveResizeToolListener: Model.Listener = {
         case TrackStakeTool.DragBegin =>
@@ -223,37 +227,35 @@ class DefaultTrackComponent(doc: Session, val track: Track, trackList: TrackList
 
 //       new DynamicAncestorAdapter( this ).addTo( this )
 
-   def registerTools( tools: TrackTools ) {
-      visualBoostVar          = tools.visualBoost
-      fadeViewModeVar         = tools.fadeViewMode
-      stakeBorderViewModeVar  = tools.stakeBorderViewMode
-      trackTools              = Some( tools )
-      tools.addListener( trackToolsListener )
-      trackToolsListener( TrackTools.ToolChanged( tools.currentTool, tools.currentTool ))
-   }
+  def registerTools(tools: TrackTools) {
+    visualBoostVar = tools.visualBoost
+    fadeViewModeVar = tools.fadeViewMode
+    stakeBorderViewModeVar = tools.stakeBorderViewMode
+    trackTools = Some(tools)
+    tools.addListener(trackToolsListener)
+    trackToolsListener(TrackTools.ToolChanged(tools.currentTool, tools.currentTool))
+  }
 
-    def startListening() {
-       trailView.addListener( trailViewListener )
-       trail.addListener( trailListener )
-       if( trailViewEditor.isDefined ) {
-           addMouseListener( mia )
-//           addMouseMotionListener( mia )
-       }
+  protected def componentShown() {
+    trailView.addListener(trailViewListener)
+    trail.addListener(trailListener)
+    if (trailViewEditor.isDefined) {
+      addMouseListener(mia)
     }
+  }
 
-    def stopListening() {
-       removeMouseListener( mia )
-//       removeMouseMotionListener( mia )
-       trail.removeListener( trailListener )
-       trailView.removeListener( trailViewListener )
-    }
+  protected def componentHidden() {
+    removeMouseListener(mia)
+    trail.removeListener(trailListener)
+    trailView.removeListener(trailViewListener)
+  }
 
-   protected def visualBoost = visualBoostVar
-   protected def visualBoost_=( boost: Float ) {
-      visualBoostVar = boost
-   }
+  protected def visualBoost = visualBoostVar
+  protected def visualBoost_=(boost: Float) {
+    visualBoostVar = boost
+  }
 
-   protected def fadeViewMode = fadeViewModeVar
+  protected def fadeViewMode = fadeViewModeVar
    protected def fadeViewMode_=( mode: FadeViewMode ) {
       fadeViewModeVar = mode
       checkSpanRepaint( timelineView.span )
@@ -864,116 +866,121 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
       }
    }
 
-   protected class DefaultAudioStakePainter extends AudioStakePainter
+  protected class DefaultAudioStakePainter extends AudioStakePainter
 
-   protected trait AudioStakePainter extends DefaultPainterTrait {
-//      DefaultPainter =>
-      private def paintFade( f: FadeSpec, pc: PaintContext, y1: Float, y2: Float, x: Float, y: Float, h: Float, x0: Float ) {
-         import math._
-         val shpFill = new Path2D.Float()
-         val shpDraw = new Path2D.Float()
-         val px = (f.numFrames * pc.p_scale).toFloat
-         val vscale = h / -3
-//       val y1s = (1f - y1) * h + y
-         val y1s = max( -3, log10( y1 )) * vscale + y
-         shpFill.moveTo( x, y1s )
-         shpDraw.moveTo( x, y1s )
-//         if( f.shape.id != 1 ) {
-            var xs = 4; while( xs < px ) {
-//             val ys = (1 - f.shape.levelAt( xs / px, y1, y2 )) * h + y
-               val ys = max( -3, log10( f.shape.levelAt( xs / px, y1, y2 ))) * vscale + y
-               shpFill.lineTo( x + xs, ys )
-               shpDraw.lineTo( x + xs, ys )
-            xs += 3 }
-//         }
-//       val y2s = (1f - y2) * h + y
-         val y2s = max( -3, log10( y2 )) * vscale + y
-         shpFill.lineTo( x + px, y2s )
-         shpDraw.lineTo( x + px, y2s )
-         shpFill.lineTo( x0, y )
-         pc.g2.setPaint( pntFade )
-         pc.g2.fill( shpFill )
-         pc.g2.setColor( colrFade )
-         pc.g2.draw( shpDraw )
+  protected trait AudioStakePainter extends DefaultPainterTrait {
+    //      DefaultPainter =>
+    private def paintFade(f: FadeSpec, pc: PaintContext, y1: Float, y2: Float, x: Float, y: Float, h: Float, x0: Float) {
+      import math._
+      val shpFill = new Path2D.Float()
+      val shpDraw = new Path2D.Float()
+      val px = (f.numFrames * pc.p_scale).toFloat
+      val vscale = h / -3
+      //       val y1s = (1f - y1) * h + y
+      val y1s = max(-3, log10(y1)) * vscale + y
+      shpFill.moveTo(x, y1s)
+      shpDraw.moveTo(x, y1s)
+      //         if( f.shape.id != 1 ) {
+      var xs = 4;
+      while (xs < px) {
+        //             val ys = (1 - f.shape.levelAt( xs / px, y1, y2 )) * h + y
+        val ys = max(-3, log10(f.shape.levelAt(xs / px, y1, y2))) * vscale + y
+        shpFill.lineTo(x + xs, ys)
+        shpDraw.lineTo(x + xs, ys)
+        xs += 3
       }
+      //         }
+      //       val y2s = (1f - y2) * h + y
+      val y2s = max(-3, log10(y2)) * vscale + y
+      shpFill.lineTo(x + px, y2s)
+      shpDraw.lineTo(x + px, y2s)
+      shpFill.lineTo(x0, y)
+      pc.g2.setPaint(pntFade)
+      pc.g2.fill(shpFill)
+      pc.g2.setColor(colrFade)
+      pc.g2.draw(shpDraw)
+    }
 
-      protected def stakeInfo( stake: AudioRegion ) : Option[ String ] = None
+    protected def stakeInfo(stake: AudioRegion): Option[String] = None
 
-      override def paintStake( pc: PaintContext, stake: track.T, selected: Boolean ) {
-         import math._
-         stake match {
-            case ar: AudioRegion => { // man, no chance to skip this matching??
-               val x = pc.virtualToScreen( ar.span.start )
-               val y = pc.y
-//               val width = ((ar.span.stop + pc.p_off) * pc.p_scale + 0.5).toInt - x
-               val width = (ar.span.length * pc.p_scale + 0.5).toInt
-//             val x1C = max( x, pc.clip.x - 2 )
-               val x1C = max( x + 1, pc.clip.x - 2 ) // + 1 for left margin
-               val x2C = min( x + width, pc.clip.x + pc.clip.width + 3 )
-               if( x1C < x2C ) { // skip this if we are not overlapping with clip
-                  val g2 = pc.g2
-                  if( stakeBorderViewMode != StakeBorderViewMode.None ) {
-                     g2.setColor( if( selected ) colrBgSel else colrBg )
-                     g2.fillRoundRect( x, y, width, pc.height, 5, 5 )
-                  }
-
-                  val clipOrig = g2.getClip
-                  val hndl = stakeBorderViewMode match {
-                     case StakeBorderViewMode.None       => 0
-                     case StakeBorderViewMode.Box        => 1
-                     case StakeBorderViewMode.TitledBox  => hndlExtent
-                  }
-                  val innerH     = pc.height - (hndl + 1)
-                  g2.clipRect( x + 1, y + hndl, width - 1, innerH )
-                  
-                  // --- sonagram ---
-                  ar.audioFile.sona.foreach { sona =>
-                     val dStart  = ar.offset - ar.span.start
-                     val startC  = max( 0.0, pc.screenToVirtualD( x1C ))
-                     val stopC   = pc.screenToVirtualD( x2C )
-                     val ctl     = if( fadeViewMode == FadeViewMode.Sonogram ) {
-                        SonogramFadePaint( component, ar, visualBoost )
-//                        new SonoFadePaint( boost, ar.offset, ar.span.getLength, ar.fadeIn.orNull, ar.fadeOut.orNull )
-                     } else {
-                        val boost   = ar.gain * visualBoost
-                        new SonoPaint( boost )
-                     }
-                     sona.paint( startC + dStart, stopC + dStart, g2, x1C, y + hndl, x2C - x1C, innerH, ctl )
-                  }
-               
-                  // --- fades ---
-                  if( fadeViewMode == FadeViewMode.Curve ) {
-                     ar.fadeIn.foreach( f => {
-                        paintFade( f, pc, f.floor, 1f, x, y + hndl, innerH, x )
-                     })
-                     ar.fadeOut.foreach( f => {
-                        val px = (f.numFrames * pc.p_scale).toFloat
-                        paintFade( f, pc, 1f, f.floor, x + width - 1 - px, y + hndl, innerH, x + width - 1 )
-                     })
-                  }
-                  g2.setClip( clipOrig )
-                  
-                  // --- label ---
-                  if( stakeBorderViewMode == StakeBorderViewMode.TitledBox ) {
-                     g2.clipRect( x + 2, y + 2, width - 4, pc.height - 4 )
-                     g2.setColor( Color.white )
-                     // possible unicodes: 2327 23DB 24DC 25C7 2715 29BB
-                     g2.drawString( if( ar.muted ) "\u23DB " + ar.name else ar.name, x + 4, y + hndlBaseline )
-                     stakeInfo( ar ).foreach( info => {
-                        g2.setColor( Color.yellow )
-                        g2.drawString( info, x + 4, y + hndlBaseline + hndlExtent )
-                     })
-                     g2.setClip( clipOrig )
-                  }
-
-                  if( ar.muted ) {
-                     g2.setColor( colrBgMuted )
-                     g2.fillRoundRect( x, y, width, pc.height, 5, 5 )
-                  }
-               }
+    override def paintStake(pc: PaintContext, stake: track.T, selected: Boolean) {
+      import math._
+      stake match {
+        case ar: AudioRegion => {
+          // man, no chance to skip this matching??
+          val x = pc.virtualToScreen(ar.span.start)
+          val y = pc.y
+          //               val width = ((ar.span.stop + pc.p_off) * pc.p_scale + 0.5).toInt - x
+          val width = (ar.span.length * pc.p_scale + 0.5).toInt
+          //             val x1C = max( x, pc.clip.x - 2 )
+          val x1C = max(x + 1, pc.clip.x - 2) // + 1 for left margin
+          val x2C = min(x + width, pc.clip.x + pc.clip.width + 3)
+          if (x1C < x2C) {
+            // skip this if we are not overlapping with clip
+            val g2 = pc.g2
+            if (stakeBorderViewMode != StakeBorderViewMode.None) {
+              g2.setColor(if (selected) colrBgSel else colrBg)
+              g2.fillRoundRect(x, y, width, pc.height, 5, 5)
             }
-            case _ => super.paintStake( pc, stake, selected )
-         }
+
+            val clipOrig = g2.getClip
+            val hndl = stakeBorderViewMode match {
+              case StakeBorderViewMode.None => 0
+              case StakeBorderViewMode.Box => 1
+              case StakeBorderViewMode.TitledBox => hndlExtent
+            }
+            val innerH = pc.height - (hndl + 1)
+            g2.clipRect(x + 1, y + hndl, width - 1, innerH)
+
+            // --- sonagram ---
+            ar.audioFile.sona.foreach {
+              sona =>
+                val dStart = ar.offset - ar.span.start
+                val startC = max(0.0, pc.screenToVirtualD(x1C))
+                val stopC = pc.screenToVirtualD(x2C)
+                val ctl = if (fadeViewMode == FadeViewMode.Sonogram) {
+                  SonogramFadePaint(component, ar, visualBoost)
+                  //                        new SonoFadePaint( boost, ar.offset, ar.span.getLength, ar.fadeIn.orNull, ar.fadeOut.orNull )
+                } else {
+                  val boost = ar.gain * visualBoost
+                  new SonoPaint(boost)
+                }
+                sona.paint(startC + dStart, stopC + dStart, g2, x1C, y + hndl, x2C - x1C, innerH, ctl)
+            }
+
+            // --- fades ---
+            if (fadeViewMode == FadeViewMode.Curve) {
+              ar.fadeIn.foreach(f => {
+                paintFade(f, pc, f.floor, 1f, x, y + hndl, innerH, x)
+              })
+              ar.fadeOut.foreach(f => {
+                val px = (f.numFrames * pc.p_scale).toFloat
+                paintFade(f, pc, 1f, f.floor, x + width - 1 - px, y + hndl, innerH, x + width - 1)
+              })
+            }
+            g2.setClip(clipOrig)
+
+            // --- label ---
+            if (stakeBorderViewMode == StakeBorderViewMode.TitledBox) {
+              g2.clipRect(x + 2, y + 2, width - 4, pc.height - 4)
+              g2.setColor(Color.white)
+              // possible unicodes: 2327 23DB 24DC 25C7 2715 29BB
+              g2.drawString(if (ar.muted) "\u23DB " + ar.name else ar.name, x + 4, y + hndlBaseline)
+              stakeInfo(ar).foreach(info => {
+                g2.setColor(Color.yellow)
+                g2.drawString(info, x + 4, y + hndlBaseline + hndlExtent)
+              })
+              g2.setClip(clipOrig)
+            }
+
+            if (ar.muted) {
+              g2.setColor(colrBgMuted)
+              g2.fillRoundRect(x, y, width, pc.height, 5, 5)
+            }
+          }
+        }
+        case _ => super.paintStake(pc, stake, selected)
       }
-   }
+    }
+  }
 }

@@ -39,7 +39,7 @@ import language.existentials
  *	Node
  *		b			(FP)	OK
  *		numChildren	(FV)	OK
- *		children	(FP)	OK???
+ *		children	(FP)	OK??
  *
  *	@version	0.13, 04-Jan-10
  *	@author		Hanns Holger Rutz

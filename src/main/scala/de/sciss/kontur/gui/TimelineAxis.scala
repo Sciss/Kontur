@@ -35,15 +35,18 @@ import util.Model
 import de.sciss.span.Span
 import legacy.ComponentHost
 import de.sciss.audiowidgets.j.Axis
+import desktop.impl.DynamicComponentImpl
 
 class TimelineAxis( view: TimelineView, host: Option[ ComponentHost ])
-extends Axis()
+extends Axis() with DynamicComponentImpl
 /* with DynamicListening */ {
+
+  protected def dynamicComponent = this
 
   format = Axis.Format.Time()
 //  componentHost = host  // XXX TODO
 
-	private var isListening		= false
+//	private var isListening		= false
 //	private var editorVar: Option[ TimelineView#Editor ] = None
     private var timelineVis = view.span
 
@@ -162,16 +165,17 @@ extends Axis()
 */
 
   private def recalcSpace(trigger: Boolean) {
-    // XXX TODO
 //    val spc = if ((format & Axis.Format.) == 0) {
 //      VectorSpace.createLinSpace(timelineVis.start,
 //        timelineVis.stop,
 //        0.0, 1.0, null, null, null, null)
 //    } else {
-//      val d1 = 1.0 / view.timeline.rate
-//      VectorSpace.createLinSpace(timelineVis.start * d1,
-//        timelineVis.stop * d1,
-//        0.0, 1.0, null, null, null, null)
+      val d1 = 1.0 / view.timeline.rate
+    val start = timelineVis.start * d1
+    val stop  = timelineVis.stop * d1
+//      VectorSpace.createLinSpace(start, stop, 0.0, 1.0, null, null, null, null)
+    minimum = start
+    maximum = stop
 //    }
 //    if (trigger) {
 //      space = spc
@@ -182,21 +186,14 @@ extends Axis()
 
   // ---------------- DynamicListening interface ----------------
 
-    def startListening() {
-    	if( !isListening ) {
-//println( "TIMELINE AXIS START")
-    		isListening = true
-    		view.addListener( timelineListener )
-            timelineVis = view.span
-    		recalcSpace( trigger = true )
-    	}
+    protected def componentShown() {
+      view.addListener( timelineListener )
+      timelineVis = view.span
+      recalcSpace( trigger = true )
     }
 
-    def stopListening() {
-    	if( isListening ) {
-    		isListening = false
-    		view.removeListener( timelineListener )
-    	}
+    protected def componentHidden() {
+      view.removeListener( timelineListener )
     }
 
 	protected def getResourceString( key: String ) =
@@ -204,9 +201,9 @@ extends Axis()
 
 	// -------------- Disposable interface --------------
 
-	override def dispose() {
-		stopListening()
-//		editor = null
-		super.dispose()
-	}
+//	override def dispose() {
+//		stopListening()
+////		editor = null
+//		super.dispose()
+//	}
 }
