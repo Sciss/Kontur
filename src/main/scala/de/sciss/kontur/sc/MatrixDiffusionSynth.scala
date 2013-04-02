@@ -26,7 +26,7 @@
 package de.sciss.kontur
 package sc
 
-import de.sciss.synth.{Model => _, _}
+import de.sciss.synth._
 import ugen._
 import session.{ Diffusion, MatrixDiffusion }
 import util.Model

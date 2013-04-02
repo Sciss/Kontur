@@ -28,7 +28,7 @@ package sc
 
 import collection.immutable.Queue
 import java.io.{ File, IOException }
-import de.sciss.synth.{Model => _, _}
+import de.sciss.synth._
 import de.sciss.osc
 import collection.immutable.{IndexedSeq => IIdxSeq}
 import java.awt.EventQueue

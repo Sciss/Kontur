@@ -31,7 +31,7 @@ import util.{Model, PrefsUtil}
 import java.awt.EventQueue
 import java.io.{File, IOException}
 import de.sciss.{synth, osc}
-import synth.{Model => _, _}
+import synth._
 import legacy.Param
 import de.sciss.desktop.DocumentHandler
 

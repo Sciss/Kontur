@@ -27,7 +27,7 @@ package de.sciss.kontur
 package sc
 
 import math._
-import de.sciss.synth.{Model => _, _}
+import de.sciss.synth._
 import ugen._
 import SynthContext._
 import session.{Diffusion, AudioRegion, AudioTrack}

@@ -46,56 +46,56 @@ extends DefaultMutableTreeNode( obj, canExpand )
 
   private var isListening = false
 
-    def startListening() {
-      isListening = true
-// some version of scalac cannot deal with Enumeration
-// that is not generified ....
-//      new JEnumerationWrapper( children() ).foreach( _ match {
-//          case d: DynamicTreeNode => d.startListening
-//          case _ =>
-//      })
-//      val enum = children(); while( enum.hasMoreElements ) enum.nextElement match {
-//         case d: DynamicTreeNode => d.startListening
-//      }
-       for( i <- 0 until getChildCount ) getChildAt( i ) match {
-          case d: DynamicTreeNode => d.startListening()
-       }
-   }
+  def startListening() {
+    isListening = true
+    // some version of scalac cannot deal with Enumeration
+    // that is not generified ....
+    //      new JEnumerationWrapper( children() ).foreach( _ match {
+    //          case d: DynamicTreeNode => d.startListening
+    //          case _ =>
+    //      })
+    //      val enum = children(); while( enum.hasMoreElements ) enum.nextElement match {
+    //         case d: DynamicTreeNode => d.startListening
+    //      }
+    for (i <- 0 until getChildCount) getChildAt(i) match {
+      case d: DynamicTreeNode => d.startListening()
+    }
+  }
 
   def stopListening() {
-      isListening = false
-//      new JEnumerationWrapper( children() ).foreach( _ match {
-//        case d: DynamicTreeNode => d.stopListening
-//        case _ =>
-//      })
-//     val enum = children(); while( enum.hasMoreElements ) enum.nextElement match {
-//        case d: DynamicTreeNode => d.stopListening
-//     }
-     for( i <- 0 until getChildCount ) getChildAt( i ) match {
-        case d: DynamicTreeNode => d.stopListening()
-     }
+    isListening = false
+    //      new JEnumerationWrapper( children() ).foreach( _ match {
+    //        case d: DynamicTreeNode => d.stopListening
+    //        case _ =>
+    //      })
+    //     val enum = children(); while( enum.hasMoreElements ) enum.nextElement match {
+    //        case d: DynamicTreeNode => d.stopListening
+    //     }
+    for (i <- 0 until getChildCount) getChildAt(i) match {
+      case d: DynamicTreeNode => d.stopListening()
     }
-
-  protected def addDyn( elem: DynamicTreeNode ) {
-    add( elem )
-    if( isListening ) elem.startListening()
   }
 
-  protected def insertDyn( idx: Int, elem: DynamicTreeNode ) {
-    model.insertNodeInto( elem, this, idx )
-    if( isListening ) elem.startListening()
+  protected def addDyn(elem: DynamicTreeNode) {
+    add(elem)
+    if (isListening) elem.startListening()
   }
-  
-  protected def removeDyn( idx: Int ) {
-    getChildAt( idx ) match {
+
+  protected def insertDyn(idx: Int, elem: DynamicTreeNode) {
+    model.insertNodeInto(elem, this, idx)
+    if (isListening) elem.startListening()
+  }
+
+  protected def removeDyn(idx: Int) {
+    getChildAt(idx) match {
       case d: DynamicTreeNode => {
-          d.stopListening()
-          model.removeNodeFromParent( d )
+        d.stopListening()
+        model.removeNodeFromParent(d)
       }
-// let it crash
-//      case _ =>
+      // let it crash
+      //      case _ =>
     }
-//    remove( idx )
+    //    remove( idx )
   }
 }
 

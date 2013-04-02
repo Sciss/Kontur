@@ -48,21 +48,19 @@ import desktop.impl.DynamicComponentImpl
  *	<p>
  *	This class tracks the catch preferences
  *
- *  @author		Hanns Holger Rutz
- *  @version	0.70, 20-Mar-08
- *
  *  @todo		the display properties work well
  *				with the Aqua look+and+feel, however
  *				are slightly wrong on Linux with platinum look+feel
  *				because the scroll gadgets have different positions.
  */
 object TimelineScroll {
-	val TYPE_UNKNOWN            = 0
-	val TYPE_DRAG               = 1
-	val TYPE_TRANSPORT          = 2
-    private val colrSelection  	= new Color( 0x00, 0x00, 0xFF, 0x2F ) // GraphicsUtil.colrSelection;
-    private val colrPosition   	= Color.red
-    private val strkPosition   	= new BasicStroke( 0.5f )
+  val TYPE_UNKNOWN    = 0
+  val TYPE_DRAG       = 1
+  val TYPE_TRANSPORT  = 2
+
+  private val colrSelection = new Color(0x00, 0x00, 0xFF, 0x2F) // GraphicsUtil.colrSelection;
+  private val colrPosition  = Color.red
+  private val strkPosition  = new BasicStroke(0.5f)
 }
 
 class TimelineScroll(timelineView: TimelineView)
