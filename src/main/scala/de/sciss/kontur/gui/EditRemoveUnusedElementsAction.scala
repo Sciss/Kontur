@@ -27,9 +27,9 @@ package de.sciss.kontur.gui
 
 import java.awt.BorderLayout
 import de.sciss.kontur.session.SessionElementSeqEditor
-import javax.swing.{JPanel, JLabel, JList, DefaultListSelectionModel, JScrollPane, JOptionPane}
-import swing.Action
-import de.sciss.desktop.Window
+import javax.swing.{JPanel, JLabel, JList, DefaultListSelectionModel, JScrollPane}
+import scala.swing.{Component, Action}
+import de.sciss.desktop.{OptionPane, Window}
 
 final class EditRemoveUnusedElementsAction[T](elemName: String, ed: SessionElementSeqEditor[T],
                                               collect: => Seq[T], display: T => String = (e: T) => e.toString,
@@ -41,7 +41,7 @@ final class EditRemoveUnusedElementsAction[T](elemName: String, ed: SessionEleme
   def apply() {
     val unused = collect //
     if (unused.isEmpty) {
-      val op = new JOptionPane("There are currently no unused " + elemName + ".", JOptionPane.INFORMATION_MESSAGE)
+      val op = OptionPane.message("There are currently no unused " + elemName + ".", OptionPane.Message.Info)
       Window.showDialog(op -> fullName)
     } else {
       val pane = new JPanel(new BorderLayout(4, 4))
@@ -52,9 +52,10 @@ final class EditRemoveUnusedElementsAction[T](elemName: String, ed: SessionEleme
         override def setSelectionInterval(index0: Int, index1: Int) {}
       })
       pane.add(new JScrollPane(list), BorderLayout.CENTER)
-      val op = new JOptionPane(pane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
+      val op = OptionPane.confirmation(message = Component.wrap(pane), messageType = OptionPane.Message.Question,
+        optionType = OptionPane.Options.OkCancel)
       val result = Window.showDialog(op -> fullName)
-      if (result == JOptionPane.OK_OPTION) {
+      if (result == OptionPane.Result.Ok) {
         val ce = ed.editBegin(fullName)
         unused.foreach(ed.editRemove(ce, _))
         ed.editEnd(ce)

@@ -16,9 +16,9 @@ licenses       := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt"
 
 libraryDependencies ++= Seq(
   "de.sciss" %% "scalacolliderswing" % "1.6.+",
-  "de.sciss" %% "span" % "1.2.+",
-  "de.sciss" %% "scissdsp" % "1.1.+",
-  "de.sciss" %% "desktop" % "0.1.+"
+  "de.sciss" %% "span"               % "1.2.+",
+  "de.sciss" %% "sonogramoverview"   % "1.4.+",
+  "de.sciss" %% "desktop"            % "0.2.+"
 )
 
 retrieveManaged := true

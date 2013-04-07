@@ -35,8 +35,8 @@ import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel}
 import de.sciss.synth.io.AudioFile
 import session.{MatrixDiffusion, Diffusions, AudioFileElement, AudioFileSeq, AudioTrack, BasicTimeline, Diffusion, Renamable, Session, SessionElement, SessionElementSeq, Timeline, Track}
 import util.Model
-import de.sciss.desktop.{Window, Menu}
-import swing.Action
+import de.sciss.desktop.{OptionPane, Window, Menu}
+import scala.swing.{Component, Action}
 
 abstract class DynamicTreeNode( model: SessionTreeModel, obj: AnyRef, canExpand: Boolean )
 extends DefaultMutableTreeNode( obj, canExpand )
@@ -289,9 +289,10 @@ with HasContextMenu with CanBeDropTarget {
        val fullName = strNew + " " + gf.factory.humanReadableName
        val miAddNew = Menu.Item(name, Action(gf.factory.humanReadableName) {
          val panel  = gf.createPanel(model.doc)
-         val op     = new JOptionPane(panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
+         val op = OptionPane.confirmation(message = Component.wrap(panel), messageType = OptionPane.Message.Question,
+           optionType = OptionPane.Options.OkCancel)
          val result = Window.showDialog(op -> fullName)
-         if (result == JOptionPane.OK_OPTION) {
+         if (result == OptionPane.Result.Ok) {
            val diffO = gf.fromPanel(panel)
            diffO.foreach(diff => {
              val ce = diffusions.editBegin(fullName)
@@ -495,12 +496,13 @@ with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
                            warnings ::= ("• Frames mismatch: New file has " + newFile.numFrames + " / old file has " + afe.numFrames)
                         }
                         val goAhead = if( warnings.nonEmpty ) {
-                           val op = new JOptionPane( "There are discrepancies between\n\"" + afe.path.getPath +
-                              "\" (old file) and\n\"" + newFile.path.getPath + "\" (new file):\n\n" +
-                              warnings.mkString( "\n" ) +
-                              "\n\nDo you still want to replace it?", JOptionPane.WARNING_MESSAGE, JOptionPane.YES_NO_OPTION )
+                          val op = OptionPane.confirmation(message = "There are discrepancies between\n\"" + afe.path.getPath +
+                                                        "\" (old file) and\n\"" + newFile.path.getPath + "\" (new file):\n\n" +
+                                                        warnings.mkString( "\n" ) +
+                                                        "\n\nDo you still want to replace it?",
+                            messageType = OptionPane.Message.Warning, optionType = OptionPane.Options.YesNo)
                            val result = Window.showDialog( op -> name )
-                           result == JOptionPane.YES_OPTION
+                           result == OptionPane.Result.Yes
                         } else true
 
                         if( goAhead ) {
@@ -565,7 +567,8 @@ with HasContextMenu with HasDoubleClickAction with CanBeDragSource {
                val miEdit     = Menu.Item( "edit", Action( strEdit + "..." ) {
                    val panel   = new MatrixDiffusionGUI()
                    panel.setObjects( diff )
-                   val op      = new JOptionPane( panel, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION )
+                   val op = OptionPane(message = Component.wrap(panel),
+                     messageType = OptionPane.Message.Plain, optionType = OptionPane.Options.Default)
                    /* val result = */ Window.showDialog( op -> fullName )
                })
                items :+= miEdit

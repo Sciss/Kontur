@@ -33,7 +33,7 @@ import javax.swing.{SwingUtilities, AbstractAction, JComponent, JOptionPane, Key
 import session.Session
 import util.{Flag, Model}
 import swing.Action
-import de.sciss.desktop.Window
+import de.sciss.desktop.{OptionPane, Window}
 import de.sciss.desktop.impl.WindowImpl
 
 trait SessionFrame {
@@ -129,7 +129,8 @@ trait SessionFrame {
     //		if( infoBox != null ) infoBox.updateDocumentName( doc )
 
     if (writeProtected && !wpHaveWarned && document.dirty) {
-      val op = new JOptionPane(getResourceString("warnWriteProtected"), JOptionPane.WARNING_MESSAGE)
+      val op  = OptionPane.message(message = getResourceString("warnWriteProtected"),
+        messageType = OptionPane.Message.Warning)
       showDialog(op -> "Warning") // getResourceString("msgDlgWarn"))
       wpHaveWarned = true
     }
@@ -220,10 +221,10 @@ trait SessionFrame {
      val dont = Flag.False()
      val name = document.displayName
 
-     val op = new JOptionPane(s"<html><body><p><b>Do you want to save the changes you made in<br>the document &ldquo;$name&rdquo;?</b>" +
-       "<p><p><small>Your changes will be lost if you don't save them.</small></body></html>",
-       JOptionPane.WARNING_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION, null,
-       options, options(1))
+     val op = OptionPane(message = s"<html><body><p><b>Do you want to save the changes you made in<br>the document &ldquo;$name&rdquo;?</b>" +
+            "<p><p><small>Your changes will be lost if you don't save them.</small></body></html>",
+       messageType = OptionPane.Message.Warning, optionType = OptionPane.Options.YesNoCancel, entries = options, initial = Some(options(1)))
+
 //     val d = op.createDialog(component.peer, actionName)
 //     val rp = d.getRootPane
 //     if (rp != null) {
@@ -236,11 +237,11 @@ trait SessionFrame {
 //         }
 //       })
 //     }
-     op.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+     op.peer.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
        KeyStroke.getKeyStroke(KeyEvent.VK_D, Window.menuShortcut), "dont")
-     op.getActionMap.put("dont", new AbstractAction {
+     op.peer.getActionMap.put("dont", new AbstractAction {
        def actionPerformed(e: ActionEvent) {
-         val w = SwingUtilities.getWindowAncestor(op)
+         val w = SwingUtilities.getWindowAncestor(op.peer)
          if (w != null) {
            dont() = true
            w.dispose()
@@ -251,7 +252,7 @@ trait SessionFrame {
      val choice = if (dont()) {
        2
      } else {
-       val value = op.getValue
+       val value = op.peer.getValue
        if ((value == null) || (value == options(1))) {
          1
        } else if (value == options(0)) {

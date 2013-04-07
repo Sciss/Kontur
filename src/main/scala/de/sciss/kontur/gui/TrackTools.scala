@@ -27,7 +27,7 @@ package de.sciss.kontur
 package gui
 
 import java.awt.{Cursor, Point, Toolkit}
-import javax.swing.{Box, JLabel, JOptionPane, SwingUtilities}
+import javax.swing.{Box, JLabel, SwingUtilities}
 import javax.swing.event.MouseInputAdapter
 import de.sciss.dsp.Util.dbamp
 import util.Model
@@ -37,7 +37,7 @@ import java.awt.event.{MouseAdapter, KeyEvent, KeyListener, MouseEvent}
 import language.reflectiveCalls
 import legacy.{GUIUtil, ParamSpace, DefaultUnitTranslator, AbstractCompoundEdit}
 import desktop.impl.BasicParamField
-import de.sciss.desktop.Window
+import de.sciss.desktop.{OptionPane, Window}
 
 object TrackTools {
    case class ToolChanged( oldTool: TrackTool, newTool: TrackTool )
@@ -265,9 +265,10 @@ extends TrackStakeTool {
    }
 
   protected def showDialog(message: AnyRef): Boolean = {
-    val op      = new JOptionPane(message, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
+    val op = OptionPane(message = message, messageType = OptionPane.Message.Question,
+      optionType = OptionPane.Options.OkCancel)
     val result  = Window.showDialog(op -> name)
-    result == JOptionPane.OK_OPTION
+    result == OptionPane.Result.Ok
   }
 
   protected class Drag( val firstEvent: MouseEvent, val firstTLE: TrackListElement,

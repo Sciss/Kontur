@@ -36,7 +36,8 @@ import de.sciss.osc
 import util.Model
 import legacy.{TimeFormat, GUIUtil, DefaultUnitTranslator, Param, ParamSpace}
 import desktop.impl.{DynamicComponentImpl, BasicParamField}
-import de.sciss.desktop.Window
+import de.sciss.desktop.{OptionPane, Window}
+import scala.swing.Component
 
 // temporary hack to get osc synced video
 class TransportPanel( tlv: TimelineView )
@@ -154,11 +155,13 @@ extends SegmentedButtonPanel with DynamicComponentImpl {
       ggTime.value  = valueGoToTime getOrElse new Param( 0.0, ParamSpace.TIME | ParamSpace.SECS )
       ggTime.space  = spaceGoToTime
 
-     val op = new JOptionPane(ggTime, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
+     val op = OptionPane(message = Component.wrap(ggTime), messageType = OptionPane.Message.Question,
+       optionType = OptionPane.Options.OkCancel)
+     // val op = new JOptionPane(ggTime, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
      // val app = AbstractApplication.getApplication
      val result = Window.showDialog(op -> "Go to Time") // app.getResourceString( "inputDlgGoToTime" ))
 
-     if( result == JOptionPane.OK_OPTION ) {
+     if( result == OptionPane.Result.Ok) {
          val v          = ggTime.value
          valueGoToTime	= Some( v )
          spaceGoToTime	= ggTime.space

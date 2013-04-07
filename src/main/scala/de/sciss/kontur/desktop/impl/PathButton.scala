@@ -3,14 +3,13 @@ package desktop
 package impl
 
 import java.awt.datatransfer.{UnsupportedFlavorException, Transferable, DataFlavor}
-import java.io.{FilenameFilter, FileFilter, IOException, File}
+import java.io.{FilenameFilter, FileFilter, File}
 import legacy.{BasicEvent, PathListener, PathEvent, GUIUtil, EventManager, ModificationButton}
 import javax.swing.event.MouseInputAdapter
 import java.awt.event.MouseEvent
 import javax.swing.{SwingUtilities, TransferHandler, JComponent}
 import java.awt.{Component, Frame, FileDialog, Dialog}
 import annotation.tailrec
-import net.roydesign.ui.FolderDialog
 
 /**
  * This class is a rewritten version

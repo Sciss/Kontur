@@ -36,22 +36,23 @@ class EditRenameAction(r: Renamable, ed: Editor, name: String = "Rename...")
   extends Action(name) {
 
   def apply() {
-    val op = new JOptionPane("Enter new name:", JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
-    op.setWantsInput(true)
-    op.setInitialSelectionValue(r.name)
-    val result = Window.showDialog(op -> name)
-
-    if (result == JOptionPane.OK_OPTION) {
-      val newName = op.getInputValue.toString
-      val ce = ed.editBegin(name)
-      r.editRename(ce, newName)
-      // val edit = new SimpleEdit( name ) {
-      //   lazy val oldName = r.name
-      //   def apply() { oldName; r.name = newName }
-      //   def unapply() { r.name = oldName }
-      // }
-      // ce.addPerform( edit )
-      ed.editEnd(ce)
-    }
+    ???
+//    val op = new JOptionPane("Enter new name:", JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
+//    op.setWantsInput(true)
+//    op.setInitialSelectionValue(r.name)
+//    val result = Window.showDialog(op -> name)
+//
+//    if (result == JOptionPane.OK_OPTION) {
+//      val newName = op.getInputValue.toString
+//      val ce = ed.editBegin(name)
+//      r.editRename(ce, newName)
+//      // val edit = new SimpleEdit( name ) {
+//      //   lazy val oldName = r.name
+//      //   def apply() { oldName; r.name = newName }
+//      //   def unapply() { r.name = oldName }
+//      // }
+//      // ce.addPerform( edit )
+//      ed.editEnd(ce)
+//    }
   }
 }

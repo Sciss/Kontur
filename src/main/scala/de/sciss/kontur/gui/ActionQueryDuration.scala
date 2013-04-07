@@ -26,12 +26,11 @@
 package de.sciss.kontur
 package gui
 
-import javax.swing.JOptionPane
 import session.Timeline
 import legacy.{GUIUtil, SpringPanel, DefaultUnitTranslator, ParamSpace, Param}
 import desktop.impl.BasicParamField
 import swing.{UIElement, Action, Component}
-import de.sciss.desktop.Window
+import de.sciss.desktop.{OptionPane, Window}
 
 abstract class ActionQueryDuration(title: String) extends Action(title) {
   private var value = Option.empty[Param]
@@ -55,10 +54,11 @@ abstract class ActionQueryDuration(title: String) extends Action(title) {
     ggDuration.value = (value getOrElse initialValue)
     ggDuration.space = space
 
-    val op = new JOptionPane(msgPane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
+    val op  = OptionPane.confirmation(message = Component.wrap(msgPane), messageType = OptionPane.Message.Question,
+      optionType = OptionPane.Options.OkCancel)
     val result = Window.showDialog(parent, op -> title)
 
-    if (result == JOptionPane.OK_OPTION) {
+    if (result == OptionPane.Result.Ok) {
       val v = ggDuration.value
       value = Some(v)
       space = ggDuration.space

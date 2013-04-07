@@ -38,7 +38,7 @@ import de.sciss.span.Span
 import Span.SpanOrVoid
 import legacy.{DefaultUnitTranslator, Param, ParamSpace, GUIUtil}
 import swing.{RootPanel, Action, Component, BorderPanel}
-import de.sciss.desktop.{Preferences, Window}
+import de.sciss.desktop.{OptionPane, Preferences, Window}
 import de.sciss.desktop.impl.WindowImpl
 import desktop.impl.PathField
 import language.reflectiveCalls
@@ -907,9 +907,11 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
       val ggCancel = new JButton("Abort") // getResourceString("buttonAbort"))
       ggCancel.setFocusable(false)
       val options = Array[AnyRef](ggCancel)
-      val op = new JOptionPane(ggProgress, JOptionPane.INFORMATION_MESSAGE, 0, null, options)
+      val op = OptionPane(message = Component.wrap(ggProgress),
+        messageType = OptionPane.Message.Info, optionType = OptionPane.Options.YesNo, entries = options)
+      // val op = new JOptionPane(ggProgress, JOptionPane.INFORMATION_MESSAGE, 0, null, options)
       def fDispose() {
-        val w = SwingUtilities.getWindowAncestor(op); if (w != null) w.dispose()
+        val w = SwingUtilities.getWindowAncestor(op.peer); if (w != null) w.dispose()
       }
       ggCancel.addActionListener(new ActionListener {
         def actionPerformed(e: ActionEvent) {
@@ -980,21 +982,21 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
         pane.add(new JLabel("   " + "No Selection")) // getResourceString("bounceDlgNoSel")))
       }
 
-      val op = new JOptionPane(pane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
+      val op = OptionPane(message = Component.wrap(pane), messageType = OptionPane.Message.Question,
+        optionType = OptionPane.Options.OkCancel)
       val result = showDialog(op, name)
-      if (result != JOptionPane.OK_OPTION) return None
+      if (result != OptionPane.Result.Ok) return None
 
       val path = ggPath.file
       if (path.exists) {
         val opCancel = "Cancel" // getResourceString("buttonCancel")
         val opOverwrite = "Overwrite" // getResourceString("buttonOverwrite")
         val options = Array[AnyRef](opOverwrite, opCancel)
-        val op2 = new JOptionPane("Warning: File already exists" /* getResourceString("warnFileExists") */ + ":\n" + path.toString + "\n" +
-          "Overwrite file?" /* getResourceString("warnOverwriteFile") */, JOptionPane.WARNING_MESSAGE, JOptionPane.OK_CANCEL_OPTION,
-          null, options)
-        op2.setInitialSelectionValue(opCancel)
+        val op2 = OptionPane(message = "Warning: File already exists" /* getResourceString("warnFileExists") */ + ":\n" + path.toString + "\n" +
+                  "Overwrite file?" /* getResourceString("warnOverwriteFile") */,
+          messageType = OptionPane.Message.Warning, optionType = OptionPane.Options.OkCancel, entries = options, initial = Some(opCancel))
         /* val result2 = */ showDialog(op2, name)
-        if (op2.getValue != opOverwrite) return None
+        if (op2.peer.getValue != opOverwrite) return None
       }
 
       val all = bg.isSelected(ggAll.getModel)
