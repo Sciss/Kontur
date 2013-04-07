@@ -25,9 +25,9 @@
 
 package de.sciss.kontur.gui
 
-import de.sciss.kontur.io.SonagramPaintController
 import java.awt.image.ImageObserver
 import de.sciss.kontur.session.{AudioRegion, FadeSpec}
+import de.sciss.sonogram
 
 object SonogramFadePaint {
    def apply( imageObserver: ImageObserver, ar: AudioRegion, visualBoost: Float = 1f ) =
@@ -45,11 +45,12 @@ object SonogramFadePaint {
  */
 final class SonogramFadePaint( val imageObserver: ImageObserver, boost: Float, offset: Long, numFrames: Long,
                                fadeIn: FadeSpec, fadeOut: FadeSpec )
-extends SonagramPaintController {
+extends sonogram.PaintController {
    private val doFadeIn    = fadeIn  != null && fadeIn.numFrames > 0
    private val doFadeOut   = fadeOut != null && fadeOut.numFrames > 0
 
-   def sonogramGain( pos: Double ) = {
+
+  def adjustGain(amp: Float, pos: Double): Float = {
       var gain = boost
       if( doFadeIn ) {
          val f = ((pos - offset) / fadeIn.numFrames).toFloat
@@ -59,6 +60,6 @@ extends SonagramPaintController {
          val f = ((pos - offset - (numFrames - fadeOut.numFrames)) / fadeOut.numFrames).toFloat
          if( f > 0f ) gain *= fadeOut.shape.levelAt( math.min( 1f, f ), 1f, 0f )
       }
-      gain
+      amp * gain
    }
 }

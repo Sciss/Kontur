@@ -35,7 +35,6 @@ import java.awt.image.{BufferedImage, ImageObserver}
 import java.io.{File, IOException}
 import javax.swing.JComponent
 import collection.IterableLike
-import io.SonagramPaintController
 import session.{AudioFileElement, AudioRegion, AudioTrack,
                                 BasicTrail, FadeSpec, RegionTrait,
                                 ResizableStake, Session, SlidableStake, Stake, Track}
@@ -46,18 +45,20 @@ import de.sciss.span.Span
 import Span.SpanOrVoid
 import legacy.AbstractCompoundEdit
 import desktop.impl.DynamicComponentImpl
+import de.sciss.sonogram
 
 object DefaultTrackComponent {
-   protected[gui] case class PaintContext( g2: Graphics2D, x: Int, y: Int, p_off: Long, p_scale: Double, height: Int,
-                                           viewSpan: Span, clip: Rectangle ) {
+  protected[gui] case class PaintContext(g2: Graphics2D, x: Int, y: Int, p_off: Long, p_scale: Double, height: Int,
+                                         viewSpan: Span, clip: Rectangle) {
 
-      def virtualToScreen( pos: Long ) = ((pos + p_off) * p_scale + 0.5).toInt + x
-      def virtualToScreenD( pos: Long )= (pos + p_off) * p_scale + x
-      def screenToVirtual( loc: Int )  = ((loc - x) / p_scale - p_off + 0.5).toLong
-      def screenToVirtualD( loc: Int ) = (loc - x) / p_scale - p_off
-   }
+    def virtualToScreen (pos: Long) = ((pos + p_off) * p_scale + 0.5).toInt + x
+    def virtualToScreenD(pos: Long) =  (pos + p_off) * p_scale + x
 
-   protected[gui] trait Painter {
+    def screenToVirtual (loc: Int) = ((loc - x) / p_scale - p_off + 0.5).toLong
+    def screenToVirtualD(loc: Int) =  (loc - x) / p_scale - p_off
+  }
+
+  protected[gui] trait Painter {
       def paint( pc: PaintContext ) : Unit
    }
 
@@ -748,9 +749,9 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
       }
 
    // ---- SonagramPaintController ----
-   private class SonoPaint( boost: Float ) extends SonagramPaintController {
-      def imageObserver: ImageObserver = component
-      def sonogramGain( pos: Double ) = boost
+   private class SonoPaint( boost: Float ) extends sonogram.PaintController {
+     def adjustGain(amp: Float, pos: Double) = amp * boost
+     def imageObserver: ImageObserver = component
    }
 
 //   private class SonoFadePaint( boost: Float, offset: Long, numFrames: Long, fadeIn: FadeSpec, fadeOut: FadeSpec )
@@ -881,7 +882,7 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
       shpFill.moveTo(x, y1s)
       shpDraw.moveTo(x, y1s)
       //         if( f.shape.id != 1 ) {
-      var xs = 4;
+      var xs = 4
       while (xs < px) {
         //             val ys = (1 - f.shape.levelAt( xs / px, y1, y2 )) * h + y
         val ys = max(-3, log10(f.shape.levelAt(xs / px, y1, y2))) * vscale + y

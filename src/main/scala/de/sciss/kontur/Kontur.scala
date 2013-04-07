@@ -31,10 +31,10 @@ import gui.{MenuFactory, GlobalActions, MainFrame, SuperColliderFrame}
 import session.Session
 import util.{Flag, PrefsUtil}
 import sc.SuperColliderClient
-import swing.Swing
 import legacy.ProcessingThread
-import de.sciss.desktop.impl.{SwingApplicationImpl, DocumentHandlerImpl, WindowHandlerImpl, ApplicationImpl}
-import de.sciss.desktop.{DocumentHandler, Application, Menu, Preferences, SwingApplication, WindowHandler}
+import de.sciss.desktop.impl.SwingApplicationImpl
+import de.sciss.desktop.Preferences
+import de.sciss.sonogram
 
 /**
  *  The <code>Main</code> class contains the java VM
@@ -91,6 +91,8 @@ object Kontur extends SwingApplicationImpl("Kontur") {
 
   final val COMP_CTRLROOM = "ControlRoom"
 
+  final val COMP_SONO = "SonogramManager"
+
   lazy val eisenkraut = new EisenkrautClient()(this)
 
   private val quitAfterSaveListener = new ProcessingThread.Listener {
@@ -142,6 +144,8 @@ object Kontur extends SwingApplicationImpl("Kontur") {
 //    init()
 
 		// ---- component views ----
+
+    addComponent(COMP_SONO, sonogram.OverviewManager())
 
     val mainFrame = new MainFrame()
     val scFrame   = new SuperColliderFrame()

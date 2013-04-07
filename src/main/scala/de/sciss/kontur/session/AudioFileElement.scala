@@ -23,16 +23,17 @@
  *	contact@sciss.de
  */
 
-package de.sciss.kontur.session
+package de.sciss.kontur
+package session
 
 import java.awt.datatransfer.DataFlavor
 import java.io.{ File, IOException }
 import scala.xml.Node
 
-import de.sciss.kontur.io.SonagramOverview
-import de.sciss.kontur.util.SerializerContext
+import util.SerializerContext
 import de.sciss.synth.io.AudioFile
 import legacy.AbstractCompoundEdit
+import de.sciss.sonogram
 
 object AudioFileElement {
     val XML_NODE = "audioFile"
@@ -80,13 +81,12 @@ extends SessionElement {
   }
 */
 
-   // XXX it would be good to keep this separated in gui package
-   lazy val sona : Option[ SonagramOverview ] = {
-      try {
-         Some( SonagramOverview.fromPath( path ))
-      }
-      catch { case e1: IOException => None }
-   }
+  // XXX it would be good to keep this separated in gui package
+  lazy val sona: Option[sonogram.Overview] = {
+    Kontur.getComponent[sonogram.OverviewManager](Kontur.COMP_SONO).map { mgr =>
+      mgr.acquire(sonogram.OverviewManager.Job(path))
+    }
+  }
 }
 
 class AudioFileSeq( doc: Session )
