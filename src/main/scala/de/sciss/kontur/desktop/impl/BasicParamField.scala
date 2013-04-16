@@ -192,7 +192,7 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
   def cycling_=(value: Boolean) { unitLabel.setCycling(value) }
 
 	protected def selectSpace(selectedIdx: Int) {
-		if( selectedIdx < 0 && selectedIdx >= spaces.size ) {
+		if( selectedIdx < 0 || selectedIdx >= spaces.size ) {
       currentSpace = None
       return
     }

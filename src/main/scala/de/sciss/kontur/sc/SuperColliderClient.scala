@@ -79,6 +79,7 @@ class SuperColliderClient extends Model {
 
       app.documentHandler.addListener {
         case DocumentHandler.Added(doc) =>
+          // println("new doc -> sc player")
           players += doc -> new SuperColliderPlayer(SuperColliderClient.this, doc)
 
         case DocumentHandler.Removed(doc) =>

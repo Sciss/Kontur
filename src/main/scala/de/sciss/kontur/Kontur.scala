@@ -35,6 +35,9 @@ import legacy.ProcessingThread
 import de.sciss.desktop.impl.SwingApplicationImpl
 import de.sciss.desktop.Preferences
 import de.sciss.sonogram
+import scala.concurrent.ExecutionContext
+import java.util.concurrent.Executors
+import java.io.File
 
 /**
  *  The <code>Main</code> class contains the java VM
@@ -144,8 +147,12 @@ object Kontur extends SwingApplicationImpl("Kontur") {
 //    init()
 
 		// ---- component views ----
-
-    addComponent(COMP_SONO, sonogram.OverviewManager())
+    val sono                = sonogram.OverviewManager.Config()
+    sono.executionContext   = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor())
+    val sonoDir             = new File(new File(sys.props("user.home"), name), "cache")
+    sonoDir.mkdirs()
+    sono.caching            = Some(sonogram.OverviewManager.Caching(folder = sonoDir, sizeLimit = 10L << 10 << 10 << 10))
+    addComponent(COMP_SONO, sonogram.OverviewManager(sono))
 
     val mainFrame = new MainFrame()
     val scFrame   = new SuperColliderFrame()

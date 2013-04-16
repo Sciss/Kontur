@@ -34,6 +34,7 @@ import util.SerializerContext
 import de.sciss.synth.io.AudioFile
 import legacy.AbstractCompoundEdit
 import de.sciss.sonogram
+import de.sciss.dsp.ConstQ
 
 object AudioFileElement {
     val XML_NODE = "audioFile"
@@ -84,7 +85,11 @@ extends SessionElement {
   // XXX it would be good to keep this separated in gui package
   lazy val sona: Option[sonogram.Overview] = {
     Kontur.getComponent[sonogram.OverviewManager](Kontur.COMP_SONO).map { mgr =>
-      mgr.acquire(sonogram.OverviewManager.Job(path))
+      val cq          = ConstQ.Config()
+      cq.maxFreq      = 18000
+      cq.maxTimeRes   = 16
+      cq.bandsPerOct  = 18
+      mgr.acquire(sonogram.OverviewManager.Job(path, cq))
     }
   }
 }

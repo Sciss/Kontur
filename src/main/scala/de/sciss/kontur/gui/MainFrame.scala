@@ -31,6 +31,7 @@ import de.sciss.scalainterpreter.LogPane
 import swing.Component
 import de.sciss.desktop.{Window, WindowHandler}
 import de.sciss.desktop.impl.WindowImpl
+import java.io.PrintStream
 
 final class MainFrame(implicit val handler: WindowHandler)
   extends WindowImpl {
@@ -50,6 +51,10 @@ final class MainFrame(implicit val handler: WindowHandler)
 
   private val lta = LogPane()
   lta.makeDefault()
+  private val ps = new PrintStream(lta.outputStream)
+  System.setErr(ps)
+  System.setErr(ps)
+
   //      lta.setFont( new Font( "Menlo", Font.PLAIN, 10 ))
   //      lta.setForeground( Color.white )
   //      lta.setBackground( Color.black )
