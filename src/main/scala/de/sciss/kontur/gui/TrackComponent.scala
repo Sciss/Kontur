@@ -540,86 +540,86 @@ object AudioTrackComponent {
    private val colrBgMuted      = new Color( 0xFF, 0xFF, 0xFF, 0x60 )
 }
 
-class AudioTrackComponent( doc: Session, audioTrack: AudioTrack, trackList: TrackList,
-                           timelineView: TimelineView )
-extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
-/* with SonagramPaintController */ {
-    component =>
-    
-    import AudioTrackComponent._
-    import DefaultTrackComponent._
+class AudioTrackComponent(doc: Session, audioTrack: AudioTrack, trackList: TrackList,
+                          timelineView: TimelineView)
+  extends DefaultTrackComponent(doc, audioTrack, trackList, timelineView)
+  /* with SonagramPaintController */ {
+  component =>
 
-    private var dropPos : Option[ Long ] = None
+  import AudioTrackComponent._
+  import DefaultTrackComponent._
 
-    // ---- constructor ----
-    {
-        new DropTarget( this, DnDConstants.ACTION_COPY, new DropTargetAdapter {
-           override def dragEnter( dtde: DropTargetDragEvent ) {
-              process( dtde )
-           }
+  private var dropPos: Option[Long] = None
 
-           override def dragOver( dtde: DropTargetDragEvent ) {
-              process( dtde )
-           }
+  // ---- constructor ----
+  new DropTarget(this, DnDConstants.ACTION_COPY, new DropTargetAdapter {
+    override def dragEnter(dtde: DropTargetDragEvent) {
+      process(dtde)
+    }
 
-           override def dragExit( dte: DropTargetEvent ) {
-              dropPos.foreach( pos => {
-                 dropPos = None
-                 repaint( Span( pos, pos ))
-              })
-           }
+    override def dragOver(dtde: DropTargetDragEvent) {
+      process(dtde)
+    }
 
-           private def process( dtde: DropTargetDragEvent ) {
-              val newLoc = if( dtde.isDataFlavorSupported( DataFlavor.stringFlavor )) {
-                  dtde.acceptDrag( DnDConstants.ACTION_COPY )
-                  Some( screenToVirtual( dtde.getLocation.x ))
-              } else {
-                  dtde.rejectDrag()
-                  None
-              }
-              if( newLoc != dropPos ) {
-                  val dirtySpan = if( dropPos.isDefined ) {
-                     val pos1 = dropPos.get
-                     val pos2 = newLoc getOrElse pos1
-                     Span( math.min( pos1, pos2 ), math.max( pos1, pos2 ))
-                  } else {
-                     val pos1 = newLoc.get
-                     Span( pos1, pos1 )
-                  }
-                  dropPos = newLoc
-                  repaint( dirtySpan )
-              }
-           }
+    override def dragExit(dte: DropTargetEvent) {
+      dropPos.foreach(pos => {
+        dropPos = None
+        repaint(Span(pos, pos))
+      })
+    }
 
-           def drop( dtde: DropTargetDropEvent ) {
-              dropPos.foreach( pos => {
-                 dropPos = None
-                 repaint( Span( pos, pos ))
-              })
-              if( dtde.isDataFlavorSupported( DataFlavor.stringFlavor )) {
-                 dtde.acceptDrop( DnDConstants.ACTION_COPY )
-                 val str = dtde.getTransferable.getTransferData( DataFlavor.stringFlavor ).toString
-                 val arr = str.split( ':' )
-                 if( arr.size == 3 ) {
-                   try {
-                      val path   = new File( arr( 0 ))
-                      val span   = Span( arr( 1 ).toLong, arr( 2 ).toLong )
-                      val tlSpan = timelineView.timeline.span
-                      val insPos = math.max( tlSpan.start, math.min( tlSpan.stop,
-                          screenToVirtual( dtde.getLocation.x )))
-                      pasteExtern( path, span, insPos )
-                   }
-                   catch { case e1: NumberFormatException => }
-                 }
-                 dtde.dropComplete( true )
-             } else {
-                 dtde.rejectDrop()
-             }
-           }
-        })
+    private def process(dtde: DropTargetDragEvent) {
+      val newLoc = if (dtde.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+        dtde.acceptDrag(DnDConstants.ACTION_COPY)
+        Some(screenToVirtual(dtde.getLocation.x))
+      } else {
+        dtde.rejectDrag()
+        None
       }
+      if (newLoc != dropPos) {
+        val dirtySpan = if (dropPos.isDefined) {
+          val pos1 = dropPos.get
+          val pos2 = newLoc getOrElse pos1
+          Span(math.min(pos1, pos2), math.max(pos1, pos2))
+        } else {
+          val pos1 = newLoc.get
+          Span(pos1, pos1)
+        }
+        dropPos = newLoc
+        repaint(dirtySpan)
+      }
+    }
 
-   // XXX eventually we could save space and let the painter
+    def drop(dtde: DropTargetDropEvent) {
+      dropPos.foreach(pos => {
+        dropPos = None
+        repaint(Span(pos, pos))
+      })
+      if (dtde.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+        dtde.acceptDrop(DnDConstants.ACTION_COPY)
+        val str = dtde.getTransferable.getTransferData(DataFlavor.stringFlavor).toString
+        val arr = str.split(":")
+        if (arr.length == 3) {
+          try {
+            val path = new File(arr(0))
+            val span = Span(arr(1).toLong, arr(2).toLong)
+            val tlSpan = timelineView.timeline.span
+            val insPos = math.max(tlSpan.start, math.min(tlSpan.stop,
+              screenToVirtual(dtde.getLocation.x)))
+            pasteExtern(path, span, insPos)
+          }
+          catch {
+            case _: NumberFormatException =>
+          }
+        }
+        dtde.dropComplete(true)
+      } else {
+        dtde.rejectDrop()
+      }
+    }
+  })
+
+  // XXX eventually we could save space and let the painter
    // do the msg matching, no?
    private val gainToolListener: Model.Listener = {
       case TrackStakeTool.DragBegin =>
