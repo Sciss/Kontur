@@ -32,41 +32,47 @@ import javax.swing.JTree
 import DnDConstants._
 
 trait CanBeDragSource extends Transferable {
-   def transferDataFlavors: List[ DataFlavor ]
-   def transferData( flavor: DataFlavor ) : AnyRef
+  def transferDataFlavors: List[DataFlavor]
 
-   def isDataFlavorSupported( flavor: DataFlavor ) : Boolean =
-      transferDataFlavors.contains( flavor )
+  def transferData(flavor: DataFlavor): AnyRef
 
-   def getTransferDataFlavors : Array[ DataFlavor ] =
-     transferDataFlavors.toArray
+  def isDataFlavorSupported(flavor: DataFlavor): Boolean =
+    transferDataFlavors.contains(flavor)
 
-   def getTransferData( flavor: DataFlavor ) : AnyRef = try {
-         transferData( flavor )
-      } catch { case e1: MatchError => throw new UnsupportedFlavorException( flavor )}
+  def getTransferDataFlavors: Array[DataFlavor] =
+    transferDataFlavors.toArray
+
+  def getTransferData(flavor: DataFlavor): AnyRef = try {
+    transferData(flavor)
+  } catch {
+    case _: MatchError => throw new UnsupportedFlavorException(flavor)
+  }
 }
 
-class TreeDragSource( tree: JTree, actions: Int = ACTION_COPY_OR_MOVE | ACTION_LINK )
-extends DragSourceAdapter with DragGestureListener {
+class TreeDragSource(tree: JTree, actions: Int = ACTION_COPY_OR_MOVE | ACTION_LINK)
+  extends DragSourceAdapter with DragGestureListener {
 
-//    // ---- constructor ----
-//    {
-       /* val dgr = */ DragSource.getDefaultDragSource.createDefaultDragGestureRecognizer(
-          tree, actions, this )
-//    }
+  //    // ---- constructor ----
+  //    {
+  /* val dgr = */ DragSource.getDefaultDragSource.createDefaultDragGestureRecognizer(
+    tree, actions, this)
 
-    // ---- DragGestureListener ----
-   def dragGestureRecognized( dge: DragGestureEvent ) {
-      val path = tree.getSelectionPath
-      if( path == null ) return
-      path.getLastPathComponent match {
-         case cbds: CanBeDragSource => {
-             try {
-               DragSource.getDefaultDragSource.startDrag( dge, null, cbds, this )
-             }
-             catch { case e1: InvalidDnDOperationException => /* ignore */}
-         }
-         case _ =>
-      }
+  //    }
+
+  // ---- DragGestureListener ----
+  def dragGestureRecognized(dge: DragGestureEvent) {
+    val path = tree.getSelectionPath
+    if (path == null) return
+    path.getLastPathComponent match {
+      case cbds: CanBeDragSource =>
+        try {
+          DragSource.getDefaultDragSource.startDrag(dge, null, cbds, this)
+        }
+        catch {
+          case e1: InvalidDnDOperationException => /* ignore */
+        }
+
+      case _ =>
     }
+  }
 }
