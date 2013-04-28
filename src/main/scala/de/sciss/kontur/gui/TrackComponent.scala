@@ -59,22 +59,22 @@ object DefaultTrackComponent {
   }
 
   protected[gui] trait Painter {
-      def paint( pc: PaintContext ) : Unit
-   }
+    def paint(pc: PaintContext): Unit
+  }
 
-   val MIN_SPAN_LEN = 64  // XXX somewhat arbitrary (one control block in default scsynth)
-   val colrBg     = new Color( 0x68, 0x68, 0x68 )
-   val colrBgSel  = Color.blue
+  val MIN_SPAN_LEN    = 64  // XXX somewhat arbitrary (one control block in default scsynth)
+  val colrBg          = new Color(0x68, 0x68, 0x68)
+  val colrBgSel       = Color.blue
 
-   val hndlExtent        = 15
-   val hndlBaseline      = 12
+  val hndlExtent      = 15
+  val hndlBaseline    = 12
 
-   var forceFullPaint   = false
+  var forceFullPaint  = false
 }
 
 trait TrackComponent {
-   def track: Track
-   def paintTrack( g2: Graphics2D, x: Int, y: Int, width: Int, height: Int, span: Span ) : Unit
+  def track: Track
+  def paintTrack(g2: Graphics2D, x: Int, y: Int, width: Int, height: Int, span: Span): Unit
 }
 
 class DefaultTrackComponent(doc: Session, val track: Track, trackList: TrackList, timelineView: TimelineView)
@@ -88,8 +88,8 @@ class DefaultTrackComponent(doc: Session, val track: Track, trackList: TrackList
   protected val trail = track.trail
   // "stable"
   protected lazy val trackListElement = trackList.getElement(track).get
-  protected lazy val trailView = trackListElement.trailView.asInstanceOf[TrailView[track.T]]
-  protected lazy val trailViewEditor = trailView.editor
+  protected lazy val trailView        = trackListElement.trailView.asInstanceOf[TrailView[track.T]]
+  protected lazy val trailViewEditor  = trailView.editor
   /*
       protected val p_rect    = new Rectangle()
       protected var p_off     = -timelineView.timeline.span.start
