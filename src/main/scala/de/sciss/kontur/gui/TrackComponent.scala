@@ -119,8 +119,8 @@ class DefaultTrackComponent(doc: Session, val track: Track, trackList: TrackList
   }
 
   private val trailListener: Model.Listener = {
-    case trail.StakesAdded(span, stakes@_*) => checkSpanRepaint(span)
-    case trail.StakesRemoved(span, stakes@_*) => checkSpanRepaint(span)
+    case trail.StakesAdded  (span, stakes @ _*) => checkSpanRepaint(span)
+    case trail.StakesRemoved(span, stakes @ _*) => checkSpanRepaint(span)
   }
 
   private val mia = new MouseAdapter {
