@@ -552,11 +552,10 @@ class TrackAuditionTool(doc: Session, protected val trackList: TrackList, protec
   protected def handleSelect(e: MouseEvent, tle: TrackListElement, pos: Long, stake: Stake[_]) {
     val fromStart = e.isAltDown
     if (!fromStart) {
-      timelineView.editor.foreach {
-        ed =>
-          val ce = ed.editBegin("Adjust timeline position")
-          ed.editPosition(ce, pos)
-          ed.editEnd(ce)
+      timelineView.editor.foreach { ed =>
+        val ce = ed.editBegin("Adjust timeline position")
+        ed.editPosition(ce, pos)
+        ed.editEnd(ce)
       }
     }
     val trackPlayerO = SuperColliderClient.instance.getPlayer(doc).flatMap(_.session)
