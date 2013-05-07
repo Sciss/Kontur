@@ -139,7 +139,7 @@ class DefaultTrackComponent(doc: Session, val track: Track, trackList: TrackList
   private val moveResizeToolListener: Model.Listener = {
     case TrackStakeTool.DragBegin =>
       unionSpan(trailView.selectedStakes) match {
-        case union@Span(_, _) => painter = createMoveResizePainter(union, painter)
+        case union @ Span(_, _) => painter = createMoveResizePainter(union, painter)
         case _ =>
       }
 
