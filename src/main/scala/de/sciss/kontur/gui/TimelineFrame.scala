@@ -31,7 +31,7 @@ import util.PrefsUtil
 import java.awt.event.{ActionEvent, ActionListener, InputEvent, KeyEvent}
 import java.awt.{Dimension, Point, Rectangle}
 import java.io.File
-import javax.swing.{Box, ButtonGroup, JButton, JLabel, JOptionPane, JProgressBar, JRadioButton, KeyStroke, SwingUtilities}
+import javax.swing.{Box, ButtonGroup, JButton, JLabel, JProgressBar, JRadioButton, KeyStroke, SwingUtilities}
 import scala.math._
 import de.sciss.synth.io.AudioFileSpec
 import de.sciss.span.Span
@@ -894,7 +894,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
 
   private object ActionBounce extends Action("Bounce") {
     def apply() {
-      query.foreach {
+      query().foreach {
         case (tls, span@Span(_, _), path, spec) =>
           perform(tls, span, path, spec)
         case _ =>
@@ -935,7 +935,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
       }
     }
 
-    def query: Option[(List[Track], SpanOrVoid, File, AudioFileSpec)] = {
+    def query(): Option[(List[Track], SpanOrVoid, File, AudioFileSpec)] = {
       val trackElems = tracksPanel.toList
       // val numTracks     = trackElems.size
       val selTrackElems = trackElems.filter(_.selected)
