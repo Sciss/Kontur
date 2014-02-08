@@ -41,10 +41,10 @@ import session.{AudioFileElement, AudioRegion, AudioTrack,
                                 ResizableStake, Session, SlidableStake, Stake, Track}
 import de.sciss.app.{AbstractApplication, AbstractCompoundEdit, DynamicAncestorAdapter,DynamicListening, GraphicsHandler}
 import de.sciss.dsp.Util.ampdb
-import de.sciss.synth.{curveShape, linShape}
 import util.Model
 import de.sciss.span.{SpanLike, Span}
 import de.sciss.span.Span.SpanOrVoid
+import de.sciss.synth.Curve
 
 object DefaultTrackComponent {
    protected[gui] case class PaintContext( g2: Graphics2D, x: Int, y: Int, p_off: Long, p_scale: Double, height: Int,
@@ -833,13 +833,13 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
             val fadeInChange  = dragFdInTime  != 0L || dragFdInCurve != 0f
             val fadeOutChange = dragFdOutTime != 0L || dragFdOutCurve != 0f
             if( fadeInChange || fadeOutChange ) {
-               var fadeInSpec  = ar.fadeIn  getOrElse FadeSpec( 0L, linShape )
-               var fadeOutSpec = ar.fadeOut getOrElse FadeSpec( 0L, linShape )
+               var fadeInSpec  = ar.fadeIn  getOrElse FadeSpec( 0L, Curve.linear )
+               var fadeOutSpec = ar.fadeOut getOrElse FadeSpec( 0L, Curve.linear )
                // marika, this should go somewhere, most like AudioRegion ?
                if( fadeInChange ) {
                   val newShape = if( dragFdInCurve != 0f ) fadeInSpec.shape match {
-                     case `linShape` => curveShape( dragFdInCurve )
-                     case `curveShape`( curvature ) => curveShape( max( -20, min( 20, curvature + dragFdInCurve )))
+                     case Curve.linear => Curve.parametric( dragFdInCurve )
+                     case Curve.parametric( curvature ) => Curve.parametric( max( -20, min( 20, curvature + dragFdInCurve )))
                      case other => other
                   } else fadeInSpec.shape
                   fadeInSpec = FadeSpec(
@@ -849,8 +849,8 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
                }
                if( fadeOutChange ) {
                   val newShape = if( dragFdOutCurve != 0f ) fadeOutSpec.shape match {
-                     case `linShape` => curveShape( dragFdOutCurve )
-                     case `curveShape`( curvature ) => curveShape( max( -20, min( 20, curvature + dragFdOutCurve )))
+                     case Curve.linear => Curve.parametric( dragFdOutCurve )
+                     case Curve.parametric( curvature ) => Curve.parametric( max( -20, min( 20, curvature + dragFdOutCurve )))
                      case other => other
                   } else fadeOutSpec.shape
                   fadeOutSpec = FadeSpec(

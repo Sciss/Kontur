@@ -34,28 +34,29 @@ import de.sciss.synth._
 object FadeSpec {
    def fromXML( node: Node ) : FadeSpec = {
       val numFrames  = (node \ "numFrames").text.toLong
+     import Curve._
       val shape      = (node \ "shape").headOption.map( n => {
          (n \ "@num").text.toInt match {
-            case 0 => stepShape
-            case 1 => linShape
-            case 2 => expShape
-            case 3 => sinShape
-            case 4 => welchShape
-            case 5 => curveShape( (n \ "@curve").text.toFloat )
-            case 6 => sqrShape
-            case 7 => cubShape
+            case 0 => step
+            case 1 => linear
+            case 2 => exp
+            case 3 => sine
+            case 4 => welch
+            case 5 => parametric( (n \ "@curve").text.toFloat )
+            case 6 => squared
+            case 7 => cubed
          }
-      }) getOrElse linShape
+      }) getOrElse linear
       val floor      = (node \ "floor").headOption.map( _.text.toFloat ) getOrElse 0f
       FadeSpec( numFrames, shape, floor )
    }
 }
 
-case class FadeSpec( numFrames: Long, shape: Env.ConstShape = linShape, floor: Float = 0f ) {
+case class FadeSpec( numFrames: Long, shape: Curve = Curve.linear, floor: Float = 0f ) {
   def toXML = <fade>
   <numFrames>{numFrames}</numFrames>
-  {if( shape != linShape )
-     <shape num={shape.id.toString} curve={shape.curvature.toString}/>
+  {if( shape != Curve.linear )
+     <shape num={shape.id.toString} curve={(shape match { case Curve.parametric(c) => c; case _ => 0f }).toString}/>
    else Null}
   {if( floor != 0f) <floor>{floor}</floor> else Null}
 </fade>

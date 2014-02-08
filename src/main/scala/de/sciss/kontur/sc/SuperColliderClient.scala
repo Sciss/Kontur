@@ -33,7 +33,7 @@ import de.sciss.util.Param
 import java.awt.EventQueue
 import java.io.IOException
 import de.sciss.{synth, osc}
-import synth.{Model => _, _}
+import synth._
 
 object SuperColliderClient {
    lazy val instance = new SuperColliderClient

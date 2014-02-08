@@ -2,7 +2,7 @@ import AssemblyKeys._
 
 name           := "Kontur"
 
-version        := "1.2.0-SNAPSHOT"
+version        := "1.2.0"
 
 organization   := "de.sciss"
 
@@ -18,7 +18,8 @@ libraryDependencies ++= Seq(
   "de.sciss" %% "scalacolliderswing" % "1.13.+",
   "de.sciss" %% "span"               % "1.2.+",
   "de.sciss" %% "scissdsp"           % "1.2.+",
-  "de.sciss" %  "scisslib"           % "1.0.0"
+  "de.sciss" %  "scisslib"           % "1.0.0",
+  "org.scala-lang" % "scala-actors" % scalaVersion.value
 )
 
 retrieveManaged := true
@@ -80,7 +81,16 @@ appbundle.icon := Some(file("application.icns"))
 
 appbundle.javaOptions ++= Seq("-ea", "-Xmx2048m")
 
-appbundle.target <<= baseDirectory
+appbundle.target := baseDirectory.value
+
+target in assembly := baseDirectory.value
+
+jarName in assembly := s"${name.value}.jar"
+
+//mergeStrategy in assembly <<= (mergeStrategy in assembly) { old => {
+//  case PathList("AddAction.class") => MergeStrategy.first   // problem with that ScalaCollider version
+//  case x => old(x)
+//}}
 
 // ---- ls.implicit.ly ----
 

@@ -106,13 +106,13 @@ extends AppWindow( AbstractWindow.REGULAR ) {
       }
 
       val support = new REPLSupport( app )
-      ic.bindings = Seq(
+      ic.bindings = List(
 //         NamedParam( "app", app ),
          NamedParam( "replsupport", support )
 //         NamedParam( "sc", SuperColliderClient.instance )
       )
 
-      ic.imports = Seq(
+      ic.imports = List(
          "de.sciss.kontur.session._",
          "math._",
          "replsupport._"

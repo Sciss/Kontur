@@ -27,7 +27,7 @@ package de.sciss.kontur
 package sc
 
 import math._
-import de.sciss.synth.{Model => _, _}
+import de.sciss.synth._
 import ugen._
 import SynthContext._
 import session.{Diffusion, AudioRegion, AudioTrack}
@@ -122,12 +122,12 @@ extends SCTrackPlayer {
 
          val frameIndex     = Line.ar( i_frameOff, i_frames, (i_frames - i_frameOff) * smpDur, freeSelf )
 
-         import Env.{ Seg => S }
+         import Env.{ Segment => S }
 
          val env = new IEnv( i_finFloor, List(
-            S( i_fadeIn, 1, varShape( i_finShape, i_finCurve )),
+            S( i_fadeIn, 1, Env.Curve( i_finShape, i_finCurve )),
             S( i_frames - (i_fadeIn + i_fadeOut), 1 ),
-            S( i_fadeOut, i_foutFloor, varShape( i_foutShape, i_foutCurve ))))
+            S( i_fadeOut, i_foutFloor, Env.Curve( i_foutShape, i_foutCurve ))))
 
          val envGen = IEnvGen.ar( env, frameIndex ) * amp
          val sig = DiskIn.ar( numChannels, i_buf )
@@ -149,11 +149,11 @@ extends SCTrackPlayer {
                "out" -> scDoc.diffusion( diff ).inBus.index ) :::
                ar.fadeIn.map( f => L(
                   "i_fadeIn" -> f.numFrames.toFloat, // XXX should contrain if necessary
-                  "i_finShape" -> f.shape.id, "i_finCurve" -> f.shape.curvature,
+                  "i_finShape" -> f.shape.id, "i_finCurve" -> (f.shape match { case Curve.parametric(c) => c; case _ => 0f }),
                   "i_finFloor" -> f.floor )).getOrElse( Nil ) :::
                ar.fadeOut.map( f => L(
                   "i_fadeOut" -> f.numFrames.toFloat, // XXX should contrain if necessary
-                  "i_foutShape" -> f.shape.id, "i_foutCurve" -> f.shape.curvature,
+                  "i_foutShape" -> f.shape.id, "i_foutCurve" -> (f.shape match { case Curve.parametric(c) => c; case _ => 0f }),
                   "i_foutFloor" -> f.floor )).getOrElse( Nil )): _* )
             synths += syn
             syn.endsAfter( (ar.span.length - frameOffset) / sampleRate ) // nrt hint
