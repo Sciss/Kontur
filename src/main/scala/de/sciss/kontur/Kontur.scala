@@ -50,10 +50,10 @@ import java.io.File
 object Kontur extends SwingApplicationImpl("Kontur") {
   type Document = Session
 
-  /*
-   *  The MacOS file creator string.
-   */
-  private val CREATOR = "Ttm "
+  //  /*
+  //   *  The MacOS file creator string.
+  //   */
+  //  private val CREATOR = "Ttm "
 
   /**
    * Value for add/getComponent(): the preferences frame
@@ -137,12 +137,12 @@ object Kontur extends SwingApplicationImpl("Kontur") {
     sono.caching            = Some(sonogram.OverviewManager.Caching(folder = sonoDir, sizeLimit = 10L << 10 << 10 << 10))
     addComponent(COMP_SONO, sonogram.OverviewManager(sono))
 
-    val mainFrame = new MainFrame()
+    /* val mainFrame = */ new MainFrame()
     val scFrame   = new SuperColliderFrame()
     scFrame.visible = true
   }
 
-  lazy protected val menuFactory = (new MenuFactory).root
+  protected def menuFactory = MenuFactory.root
 
 //	protected def createMenuFactory() : BasicMenuFactory = new MenuFactory( this )
 

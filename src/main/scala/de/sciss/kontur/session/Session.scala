@@ -45,8 +45,9 @@ object Session {
   case class DirtyChanged(newDirty: Boolean)
   case class PathChanged(oldPath: Option[File], newPath: Option[File])
 }
-class Session( private var pathVar: Option[ File ] )
-extends /* BasicDocument with */ Model {
+
+class Session(private var pathVar: Option[File])
+  extends /* BasicDocument with */ Model {
   doc =>
 
   import Session._
@@ -60,11 +61,11 @@ extends /* BasicDocument with */ Model {
 
   //  private var path: Option[ File ] = None
 
-    val timelines   = new Timelines( this )
-    val audioFiles  = new AudioFileSeq( this )
-    val diffusions  = new Diffusions( this )
+  val timelines  = new Timelines   (this)
+  val audioFiles = new AudioFileSeq(this)
+  val diffusions = new Diffusions  (this)
 
-//    def createID : Long = {
+  //    def createID : Long = {
 //      val res = idCount
 //      idCount += 1
 //      res

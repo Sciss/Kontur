@@ -15,7 +15,8 @@ package de.sciss.kontur
 package gui
 
 import java.awt.event.{ActionEvent, KeyEvent}
-import java.io.{File, IOException}
+import java.io.IOException
+import de.sciss.file._
 import javax.swing.{SwingUtilities, AbstractAction, JComponent, JOptionPane, KeyStroke}
 import session.Session
 import util.{Flag, Model}
@@ -287,32 +288,33 @@ trait SessionFrame {
         * is shown before.
         */
       def apply(): Unit = {
-         val name = title
-         (document.path orElse actionSaveAs.query( name )).foreach( f =>
-            perform( name, f, asCopy = false, openAfterSave = false ))
+        val name = title
+        (document.path orElse actionSaveAs.query(name)).foreach(f =>
+          perform(name, f.replaceExt("kontur"), asCopy = false, openAfterSave = false))
       }
 
-      protected[gui] def perform( name: String, file: File, asCopy: Boolean, openAfterSave: Boolean ) : Boolean = {
-         try {
-           document.save( file )
-            wpHaveWarned = false
+     protected[gui] def perform(name: String, file: File, asCopy: Boolean, openAfterSave: Boolean): Boolean = {
+       try {
+         document.save(file)
+         wpHaveWarned = false
 
-            if( !asCopy ) {
-// XXX TODO
-//               application.getMenuFactory.addRecent( file )
-              document.path = Some( file )
-              document.undoManager.clear()
-            }
-            if( openAfterSave ) {
-               GlobalActions.openDocument( file )
-            }
-            true
+         if (!asCopy) {
+           // XXX TODO
+           //               application.getMenuFactory.addRecent( file )
+           document.path = Some(file)
+           document.undoManager.clear()
          }
-         catch { case e1: IOException =>
-            showDialog( e1 -> name )
-            false
+         if (openAfterSave) {
+           GlobalActions.openDocument(file)
          }
-      }
+         true
+       }
+       catch {
+         case e1: IOException =>
+           showDialog(e1 -> name)
+           false
+       }
+     }
    }
 
   // action for the Save-Session-As menu item
@@ -327,7 +329,7 @@ trait SessionFrame {
     def apply(): Unit = {
       val name = title
       query(name).foreach { f =>
-        ActionSave.perform(name, f, asCopy = asCopy, openAfterSave = openAfterSave())
+        ActionSave.perform(name, f.replaceExt("kontur"), asCopy = asCopy, openAfterSave = openAfterSave())
       }
     }
 

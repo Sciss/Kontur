@@ -5,7 +5,6 @@ import util.{PrefsUtil, Flag}
 import session.Session
 import legacy.ProcessingThread
 import de.sciss.desktop.{Preferences, Window}
-import collection.breakOut
 import java.io.{IOException, FileReader, FilenameFilter, File}
 import java.awt.{Frame, FileDialog}
 import org.xml.sax.helpers.DefaultHandler
@@ -143,25 +142,29 @@ object GlobalActions {
     }
 
 
-    /**
-     * Loads a new document file.
-     * a <code>ProcessingThread</code>
-     * started which loads the new session.
-     *
-     * synchronization: this method must be called in event thread
-     *
-     * @param  file the file of the document to be loaded
-     */
-    def perform(file: File): Unit =
+    /** Loads a new document file.
+      * a <code>ProcessingThread</code>
+      * started which loads the new session.
+      *
+      * synchronization: this method must be called in event thread
+      *
+      * @param  file the file of the document to be loaded
+      */
+    def perform(file: File): Unit = {
+      Kontur.documentHandler.documents.find(_.path == Some(file)).fold(doOpen(file)) { doc =>
+        // XXX TODO: bring window to front
+      }
+    }
+
+    private def doOpen(file: File): Unit =
       try {
         val doc = Session.newFrom(file)
-// XXX TODO
-//        addRecent(file)
+        MenuFactory.recentFiles.add(file)
         Kontur.documentHandler.addDocument(doc)
         new SessionTreeFrame(doc)
       }
       catch {
         case e1: IOException => Window.showDialog(e1 -> title)
       }
-  }
+    }
 }

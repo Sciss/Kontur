@@ -15,19 +15,15 @@ package de.sciss.kontur
 package gui
 
 import de.sciss.kontur.Kontur
-import de.sciss.kontur.util.PrefsUtil
 import de.sciss.kontur.session.Session
-import java.awt.{FileDialog, Frame}
-import java.awt.event.{ActionEvent, InputEvent, KeyEvent}
-import java.io.{File, FilenameFilter, FileReader, IOException}
-import javax.swing.KeyStroke
-import javax.xml.parsers.SAXParserFactory
-import org.xml.sax.{Attributes, InputSource, SAXException}
-import org.xml.sax.helpers.DefaultHandler
+import java.awt.event.KeyEvent
 import swing.Action
-import de.sciss.desktop.{KeyStrokes, Menu, Window}
+import de.sciss.desktop.{RecentFiles, Desktop, KeyStrokes, Menu}
+import de.sciss.kontur.{Kontur => App}
+import GlobalActions.ActionOpen
+import de.sciss.file.File
 
-class MenuFactory {
+object MenuFactory {
 //  private val actionOpen = new ActionOpen(getResourceString("menuOpen"),
 //    stroke(VK_O, MENU_SHORTCUT))
 
@@ -35,11 +31,11 @@ class MenuFactory {
 //    actionOpen.perform(f)
 //  }
 
-//  def showPreferences() {
-//    val prefsFrame = Kontur.getComponent[PrefsFrame](Kontur.COMP_PREFS).getOrElse(new PrefsFrame())
-//    prefsFrame.visible = true
-//    prefsFrame.front()
-//  }
+  def showPreferences() {
+    val prefsFrame = App.getComponent[PrefsFrame](App.COMP_PREFS).getOrElse(new PrefsFrame())
+    prefsFrame.visible = true
+    prefsFrame.front()
+  }
 
 //  protected def getOpenAction: Action = actionOpen
 
@@ -55,77 +51,87 @@ class MenuFactory {
   import KeyEvent._
   import KeyStrokes._
 
-  val root: Menu.Root = {
+  private lazy val _recent = RecentFiles(App.userPrefs("recent-docs"))(openFile)
+
+  def openFile(file: File): Unit = ActionOpen.perform(file)
+
+  def recentFiles: RecentFiles  = _recent
+  def recentMenu : Menu.Group   = _recent.menu
+
+  lazy val root: Menu.Root = {
     import Menu._
 
-    val prefs = Kontur.userPrefs
+    // val prefs   = App.userPrefs
+    val itQuit  = Item.Quit(App)
+    val itPrefs = Item.Preferences(App)(showPreferences())
     
-    val _root = Root().add(
-      // --- file menu ---
-      Group("file", "File")
-        .add(Group("new", "New")
-          .add(Item("empty",            ActionNewEmpty))
-          .add(Item("interpreter",      ActionScalaInterpreter))
-        )
-        .add(Item("open",               GlobalActions.ActionOpen))
-        .add(Item("close",              proxy("Close",      (menu1 + VK_W))))
-        .addLine()
-        .add(Item("bounce",             "Bounce to Disk..."))
-        .addLine()
-        .add(Item("save",               proxy("Save",       (menu1 + VK_S))))
-        .add(Item("saveAs",             proxy("Save As...", (menu1 + shift + VK_S))))
-    )
-    .add(
-      Group("edit", "Edit")
-        .add(Item("undo",               proxy("Undo",       (menu1 + VK_Z))))
-        .add(Item("redo",               proxy("Redo",       (menu1 + shift + VK_Z))))
-        .addLine()
-        .add(Item("cut",                proxy("Cut",        (menu1 + VK_X))))
-        .add(Item("copy",               proxy("Copy",       (menu1 + VK_C))))
-        .add(Item("paste",              proxy("Paste",      (menu1 + VK_V))))
-        .add(Item("delete",             proxy("Delete",     (plain + VK_DELETE))))
-        .addLine()
-        .add(Item("selectAll",          proxy("Select All", (menu1 + VK_A))))
-    )
-    .add(
-      // --- timeline menu ---
-      Group("timeline", "Timeline")
-        .add(Item("trimToSelection",    proxy("Trim to Selection",        (menu1 + VK_F5))))
-        .add(Item("insertSpan",         proxy("Insert Span...",           (menu1 + shift + VK_E))))
-        .add(Item("clearSpan",          proxy("Clear Selected Span",      (menu1 + VK_BACK_SLASH))))
-        .add(Item("removeSpan",         proxy("Remove Selected Span",     (menu1 + shift + VK_BACK_SLASH))))
-        .add(Item("dupSpanToPos",       "Duplicate Span to Position"))
-        .addLine()
-        .add(Item("nudgeAmount",        "Nudge Amount..."))
-        .add(Item("nudgeLeft",          proxy("Nudge Objects Backward",   (plain + VK_MINUS))))
-        .add(Item("nudgeRight",         proxy("Nudge Objects Forward",    (plain + VK_PLUS ))))
-        .addLine()
-        .add(Item("selFollowingObj",    proxy("Select Following Objects", (menu2 + VK_F))))
-        .add(Item("alignObjStartToPos", "Align Objects Start To Timeline Position"))
-        .add(Item("splitObjects",       proxy("Split Selected Objects",   (menu2 + VK_Y))))
-        .addLine()
-        .add(Item("selStopToStart",     "Move Selection Stop To Its Start"))
-        .add(Item("selStartToStop",     "Move Selection Start To Its Stop"))
-    )
-    .add(
-      // --- actions menu ---
-      Group("actions", "Actions")
-        .add(Item("showInEisK", "Show in Eisenkraut"))
-    )
-    .add(
-      // --- operation menu ---
-      Group("operation", "Operation")
-    )
-    .add(
-      // --- view menu ---
-      Group("view", "View")
-    )
-    .add(
-      // --- window menu ---
-      Group("window", "Window")
-        .add(Item("observer", ActionObserver))
-        .add(Item("ctrlRoom", ActionCtrlRoom))
-    )
+    Desktop.addListener {
+      case Desktop.OpenFiles(_, files) => files.foreach(openFile)
+    }
+
+    // --- file menu ---
+    val mFile = Group("file", "File")
+      .add(Group("new", "New")
+        .add(Item("empty",            ActionNewEmpty))
+        .add(Item("interpreter",      ActionScalaInterpreter))
+      )
+      .add(Item("open",               ActionOpen))
+      .add(recentMenu)
+      .add(Item("close",              proxy("Close",      menu1 + VK_W)))
+      .addLine()
+      .add(Item("bounce",             "Bounce to Disk..."))
+      .addLine()
+      .add(Item("save",               proxy("Save",       menu1 + VK_S)))
+      .add(Item("saveAs",             proxy("Save As...", menu1 + shift + VK_S)))
+    if (itQuit.visible) mFile.addLine().add(itQuit)
+
+    val mEdit = Group("edit", "Edit")
+    if (itPrefs.visible && Desktop.isLinux) mEdit.add(itPrefs).addLine()
+    mEdit
+      .add(Item("undo",               proxy("Undo",       menu1 + VK_Z)))
+      .add(Item("redo",               proxy("Redo",       menu1 + shift + VK_Z)))
+      .addLine()
+      .add(Item("cut",                proxy("Cut",        menu1 + VK_X)))
+      .add(Item("copy",               proxy("Copy",       menu1 + VK_C)))
+      .add(Item("paste",              proxy("Paste",      menu1 + VK_V)))
+      .add(Item("delete",             proxy("Delete",     plain + VK_DELETE)))
+      .addLine()
+      .add(Item("selectAll",          proxy("Select All", menu1 + VK_A)))
+
+    // --- timeline menu ---
+    val mTimeline = Group("timeline", "Timeline")
+      .add(Item("trimToSelection",    proxy("Trim to Selection",        menu1 + VK_F5)))
+      .add(Item("insertSpan",         proxy("Insert Span...",           menu1 + shift + VK_E)))
+      .add(Item("clearSpan",          proxy("Clear Selected Span",      menu1 + VK_BACK_SLASH)))
+      .add(Item("removeSpan",         proxy("Remove Selected Span",     menu1 + shift + VK_BACK_SLASH)))
+      .add(Item("dupSpanToPos",       "Duplicate Span to Position"))
+      .addLine()
+      .add(Item("nudgeAmount",        "Nudge Amount..."))
+      .add(Item("nudgeLeft",          proxy("Nudge Objects Backward",   plain + VK_MINUS)))
+      .add(Item("nudgeRight",         proxy("Nudge Objects Forward",    plain + VK_PLUS)))
+      .addLine()
+      .add(Item("selFollowingObj",    proxy("Select Following Objects", menu2 + VK_F)))
+      .add(Item("alignObjStartToPos", "Align Objects Start To Timeline Position"))
+      .add(Item("splitObjects",       proxy("Split Selected Objects",   menu2 + VK_Y)))
+      .addLine()
+      .add(Item("selStopToStart",     "Move Selection Stop To Its Start"))
+      .add(Item("selStartToStop",     "Move Selection Start To Its Stop"))
+
+    // --- actions menu ---
+    val mActions = Group("actions", "Actions")
+      .add(Item("showInEisK", "Show in Eisenkraut"))
+
+    // --- operation menu ---
+    val mOperations = Group("operation", "Operation")
+    if (itPrefs.visible && !Desktop.isLinux) mOperations.add(itPrefs).addLine()
+
+    // --- view menu ---
+    val mView = Group("view", "View")
+
+    // --- window menu ---
+    val mWindow = Group("window", "Window")
+      .add(Item("observer", ActionObserver))
+      .add(Item("ctrlRoom", ActionCtrlRoom))
 
 // XXX TODO
 //    val actionLinkObjTimelineSel = new BooleanPrefsMenuAction(getResourceString("menuLinkObjTimelineSel"), null)
@@ -166,7 +172,7 @@ class MenuFactory {
 //    aViewStakeBorderModeTitledBox.setPreferences(prefs, PrefsUtil.KEY_STAKEBORDERVIEWMODE)
 //    mgView.add(smgViewStakeBorderMode)
 
-    _root
+    Root().add(mFile).add(mEdit).add(mTimeline).add(mActions).add(mOperations).add(mView).add(mWindow)
   }
 
   // ---- internal classes ----

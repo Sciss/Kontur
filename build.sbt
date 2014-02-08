@@ -8,7 +8,7 @@ organization   := "de.sciss"
 
 scalaVersion   := "2.10.3"
 
-description    := "An extensible multitrack audio editor based on ScalaCollider"
+description    := "An extensible multi-track audio editor based on ScalaCollider"
 
 homepage       := Some(url("https://github.com/Sciss/" + name.value))
 
@@ -18,7 +18,7 @@ libraryDependencies ++= Seq(
   "de.sciss" %% "scalacolliderswing" % "1.13.+",
   "de.sciss" %% "span"               % "1.2.+",
   "de.sciss" %% "sonogramoverview"   % "1.7.+",
-  "de.sciss" %% "desktop"            % "0.4.+"
+  "de.sciss" %% "desktop-mac"        % "0.4.+"
 )
 
 retrieveManaged := true
@@ -69,17 +69,37 @@ pomExtra := { val n = name.value
 
 // ---- packaging ----
 
-seq(assemblySettings: _*)
-
 test in assembly := ()
 
 seq(appbundle.settings: _*)
 
-appbundle.icon := Some(file("application.icns"))
+appbundle.icon := {
+  val base      = (resourceDirectory in Compile).value
+  val sub       = organization.value.split('.')
+  val n         = name.value.toLowerCase
+  val iconFile  = (base /: sub)(_ / _) / n / "application.png"
+  Some(iconFile)
+}
 
 appbundle.javaOptions ++= Seq("-ea", "-Xmx2048m")
 
 appbundle.target   := baseDirectory.value
+
+appbundle.documents += {
+  // XXX TODO: DRY
+  val base      = (resourceDirectory in Compile).value
+  val sub       = organization.value.split('.')
+  val n         = name.value
+  val nl        = n.toLowerCase
+  val iconFile  = (base /: sub)(_ / _) / nl / "document.png"
+  appbundle.Document(
+    name       = s"$n Document",
+    role       = appbundle.Document.Editor,
+    icon       = Some(iconFile),
+    extensions = Seq(nl),
+    isPackage  = true
+  )
+}
 
 target in assembly := baseDirectory.value
 
