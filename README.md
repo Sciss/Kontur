@@ -16,3 +16,6 @@ The create the API documentation, run `sbt doc`.
 
 The current version can be downloaded from [github.com/Sciss/Kontur](http://github.com/Sciss/Kontur).
 
+### documentation
+
+A short screencast is available on [Vimeo](https://vimeo.com/86199640).
