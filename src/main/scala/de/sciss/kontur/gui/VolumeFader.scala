@@ -1,3 +1,16 @@
+/*
+ *  VolumeFader.scala
+ *  (Kontur)
+ *
+ *  Copyright (c) 2004-2014 Hanns Holger Rutz. All rights reserved.
+ *
+ *	This software is published under the GNU General Public License v2+
+ *
+ *
+ *	For further information, please contact Hanns Holger Rutz at
+ *	contact@sciss.de
+ */
+
 package de.sciss.kontur
 package gui
 
@@ -6,7 +19,7 @@ import java.awt.event.{MouseEvent, MouseAdapter}
 import javax.swing.event.{ChangeListener, ChangeEvent}
 import de.sciss.synth
 
-class VolumeFader extends JSlider( SwingConstants.VERTICAL, -72, 18, 0 ) {
+class VolumeFader extends JSlider(SwingConstants.VERTICAL, -72, 18, 0) {
 	protected var isZero = true
 
    // ---- constructor ----
