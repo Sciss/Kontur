@@ -26,7 +26,7 @@
 package de.sciss.kontur
 package gui
 
-import java.awt.{FileDialog, Frame}
+import java.awt.Frame
 import java.awt.datatransfer.DataFlavor
 import java.awt.dnd.DnDConstants
 import java.io.{File, FilenameFilter, IOException}
@@ -35,7 +35,7 @@ import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel}
 import de.sciss.synth.io.AudioFile
 import session.{MatrixDiffusion, Diffusions, AudioFileElement, AudioFileSeq, AudioTrack, BasicTimeline, Diffusion, Renamable, Session, SessionElement, SessionElementSeq, Timeline, Track}
 import util.Model
-import de.sciss.desktop.{OptionPane, Window, Menu}
+import de.sciss.desktop.{FileDialog, OptionPane, Window, Menu}
 import scala.swing.{Component, Action}
 
 abstract class DynamicTreeNode( model: SessionTreeModel, obj: AnyRef, canExpand: Boolean )
@@ -46,7 +46,7 @@ extends DefaultMutableTreeNode( obj, canExpand )
 
   private var isListening = false
 
-  def startListening() {
+  def startListening(): Unit = {
     isListening = true
     // some version of scalac cannot deal with Enumeration
     // that is not generified ....
@@ -62,7 +62,7 @@ extends DefaultMutableTreeNode( obj, canExpand )
     }
   }
 
-  def stopListening() {
+  def stopListening(): Unit = {
     isListening = false
     //      new JEnumerationWrapper( children() ).foreach( _ match {
     //        case d: DynamicTreeNode => d.stopListening
@@ -76,17 +76,17 @@ extends DefaultMutableTreeNode( obj, canExpand )
     }
   }
 
-  protected def addDyn(elem: DynamicTreeNode) {
+  protected def addDyn(elem: DynamicTreeNode): Unit = {
     add(elem)
     if (isListening) elem.startListening()
   }
 
-  protected def insertDyn(idx: Int, elem: DynamicTreeNode) {
+  protected def insertDyn(idx: Int, elem: DynamicTreeNode): Unit = {
     model.insertNodeInto(elem, this, idx)
     if (isListening) elem.startListening()
   }
 
-  protected def removeDyn(idx: Int) {
+  protected def removeDyn(idx: Int): Unit = {
     getChildAt(idx) match {
       case d: DynamicTreeNode => {
         d.stopListening()
@@ -107,13 +107,8 @@ class SessionTreeModel(val doc: Session)
 
   setRoot(docRoot)
 
-  def startListening() {
-    docRoot.startListening()
-  }
-
-  def stopListening() {
-    docRoot.stopListening()
-  }
+  def startListening(): Unit = docRoot.startListening()
+  def stopListening (): Unit = docRoot.stopListening ()
 }
 
 /*
@@ -153,7 +148,7 @@ abstract class SessionElementSeqTreeNode[El <: SessionElement](model: SessionTre
     case seq.ElementRemoved(idx, elem) => removeDyn(idx)
   }
 
-  override def startListening() {
+  override def startListening(): Unit = {
     // cheesy shit ...
     // that is why eventually we should use
     // our own tree model instead of the defaulttreemodel...
@@ -163,7 +158,7 @@ abstract class SessionElementSeqTreeNode[El <: SessionElement](model: SessionTre
     super.startListening()
   }
 
-  override def stopListening() {
+  override def stopListening(): Unit = {
     seq.removeListener(seqListener)
     super.stopListening()
     removeAllChildren()
@@ -179,7 +174,7 @@ class TimelinesTreeIndex(model: SessionTreeModel, timelines: SessionElementSeq[T
   def createContextMenu(): Option[Menu.Popup] = {
     val root = Menu.Popup()
     val miAddNew = Menu.Item("new", new Action("New Timeline") {
-      def apply() {
+      def apply(): Unit = {
         timelines.editor.foreach { ed =>
           val ce = ed.editBegin(title)
           val tl = BasicTimeline.newEmpty(model.doc)
@@ -204,7 +199,7 @@ class AudioFilesTreeIndex(model: SessionTreeModel, audioFiles: AudioFileSeq)
   def createContextMenu(): Option[Menu.Popup] = {
     val root = Menu.Popup()
     val miAddNew = Menu.Item("new", new Action("Add...") with FilenameFilter {
-      def apply() {
+      def apply(): Unit =
         audioFiles.editor.foreach { ed =>
           getPath.foreach { path =>
             val name = "Add Audio File" // getValue( Action.NAME ).toString
@@ -220,11 +215,10 @@ class AudioFilesTreeIndex(model: SessionTreeModel, audioFiles: AudioFileSeq)
             }
           }
         }
-      }
 
       private def getPath: Option[File] = {
-        val dlg = new FileDialog(null: Frame, title)
-        dlg.setFilenameFilter(this)
+        val dlg = FileDialog.open(title = title)
+        dlg.peer.setFilenameFilter(this)
         Window.showDialog(dlg)
       }
 
@@ -291,7 +285,8 @@ with HasContextMenu with CanBeDropTarget {
          val panel  = gf.createPanel(model.doc)
          val op = OptionPane.confirmation(message = Component.wrap(panel), messageType = OptionPane.Message.Question,
            optionType = OptionPane.Options.OkCancel)
-         val result = Window.showDialog(op -> fullName)
+         op.title = fullName
+         val result = Window.showDialog(op)
          if (result == OptionPane.Result.Ok) {
            val diffO = gf.fromPanel(panel)
            diffO.foreach(diff => {
@@ -375,12 +370,12 @@ with HasContextMenu {
    }
 }
 
-class TimelineTreeLeaf( model: SessionTreeModel, tl: Timeline )
-extends SessionElementTreeNode( model, tl, false )
-with HasDoubleClickAction {
-    def doubleClickAction() {
-      new TimelineFrame( model.doc, tl )
-   }
+class TimelineTreeLeaf(model: SessionTreeModel, tl: Timeline)
+  extends SessionElementTreeNode(model, tl, false)
+  with HasDoubleClickAction {
+
+  def doubleClickAction(): Unit = new TimelineFrame(model.doc, tl)
+
   override def toString = "View"
 }
 
@@ -391,14 +386,13 @@ final class TracksTreeIndex(model: SessionTreeModel, tl: Timeline)
   def createContextMenu(): Option[Menu.Popup] = {
     val root = Menu.Popup()
     val miAddNewAudio = Menu.Item("new", new Action("New Audio Track") {
-      def apply() {
+      def apply(): Unit =
         tl.tracks.editor.foreach { ed =>
           val ce = ed.editBegin(title)
           val t = new AudioTrack(model.doc)
           ed.editInsert(ce, tl.tracks.size, t)
           ed.editEnd(ce)
         }
-      }
     })
 
     tl.tracks.editor.foreach { ed =>
@@ -440,10 +434,11 @@ final class TracksTreeIndex(model: SessionTreeModel, tl: Timeline)
   }
 }
 
-class TrackTreeLeaf( model: SessionTreeModel, trs: SessionElementSeq[ Track ], t: Track )
-extends SessionElementTreeNode( model, t, false )
-with HasContextMenu with CanBeDragSource {
-   def createContextMenu() : Option[Menu.Popup] = {
+class TrackTreeLeaf(model: SessionTreeModel, trs: SessionElementSeq[Track], t: Track)
+  extends SessionElementTreeNode(model, t, false)
+  with HasContextMenu with CanBeDragSource {
+
+  def createContextMenu() : Option[Menu.Popup] = {
       var items = Vector.empty[ Menu.Item ]
       t.editor.foreach { ed =>
          t match {
@@ -471,20 +466,19 @@ with HasContextMenu with CanBeDragSource {
    }
 }
 
-class AudioFileTreeLeaf( model: SessionTreeModel, coll: SessionElementSeq[ AudioFileElement ], afe: AudioFileElement )
-extends SessionElementTreeNode( model, afe, false )
-with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
-    def doubleClickAction() {
-//      println( "DANG" )
-   }
+class AudioFileTreeLeaf(model: SessionTreeModel, coll: SessionElementSeq[AudioFileElement], afe: AudioFileElement)
+  extends SessionElementTreeNode(model, afe, false)
+  with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
 
-   def createContextMenu() : Option[Menu.Popup] = {
+  def doubleClickAction() = ()
+
+  def createContextMenu() : Option[Menu.Popup] = {
       val root = Menu.Popup()
       coll match {
          case afs: AudioFileSeq => {
             val name = "Replace With Other File"
             val miReplace = Menu.Item( "replace", new Action( name + "..." ) with FilenameFilter {
-               def apply() {
+               def apply(): Unit = {
                   getPath.foreach { path =>
                      try {
                         val newFile = AudioFileElement.fromPath( model.doc, path )
@@ -495,14 +489,15 @@ with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
                         if( newFile.numFrames != afe.numFrames ) {
                            warnings ::= ("• Frames mismatch: New file has " + newFile.numFrames + " / old file has " + afe.numFrames)
                         }
-                        val goAhead = if( warnings.nonEmpty ) {
+                        val goAhead = if (warnings.nonEmpty) {
                           val op = OptionPane.confirmation(message = "There are discrepancies between\n\"" + afe.path.getPath +
-                                                        "\" (old file) and\n\"" + newFile.path.getPath + "\" (new file):\n\n" +
-                                                        warnings.mkString( "\n" ) +
-                                                        "\n\nDo you still want to replace it?",
+                            "\" (old file) and\n\"" + newFile.path.getPath + "\" (new file):\n\n" +
+                            warnings.mkString("\n") +
+                            "\n\nDo you still want to replace it?",
                             messageType = OptionPane.Message.Warning, optionType = OptionPane.Options.YesNo)
-                           val result = Window.showDialog( op -> name )
-                           result == OptionPane.Result.Yes
+                          op.title = name
+                          val result = Window.showDialog(op)
+                          result == OptionPane.Result.Yes
                         } else true
 
                         if( goAhead ) {
@@ -516,8 +511,8 @@ with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
                }
 
               private def getPath: Option[File] = {
-                val dlg = new FileDialog(null: Frame, title)
-                dlg.setFilenameFilter(this)
+                val dlg = FileDialog.open(title = title)
+                dlg.peer.setFilenameFilter(this)
                 Window.showDialog(dlg)
               }
 
@@ -545,14 +540,13 @@ with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
    }
 }
 
-class DiffusionTreeLeaf( model: SessionTreeModel, diff: Diffusion )
-extends SessionElementTreeNode( model, diff, false )
-with HasContextMenu with HasDoubleClickAction with CanBeDragSource {
-    def doubleClickAction() {
+class DiffusionTreeLeaf(model: SessionTreeModel, diff: Diffusion)
+  extends SessionElementTreeNode(model, diff, false)
+  with HasContextMenu with HasDoubleClickAction with CanBeDragSource {
 
-   }
+  def doubleClickAction() = ()
 
-   def createContextMenu() : Option[Menu.Popup] = {
+  def createContextMenu() : Option[Menu.Popup] = {
       var items = Vector.empty[ Menu.Item ]
       diff.editor.foreach { ed =>
          diff match {
@@ -569,7 +563,8 @@ with HasContextMenu with HasDoubleClickAction with CanBeDragSource {
                    panel.setObjects( diff )
                    val op = OptionPane(message = Component.wrap(panel),
                      messageType = OptionPane.Message.Plain, optionType = OptionPane.Options.Default)
-                   /* val result = */ Window.showDialog( op -> fullName )
+                 op.title = fullName
+                   /* val result = */ Window.showDialog( op )
                })
                items :+= miEdit
             case _ =>

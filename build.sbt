@@ -6,19 +6,19 @@ version        := "1.2.0-SNAPSHOT"
 
 organization   := "de.sciss"
 
-scalaVersion   := "2.10.1"
+scalaVersion   := "2.10.3"
 
 description    := "An extensible multitrack audio editor based on ScalaCollider"
 
-homepage      <<= name { n => Some(url("https://github.com/Sciss/" + n)) }
+homepage       := Some(url("https://github.com/Sciss/" + name.value))
 
 licenses       := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt"))
 
 libraryDependencies ++= Seq(
-  "de.sciss" %% "scalacolliderswing" % "1.6.+",
+  "de.sciss" %% "scalacolliderswing" % "1.13.+",
   "de.sciss" %% "span"               % "1.2.+",
-  "de.sciss" %% "sonogramoverview"   % "1.5.+",
-  "de.sciss" %% "desktop"            % "0.2.+"
+  "de.sciss" %% "sonogramoverview"   % "1.7.+",
+  "de.sciss" %% "desktop"            % "0.4.+"
 )
 
 retrieveManaged := true
@@ -42,19 +42,18 @@ buildInfoPackage := "de.sciss.kontur"
 
 publishMavenStyle := true
 
-publishTo <<= version { (v: String) =>
-  Some( if( v.endsWith( "-SNAPSHOT" ))
+publishTo :=
+  Some(if (version.value endsWith "-SNAPSHOT")
     "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
   else
     "Sonatype Releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2"
   )
-}
 
 publishArtifact in Test := false
 
 pomIncludeRepository := { _ => false }
 
-pomExtra <<= name { n =>
+pomExtra := { val n = name.value
 <scm>
   <url>git@github.com:Sciss/{n}.git</url>
   <connection>scm:git:git@github.com:Sciss/{n}.git</connection>
@@ -72,7 +71,7 @@ pomExtra <<= name { n =>
 
 seq(assemblySettings: _*)
 
-test in assembly := {}
+test in assembly := ()
 
 seq(appbundle.settings: _*)
 
@@ -80,15 +79,19 @@ appbundle.icon := Some(file("application.icns"))
 
 appbundle.javaOptions ++= Seq("-ea", "-Xmx2048m")
 
-appbundle.target <<= baseDirectory
+appbundle.target   := baseDirectory.value
+
+target in assembly := baseDirectory.value
+
+jarName in assembly := s"${name.value}.jar"
 
 // ---- ls.implicit.ly ----
 
 seq(lsSettings :_*)
 
-(LsKeys.tags in LsKeys.lsync) := Seq("audio", "multitrack", "music", "daw")
+(LsKeys.tags   in LsKeys.lsync) := Seq("audio", "multitrack", "music", "daw")
 
 (LsKeys.ghUser in LsKeys.lsync) := Some("Sciss")
 
-(LsKeys.ghRepo in LsKeys.lsync) <<= name(Some(_))
+(LsKeys.ghRepo in LsKeys.lsync) := Some(name.value)
 

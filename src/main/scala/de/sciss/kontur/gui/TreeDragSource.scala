@@ -60,7 +60,7 @@ class TreeDragSource(tree: JTree, actions: Int = ACTION_COPY_OR_MOVE | ACTION_LI
   //    }
 
   // ---- DragGestureListener ----
-  def dragGestureRecognized(dge: DragGestureEvent) {
+  def dragGestureRecognized(dge: DragGestureEvent): Unit = {
     val path = tree.getSelectionPath
     if (path == null) return
     path.getLastPathComponent match {

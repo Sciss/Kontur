@@ -33,7 +33,7 @@ trait SerializerContext {
    def getByID[ T ]( ident: Long ) : Option[ T ]
    def exists( obj: AnyRef ) : Boolean
 
-   def id( obj: AnyRef, node: NodeSeq ) {
+   def id( obj: AnyRef, node: NodeSeq ): Unit = {
       val ident = (node \ "@id").text.toLong
       id( obj, ident )
    }
@@ -68,7 +68,7 @@ class BasicSerializerContext extends SerializerContext {
       }
    }
 
-   def id( obj: AnyRef, ident: Long ) {
+   def id( obj: AnyRef, ident: Long ): Unit = {
       mapObjToID += obj -> ident
       mapIDToObj += ident -> obj
    }

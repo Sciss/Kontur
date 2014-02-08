@@ -10,7 +10,7 @@ class PrefParamField(protected val prefs: Preferences.Entry[Param], default: Par
   extends BasicParamField(translator)
   with PreferencesWidgetImpl[Param] {
 
-  override protected def fireValueChanged(adjusting: Boolean) {
+  override protected def fireValueChanged(adjusting: Boolean): Unit = {
     super.fireValueChanged(adjusting)
     if (!adjusting) updatePrefs()
   }
@@ -68,7 +68,7 @@ class PrefParamField(protected val prefs: Preferences.Entry[Param], default: Par
 //    }
 //  }
 	
-  override def setItem(it: AnyRef) {
+  override def setItem(it: AnyRef): Unit = {
     if (!comboGate || it == null) return
 		super.setItem(it)
     updatePrefs()

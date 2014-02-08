@@ -35,7 +35,7 @@ import de.sciss.desktop.Window
 class EditRenameAction(r: Renamable, ed: Editor, name: String = "Rename...")
   extends Action(name) {
 
-  def apply() {
+  def apply(): Unit = {
     ???
 //    val op = new JOptionPane("Enter new name:", JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
 //    op.setWantsInput(true)

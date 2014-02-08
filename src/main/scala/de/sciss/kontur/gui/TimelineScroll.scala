@@ -108,7 +108,7 @@ class TimelineScroll(timelineView: TimelineView)
   addAdjustmentListener(this)
   setFocusable(false)
 
-  private def calcLenShift() {
+  private def calcLenShift(): Unit = {
     var i = 0
     while ((timelineSpan.length >> i) > 0x3FFFFFFF) i += 1
     timelineLenShift = i
@@ -119,7 +119,7 @@ class TimelineScroll(timelineView: TimelineView)
 	 *  the super class's method. Additionally
 	 *  paints timeline position and selection cues
 	 */
-  override def paintComponent(g: Graphics) {
+  override def paintComponent(g: Graphics): Unit = {
     super.paintComponent(g)
 
     val d = getSize()
@@ -146,14 +146,14 @@ class TimelineScroll(timelineView: TimelineView)
     g2.setPaint(pntOrig)
   }
 
-  private def recalcBoundedRange() {
+  private def recalcBoundedRange(): Unit = {
     val len = (timelineSpan.length >> timelineLenShift).toInt
     val len2 = (timelineVis.length >> timelineLenShift).toInt
     // println( "recalcBoundedRange: len = " + len + "; len2 = " + len2 )
     if ((len > 0) && (len2 > 0)) {
       if (!isEnabled) setEnabled(true)
       setValues((timelineVis.start >> timelineLenShift).toInt, len2, 0, len) // val, extent, min, max
-      setUnitIncrement(math.max(1, (len2 >> 5))) // 1/32 extent
+      setUnitIncrement(math.max(1, len2 >> 5)) // 1/32 extent
       setBlockIncrement(math.max(1, (len2 * 3) >> 2)) // 3/4 extent
     } else {
       if (isEnabled) setEnabled(false)
@@ -165,7 +165,7 @@ class TimelineScroll(timelineView: TimelineView)
    *  Calculates virtual->screen coordinates
    *  for timeline position and selection
    */
-  private def recalcTransforms() {
+  private def recalcTransforms(): Unit = {
     if (!timelineSpan.isEmpty) {
       val scale = (recentSize.width - trackMargin.left - trackMargin.right).toDouble / timelineSpan.length
       timelineSel match {
@@ -197,7 +197,7 @@ class TimelineScroll(timelineView: TimelineView)
    *
    * @see	java.awt.Component#repaint( long )
    */
-  def setPosition(pos: Long, patience: Long, typ: Int) {
+  def setPosition(pos: Long, patience: Long, typ: Int): Unit = {
     if (prefCatch && (catchBypassCount == 0) /* && timelineVis.contains( timelinePos ) */ &&
       //			(timelineVis.getStop() < timelineLen) &&
       !timelineVis.contains(pos + (if (typ == TYPE_TRANSPORT) timelineVis.length >> 3 else 0))) {
@@ -235,14 +235,14 @@ class TimelineScroll(timelineView: TimelineView)
     repaint(patience)
   }
 
-  def addCatchBypass() {
+  def addCatchBypass(): Unit = {
     catchBypassCount += 1
     if (catchBypassCount == 1) {
       catchBypassWasSynced = timelineVis.contains(timelinePos)
     }
   }
 
-  def removeCatchBypass() {
+  def removeCatchBypass(): Unit = {
     catchBypassCount -= 1
     if ((catchBypassCount == 0) && catchBypassWasSynced) {
       catchBypassWasSynced = false
@@ -268,19 +268,19 @@ class TimelineScroll(timelineView: TimelineView)
 
   // ---------------- DynamicListening interface ----------------
 
-  protected def componentShown() {
+  protected def componentShown(): Unit = {
     timelineView.addListener(timelineListener)
     recalcTransforms()
     repaint()
   }
 
-  protected def componentHidden() {
+  protected def componentHidden(): Unit = {
     timelineView.removeListener(timelineListener)
   }
 
   // ---------------- PreferenceChangeListener interface ----------------
 
-  def setCatch(onOff: Boolean) {
+  def setCatch(onOff: Boolean): Unit = {
     if (onOff == prefCatch) return
 
     prefCatch = onOff
@@ -329,7 +329,7 @@ class TimelineScroll(timelineView: TimelineView)
   // ---------------- AdjustmentListener interface ----------------
   // we're listening to ourselves
 
-  def adjustmentValueChanged(e: AdjustmentEvent) {
+  def adjustmentValueChanged(e: AdjustmentEvent): Unit = {
     if (!isEnabled) return
 
     val isAdjusting = e.getValueIsAdjusting

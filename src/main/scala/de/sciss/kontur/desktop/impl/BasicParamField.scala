@@ -54,9 +54,8 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
 
 
   addPropertyChangeListener("JComponent.sizeVariant", new PropertyChangeListener {
-    def propertyChange(pce: PropertyChangeEvent) {
+    def propertyChange(pce: PropertyChangeEvent): Unit =
       numberField.putClientProperty(pce.getPropertyName, pce.getNewValue)
-    }
   })
 
   setLayout(lay)
@@ -64,7 +63,7 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
   con.fill    = GridBagConstraints.HORIZONTAL
 
   jog.addListener(new NumberListener() {
-    def numberChanged(e: NumberEvent) {
+    def numberChanged(e: NumberEvent): Unit =
       currentSpace.foreach { space =>
         val inc     = e.getNumber.doubleValue() * space.inc
         val num     = numberField.getNumber
@@ -82,17 +81,14 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
           fireValueChanged(e.isAdjusting)
         }
       }
-    }
   })
 
   numberField.addListener(new NumberListener() {
-    def numberChanged(e: NumberEvent) {
-      fireValueChanged(e.isAdjusting)
-    }
+    def numberChanged(e: NumberEvent): Unit = fireValueChanged(e.isAdjusting)
   })
 
   unitLabel.addActionListener(new ActionListener() {
-    def actionPerformed(e: ActionEvent) {
+    def actionPerformed(e: ActionEvent): Unit = {
       selectSpace(unitLabel.getSelectedIndex)
 
       fireSpaceChanged()
@@ -127,7 +123,7 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
 
 	override def requestFocusInWindow(): Boolean = numberField.requestFocusInWindow()
 
-	def addSpace(space: ParamSpace) {
+	def addSpace(space: ParamSpace): Unit = {
 		spaces :+= space
     val view = DefaultUnitViewFactory.createView(space.unit)
     view match {
@@ -143,7 +139,7 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
 
   def value: Param = new Param(numberField.getNumber.doubleValue(), currentSpace.map(_.unit).getOrElse(ParamSpace.NONE))
 
-  def value_=(p: Param) {
+  def value_=(p: Param): Unit = {
     val oldNum    = numberField.getNumber
     val newParam  = currentSpace.map(s => translator.translate(p, s)).getOrElse(p)
 //    val spc       = currentSpace.getOrElse(p.space)
@@ -156,7 +152,7 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
     if (newNum != oldNum) numberField.setNumber(newNum)
   }
 
-  def setValueAndSpace(newValue: Param) {
+  def setValueAndSpace(newValue: Param): Unit = {
     val spcIdx = spaces.indexWhere(spc => Some(spc) != currentSpace && spc.unit == newValue.unit)
     val newSpc = spcIdx >= 0
     if (newSpc) {
@@ -176,7 +172,7 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
 
 	def space: Option[ParamSpace] = currentSpace
 
-  def space_=(value: Option[ParamSpace]) {
+  def space_=(value: Option[ParamSpace]): Unit = {
     value match {
       case Some(spc) =>
         val i = spaces.indexOf(value)
@@ -189,9 +185,9 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
   }
 
   def cycling: Boolean = unitLabel.getCycling
-  def cycling_=(value: Boolean) { unitLabel.setCycling(value) }
+  def cycling_=(value: Boolean): Unit = unitLabel.setCycling(value)
 
-	protected def selectSpace(selectedIdx: Int) {
+	protected def selectSpace(selectedIdx: Int): Unit = {
 		if( selectedIdx < 0 || selectedIdx >= spaces.size ) {
       currentSpace = None
       return
@@ -233,15 +229,13 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
 	 *  @param  listener	the <code>NumberListener</code> to register
 	 *  @see	de.sciss.app.EventManager#addListener( Object )
 	 */
-  def addListener(listener: BasicParamField.Listener) {
-    this.synchronized {
-      val e = elm.getOrElse {
-        val res = new EventManager(this)
-        elm = Some(res)
-        res
-      }
-      e.addListener(listener)
+  def addListener(listener: BasicParamField.Listener): Unit = this.synchronized {
+    val e = elm.getOrElse {
+      val res = new EventManager(this)
+      elm = Some(res)
+      res
     }
+    e.addListener(listener)
   }
 
   /**
@@ -251,11 +245,10 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
 	 *  @param  listener	the <code>NumberListener</code> to unregister
 	 *  @see	de.sciss.app.EventManager#removeListener( Object )
 	 */
-  def removeListener(listener: BasicParamField.Listener) {
+  def removeListener(listener: BasicParamField.Listener): Unit =
     elm.foreach(_.removeListener(listener))
-  }
 
-  def processEvent(e: BasicEvent) {
+  def processEvent(e: BasicEvent): Unit =
     for (e1 <- elm; i <- 0 until e1.countListeners) {
       val listener = e1.getListener(i).asInstanceOf[BasicParamField.Listener]
       e match {
@@ -268,20 +261,17 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
         case _ =>
       }
     }
-  }
 
-	protected def fireValueChanged(adjusting: Boolean) {
+	protected def fireValueChanged(adjusting: Boolean): Unit =
     elm.foreach(_.dispatchEvent(
       new BasicParamField.Event(this, BasicParamField.Event.VALUE, System.currentTimeMillis(),
         value, space, translator, isAdjusting = adjusting)
     ))
-  }
 
-	protected def fireSpaceChanged() {
+	protected def fireSpaceChanged(): Unit =
     elm.foreach(_.dispatchEvent( new BasicParamField.Event( this, BasicParamField.Event.SPACE, System.currentTimeMillis(),
 				value, space, translator, false ))
 		)
-	}
 
 // ------------------- PropertyChangeListener interface -------------------
 
@@ -289,7 +279,7 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
 	 *  Forwards <code>Font</code> property
 	 *  changes to the child gadgets
 	 */
-  def propertyChange(e: PropertyChangeEvent) {
+  def propertyChange(e: PropertyChangeEvent): Unit =
     if (e.getPropertyName == "font") {
       val fnt = getFont
       numberField.setFont(fnt)
@@ -300,7 +290,6 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
       numberField.setEnabled(enabled)
       unitLabel.setEnabled(enabled)
     }
-  }
 
   // ------------------- ComboBoxEditor interface -------------------
 
@@ -313,7 +302,7 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
 				numberField.getText else s"${numberField.getText} $unit")
 	}
 
-  def setItem(it: AnyRef) {
+  def setItem(it: AnyRef): Unit = {
  		if( !comboGate || (it == null) ) return
 
     it match {
@@ -322,25 +311,21 @@ class BasicParamField(var translator: ParamSpace.Translator = new DefaultUnitTra
     }
  	}
 
-  def selectAll() {
+  def selectAll(): Unit = {
     numberField.requestFocus()
     numberField.selectAll()
   }
 
-  def addActionListener(l: ActionListener) {
+  def addActionListener(l: ActionListener): Unit =
     numberField.addActionListener(l)   // XXX only until we have multiple units!
-  }
 
-  def removeActionListener(l: ActionListener) {
+  def removeActionListener(l: ActionListener): Unit =
     numberField.removeActionListener(l)
-  }
 
   override def getBaseline(width: Int, height: Int) =
     numberField.getBaseline(width, height) + numberField.getY
 
-  def setEditable(b: Boolean) {
-    numberField.setEditable(b)
-  }
+  def setEditable(b: Boolean): Unit = numberField.setEditable(b)
 
   def isEditable = numberField.isEditable
 }

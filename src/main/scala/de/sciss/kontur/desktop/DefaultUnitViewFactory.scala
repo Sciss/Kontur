@@ -9,14 +9,14 @@ import annotation.switch
 
 object DefaultUnitViewFactory extends BasicParamField.UnitViewFactory {
 	def createView(unit: Int): Any = {
-		((unit & ParamSpace.SPECIAL_MASK): @switch) match {
+		unit & ParamSpace.SPECIAL_MASK match {
       case ParamSpace.BARSBEATS => return ""
       case ParamSpace.HHMMSS    => return ClockIcon
       case ParamSpace.MIDINOTE  => return "\u266A"
       case _ =>
 		}
 
-    ((unit & ParamSpace.SCALE_MASK): @switch) match {
+    unit & ParamSpace.SCALE_MASK match {
       case ParamSpace.PERCENT =>
         return if ((unit & ParamSpace.REL_MASK) == ParamSpace.REL) "%" else "\u0394 %"
       case ParamSpace.DECIBEL => return "dB"
@@ -26,7 +26,7 @@ object DefaultUnitViewFactory extends BasicParamField.UnitViewFactory {
     if ((unit & ParamSpace.REL_MASK) == ParamSpace.REL) return ""
 
     var unitStrShort: String = null
-    val unitStr0 = ((unit & ParamSpace.UNIT_MASK): @switch) match {
+    val unitStr0 = unit & ParamSpace.UNIT_MASK match {
       case ParamSpace.NONE    => ""
       case ParamSpace.SECS    =>
         unitStrShort = "s"
@@ -45,7 +45,7 @@ object DefaultUnitViewFactory extends BasicParamField.UnitViewFactory {
 
     if (unitStrShort == null) unitStrShort = unitStr0
 
-    val unitStr = ((unit & ParamSpace.SCALE_MASK): @switch) match {
+    val unitStr = unit & ParamSpace.SCALE_MASK match {
 		  case ParamSpace.MILLI => "m" + unitStrShort
   		case ParamSpace.CENTI => "c" + unitStrShort
   		case ParamSpace.KILO  => "k" + unitStrShort
@@ -63,7 +63,7 @@ object DefaultUnitViewFactory extends BasicParamField.UnitViewFactory {
 		def getIconWidth  = 16
 		def getIconHeight = 16
 
-    def paintIcon(c: Component, g: Graphics, x: Int, y: Int) {
+    def paintIcon(c: Component, g: Graphics, x: Int, y: Int): Unit = {
       val g2        = g.asInstanceOf[Graphics2D]
       val strkOrig  = g2.getStroke
       val atOrig    = g2.getTransform

@@ -44,7 +44,7 @@ import de.sciss.desktop.impl.WindowImpl
 import swing.Component
 
 class PrefsFrame extends WindowImpl {
-  protected def style = Window.Auxiliary
+  override protected def style = Window.Auxiliary
 
   title     = "Preferences" // getResourceString( "framePrefs" )
   makeUnifiedLook()
@@ -61,7 +61,7 @@ class PrefsFrame extends WindowImpl {
     val layout = new BorderLayout()
     contents = Component.wrap(cp)
 
-    def activateTab(tab: AbstractAction) {
+    def activateTab(tab: AbstractAction): Unit = {
       val panel = tab.getValue("de.sciss.tabpanel").asInstanceOf[JComponent]
       val old = layout.getLayoutComponent(BorderLayout.CENTER)
       if (old != null) cp.remove(old)
@@ -71,9 +71,7 @@ class PrefsFrame extends WindowImpl {
 
     def newTab(key: String, panel: JComponent): AbstractButton = {
       val action = new AbstractAction(getResourceString(key)) {
-        def actionPerformed(e: ActionEvent) {
-          activateTab(this)
-        }
+        def actionPerformed(e: ActionEvent): Unit = activateTab(this)
       }
       val ggTab = new JToggleButton(action)
       ggTab.putClientProperty("JButton.buttonType", "toolbar")
@@ -115,7 +113,7 @@ class PrefsFrame extends WindowImpl {
 
   def handler = Kontur.windowHandler
 
-  override def dispose() {
+  override def dispose(): Unit = {
     application.removeComponent(Kontur.COMP_PREFS)
     super.dispose()
   }
@@ -140,10 +138,10 @@ class PrefsFrame extends WindowImpl {
     }
     ggWarn.add(lbWarn)
 
-    def addWarn[A](b: {def addActionListener(l: ActionListener): Unit}, pes: Preferences.Entry[A]) {
+    def addWarn[A](b: {def addActionListener(l: ActionListener): Unit}, pes: Preferences.Entry[A]): Unit = {
       val initialValue = pes.get
       b.addActionListener(new ActionListener {
-        def actionPerformed(e: ActionEvent) {
+        def actionPerformed(e: ActionEvent): Unit = {
           val newValue = pes.get
           if (newValue != initialValue) {
             lbWarn.setVisible(true)

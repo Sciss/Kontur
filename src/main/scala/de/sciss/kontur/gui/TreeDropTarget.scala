@@ -42,28 +42,20 @@ class TreeDropTarget( tree: JTree, actions: Int = ACTION_COPY_OR_MOVE | ACTION_L
 extends DropTarget {
 
    // ---- constructor ----
-   {
-      setComponent( tree )
-      setDefaultActions( actions )
-   }
+  setComponent(tree)
+  setDefaultActions(actions)
 
-   override def dragEnter( dtde: DropTargetDragEvent ) {
-      process( dtde )
-   }
+  override def dragEnter(dtde: DropTargetDragEvent): Unit = process(dtde)
+  override def dragOver (dtde: DropTargetDragEvent): Unit = process(dtde)
 
-   override def dragOver( dtde: DropTargetDragEvent ) {
-      process( dtde )
-   }
-
-   private def process( dtde: DropTargetDragEvent ) {
+  private def process( dtde: DropTargetDragEvent ): Unit =
       findDropTarget( dtde ).map( tup => {
          dtde.acceptDrag( tup._3 )
       }) getOrElse {
          dtde.rejectDrag()
       }
-   }
 
-   private def findDropTarget( dtde: DropTargetDragDropEvent ) : Option[ (CanBeDropTarget, DataFlavor, Int) ] = {
+  private def findDropTarget(dtde: DropTargetDragDropEvent): Option[(CanBeDropTarget, DataFlavor, Int)] = {
       val loc   = dtde.getLocation()
       val path  = tree.getPathForLocation( loc.x, loc.y )
       if( path == null ) return None
@@ -79,7 +71,7 @@ extends DropTarget {
       }
    }
 
-   override def drop( dtde: DropTargetDropEvent ) {
+   override def drop( dtde: DropTargetDropEvent ): Unit =
       findDropTarget( dtde ).map( tup => {
          val (cbdt, flavor, action) = tup
          dtde.acceptDrop( action )
@@ -89,7 +81,6 @@ extends DropTarget {
       }) getOrElse {
          dtde.rejectDrop()
       }
-   }
 
    // some idiot designed the events...
    // join them with structural typing. thank you scala...

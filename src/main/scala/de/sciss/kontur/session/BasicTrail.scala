@@ -59,7 +59,7 @@ class BasicTrail[T <: Stake[T]](doc: Session) extends Trail[T] with TrailEditor[
         new Span( i.low, i.high )
       }
   */
-    def visitRange( span: Span, byStart: Boolean = true )( f: (T) => Unit ) {
+    def visitRange( span: Span, byStart: Boolean = true )( f: (T) => Unit ): Unit = {
       tree.findOverlapping( spanToRect( span ), (ss: StoredStake) => {
         f( ss.stake )
       })
@@ -67,7 +67,7 @@ class BasicTrail[T <: Stake[T]](doc: Session) extends Trail[T] with TrailEditor[
 
    def isEmpty : Boolean = tree.isEmpty
 
-    def visitAll( byStart: Boolean = true )( f: (T) => Unit ) {
+    def visitAll( byStart: Boolean = true )( f: (T) => Unit ): Unit = {
       // XXX is this the most efficient approach?
       tree.findOverlapping( tree.getRoot.bounds, (ss: StoredStake) => {
         f( ss.stake )
@@ -98,7 +98,7 @@ class BasicTrail[T <: Stake[T]](doc: Session) extends Trail[T] with TrailEditor[
       -1 // XXX
     }
 
-  def add(stakes: T*) {
+  def add(stakes: T*): Unit = {
     var modSpan: SpanOrVoid = Span.Void
     stakes.foreach { stake =>
       tree.insert(StoredStake(stake))
@@ -113,7 +113,7 @@ class BasicTrail[T <: Stake[T]](doc: Session) extends Trail[T] with TrailEditor[
     }
   }
 
-  def remove( stakes: T* ) {
+  def remove( stakes: T* ): Unit = {
       var modSpan: SpanOrVoid = Span.Void
        stakes.foreach( stake => {
          tree.remove( StoredStake( stake ))
@@ -128,7 +128,7 @@ class BasicTrail[T <: Stake[T]](doc: Session) extends Trail[T] with TrailEditor[
       }
     }
 
-  def dispose() {}
+  def dispose() = ()
 
   private case class StoredStake(stake: T) extends Shaped[Long] {
     val shape = spanToRect(stake.span)
@@ -138,40 +138,30 @@ class BasicTrail[T <: Stake[T]](doc: Session) extends Trail[T] with TrailEditor[
 
   // ---- TrailEditor ----
 
-  def editInsert(ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode) {
+  def editInsert(ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode): Unit = {
     ???
   }
 
-  def editRemove(ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode) {
+  def editRemove(ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode): Unit = {
     ???
   }
 
-  def editClear(ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode) {
+  def editClear(ce: AbstractCompoundEdit, span: Span, touchMode: TouchMode = defaultTouchMode): Unit = {
     ???
   }
 
-  def editAdd(ce: AbstractCompoundEdit, stakes: T*) {
+  def editAdd(ce: AbstractCompoundEdit, stakes: T*): Unit = {
     val edit = new SimpleEdit("editAddStakes") {
-      def apply() {
-        add(stakes: _*)
-      }
-
-      def unapply() {
-        remove(stakes: _*)
-      }
+      def apply  (): Unit = add(stakes: _*)
+      def unapply(): Unit = remove(stakes: _*)
     }
     ce.addPerform(edit)
   }
 
-  def editRemove(ce: AbstractCompoundEdit, stakes: T*) {
+  def editRemove(ce: AbstractCompoundEdit, stakes: T*): Unit = {
     val edit = new SimpleEdit("editRemoveStakes") {
-      def apply() {
-        remove(stakes: _*)
-      }
-
-      def unapply() {
-        add(stakes: _*)
-      }
+      def apply  (): Unit = remove(stakes: _*)
+      def unapply(): Unit = add   (stakes: _*)
     }
     ce.addPerform(edit)
   }

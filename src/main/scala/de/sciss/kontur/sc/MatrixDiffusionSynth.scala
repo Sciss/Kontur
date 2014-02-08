@@ -58,7 +58,7 @@ extends DiffusionSynth {
        diffusion.addListener( diffusionListener )
    }
 
-   def play() {
+   def play(): Unit = {
       val d    = diffusion
       val df   = graph( "diff_matrix", d.numInputChannels, d.numOutputChannels, d.matrix ) {
          val in      = "in".ir
@@ -83,12 +83,12 @@ extends DiffusionSynth {
       synth = Some( syn )
    }
 
-   def stop() {
+   def stop(): Unit = {
       synth.foreach( _.free() )
       synth = None
    }
 
-   def dispose() {
+   def dispose(): Unit = {
       diffusion.removeListener( diffusionListener )
       stop()
       inBus.free()

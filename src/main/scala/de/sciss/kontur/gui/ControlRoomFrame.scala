@@ -40,7 +40,7 @@ import de.sciss.desktop.Window
 import de.sciss.desktop.impl.WindowImpl
 
 class ControlRoomFrame extends WindowImpl {
-  protected val style = Window.Auxiliary
+  override protected val style = Window.Auxiliary
 
   private val ggVolume    = new VolumeFader()
   private val ggLimiter   = new MultiStateButton()
@@ -52,18 +52,16 @@ class ControlRoomFrame extends WindowImpl {
   resizable = true
 
   ggVolume.addChangeListener(new ChangeListener() {
-    def stateChanged(e: ChangeEvent) {
-      superCollider.volume = ggVolume.volumeLinear
-    }
+    def stateChanged(e: ChangeEvent): Unit = superCollider.volume = ggVolume.volumeLinear
   })
 
-  ggLimiter.setNumColumns( 8 )
+  ggLimiter.setNumColumns(8)
   ggLimiter.addItem("Limiter")
   // NOTE: BUG WITH CUSTOM COMPOSITE ON WIN-XP!!!
   //		ggLimiter.addItem( "Limiter", null, new Color( 0xFF, 0xFA, 0x9D ), new Color( 0xFA, 0xE7, 0x9D ));
   ggLimiter.addItem("Limiter", null, new Color(0xFF, 0xFA, 0x9D))
   ggLimiter.addActionListener(new ActionListener {
-    def actionPerformed(e: ActionEvent) {
+    def actionPerformed(e: ActionEvent): Unit = {
       // 				superCollider.setLimiter( ggLimiter.getSelectedIndex() == 1 );
       superCollider.limiter = ggLimiter.getSelectedIndex == 1
     }
@@ -71,7 +69,7 @@ class ControlRoomFrame extends WindowImpl {
   if (superCollider.limiter) ggLimiter.setSelectedIndex(1)
 
   pmg.borderVisible = true
-  pmg.hasCaption    = true
+  pmg.caption       = true
   // 		oCfg = superCollider.getOutputConfig()
   rebuildMeters()
 
@@ -116,7 +114,7 @@ class ControlRoomFrame extends WindowImpl {
 //
 //  override protected def getPreferredLocation: Point2D = new Point2D.Float(0.95f, 0.2f)
 
-  override def dispose() {
+  override def dispose(): Unit = {
     application.removeComponent(Kontur.COMP_CTRLROOM)
     // XXX TODO
 //    stopListening()
@@ -125,11 +123,10 @@ class ControlRoomFrame extends WindowImpl {
     super.dispose()
   }
 
-  private def updateVolume() {
+  private def updateVolume(): Unit =
     ggVolume.volumeLinear = superCollider.volume
-  }
 
-  private def rebuildMeters() {
+  private def rebuildMeters(): Unit = {
     pmg.numChannels = 8 // XXX
     b1.makeCompactGrid()
     pack()

@@ -99,26 +99,21 @@ object Kontur extends SwingApplicationImpl("Kontur") {
   lazy val eisenkraut = new EisenkrautClient()(this)
 
   private val quitAfterSaveListener = new ProcessingThread.Listener {
-    def processStarted(e: ProcessingThread.Event) {
-      /* empty */
-    }
+    def processStarted(e: ProcessingThread.Event): Unit = ()
 
     // if the saving was successfull, we will call closeAll again
-    def processStopped(e: ProcessingThread.Event) {
-      if (e.isDone) quit()
-    }
+    def processStopped(e: ProcessingThread.Event): Unit = if (e.isDone) quit()
   }
 
-	/**
-	 *	The arguments may contain the following options:
-	 *	<UL>
-	 *	<LI>-laf &lt;screenName&gt; &lt;className&gt; : set the default look-and-feel</LI>
-	 *	</UL>
-	 *
-	 *	All other arguments not starting with a hyphen are considered to be paths to documents
-	 *	that will be opened after launch.
-	 */
-	override protected def init() {
+	/** The arguments may contain the following options:
+	  *	<UL>
+	  *	<LI>-laf &lt;screenName&gt; &lt;className&gt; : set the default look-and-feel</LI>
+	  *	</UL>
+	  *
+	  *	All other arguments not starting with a hyphen are considered to be paths to documents
+	  *	that will be opened after launch.
+	  */
+	override protected def init(): Unit = {
 		val prefs   = userPrefs
     var lafName = prefs.get[String](PrefsUtil.KEY_LOOKANDFEEL)(Preferences.Type.string).orNull  // XXX TODO: scalac bug
     var openDoc = scala.collection.immutable.Queue[String]()
@@ -165,7 +160,7 @@ object Kontur extends SwingApplicationImpl("Kontur") {
 
 	private var shouldForceQuit = false
 
-  def quit() {
+  override def quit(): Unit = {
     val confirmed = Flag.False()
     val ptOpt     = GlobalActions.closeAll(shouldForceQuit, confirmed)
 
@@ -181,7 +176,7 @@ object Kontur extends SwingApplicationImpl("Kontur") {
     }
   }
 
-  def forceQuit() {
+  def forceQuit(): Unit = {
     shouldForceQuit = true
     quit()
   }

@@ -59,13 +59,12 @@ final class AudioTrack(doc: Session)
 
   def diffusion = diffusionVar
 
-  def diffusion_=(newDiff: Option[Diffusion]) {
+  def diffusion_=(newDiff: Option[Diffusion]): Unit =
     if (newDiff != diffusionVar) {
       val change = DiffusionChanged(diffusionVar, newDiff)
       diffusionVar = newDiff
       dispatch(change)
     }
-  }
 
   def toXML( c: SerializerContext ) = if( c.exists( this ))
       <audioTrack idref={c.id( this ).toString}/>
@@ -76,7 +75,7 @@ final class AudioTrack(doc: Session)
       {trail.toXML( c )}
       </audioTrack>
 
-   def fromXML( c: SerializerContext, node: Node ) {
+   def fromXML( c: SerializerContext, node: Node ): Unit = {
       nameVar = (node \ "name").text
       (node \ "diffusion").foreach( diffN => {
          diffusionVar = Some( c.byID[ Diffusion ]( diffN ))
@@ -90,11 +89,11 @@ final class AudioTrack(doc: Session)
 
    // ---- TrackEditor ----
 
-   def editDiffusion( ce: AbstractCompoundEdit, newDiff: Option[ Diffusion ]) {
+   def editDiffusion( ce: AbstractCompoundEdit, newDiff: Option[ Diffusion ]): Unit = {
       val edit = new SimpleEdit( "editTrackDiffusion" ) {
          lazy val oldDiff = diffusion
-         def apply() { oldDiff; diffusion = newDiff }
-         def unapply() { diffusion = oldDiff }
+         def apply(): Unit = { oldDiff; diffusion = newDiff }
+         def unapply(): Unit = diffusion = oldDiff
       }
       ce.addPerform( edit )
    }

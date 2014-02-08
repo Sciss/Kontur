@@ -87,7 +87,7 @@ extends Timeline with Renamable with TimelineEditor {
    {tracks.toXML( c )}
 </timeline>
 
-   def fromXML( c: SerializerContext, node: Node ) {
+   def fromXML( c: SerializerContext, node: Node ): Unit = {
       nameVar   = (node \ "name").text
       val spanN = node \ "span"
       spanVar   = Span( (spanN \ "@start").text.toLong, (spanN \ "@stop").text.toLong )
@@ -96,23 +96,21 @@ extends Timeline with Renamable with TimelineEditor {
    }
 
    def span: Span = spanVar
-   def span_=( newSpan: Span ) {
+   def span_=( newSpan: Span ): Unit =
       if( newSpan != spanVar ) {
          val change = SpanChanged( spanVar, newSpan )
          spanVar = newSpan
          dispatch( change )
       }
-   }
 
    def rate: Double = rateVar
 
-   def rate_=( newRate: Double ) {
+   def rate_=( newRate: Double ): Unit =
       if( newRate != rateVar ) {
          val change = RateChanged( rateVar, newRate )
          rateVar = newRate
          dispatch( change )
       }
-   }
 
    def editor: Option[ TimelineEditor ] = Some( this )
 
@@ -120,20 +118,20 @@ extends Timeline with Renamable with TimelineEditor {
 
    protected def editRenameName = "editRenameTimeline"
 
-   def editSpan( ce: AbstractCompoundEdit, newSpan: Span ) {
+   def editSpan( ce: AbstractCompoundEdit, newSpan: Span ): Unit = {
       val edit = new SimpleEdit( "editTimelineSpan" ) {
          lazy val oldSpan = span
-         def apply() { oldSpan; span = newSpan }
-         def unapply() { span = oldSpan }
+         def apply(): Unit = { oldSpan; span = newSpan }
+         def unapply(): Unit = span = oldSpan
       }
       ce.addPerform( edit )
    }
 
-   def editRate( ce: AbstractCompoundEdit, newRate: Double ) {
+   def editRate( ce: AbstractCompoundEdit, newRate: Double ): Unit = {
       val edit = new SimpleEdit( "editTimelineRate" ) {
          lazy val oldRate = rate
-         def apply() { oldRate; rate = newRate }
-         def unapply() { rate = oldRate }
+         def apply(): Unit = { oldRate; rate = newRate }
+         def unapply(): Unit = rate = oldRate
       }
       ce.addPerform( edit )
    }
@@ -146,7 +144,7 @@ extends BasicSessionElementSeq[ Timeline ]( doc, "Timelines" ) {
        {innerToXML( c )}
     </timelines>
 
-  def fromXML( c: SerializerContext, parent: Node ) {
+  def fromXML( c: SerializerContext, parent: Node ): Unit = {
      val innerXML = SessionElement.getSingleXML( parent, "timelines" )
      innerFromXML( c, innerXML )
   }

@@ -65,7 +65,7 @@ class EisenkrautClient()(implicit application: de.sciss.desktop.Application) {
 //     prefs2.removeListener(prefsListener)
 //   }
 
-   def openAudioFile( path: File, cursor: Option[ Long ] = None, selection: SpanOrVoid = Span.Void ) {
+   def openAudioFile( path: File, cursor: Option[ Long ] = None, selection: SpanOrVoid = Span.Void ): Unit = {
      ???
 //      spawn {
 //         send( "/doc", "open", path.getCanonicalPath )

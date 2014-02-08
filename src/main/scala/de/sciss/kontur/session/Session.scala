@@ -66,7 +66,7 @@ extends /* BasicDocument with */ Model {
   private var pt: Option[ProcessingThread] = None
   private val undo = new UndoManagerImpl {
     def dirty = doc.dirty
-    def dirty_=(value: Boolean) { doc.dirty = value}
+    def dirty_=(value: Boolean): Unit = doc.dirty = value
   }
   private var _dirty = false
 
@@ -91,13 +91,13 @@ extends /* BasicDocument with */ Model {
 </konturSession>
 
   @throws(classOf[IOException])
-  def fromXML(c: SerializerContext, elem: Node) {
+  def fromXML(c: SerializerContext, elem: Node): Unit = {
     audioFiles.fromXML(c, elem)
     diffusions.fromXML(c, elem)
     timelines .fromXML(c, elem)
   }
 
-  def save(f: File) {
+  def save(f: File): Unit = {
     val c = new BasicSerializerContext
     XML.save(f.getAbsolutePath, toXML(c), "UTF-8", xmlDecl = true, null)
   }
@@ -114,7 +114,7 @@ extends /* BasicDocument with */ Model {
    * @throws	IllegalStateException			if another process is still running
    * @see	#checkProcess()
    */
-  def start(process: ProcessingThread) {
+  def start(process: ProcessingThread): Unit = {
     if (!EventQueue.isDispatchThread) throw new IllegalMonitorStateException()
     if (pt.isDefined) throw new IllegalStateException("Process already running")
 
@@ -132,7 +132,7 @@ extends /* BasicDocument with */ Model {
   }
 
   def path = pathVar
-  def path_=(newPath: Option[File]) {
+  def path_=(newPath: Option[File]): Unit = {
     if (newPath != pathVar) {
       val change = PathChanged(pathVar, newPath)
       pathVar = newPath
@@ -157,16 +157,13 @@ extends /* BasicDocument with */ Model {
 
   def dirty: Boolean = _dirty
 
-  def dirty_=(value: Boolean) {
+  def dirty_=(value: Boolean): Unit =
     if (_dirty != value) {
       _dirty = value
       dispatch(DirtyChanged(value))
     }
-  }
 
   def undoManager: UndoManager = undo
 
-  def dispose() {
-    // nada
-  }
+  def dispose() = () // nada
 }

@@ -8,9 +8,8 @@ import de.sciss.desktop.{Window, Preferences}
 
 object BasicPathField {
   private final class Button(mode: PathField.Mode) extends PathButton(mode) {
-    protected def showDialog(dialog: Dialog) {
+    protected def showDialog(dialog: Dialog): Unit =
       Window.showDialog(Component.wrap(this), dialog)
-    }
   }
 }
 class BasicPathField(prefs: Preferences.Entry[File], default: File)(mode: PathField.Mode = PathField.Input)

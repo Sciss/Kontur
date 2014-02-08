@@ -117,7 +117,7 @@ class AudioFileSpecPane extends SpringPanel {
 	private var pEnc		= Option.empty[SpringPanel]
 //	private var pGain   = Option.empty[SpringPanel]
 
-  private def pEncRemoval(opt: Option[Component]) {
+  private def pEncRemoval(opt: Option[Component]): Unit =
     opt.foreach { gg =>
       val p = gg.getParent
       assert(Some(p) == pEnc)
@@ -127,9 +127,8 @@ class AudioFileSpecPane extends SpringPanel {
         pEnc = None
       }
     }
-  }
 
-  private def pEncAddition(c: JComponent, x: Int) {
+  private def pEncAddition(c: JComponent, x: Int): Unit = {
     val p = pEnc.getOrElse {
       val res = new SpringPanel(4, 2, 4, 2)
       gridAdd(res, 0, 0, -1, 1)
@@ -140,12 +139,12 @@ class AudioFileSpecPane extends SpringPanel {
   }
 
   def fileType: Boolean = ggFileType.isDefined
-  def fileType_=(value: Boolean) {
+  def fileType_=(value: Boolean): Unit = {
     if (ggFileType.isDefined == value) return
     pEncRemoval(ggFileType)
     if (value) {
       val gg = new JComboBox()
-      AudioFileType.writable.foreach(gg.addItem _)
+      AudioFileType.writable.foreach(gg.addItem)
 //      gg.setSelectedIndex(...)
       pEncAddition(gg, 0)
       ggFileType = Some(gg)
@@ -153,12 +152,12 @@ class AudioFileSpecPane extends SpringPanel {
   }
   
   def sampleFormat: Boolean = ggSampleFormat.isDefined
-  def sampleFormat_=(value: Boolean) {
+  def sampleFormat_=(value: Boolean): Unit = {
     if (ggSampleFormat.isDefined == value) return
     pEncRemoval(ggSampleFormat)
     if (value) {
       val gg = new JComboBox()
-      sampleFormatItems.foreach(gg.addItem _)
+      sampleFormatItems.foreach(gg.addItem)
 //      gg.setSelectedIndex( DEFAULT_ENCODING )
       pEncAddition(gg, 1)
       ggSampleFormat = Some(gg)
@@ -452,7 +451,7 @@ class AudioFileSpecPane extends SpringPanel {
 	 *					or `None` to stop
 	 *					updating.
 	 */
-	def linkedPathField_=(value: Option[PathField]) {
+	def linkedPathField_=(value: Option[PathField]): Unit = {
 		_linkedPathField = value
 		updateFileSuffix()
 	}
@@ -516,9 +515,9 @@ class AudioFileSpecPane extends SpringPanel {
 //		lbGainType.setText( getResourceString( normalize ? "labelPeak" : "labelGain" ));
 //	}
 
-	// sync's a path field's path extension
+	// synchronizes a path field's path extension
 	// with the selected encoding
-	private def updateFileSuffix() {
+	private def updateFileSuffix(): Unit =
     ggFileType.foreach { ggSource =>
       ggSource.getSelectedItem match {
         case tpe: AudioFileType =>
@@ -533,7 +532,6 @@ class AudioFileSpecPane extends SpringPanel {
         case _ =>
       }
     }
-	}
 
 //	// we're listening to the normalize checkbox + format combo + multi-channel
 //	public void itemStateChanged( ItemEvent e )

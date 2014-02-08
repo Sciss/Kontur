@@ -27,9 +27,10 @@ package de.sciss.kontur.edit
 
 import legacy.{BasicUndoableEdit, PerformableEdit}
 
-abstract class SimpleEdit( name: String, override val isSignificant: Boolean = true )
-extends BasicUndoableEdit {
-  def perform() : PerformableEdit = {
+abstract class SimpleEdit(name: String, override val isSignificant: Boolean = true)
+  extends BasicUndoableEdit {
+
+  def perform(): PerformableEdit = {
     apply()
     this
   }
@@ -37,17 +38,17 @@ extends BasicUndoableEdit {
   def apply() : Unit
   def unapply() : Unit
 
-  override def undo() {
+  override def undo(): Unit = {
     super.undo()
     unapply()
   }
 
-  override def redo() {
+  override def redo(): Unit = {
     super.redo()
     apply()
   }
 
-  override def getPresentationName : String = {
-     name // AbstractApplication.getApplication.getResourceString( name )
+  override def getPresentationName: String = {
+    name // AbstractApplication.getApplication.getResourceString( name )
   }
 }

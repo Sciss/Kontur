@@ -76,18 +76,17 @@ with DynamicComponentImpl /* with Disposable */ {
 
 //	private var	isListening	= false
 
-    private val ml = new MouseAdapter() {
-			/**
-			 *	Handle mouse presses.
-			 *	<pre>
-			 *  Keyboard shortcuts as in ProTools:
-			 *  Alt+Click   = Toggle item & set all others to same new state
-			 *  Meta+Click  = Toggle item & set all others to opposite state
-			 *	</pre>
-			 */
-			override def mousePressed( e: MouseEvent ) {
-//				val id = editor.editBegin( this, getResourceString( "editTrackSelection" ))
-                trackList.editor.foreach( ed => {
+  private val ml = new MouseAdapter() {
+    /** Handles mouse presses.
+      * <pre>
+      * Keyboard shortcuts as in ProTools:
+      * Alt+Click   = Toggle item & set all others to same new state
+      * Meta+Click  = Toggle item & set all others to opposite state
+      * </pre>
+      */
+    override def mousePressed(e: MouseEvent): Unit = {
+      //				val id = editor.editBegin( this, getResourceString( "editTrackSelection" ))
+      trackList.editor.foreach( ed => {
                     val ce = ed.editBegin( "trackSelection" )
                     val thisSel = trackListElement.selected
     				if( e.isShiftDown ) { // toggle single
@@ -212,10 +211,10 @@ with DynamicComponentImpl /* with Disposable */ {
 	 */
 //	def isSelected = selected
 
-	override def paintComponent( g: Graphics ) {
-		super.paintComponent( g )
+  override def paintComponent(g: Graphics): Unit = {
+    super.paintComponent(g)
 
-      val g2   = g.asInstanceOf[ Graphics2D ]
+    val g2   = g.asInstanceOf[Graphics2D]
 		val h	   = getHeight
 		val w	   = getWidth
 		val x	   = math.min( w - 36, lbTrackName.getX + lbTrackName.getWidth )
@@ -233,7 +232,7 @@ with DynamicComponentImpl /* with Disposable */ {
 	g2.translate( 0, 8 - h )
 	}
 
-	override def paintChildren( g: Graphics ) {
+  override def paintChildren(g: Graphics): Unit = {
 		super.paintChildren( g )
 		val g2 = g.asInstanceOf[ Graphics2D ]
 		val w	= getWidth
@@ -241,13 +240,12 @@ with DynamicComponentImpl /* with Disposable */ {
 		g2.fillRect( 0, 0, w, 8 )
 	}
 
-	private def checkTrackName() {
-		if( lbTrackName.getText != track.name ) {
-			lbTrackName.setText( track.name )
-		}
-	}
+  private def checkTrackName(): Unit =
+    if (lbTrackName.getText != track.name) {
+      lbTrackName.setText(track.name)
+    }
 
-// ---------------- DynamicListening interface ----------------
+  // ---------------- DynamicListening interface ----------------
 
   private val trackListListener: Model.Listener = {
     case TrackList.SelectionChanged(mod @ _*) =>
@@ -256,49 +254,45 @@ with DynamicComponentImpl /* with Disposable */ {
     case Renamable.NameChanged(_, newName) => checkTrackName()
   }
 
-  protected def componentShown() {
+  protected def componentShown(): Unit = {
     trackList.addListener(trackListListener)
     checkTrackName()
   }
 
-  protected def componentHidden() {
+  protected def componentHidden(): Unit =
     trackList.removeListener(trackListListener)
-  }
 }
 
-class AudioTrackHeaderComponent( audioTrack: AudioTrack, trackList: TrackList )
-extends DefaultTrackHeaderComponent( audioTrack, trackList ) {
+class AudioTrackHeaderComponent(audioTrack: AudioTrack, trackList: TrackList)
+  extends DefaultTrackHeaderComponent(audioTrack, trackList) {
 
-    // ---- constructor ----
-    {
-        new DropTarget( this, DnDConstants.ACTION_LINK, new DropTargetAdapter {
-           private def process( dtde: DropTargetDragEvent ) {
-              if( dtde.isDataFlavorSupported( Diffusion.flavor )) {
-                  dtde.acceptDrag( DnDConstants.ACTION_LINK )
-              } else {
-                  dtde.rejectDrag()
-              }
-           }
-
-           override def dragEnter( dtde: DropTargetDragEvent ) { process( dtde )}
-           override def dragOver( dtde: DropTargetDragEvent ) { process( dtde )}
-
-           def drop( dtde: DropTargetDropEvent ) {
-             if( dtde.isDataFlavorSupported( Diffusion.flavor )) {
-                 dtde.acceptDrop( DnDConstants.ACTION_LINK )
-                 dtde.getTransferable.getTransferData( Diffusion.flavor ) match {
-                    case diff: Diffusion => {
-                       val ce = audioTrack.editBegin( "editTrackDiffusion" )
-                       audioTrack.editDiffusion( ce, Some( diff ))
-                       audioTrack.editEnd( ce )
-                       dtde.dropComplete( true )
-                    }
-                    case _ =>
-                 }
-             } else {
-                 dtde.rejectDrop()
-             }
-           }
-        })
+  // ---- constructor ----
+  new DropTarget(this, DnDConstants.ACTION_LINK, new DropTargetAdapter {
+    private def process(dtde: DropTargetDragEvent): Unit =
+      if (dtde.isDataFlavorSupported(Diffusion.flavor)) {
+        dtde.acceptDrag(DnDConstants.ACTION_LINK)
+      } else {
+        dtde.rejectDrag()
       }
+
+    override def dragEnter(dtde: DropTargetDragEvent): Unit = process(dtde)
+    override def dragOver (dtde: DropTargetDragEvent): Unit = process(dtde)
+
+    def drop(dtde: DropTargetDropEvent): Unit = {
+      if (dtde.isDataFlavorSupported(Diffusion.flavor)) {
+        dtde.acceptDrop(DnDConstants.ACTION_LINK)
+        dtde.getTransferable.getTransferData(Diffusion.flavor) match {
+          case diff: Diffusion =>
+            val ce = audioTrack.editBegin("editTrackDiffusion")
+            audioTrack.editDiffusion(ce, Some(diff))
+            audioTrack.editEnd(ce)
+            dtde.dropComplete(true)
+
+          case _ =>
+        }
+      } else {
+        dtde.rejectDrop()
+      }
+    }
+  })
 }

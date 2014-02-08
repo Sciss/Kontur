@@ -36,8 +36,6 @@ import de.sciss.desktop.Window
 class SessionTreeFrame(val document: Session) extends WindowImpl with SessionFrame {
   frame =>
 
-  protected def style = Window.Regular
-
   def handler = Kontur.windowHandler
 
   private val sessionTreeModel = new SessionTreeModel(document)
@@ -56,7 +54,7 @@ class SessionTreeFrame(val document: Session) extends WindowImpl with SessionFra
       ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
 
     ggTree.addMouseListener(new MouseAdapter() {
-      override def mousePressed(e: MouseEvent) {
+      override def mousePressed(e: MouseEvent): Unit = {
         val selRow = ggTree.getRowForLocation(e.getX, e.getY)
         if (selRow == -1) return
         val selPath = ggTree.getPathForLocation(e.getX, e.getY)
@@ -66,7 +64,7 @@ class SessionTreeFrame(val document: Session) extends WindowImpl with SessionFra
         else if (e.getClickCount == 2) doubleClick(node, e)
       }
 
-      private def popup(node: AnyRef, e: MouseEvent) {
+      private def popup(node: AnyRef, e: MouseEvent): Unit =
         node match {
           case hcm: HasContextMenu =>
             hcm.createContextMenu().foreach { root =>
@@ -79,14 +77,12 @@ class SessionTreeFrame(val document: Session) extends WindowImpl with SessionFra
             }
           case _ =>
         }
-      }
 
-      private def doubleClick(node: AnyRef, e: MouseEvent) {
+      private def doubleClick(node: AnyRef, e: MouseEvent): Unit =
         node match {
           case hdca: HasDoubleClickAction => hdca.doubleClickAction()
           case _ =>
         }
-      }
     })
     new TreeDragSource(ggTree)
     new TreeDropTarget(ggTree)
@@ -105,7 +101,7 @@ class SessionTreeFrame(val document: Session) extends WindowImpl with SessionFra
     visible = true
   }
 
-  protected def windowClosing() {
+  protected def windowClosing(): Unit = {
     sessionTreeModel.stopListening()
     close()
   }

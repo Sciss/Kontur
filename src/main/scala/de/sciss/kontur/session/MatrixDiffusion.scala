@@ -68,7 +68,7 @@ extends BasicDiffusion( doc ) {
     private def rowToXML( row: Seq[ Float ]) =
       <row>{row.mkString( " " )}</row>
 
-    def fromXML( node: xml.Node ) {
+    def fromXML( node: xml.Node ): Unit = {
         nameVar              = (node \ "name").text
         numInputChannelsVar  = (node \ "numInputChannels").text.toInt
         numOutputChannelsVar = (node \ "numOutputChannels").text.toInt
@@ -89,7 +89,7 @@ extends BasicDiffusion( doc ) {
     }
 
     def numInputChannels = numInputChannelsVar
-    def numInputChannels_=( newNum: Int ) {
+    def numInputChannels_=( newNum: Int ): Unit =
       if( newNum != numInputChannelsVar ) {
          val change = NumInputChannelsChanged( numInputChannelsVar, newNum )
          numInputChannelsVar = newNum
@@ -97,9 +97,9 @@ extends BasicDiffusion( doc ) {
          dispatch( change )
          dispatchMatrixChange( oldMatrix )
       }
-    }
+
     def numOutputChannels = numOutputChannelsVar
-    def numOutputChannels_=( newNum: Int ) {
+    def numOutputChannels_=( newNum: Int ): Unit =
       if( newNum != numOutputChannelsVar ) {
          val change = NumOutputChannelsChanged( numOutputChannelsVar, newNum )
          numOutputChannelsVar = newNum
@@ -107,9 +107,9 @@ extends BasicDiffusion( doc ) {
          dispatch( change )
          dispatchMatrixChange( oldMatrix )
       }
-    }
+
     def matrix = matrixVar
-    def matrix_=( newMatrix: Matrix2D[ Float ]) {
+    def matrix_=( newMatrix: Matrix2D[ Float ]): Unit = {
         var changes: List[ AnyRef ] = Nil
         if( newMatrix != matrixVar ) {
            changes ::= MatrixChanged( matrixVar, newMatrix )
@@ -127,29 +127,29 @@ extends BasicDiffusion( doc ) {
     }
 
     // ---- DiffusionEditor ----
-    def editSetNumInputChannels( ce: AbstractCompoundEdit, newNum: Int ) {
+    def editSetNumInputChannels( ce: AbstractCompoundEdit, newNum: Int ): Unit = {
         val edit = new SimpleEdit( "editSetNumInputChannels" ) {
            lazy val oldNum = numInputChannels
-           def apply() { oldNum; numInputChannels = newNum }
-           def unapply() { numInputChannels = oldNum }
+           def apply(): Unit = { oldNum; numInputChannels = newNum }
+           def unapply(): Unit = numInputChannels = oldNum
         }
         ce.addPerform( edit )
     }
 
-    def editSetNumOutputChannels( ce: AbstractCompoundEdit, newNum: Int ) {
+    def editSetNumOutputChannels( ce: AbstractCompoundEdit, newNum: Int ): Unit = {
         val edit = new SimpleEdit( "editSetNumOutputChannels" ) {
            lazy val oldNum = numOutputChannels
-           def apply() { oldNum; numOutputChannels = newNum }
-           def unapply() { numOutputChannels = oldNum }
+           def apply(): Unit = { oldNum; numOutputChannels = newNum }
+           def unapply(): Unit = numOutputChannels = oldNum
         }
         ce.addPerform( edit )
     }
 
-    def editSetMatrix( ce: AbstractCompoundEdit, newMatrix: Matrix2D[ Float ]) {
+    def editSetMatrix( ce: AbstractCompoundEdit, newMatrix: Matrix2D[ Float ]): Unit = {
         val edit = new SimpleEdit( "editSetMatrix" ) {
            lazy val oldMatrix = matrix
-           def apply() { oldMatrix; matrix = newMatrix }
-           def unapply() { matrix = oldMatrix }
+           def apply(): Unit = { oldMatrix; matrix = newMatrix }
+           def unapply(): Unit = matrix = oldMatrix
         }
         ce.addPerform( edit )
     }

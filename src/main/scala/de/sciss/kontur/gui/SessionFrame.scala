@@ -26,14 +26,13 @@
 package de.sciss.kontur
 package gui
 
-import java.awt.{FileDialog, Frame}
 import java.awt.event.{ActionEvent, KeyEvent}
 import java.io.{File, IOException}
 import javax.swing.{SwingUtilities, AbstractAction, JComponent, JOptionPane, KeyStroke}
 import session.Session
 import util.{Flag, Model}
 import swing.Action
-import de.sciss.desktop.{OptionPane, Window}
+import de.sciss.desktop.{FileDialog, OptionPane, Window}
 import de.sciss.desktop.impl.WindowImpl
 
 trait SessionFrame {
@@ -95,7 +94,7 @@ trait SessionFrame {
 
   protected def windowClosing(): Unit
 
-  protected def invokeDispose() {
+  protected def invokeDispose(): Unit = {
     disposed = true // important to avoid "too late window messages" to be processed; fucking swing doesn't kill them despite listener being removed
     // XXX TODO
     //      removeListener( winListener )
@@ -107,13 +106,12 @@ trait SessionFrame {
     dispose()
   }
 
-  final def close() { ActionClose() }
+  final def close(): Unit = ActionClose()
 
-  /**
-   * Recreates the main frame's title bar
-   * after a sessions name changed (clear/load/save as session)
-   */
-  protected def updateTitle() {
+  /** Recreates the main frame's title bar
+    * after a sessions name changed (clear/load/save as session)
+    */
+  protected def updateTitle(): Unit = {
     writeProtected = document.path.map(!_.canWrite) getOrElse false
 
     val name = document.displayName
@@ -131,7 +129,8 @@ trait SessionFrame {
     if (writeProtected && !wpHaveWarned && document.dirty) {
       val op  = OptionPane.message(message = getResourceString("warnWriteProtected"),
         messageType = OptionPane.Message.Warning)
-      showDialog(op -> "Warning") // getResourceString("msgDlgWarn"))
+      op.title = "Warning"
+      showDialog(op) // getResourceString("msgDlgWarn"))
       wpHaveWarned = true
     }
   }
@@ -142,13 +141,13 @@ trait SessionFrame {
 //      frame.dispose()
 //   }
 
-   protected def documentClosed() {
+   protected def documentClosed(): Unit = {
      // XXX TODO
 //      application.documentHandler.removeDocument(doc)	// XXX
       invokeDispose() // dispose()
    }
 
-   def closeDocument( force: Boolean, wasClosed: Flag ) {
+  def closeDocument(force: Boolean, wasClosed: Flag): Unit = {
 //      doc.getTransport().stop();
       val okToClose = force || {
          val name = "Close" // getResourceString( "menuClose" )
@@ -240,7 +239,7 @@ trait SessionFrame {
      op.peer.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
        KeyStroke.getKeyStroke(KeyEvent.VK_D, Window.menuShortcut), "dont")
      op.peer.getActionMap.put("dont", new AbstractAction {
-       def actionPerformed(e: ActionEvent) {
+       def actionPerformed(e: ActionEvent): Unit = {
          val w = SwingUtilities.getWindowAncestor(op.peer)
          if (w != null) {
            dont() = true
@@ -248,7 +247,8 @@ trait SessionFrame {
          }
        }
      })
-     showDialog(op -> actionName)
+     op.title = actionName
+     showDialog(op)
      val choice = if (dont()) {
        2
      } else {
@@ -288,20 +288,17 @@ trait SessionFrame {
    }
 
    private object ActionClose extends Action("Close") {
-     def apply() {
-       closeDocument(force = false, Flag.False())
-     }
+     def apply(): Unit = closeDocument(force = false, Flag.False())
    }
 
    // action for the Save-Session menu item
    private object ActionSave
     extends Action("Save") {
-      /**
-       *  Saves a Session. If the file
-       *  wasn't saved before, a file chooser
-       *  is shown before.
-       */
-      def apply() {
+      /** Saves a Session. If the file
+        * wasn't saved before, a file chooser
+        * is shown before.
+        */
+      def apply(): Unit = {
          val name = title
          (document.path orElse actionSaveAs.query( name )).foreach( f =>
             perform( name, f, asCopy = false, openAfterSave = false ))
@@ -339,7 +336,7 @@ trait SessionFrame {
     /*
      *  Query a file name from the user and save the Session
      */
-    def apply() {
+    def apply(): Unit = {
       val name = title
       query(name).foreach { f =>
         ActionSave.perform(name, f, asCopy = asCopy, openAfterSave = openAfterSave())
@@ -356,9 +353,10 @@ trait SessionFrame {
 		 *
 		 *	@todo	should warn user if saveMarkers is true and format does not support it
 		 */
-     protected[gui] def query(name: String): Option[File] = {
-       val dlg = new FileDialog(null.asInstanceOf[Frame], name, FileDialog.SAVE)
-       Window.showDialog(dlg)
-     }
+    protected[gui] def query(name: String): Option[File] = {
+      // val dlg = new FileDialog(null.asInstanceOf[Frame], name, FileDialog.SAVE)
+      val dlg = FileDialog.save(title = name)
+      Window.showDialog(dlg)
+    }
   }
 }

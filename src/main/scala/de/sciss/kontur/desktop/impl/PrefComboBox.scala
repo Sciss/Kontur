@@ -37,7 +37,7 @@ class PrefComboBox[A](protected val prefs: Preferences.Entry[A])
   protected def dynamicComponent = this
 
   protected def value: A = getSelectedItem.asInstanceOf[A]
-  protected def value_=(a: A) { setSelectedItem(a) }
+  protected def value_=(a: A): Unit = setSelectedItem(a)
 
 //  /**
 //	 *  Because the items in the ComboBox

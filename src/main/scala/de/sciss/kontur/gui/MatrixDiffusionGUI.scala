@@ -102,9 +102,7 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
     ggMatrix.setBorder(MatrixBorder)
     ggMatrixApply.putClientProperty("JButton.buttonType", "bevel")
     ggMatrixApply.addActionListener(new ActionListener {
-      def actionPerformed(e: ActionEvent) {
-        applyMatrixChanges()
-      }
+      def actionPerformed(e: ActionEvent): Unit = applyMatrixChanges()
     })
     val bTmp = Box.createHorizontalBox()
     bTmp.add(Box.createHorizontalGlue);
@@ -117,27 +115,23 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
     )
 
     ggName.addActionListener(new ActionListener {
-      def actionPerformed(e: ActionEvent) {
-        editRename(ggName.getText)
-      }
+      def actionPerformed(e: ActionEvent): Unit = editRename(ggName.getText)
     })
 
     ggNumInputChannels.addListener(new BasicParamField.Listener {
-      def paramValueChanged(e: BasicParamField.Event) {
+      def paramValueChanged(e: BasicParamField.Event): Unit =
         if (!e.isAdjusting)
           editSetNumInputChannels(e.value.value.toInt)
-      }
 
-      def paramSpaceChanged(e: BasicParamField.Event) {}
+      def paramSpaceChanged(e: BasicParamField.Event) = ()
     })
 
     ggNumOutputChannels.addListener(new BasicParamField.Listener {
-      def paramValueChanged(e: BasicParamField.Event) {
+      def paramValueChanged(e: BasicParamField.Event): Unit =
         if (!e.isAdjusting)
           editSetNumOutputChannels(e.value.value.toInt)
-      }
 
-      def paramSpaceChanged(e: BasicParamField.Event) {}
+      def paramSpaceChanged(e: BasicParamField.Event) = ()
     })
 
     layout.setHorizontalGroup(layout.createParallelGroup()
@@ -173,7 +167,7 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
     )
   }
 
-  private def withEditor( editName: String, fun: (DiffusionEditor, AbstractCompoundEdit) => Unit ) {
+  private def withEditor( editName: String, fun: (DiffusionEditor, AbstractCompoundEdit) => Unit ): Unit = {
       val eds = objects.filter( _.editor.isDefined ).map( _.editor.get )
       if( eds.isEmpty ) return
       val ed = eds.head
@@ -182,25 +176,22 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
       ed.editEnd( ce )
    }
 
-   private def editRename( newName: String ) {
+   private def editRename( newName: String ): Unit =
       withEditor( "editRename", (ed, ce) => ed.editRename( ce, newName ))
-   }
 
-   private def editSetNumInputChannels( newNum: Int ) {
+   private def editSetNumInputChannels( newNum: Int ): Unit =
       withEditor( "editSetNumInputChannels", (ed, ce) => ed match {
          case bdiff: MatrixDiffusion => bdiff.editSetNumInputChannels( ce, newNum )
          case _ =>
       })
-   }
 
-   private def editSetNumOutputChannels( newNum: Int ) {
+   private def editSetNumOutputChannels( newNum: Int ): Unit =
       withEditor( "editSetNumOutputChannels", (ed, ce) => ed match {
          case bdiff: MatrixDiffusion => bdiff.editSetNumOutputChannels( ce, newNum )
          case _ =>
       })
-   }
 
-   private def editSetMatrix( newMatrix: Matrix2D[ Float ]) {
+   private def editSetMatrix( newMatrix: Matrix2D[ Float ]): Unit =
       objects match {
          case List( bdiff: MatrixDiffusion ) => {
             val ce = bdiff.editBegin( "editSetMatrix" )
@@ -209,7 +200,6 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
          }
          case _ =>
       }
-   }
 
    private def collapse( s: String* ) : String = {
       if( s.isEmpty ) return ""
@@ -227,7 +217,7 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
         else head
     }
 
-    private def updateGadgets() {
+    private def updateGadgets(): Unit = {
         val enabled  = !objects.isEmpty
         val editable = enabled && objects.forall( _.editor.isDefined )
         ggName.setText( collapse( objects.map( _.name ): _* ))
@@ -261,7 +251,7 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
         }
     }
 
-  def setObjects(diff: Diffusion*) {
+  def setObjects(diff: Diffusion*): Unit = {
     objects.foreach(_.removeListener(diffListener))
     objects = diff.toList
     if (isListening) {
@@ -270,21 +260,21 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
     }
   }
 
-  protected def componentShown() {
+  protected def componentShown(): Unit = {
     updateGadgets()
     objects.foreach(_.addListener(diffListener))
   }
 
-  protected def componentHidden() {
+  protected def componentHidden(): Unit = {
     objects.foreach(_.removeListener(diffListener))
   }
 
-  private def matrixChanged() {
+  private def matrixChanged(): Unit = {
     ggMatrixApply.setEnabled(true)
     if (autoApply) applyMatrixChanges()
   }
 
-  private def applyMatrixChanges() {
+  private def applyMatrixChanges(): Unit = {
     ggMatrixApply.setEnabled(false)
     editSetMatrix(MatrixModel.matrix)
   }
@@ -296,11 +286,11 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
 
   def title = "Diffusion" // XXX getResourceString
 
-  def pageShown() {}
+  def pageShown() = ()
 
-  def pageHidden() {}
+  def pageHidden() = ()
 
-  def documentChanged(newDoc: Session) {}
+  def documentChanged(newDoc: Session) = ()
 
   // ---- internal clases ----
    private object MatrixBorder extends Border {
@@ -309,7 +299,7 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
       def isBorderOpaque   = false
       def getBorderInsets( c: Component ) = new Insets( 20, 20, 0, 0 )
 
-      def paintBorder( c: Component, g: Graphics, x: Int, y: Int, w: Int, h: Int ) {
+    def paintBorder(c: Component, g: Graphics, x: Int, y: Int, w: Int, h: Int): Unit = {
          val g2 = g.asInstanceOf[ Graphics2D ]
          g2.setColor( Color.black )
          g2.drawLine( x, y, x + 19, y + 19 )
@@ -331,7 +321,7 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
         var editable = false
 
         def matrix = matrixVar
-        def matrix_=( newMatrix: Matrix2D[ Float ]) {
+        def matrix_=( newMatrix: Matrix2D[ Float ]): Unit = {
 
 //println( "GOT MATRIX:" )
 //newMatrix.toSeq.foreach( row => println( row.mkString( "," )))
@@ -356,7 +346,7 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
 
         override def isCellEditable( row: Int, col: Int ) = editable
 
-        override def setValueAt( value: AnyRef, row: Int, col: Int ) {
+        override def setValueAt( value: AnyRef, row: Int, col: Int ): Unit = {
            value match {
               case MatrixCellValue( f ) => {
                   if( matrix( row, col ) != f ) {
@@ -370,7 +360,7 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
     }
 
     private object MatrixColumnModel extends DefaultTableColumnModel {
-        override def addColumn( tc: TableColumn ) {
+        override def addColumn( tc: TableColumn ): Unit = {
            tc.setCellRenderer( MatrixCellRenderer )
            tc.setPreferredWidth( 24 ) // XXX
            super.addColumn( tc )
@@ -391,13 +381,13 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
          this
       }
 
-      def setCellValue( cell: MatrixCellValue ) {
+      def setCellValue( cell: MatrixCellValue ): Unit = {
          setBackground( IntensityColorScheme.getColor( cell.decibelsNorm() ))
          muted = cell.f == 0f
          repaint()
       }
 
-      override def paintComponent( g: Graphics ) {
+      override def paintComponent( g: Graphics ): Unit = {
          val g2 = g.asInstanceOf[ Graphics2D ]
          g2.setColor( getBackground )
          val w = getWidth
@@ -438,7 +428,7 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
             private var dragStartVal   = Option.empty[ MatrixCellValue ]
             private var dragCurrentVal = Option.empty[ MatrixCellValue ]
 
-            override def mousePressed( e: MouseEvent ) {
+           override def mousePressed(e: MouseEvent): Unit = {
                if( isDoubleClick ) {
                   lastClickTime = 0 // prevent triple click
                   editVal.foreach { cell =>
@@ -462,19 +452,16 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
                (lastClickRow == editRow) && (lastClickCol == editCol) &&
                ((System.currentTimeMillis() - lastClickTime) < 666L)
 
-            override def mouseDragged( e: MouseEvent ) {
-               updateDrag( e )
-            }
+           override def mouseDragged(e: MouseEvent): Unit = updateDrag(e)
 
-            override def mouseReleased( e: MouseEvent ) {
+           override def mouseReleased( e: MouseEvent ): Unit =
                dragStartEvent.foreach { e =>
                   editVal = dragCurrentVal
                   dragStartEvent = None
                   fireEditingStopped()
                }
-            }
 
-            private def updateDrag( e: MouseEvent ) {
+            private def updateDrag( e: MouseEvent ): Unit =
                dragStartEvent.foreach { startE =>
                   dragStartVal.foreach { startCell =>
                      val newDB = max( -60f, min( 0f, max( -60f, startCell.decibels ) + (startE.getY - e.getY) * 0.25f ))
@@ -487,7 +474,6 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
                      }
                   }
                }
-            }
          }
          comp.addMouseListener( mia )
          comp.addMouseMotionListener( mia )
@@ -511,18 +497,21 @@ class MatrixDiffusionGUI(autoApply: Boolean = true)
 
       def isBorderOpaque = true
 
-      def paintBorder( c: Component, g: Graphics, x: Int, y: Int, w: Int, h: Int ) {
-         g.setColor( Color.red )
-         g.drawLine( x, y, x + w, y + h )
-         g.drawLine( x + w, y, x, y + h )
-      }
+     def paintBorder(c: Component, g: Graphics, x: Int, y: Int, w: Int, h: Int): Unit = {
+       g.setColor(Color.red)
+       g.drawLine(x, y, x + w, y + h)
+       g.drawLine(x + w, y, x, y + h)
+     }
    }
 
    object MatrixCellValue {
-      def fromDecibels( db: Float ) = MatrixCellValue( pow( 10, db / 20 ).toFloat )
+     def fromDecibels(db: Float) = MatrixCellValue(pow(10, db / 20).toFloat)
    }
-   case class MatrixCellValue( f: Float ) {
-      def decibels = (20 * log10( f )).toFloat
-      def decibelsNorm( floor: Float = -60f ) = 1 - max( floor, decibels ) / floor
-   }
+
+  case class MatrixCellValue(f: Float) {
+    def decibels = (20 * log10(f)).toFloat
+
+    def decibelsNorm(floor: Float = -60f) = 1 - max(floor, decibels) / floor
+  }
+
 }

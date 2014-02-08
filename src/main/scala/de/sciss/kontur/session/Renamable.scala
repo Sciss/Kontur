@@ -39,7 +39,7 @@ trait Renamable { self: Model =>
 
   protected var nameVar: String
   def name: String = nameVar
-  def name_=( newName: String ) {
+  def name_=( newName: String ): Unit = {
 //    sync.synchronized {
       if( newName != nameVar ) {
         val change = NameChanged( nameVar, newName )
@@ -51,11 +51,11 @@ trait Renamable { self: Model =>
 
    protected def editRenameName: String
 
-   def editRename( ce: AbstractCompoundEdit, newName: String ) {
+   def editRename( ce: AbstractCompoundEdit, newName: String ): Unit = {
       val edit = new SimpleEdit( editRenameName ) {
          lazy val oldName = name
-         def apply() { oldName; name = newName }
-         def unapply() { name = oldName }
+         def apply(): Unit = { oldName; name = newName }
+         def unapply(): Unit = name = oldName
       }
       ce.addPerform( edit )
    }

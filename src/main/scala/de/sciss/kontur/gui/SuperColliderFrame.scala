@@ -39,7 +39,7 @@ import de.sciss.desktop.impl.WindowImpl
 
 // note: should be PALETTE, but then we loose the key actions...
 class SuperColliderFrame extends WindowImpl {
-  protected def style = Window.Auxiliary
+  override protected def style = Window.Auxiliary
 
   def handler = Kontur.windowHandler
 
@@ -47,8 +47,8 @@ class SuperColliderFrame extends WindowImpl {
   private val serverPanel = new JServerStatusPanel(
     JServerStatusPanel.COUNTS | JServerStatusPanel.BOOT_BUTTON) {
 
-    override protected def bootServer() { superCollider.boot() }
-    override protected def stopServer() { superCollider.stop() }
+    override protected def bootServer(): Unit = superCollider.boot()
+    override protected def stopServer(): Unit = superCollider.stop()
 
     override protected def couldBoot: Boolean = true
   }
@@ -80,22 +80,22 @@ class SuperColliderFrame extends WindowImpl {
 
     accelerator = Some(stroke)
 
-    def apply() {
+    def apply(): Unit =
       superCollider.server.foreach { s =>
         if (s.condition == Server.Running) {
           s.dumpTree(controls)
         }
       }
-    }
   }
 
   private object ActionDumpOSC
     extends Action("Dump OSC") {
+
     private var dumping = false
 
     accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0))
 
-    def apply() {
+    def apply(): Unit = {
       dumping = !dumping
       println("Dumping is " + (if (dumping) "on" else "off")) // XXX resource
       superCollider.dumpOSC(if (dumping) osc.Dump.Text else osc.Dump.Off)

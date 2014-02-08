@@ -86,7 +86,7 @@ extends TrailView[ T ] with TrailViewEditor[ T ] {
 
   def view: TrailView[ T ] = this
 
-  def dispose() {
+  def dispose(): Unit = {
 //    tracks.removeListener( tracksListener )
 //    tracks.foreach( t => removeTrack( t ))
      trail.removeListener( trailListener )
@@ -101,20 +101,15 @@ extends TrailView[ T ] with TrailViewEditor[ T ] {
 //     t.trail.removeListener( trailListener )
 //  }
 
-  def select(stakes: T*) {
-    setSelection(stakes, state = true)
-  }
-
-  def deselect(stakes: T*) {
-    setSelection(stakes, state = false)
-  }
+  def select  (stakes: T*): Unit = setSelection(stakes, state = true )
+  def deselect(stakes: T*): Unit = setSelection(stakes, state = false)
 
   private def unionSpan(stakes: T*): SpanOrVoid = stakes match {
     case head +: tail => tail.foldLeft(head.span)(_ union _.span)
     case _ => Span.Void
   }
 
-  private def setSelection(stakes: Seq[T], state: Boolean) {
+  private def setSelection(stakes: Seq[T], state: Boolean): Unit = {
     val toChangeSet = stakes.toSet[T]
     val (selected, unselected) = toChangeSet.partition(x => selectedStakesVar.contains(x))
     //println( "setSelection : " + stakes + "; " + state + "; --> selected = " + selected.toList +
@@ -144,25 +139,18 @@ extends TrailView[ T ] with TrailViewEditor[ T ] {
 
   def undoManager: UndoManager = doc.undoManager
 
-  def editSelect(ce: AbstractCompoundEdit, stakes: T*) {
+  def editSelect(ce: AbstractCompoundEdit, stakes: T*): Unit =
     editSetSelection(ce, stakes, state = true)
-  }
 
-  def editDeselect(ce: AbstractCompoundEdit, stakes: T*) {
+  def editDeselect(ce: AbstractCompoundEdit, stakes: T*): Unit =
     editSetSelection(ce, stakes, state = false)
-  }
 
-  private def editSetSelection(ce: AbstractCompoundEdit, stakes: Seq[T], state: Boolean) {
+  private def editSetSelection(ce: AbstractCompoundEdit, stakes: Seq[T], state: Boolean): Unit = {
     val sf = stakes.filterNot(stake => isSelected(stake) == state)
     if (!sf.isEmpty) {
       val edit = new SimpleEdit("editStakeSelection", false) {
-        def apply() {
-          setSelection(sf, state)
-        }
-
-        def unapply() {
-          setSelection(sf, !state)
-        }
+        def apply  (): Unit = setSelection(sf,  state)
+        def unapply(): Unit = setSelection(sf, !state)
       }
       ce.addPerform(edit)
     }

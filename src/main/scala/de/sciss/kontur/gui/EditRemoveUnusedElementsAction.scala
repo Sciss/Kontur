@@ -38,23 +38,25 @@ final class EditRemoveUnusedElementsAction[T](elemName: String, ed: SessionEleme
 
   private def fullName = "Remove Unused " + elemName
 
-  def apply() {
+  def apply(): Unit = {
     val unused = collect //
     if (unused.isEmpty) {
       val op = OptionPane.message("There are currently no unused " + elemName + ".", OptionPane.Message.Info)
-      Window.showDialog(op -> fullName)
+      op.title = fullName
+      Window.showDialog(op)
     } else {
       val pane = new JPanel(new BorderLayout(4, 4))
       pane.add(new JLabel("The following " + elemName + " will be removed:"), BorderLayout.NORTH)
       val list = new JList(unused.map(display(_)).toArray[AnyRef])
       list.setSelectionModel(new DefaultListSelectionModel {
-        override def addSelectionInterval(index0: Int, index1: Int) {}
-        override def setSelectionInterval(index0: Int, index1: Int) {}
+        override def addSelectionInterval(index0: Int, index1: Int) = ()
+        override def setSelectionInterval(index0: Int, index1: Int) = ()
       })
       pane.add(new JScrollPane(list), BorderLayout.CENTER)
       val op = OptionPane.confirmation(message = Component.wrap(pane), messageType = OptionPane.Message.Question,
         optionType = OptionPane.Options.OkCancel)
-      val result = Window.showDialog(op -> fullName)
+      op.title = fullName
+      val result = Window.showDialog(op)
       if (result == OptionPane.Result.Ok) {
         val ce = ed.editBegin(fullName)
         unused.foreach(ed.editRemove(ce, _))

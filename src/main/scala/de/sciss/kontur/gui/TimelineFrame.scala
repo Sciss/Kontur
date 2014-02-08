@@ -51,8 +51,6 @@ object TimelineFrame {
 final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImpl with SessionFrame {
   frame =>
 
-  protected def style = Window.Regular
-
   def handler = Kontur.windowHandler
 
   // private var writeProtected	= false
@@ -163,13 +161,11 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
 
   protected def elementName = Some(tl.name)
 
-  protected def windowClosing() {
-    invokeDispose()
-  }
+  protected def windowClosing(): Unit = invokeDispose()
 
   def nudgeFrames: Long = ActionNudgeAmount.numFrames
 
-  private def initBounds() {
+  private def initBounds(): Unit = {
 		val cp	= application.userPrefs / "TimelineFrame"
 		val sr	= Window.availableSpace
     import de.sciss.desktop.Implicits._
@@ -211,8 +207,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
 //		});
 	}
 
-   // welcome back to generics hell....
-   protected def transformSelectedStakes( name: String, func: Stake[ _ ] => Option[ List[ _ ]]) {
+   protected def transformSelectedStakes(name: String, func: Stake[_] => Option[List[_]]): Unit = {
       timelineView.timeline.editor.foreach( ed => {
          val ce = ed.editBegin( name )
          tracksPanel.foreach( elem => {
@@ -252,9 +247,8 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
      protected def timeline: Timeline   = timelineView.timeline
      protected def parent               = frame.component
 
-     protected def initiate(v: Param, trans: ParamSpace.Translator) {
+     protected def initiate(v: Param, trans: ParamSpace.Translator): Unit =
        prefs.put(PrefsUtil.KEY_NUDGEAMOUNT, v.toString)(Preferences.Type.string)
-     }
 
      private def prefs = application.userPrefs / PrefsUtil.NODE_GUI
 
@@ -279,7 +273,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
 
     protected def initialValue: Param = new Param(60.0, ParamSpace.TIME | ParamSpace.SECS)
 
-    protected def initiate(v: Param, trans: ParamSpace.Translator) {
+    protected def initiate(v: Param, trans: ParamSpace.Translator): Unit = {
       val delta = (trans.translate(v, ParamSpace.spcTimeSmps).value + 0.5).toLong
       if (delta <= 0L) return
       val pos   = timelineView.cursor.position
@@ -336,14 +330,13 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
   private object ActionRemoveSpan extends Action("Remove Span") {
       private def editName = title
 
-      def apply() {
+      def apply(): Unit =
          timelineView.selection.span match {
            case sp @ Span(_, _) if sp.nonEmpty => perform(sp)
            case _ =>
          }
-      }
 
-     private def perform(span: Span) {
+     private def perform(span: Span): Unit = {
          val tlSpan        = tl.span
          val affectedSpan  = Span( span.start, tlSpan.stop )
          val delta         = -span.length
@@ -428,14 +421,13 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
    private object ActionClearSpan extends Action("Clear Span") {
       private def editName = title
 
-      def apply() {
+      def apply(): Unit =
          timelineView.selection.span match {
            case sp @ Span(_, _) if sp.nonEmpty => perform(sp)
            case _ =>
          }
-      }
 
-     private def perform(span: Span) {
+     private def perform(span: Span): Unit = {
          tl.editor.foreach( ed => {
             val ce = ed.editBegin( editName )
             try {
@@ -491,14 +483,13 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
    private object ActionDupSpanToPos extends Action("Duplicate Span to Position") {
       private def editName = title
 
-      def apply() {
+      def apply(): Unit =
          timelineView.selection.span match {
            case sp @ Span(_, _) if sp.nonEmpty => perform(sp)
            case _ =>
          }
-      }
 
-     private def perform(srcSpan: Span) {
+     private def perform(srcSpan: Span): Unit = {
          val delta   = timelineView.cursor.position - srcSpan.start
 //         val dstSpan = srcSpan.shift( delta )
          val tlSpan  = tl.span
@@ -571,7 +562,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
 
     accelerator = Some(stroke)
 
-    def apply() {
+    def apply(): Unit = {
       val visiSpan = timelineView.span
       val visiLen		= visiSpan.length
 			val pos			= timelineView.cursor.position
@@ -626,7 +617,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
 
     accelerator = Some(stroke)
 
-    def apply() {
+    def apply(): Unit =
       timelineView.selection.span match {
         case sel@Span(selStart, _) =>
           timelineView.editor.foreach { ed =>
@@ -638,7 +629,6 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
           }
         case _ =>
       }
-    }
   }
 
   // class actionSelToPosClass
@@ -658,7 +648,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
 
     import ActionScroll._
 
-    def apply() {
+    def apply(): Unit = {
          timelineView.editor.foreach { ed =>
             val pos       = timelineView.cursor.position
             val visiSpan  = timelineView.span
@@ -729,7 +719,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
 
     import ActionSelect._
 
-    def apply() {
+    def apply(): Unit = {
       timelineView.editor.foreach { ed =>
         val pos = timelineView.cursor.position
         val selSpan = timelineView.selection.span match {
@@ -769,31 +759,25 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
   private object ActionCut
     extends Action("Cut") {
 
-    def apply() {
-      println("CUT NOT YET IMPLEMENTED")
-    }
+    def apply(): Unit = println("CUT NOT YET IMPLEMENTED")
   }
 
   private object ActionCopy
     extends Action("Copy") {
 
-    def apply() {
-      println("COPY NOT YET IMPLEMENTED")
-    }
+    def apply(): Unit = println("COPY NOT YET IMPLEMENTED")
   }
 
   private object ActionPaste
     extends Action("Paste") {
 
-    def apply() {
-      println("PASTE NOT YET IMPLEMENTED")
-    }
+    def apply(): Unit = println("PASTE NOT YET IMPLEMENTED")
   }
 
   private object ActionDelete
     extends Action("Delete") {
 
-    def apply() {
+    def apply(): Unit = {
       tracksPanel.editor.foreach { ed =>
         val ce = ed.editBegin(title)
         tracksPanel.foreach { elem =>
@@ -815,7 +799,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
   private class ActionNudge(factor: Double)
     extends Action("Nudge") {
 
-    def apply() {
+    def apply(): Unit = {
       // val pos	      = timelineView.cursor.position
       val delta = (factor * nudgeFrames + 0.5).toLong
       transformSelectedStakes(title, stake => Some(List(stake.move(delta))))
@@ -825,7 +809,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
   private class ActionSplitObjects
     extends Action("Split Objects") {
 
-    def apply() {
+    def apply(): Unit = {
       val pos = timelineView.cursor.position
       transformSelectedStakes(title, {
         case rStake: ResizableStake[_] if rStake.span.contains(pos) =>
@@ -840,7 +824,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
   private class ActionSelectFollowingObjects
     extends Action("Select Following Objects") {
 
-    def apply() {
+    def apply(): Unit = {
       val pos   = timelineView.cursor.position
       val stop  = timelineView.timeline.span.length
       val span  = Span(pos, stop)
@@ -863,7 +847,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
   }
 
   private class ActionAlignObjectsStartToTimelinePosition extends Action("Align Objects Start to Timeline Position") {
-    def apply() {
+    def apply(): Unit = {
       val pos = timelineView.cursor.position
       transformSelectedStakes(title, {
         case rStake: ResizableStake[_] if rStake.span.start != pos =>
@@ -875,7 +859,7 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
   }
 
    private class ActionShowInEisK extends Action("Show in Eisenraut") {
-     def apply() {
+     def apply(): Unit = {
        tracksPanel.find(_.trailView.selectedStakes.headOption match {
          case Some(ar: AudioRegion) =>
            val delta      = ar.offset - ar.span.start
@@ -893,15 +877,14 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
    }
 
   private object ActionBounce extends Action("Bounce") {
-    def apply() {
+    def apply(): Unit =
       query().foreach {
         case (tls, span@Span(_, _), path, spec) =>
           perform(tls, span, path, spec)
         case _ =>
       }
-    }
 
-    def perform(tracks: List[Track], span: Span, path: File, spec: AudioFileSpec) {
+    def perform(tracks: List[Track], span: Span, path: File, spec: AudioFileSpec): Unit = {
       val ggProgress = new JProgressBar()
       val name = title
       val ggCancel = new JButton("Abort") // getResourceString("buttonAbort"))
@@ -910,13 +893,11 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
       val op = OptionPane(message = Component.wrap(ggProgress),
         messageType = OptionPane.Message.Info, optionType = OptionPane.Options.YesNo, entries = options)
       // val op = new JOptionPane(ggProgress, JOptionPane.INFORMATION_MESSAGE, 0, null, options)
-      def fDispose() {
+      def fDispose(): Unit = {
         val w = SwingUtilities.getWindowAncestor(op.peer); if (w != null) w.dispose()
       }
       ggCancel.addActionListener(new ActionListener {
-        def actionPerformed(e: ActionEvent) {
-          fDispose()
-        }
+        def actionPerformed(e: ActionEvent): Unit = fDispose()
       })
       var done = false
       try {
@@ -925,7 +906,8 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
           case ("progress", i: Int) => ggProgress.setValue(i)
           // case _ => println( "received: " + msg )
         })(application)
-        showDialog(op, name)
+        op.title = name
+        showDialog(op)
         if (!done) process.cancel()
       }
       catch {
@@ -984,7 +966,8 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
 
       val op = OptionPane(message = Component.wrap(pane), messageType = OptionPane.Message.Question,
         optionType = OptionPane.Options.OkCancel)
-      val result = showDialog(op, name)
+      op.title = name
+      val result = showDialog(op)
       if (result != OptionPane.Result.Ok) return None
 
       val path = ggPath.file
@@ -995,7 +978,8 @@ final class TimelineFrame(val document: Session, tl: Timeline) extends WindowImp
         val op2 = OptionPane(message = "Warning: File already exists" /* getResourceString("warnFileExists") */ + ":\n" + path.toString + "\n" +
                   "Overwrite file?" /* getResourceString("warnOverwriteFile") */,
           messageType = OptionPane.Message.Warning, optionType = OptionPane.Options.OkCancel, entries = options, initial = Some(opCancel))
-        /* val result2 = */ showDialog(op2, name)
+        op2.title = name
+        /* val result2 = */ showDialog(op2)
         if (op2.peer.getValue != opOverwrite) return None
       }
 

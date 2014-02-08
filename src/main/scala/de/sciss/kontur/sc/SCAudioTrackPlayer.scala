@@ -52,12 +52,12 @@ extends SCTrackPlayer {
          var syn     = Option.empty[ RichSynth ]
          var stopped = false
 
-         def stop() {
+         def stop(): Unit = {
             stopped = true
             syn.foreach { s => scDoc.context.perform( s.free() )}
          }
 
-         def ready( synO: Option[ RichSynth ]) {
+         def ready( synO: Option[ RichSynth ]): Unit = {
             syn = synO
             if( stopped ) stop()
          }
@@ -71,7 +71,7 @@ extends SCTrackPlayer {
       res
    }
 
-   def step( currentPos: Long, span: Span ) {
+   def step( currentPos: Long, span: Span ): Unit = {
       if( !playing ) throw new IllegalStateException( "Was not playing" )
       
       track.diffusion.foreach { diff =>
@@ -122,12 +122,12 @@ extends SCTrackPlayer {
 
          val frameIndex     = Line.ar( i_frameOff, i_frames, (i_frames - i_frameOff) * smpDur, freeSelf )
 
-         import Env.{ Seg => S }
+         import Env.{ Segment => S }
 
          val env = new IEnv( i_finFloor, List(
-            S( i_fadeIn, 1, varShape( i_finShape, i_finCurve )),
+            S( i_fadeIn, 1, Env.Curve( i_finShape, i_finCurve )),
             S( i_frames - (i_fadeIn + i_fadeOut), 1 ),
-            S( i_fadeOut, i_foutFloor, varShape( i_foutShape, i_foutCurve ))))
+            S( i_fadeOut, i_foutFloor, Env.Curve( i_foutShape, i_foutCurve ))))
 
          val envGen = IEnvGen.ar( env, frameIndex ) * amp
          val sig = DiskIn.ar( numChannels, i_buf )
@@ -140,21 +140,29 @@ extends SCTrackPlayer {
       val buf  = cue( ar.audioFile, ar.offset + frameOffset )
 //      stakes += ar
 
-      def playStake() {
+      def playStake(): Unit = {
          val res = if( force || playing ) {
-            val syn = sd.play( (L( "i_buf" -> buf.id,
-               "i_frames" -> ar.span.length.toFloat,
-               "i_frameOff" -> frameOffset.toFloat,
-               "amp" -> ar.gain,
-               "out" -> scDoc.diffusion( diff ).inBus.index ) :::
-               ar.fadeIn.map( f => L(
-                  "i_fadeIn" -> f.numFrames.toFloat, // XXX should contrain if necessary
-                  "i_finShape" -> f.shape.id, "i_finCurve" -> f.shape.curvature,
-                  "i_finFloor" -> f.floor )).getOrElse( Nil ) :::
-               ar.fadeOut.map( f => L(
-                  "i_fadeOut" -> f.numFrames.toFloat, // XXX should contrain if necessary
-                  "i_foutShape" -> f.shape.id, "i_foutCurve" -> f.shape.curvature,
-                  "i_foutFloor" -> f.floor )).getOrElse( Nil )): _* )
+            val syn = sd.play( L("i_buf" -> buf.id,
+              "i_frames" -> ar.span.length.toFloat,
+              "i_frameOff" -> frameOffset.toFloat,
+              "amp" -> ar.gain,
+              "out" -> scDoc.diffusion(diff).inBus.index) :::
+              ar.fadeIn.map { f =>
+                val cv = f.shape match { case Curve.parametric(c) => c; case _ => 0f }
+                L(
+                  "i_fadeIn" -> f.numFrames.toFloat, // XXX should constrain if necessary
+                  "i_finShape" -> f.shape.id, "i_finCurve" -> cv,
+                  "i_finFloor" -> f.floor
+                )
+              } .getOrElse(Nil) :::
+              ar.fadeOut.map { f =>
+                val cv = f.shape match { case Curve.parametric(c) => c; case _ => 0f }
+                L(
+                  "i_fadeOut" -> f.numFrames.toFloat, // XXX should constrain if necessary
+                  "i_foutShape" -> f.shape.id, "i_foutCurve" -> cv,
+                  "i_foutFloor" -> f.floor
+                )
+              } .getOrElse(Nil): _* )
             synths += syn
             syn.endsAfter( (ar.span.length - frameOffset) / sampleRate ) // nrt hint
 
@@ -179,23 +187,19 @@ extends SCTrackPlayer {
       }
    }
 
-   def play() {
+   def play(): Unit =
       if( !playing ) {
          playing = true
       } else {
          throw new IllegalStateException( "Was already playing" )
       }
-   }
 
-   def stop() {
+   def stop(): Unit =
       if( playing ) {
          playing = false
          synths.foreach( _.free() )
          synths = Set[ RichSynth ]()
       }
-   }
 
-   def dispose() {
-       stop()
-   }
+   def dispose(): Unit = stop()
 }

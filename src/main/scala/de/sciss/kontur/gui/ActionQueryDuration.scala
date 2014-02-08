@@ -36,7 +36,7 @@ abstract class ActionQueryDuration(title: String) extends Action(title) {
   private var value = Option.empty[Param]
   private var space = Option.empty[ParamSpace]
 
-  final def apply() {
+  final def apply(): Unit = {
     val msgPane     = new SpringPanel(4, 2, 4, 2)
     val timeTrans   = new DefaultUnitTranslator()
     val ggDuration  = new BasicParamField(timeTrans)
@@ -51,12 +51,13 @@ abstract class ActionQueryDuration(title: String) extends Action(title) {
     val tl = timeline // timelineView.timeline
     timeTrans.setLengthAndRate(tl.span.length, tl.rate)
 
-    ggDuration.value = (value getOrElse initialValue)
+    ggDuration.value = value getOrElse initialValue
     ggDuration.space = space
 
     val op  = OptionPane.confirmation(message = Component.wrap(msgPane), messageType = OptionPane.Message.Question,
       optionType = OptionPane.Options.OkCancel)
-    val result = Window.showDialog(parent, op -> title)
+    op.title    = title
+    val result  = Window.showDialog(parent, op)
 
     if (result == OptionPane.Result.Ok) {
       val v = ggDuration.value

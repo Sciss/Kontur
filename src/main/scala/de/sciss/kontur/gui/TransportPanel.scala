@@ -73,7 +73,7 @@ extends SegmentedButtonPanel with DynamicComponentImpl {
    }
 
    private val playTimer = new Timer( 27, new ActionListener {
-      def actionPerformed( e: ActionEvent ) { updateTimeLabel( sendOSC = false )}
+      def actionPerformed( e: ActionEvent ): Unit = updateTimeLabel( sendOSC = false )
    })
 
    // ---- constructor ----
@@ -102,19 +102,17 @@ extends SegmentedButtonPanel with DynamicComponentImpl {
       val amap = getActionMap
       imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_SPACE, 0 ), "playstop" )
       amap.put( "playstop", new AbstractAction {
-         def actionPerformed( e: ActionEvent ) {
+         def actionPerformed( e: ActionEvent ): Unit =
             if( isPlaying ) {
                butStop.doClick() // ( 200 )
             } else {
                butPlay.doClick() // ( 200 )
             }
-         }
       })
 
       lbTime.addMouseListener( new MouseAdapter {
-         override def mouseClicked( e: MouseEvent ) {
+         override def mouseClicked( e: MouseEvent ): Unit =
             if( e.getClickCount == 2 ) showGoToTimeDialog()
-         }
       })
 
       add( lbTime, 0 )
@@ -126,9 +124,8 @@ extends SegmentedButtonPanel with DynamicComponentImpl {
       ggOSC.putClientProperty( "JComponent.sizeVariant", "mini" )
       ggOSC.putClientProperty( "JButton.buttonType", "square" )
       ggOSC.addActionListener( new ActionListener {
-         def actionPerformed( e: ActionEvent ) {
+         def actionPerformed( e: ActionEvent ): Unit =
             oscEngaged = ggOSC.isSelected
-         }
       })
       add( Box.createHorizontalStrut( 8 ), 1 )
       add( ggOSC )
@@ -140,7 +137,7 @@ extends SegmentedButtonPanel with DynamicComponentImpl {
    private var spaceGoToTime: Option[ ParamSpace ] = None
    private var valueGoToTime: Option[ Param ] = None
 
-   private def showGoToTimeDialog() {
+   private def showGoToTimeDialog(): Unit = {
       val timeTrans  = new DefaultUnitTranslator()
       val ggTime     = new BasicParamField( timeTrans )
       ggTime.addSpace( ParamSpace.spcTimeHHMMSS )
@@ -159,7 +156,8 @@ extends SegmentedButtonPanel with DynamicComponentImpl {
        optionType = OptionPane.Options.OkCancel)
      // val op = new JOptionPane(ggTime, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION)
      // val app = AbstractApplication.getApplication
-     val result = Window.showDialog(op -> "Go to Time") // app.getResourceString( "inputDlgGoToTime" ))
+     op.title = "Go to Time"
+     val result = Window.showDialog(op) // app.getResourceString( "inputDlgGoToTime" ))
 
      if( result == OptionPane.Result.Ok) {
          val v          = ggTime.value
@@ -177,7 +175,7 @@ extends SegmentedButtonPanel with DynamicComponentImpl {
       }
    }
 
-   private def trnspChanged( newIsPlaying: Boolean ) {
+   private def trnspChanged( newIsPlaying: Boolean ): Unit = {
 //      if( newIsPlaying != isPlaying ) {
          isPlaying = newIsPlaying
          butStop.setEnabled( isPlaying )
@@ -195,14 +193,14 @@ extends SegmentedButtonPanel with DynamicComponentImpl {
       if( oscEngaged ) oscClient ! osc.Message( "/kontur", "transport", oscID, if( isPlaying ) "play" else "stop" )
    }
 
-   private def updateTimeLabel( sendOSC: Boolean ) {
+   private def updateTimeLabel( sendOSC: Boolean ): Unit = {
       val pos  = if( isPlaying ) transport.map( _.currentPos ) getOrElse 0L else tlv.cursor.position
       val secs = pos / tlv.timeline.rate
       lbTime.setSeconds( secs )
       if( sendOSC && oscEngaged ) oscClient ! osc.Message( "/kontur", "transport", oscID, "pos", secs )
    }
 
-  protected def componentShown() {
+  protected def componentShown(): Unit = {
     transport.foreach { t =>
       t.addListener(transportListener)
       trnspChanged(t.isPlaying)
@@ -210,22 +208,20 @@ extends SegmentedButtonPanel with DynamicComponentImpl {
     tlv.addListener(timelineViewListener)
   }
 
-  protected def componentHidden() {
+  protected def componentHidden(): Unit = {
     playTimer.stop()
     tlv.removeListener(timelineViewListener)
     transport.foreach(_.removeListener(transportListener))
   }
 
   private class ActionPlay extends AbstractAction {
-    def actionPerformed(e: ActionEvent) {
+    def actionPerformed(e: ActionEvent): Unit =
       transport.foreach(_.play(tlv.cursor.position, 1.0))
-    }
   }
 
   private class ActionStop extends AbstractAction {
-    def actionPerformed(e: ActionEvent) {
+    def actionPerformed(e: ActionEvent): Unit =
       transport.foreach(_.stop())
-    }
   }
 
   private class TimeLabel extends JLabel("00:00:00.000", SwingConstants.CENTER) {
@@ -248,7 +244,7 @@ extends SegmentedButtonPanel with DynamicComponentImpl {
 
     override def getPreferredSize: Dimension = pref
 
-    override def paintComponent(g: Graphics) {
+    override def paintComponent(g: Graphics): Unit = {
       val h = getHeight
       val w = getWidth
       if (h != recentH || w != recentW) {
@@ -280,17 +276,15 @@ extends SegmentedButtonPanel with DynamicComponentImpl {
       super.paintComponent(g)
     }
 
-    private def recalcShape() {
+    private def recalcShape(): Unit = {
       shape1.setRoundRect(0.2f, 1.2f, recentW - 1.4f, recentH - 2f, 8f, 8f)
       //         shape1.setRoundRect( 0.5f, 0.5f, recentW - 2f, recentH - 2.5f, 8f, 8f )
       //         shape3.setRoundRect( 0.2f, 1.2f, recentW - 1.4f, recentH - 2.4f, 8f, 8f )
     }
 
-    def setSeconds(secs: Double) {
-      setText(frmt.formatTime(secs))
-    }
+    def setSeconds(secs: Double): Unit = setText(frmt.formatTime(secs))
 
-    private def recalcGrad() {
+    private def recalcGrad(): Unit = {
       val m6 = (recentH - 6).toFloat
       val mid = (m6 / 2).toInt
       //         grad = new LinearGradientPaint( 0, 2, 0, recentH - 6,

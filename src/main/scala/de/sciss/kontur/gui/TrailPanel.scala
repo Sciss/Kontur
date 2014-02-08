@@ -30,7 +30,5 @@ import javax.swing.JComponent
 import de.sciss.kontur.session.BasicTimeline
 
 class TrailPanel( tl: BasicTimeline ) extends JComponent {
-  override def paintComponent( g: Graphics ) {
-    
-  }
+  override def paintComponent( g: Graphics ) = ()
 }

@@ -36,8 +36,6 @@ import java.io.PrintStream
 final class MainFrame(implicit val handler: WindowHandler)
   extends WindowImpl {
 
-  protected def style = Window.Regular
-
   // --- constructor ---
   //	  val app     = AbstractApplication.getApplication()
   //      val strMain = app.getResourceString( "frameMain" )

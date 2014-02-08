@@ -94,40 +94,36 @@ class SuperColliderClient extends Model {
    def getPlayer( doc: Session ) : Option[ SuperColliderPlayer ] = players.get( doc )
 
    def volume: Float = volumeVar
-   def volume_=( value: Float ) {
+   def volume_=( value: Float ): Unit =
       if( volumeVar != value ) {
          volumeVar = value
          import Ops._
          volumeBus.foreach( _.set( value ))
       }
-   }
 
    def limiter: Boolean = limiterVar
-   def limiter_=( onOff: Boolean ) {
+   def limiter_=( onOff: Boolean ): Unit =
       if( limiterVar != onOff ) {
          limiterVar = onOff
          import Ops._
          limiterBus.foreach( _.set( if( onOff ) 1f else 0f ))
       }
-   }
 
-   private def defer( thunk: => Unit ) {
-      EventQueue.invokeLater( new Runnable { def run() { thunk }})
-   }
+   private def defer( thunk: => Unit ): Unit =
+      EventQueue.invokeLater( new Runnable { def run(): Unit = thunk })
 
-   def dumpOSC( mode: osc.Dump ) {
+   def dumpOSC( mode: osc.Dump ): Unit =
       if( mode != dumpMode ) {
          dumpMode = mode
          serverVar.foreach( _.dumpOSC( mode ))
       }
-   }
 
-	def quit() {
+	def quit(): Unit = {
 //		Server.quitAll
 //        serverVar.foreach( _.quit )
       serverVar.foreach { s =>
          Runtime.getRuntime.addShutdownHook( new Thread {
-            override def run() {
+            override def run(): Unit = {
                if( s.condition != Server.Offline ) {
                   s.quit()
                }
@@ -139,7 +135,7 @@ class SuperColliderClient extends Model {
       }
 	}
 
-	def reboot() {
+	def reboot(): Unit = {
 		shouldReboot = true
 		stop()
 	}
@@ -155,17 +151,16 @@ class SuperColliderClient extends Model {
 
     def server = serverVar
 
-    private def printError( name: String, t: Throwable ) {
-		System.err.println( name + " : " + t.getClass.getName + " : " + t.getLocalizedMessage )
-	}
+  private def printError(name: String, t: Throwable): Unit =
+    Console.err.println(name + " : " + t.getClass.getName + " : " + t.getLocalizedMessage)
 
-	def stop() {
+  def stop(): Unit = {
       bootingVar.foreach( _.abort() )
       serverVar.foreach( s => try { s.quit() } catch { case e1: IOException => printError( "stop", e1 )})
 	}
 
 	// @synchronization	must be called in the event thread!
-	private def dispose() {
+	private def dispose(): Unit = {
 //		if( !EventQueue.isDispatchThread() ) throw new IllegalMonitorStateException();
 
 //		grpLimiter = null;
@@ -284,7 +279,7 @@ class SuperColliderClient extends Model {
     }
   }
 
-  private def initMaster( s: Server ) {
+  private def initMaster( s: Server ): Unit = {
       import synth._
       import synth.ugen._
 

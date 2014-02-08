@@ -42,9 +42,9 @@ trait SCTrackPlayer /* extends Disposable */ {
 final class SCDummyPlayer(val track: Track)
   extends SCTrackPlayer {
 
-  def step(currentPos: Long, span: Span) {}
+  def step(currentPos: Long, span: Span) = ()
 
-  def play() {}
-  def stop() {}
-  def dispose() {}
+  def play() = ()
+  def stop() = ()
+  def dispose() = ()
 }

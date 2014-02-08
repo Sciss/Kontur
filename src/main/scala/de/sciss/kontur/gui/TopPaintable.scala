@@ -31,15 +31,13 @@ import scala.collection.immutable.Queue
 trait TopPaintable {
   private var topPainters: Queue[ Graphics2D => Unit ] = Queue.empty
 
-  def addTopPainter( t: Graphics2D => Unit ) {
+  def addTopPainter( t: Graphics2D => Unit ): Unit =
       topPainters = topPainters.enqueue( t )
-  }
 
-  protected def paintOnTop( g: Graphics2D ) {
+  protected def paintOnTop( g: Graphics2D ): Unit =
      topPainters.foreach( _.apply( g ))
-  }
 
-  def removeTopPainter( t: Graphics2D => Unit ) {
+  def removeTopPainter( t: Graphics2D => Unit ): Unit = {
     var filtered: Queue[ Graphics2D => Unit ] = Queue.empty
       topPainters.foreach( x => if( x != t )
         filtered = filtered.enqueue( x )) // ugly; no easier way??

@@ -76,7 +76,7 @@ with SessionElementSeqEditor[ T ] {
 </coll>
 
   @throws( classOf[ IOException ])
-  protected def innerFromXML( c: SerializerContext, node: Node ) {
+  protected def innerFromXML( c: SerializerContext, node: Node ): Unit = {
      val collXML = SessionElement.getSingleXML( node, "coll" )
      coll ++= elementsFromXML( c, collXML )
   }
@@ -104,13 +104,13 @@ with SessionElementSeqEditor[ T ] {
   }
 */
 
-  def insert( idx: Int, elem: T ) {
+  def insert( idx: Int, elem: T ): Unit = {
     coll.insert( idx, elem )
     elem.addListener( forward )
     dispatch( ElementAdded( idx, elem ))
   }
 
-  def remove( elem: T ) {
+  def remove( elem: T ): Unit = {
     val idx = coll.indexOf( elem )
     if( idx >= 0 ) {
       coll.remove( idx )
@@ -126,7 +126,7 @@ with SessionElementSeqEditor[ T ] {
    // some collection methods
    def indexOf( elem: T ) : Int = coll.indexOf( elem )
    def contains( elem: T ) : Boolean = coll.contains( elem )
-   def foreach[ U ]( f: T => U ) { coll.foreach( f )}
+   def foreach[ U ]( f: T => U ): Unit = coll.foreach( f )
    def toList: List[ T ] = coll.toList
    def filter( p: (T) => Boolean ): List[ T ] = coll.filter( p ).toList
    def find( p: (T) => Boolean): Option[ T ] = coll.find( p )
@@ -135,19 +135,19 @@ with SessionElementSeqEditor[ T ] {
 
   def editor: Option[ SessionElementSeqEditor[ T ]] = Some( this )
   // ----  SessionElementSeqEditor ----
-  def editInsert( ce: AbstractCompoundEdit, idx: Int, elem: T ) {
+  def editInsert( ce: AbstractCompoundEdit, idx: Int, elem: T ): Unit = {
       val edit = new SimpleEdit( "editAddSessionElement" ) {
-        def apply() { insert( idx, elem )}
-        def unapply() { remove( elem )}
+        def apply  (): Unit = insert(idx, elem)
+        def unapply(): Unit = remove     (elem)
       }
       ce.addPerform( edit )
   }
   
-  def editRemove( ce: AbstractCompoundEdit, elem: T ) {
+  def editRemove( ce: AbstractCompoundEdit, elem: T ): Unit = {
       val edit = new SimpleEdit( "editAddSessionElement" ) {
         lazy val idx = indexOf( elem )
-        def apply() { idx; remove( elem )}
-        def unapply() { insert( idx, elem )}
+        def apply(): Unit = { idx; remove( elem )}
+        def unapply(): Unit = insert( idx, elem )
       }
       ce.addPerform( edit )
   }

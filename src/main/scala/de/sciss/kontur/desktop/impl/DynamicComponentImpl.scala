@@ -20,30 +20,27 @@ trait DynamicComponentImpl {
   dynamicComponent.addAncestorListener(listener)
   learnWindow(Option(dynamicComponent.getTopLevelAncestor))
 
-  private def startListening() {
+  private def startListening(): Unit =
     if (!listening) {
       listening = true
       componentShown()
     }
- 	}
 
-  private def stopListening() {
+  private def stopListening(): Unit =
     if (listening) {
       listening = false
       componentHidden()
     }
-  }
 
-  private def forgetWindow() {
+  private def forgetWindow(): Unit =
     win.foreach { w =>
       w.removeWindowListener(listener)
       w.removeComponentListener(listener)
       win = None
       stopListening()
     }
-  }
 
-  private def learnWindow(c: Option[awt.Container]) {
+  private def learnWindow(c: Option[awt.Container]): Unit =
     c match {
       case Some(w: awt.Window) =>
         win = Some(w)
@@ -53,25 +50,24 @@ trait DynamicComponentImpl {
 
       case _ =>
     }
- 	}
 
   private object listener extends WindowListener with ComponentListener with AncestorListener {
-    def windowOpened     (e: WindowEvent) { startListening() }
- 		def windowClosed     (e: WindowEvent) { stopListening () }
+    def windowOpened     (e: WindowEvent): Unit = startListening()
+ 		def windowClosed     (e: WindowEvent): Unit = stopListening ()
 
-    def windowClosing    (e: WindowEvent) {}
-    def windowIconified  (e: WindowEvent) {}
-    def windowDeiconified(e: WindowEvent) {}
-    def windowActivated  (e: WindowEvent) {}
-    def windowDeactivated(e: WindowEvent) {}
+    def windowClosing    (e: WindowEvent) = ()
+    def windowIconified  (e: WindowEvent) = ()
+    def windowDeiconified(e: WindowEvent) = ()
+    def windowActivated  (e: WindowEvent) = ()
+    def windowDeactivated(e: WindowEvent) = ()
 
-    def componentShown  (e: ComponentEvent) { startListening() }
-    def componentHidden (e: ComponentEvent) { stopListening () }
+    def componentShown  (e: ComponentEvent): Unit = startListening()
+    def componentHidden (e: ComponentEvent): Unit = stopListening ()
 
-    def componentResized(e: ComponentEvent) {}
-    def componentMoved  (e: ComponentEvent) {}
+    def componentResized(e: ComponentEvent) = ()
+    def componentMoved  (e: ComponentEvent) = ()
 
-    def ancestorAdded(e: AncestorEvent) {
+    def ancestorAdded(e: AncestorEvent): Unit = {
       val c = Option(e.getComponent.getTopLevelAncestor)
       if (c != win) {
         forgetWindow()
@@ -79,13 +75,13 @@ trait DynamicComponentImpl {
       }
     }
 
-    def ancestorRemoved(e: AncestorEvent) { forgetWindow() }
+    def ancestorRemoved(e: AncestorEvent): Unit = forgetWindow()
 
-    def ancestorMoved(event: AncestorEvent) {}
+    def ancestorMoved(event: AncestorEvent) = ()
   }
 
-//	def remove() {
-//		removeAncestorListener(listener)
-//		forgetWindow()
-//	}
+  //	def remove(): Unit = {
+  //		removeAncestorListener(listener)
+  //		forgetWindow()
+  //	}
 }

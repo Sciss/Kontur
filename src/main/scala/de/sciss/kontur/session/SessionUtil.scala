@@ -100,7 +100,7 @@ object SessionUtil {
     // run NRT
     val worker = context.render
     worker.addPropertyChangeListener(new PropertyChangeListener {
-      def propertyChange(e: PropertyChangeEvent) {
+      def propertyChange(e: PropertyChangeEvent): Unit = {
         try {
           //               println( "prop name '" + e.getPropertyName + "'; val = '" + e.getNewValue + "'" )
           val info: AnyRef = e.getPropertyName match {
@@ -121,7 +121,7 @@ object SessionUtil {
     worker.execute()
 
     new Process {
-      def cancel() {
+      def cancel(): Unit = {
         println("WARNING: CANCEL DOES NOT WORK YET PROPERLY")
         worker.cancel(true)
       }

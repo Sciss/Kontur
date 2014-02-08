@@ -78,12 +78,11 @@ extends JPanel with TrackTools with PreferenceChangeListener {
       }
 
       ggCombo.addActionListener( new ActionListener {
-         def actionPerformed( e: ActionEvent ) {
+         def actionPerformed( e: ActionEvent ): Unit =
             ggCombo.getSelectedItem match {
                case t: ToolAction => t.perform()
                case _ =>
             }
-         }
       })
       ggCombo.setFocusable( false )
       ggCombo.putClientProperty( "JComboBox.isSquare", java.lang.Boolean.TRUE )
@@ -93,9 +92,8 @@ extends JPanel with TrackTools with PreferenceChangeListener {
       ggVisualBoost.setFocusable( false )
       ggVisualBoost.putClientProperty( "JComponent.sizeVariant", "small" )
       ggVisualBoost.addChangeListener( new ChangeListener {
-         def stateChanged( e: ChangeEvent ) {
+         def stateChanged( e: ChangeEvent ): Unit =
             visualBoost = slidToBoost( ggVisualBoost.getValue )
-         }
       })
 
       setLayout( new BoxLayout( this, BoxLayout.X_AXIS ))
@@ -114,57 +112,50 @@ extends JPanel with TrackTools with PreferenceChangeListener {
    private def slidToBoost( v: Int ) = linexp( v, 0, 128, 1, 512 ).toFloat
 
    def currentTool = currentToolVar
-   private def currentTool_=( newTool: TrackTool ) {
+   private def currentTool_=( newTool: TrackTool ): Unit =
        if( newTool != currentToolVar ) {
            val change = ToolChanged( currentToolVar, newTool )
            currentToolVar = newTool
            dispatch( change )
        }
-   }
 
    def visualBoost = visualBoostVar
-   def visualBoost_=( value: Float ) {
+   def visualBoost_=( value: Float ): Unit =
       if( visualBoostVar != value ) {
          val change = VisualBoostChanged( visualBoostVar, value )
          visualBoostVar = value
          dispatch( change )
       }
-   }
+
    def fadeViewMode = fadeViewModeVar
-   def fadeViewMode_=( mode: FadeViewMode ) {
-//println( "fadeViewMode : " + mode )
+   def fadeViewMode_=( mode: FadeViewMode ): Unit =
       if( fadeViewModeVar != mode ) {
          val change = FadeViewModeChanged( fadeViewModeVar, mode )
          fadeViewModeVar = mode
          dispatch( change )
       }
-   }
+
    def stakeBorderViewMode = stakeBorderViewModeVar
-   def stakeBorderViewMode_=( mode: StakeBorderViewMode ) {
-//println( "stakeBorderViewMode : " + mode )
+   def stakeBorderViewMode_=( mode: StakeBorderViewMode ): Unit =
       if( stakeBorderViewModeVar != mode ) {
          val change = StakeBorderViewModeChanged( stakeBorderViewModeVar, mode )
          stakeBorderViewModeVar = mode
          dispatch( change )
       }
-   }
 
 // ---------------- PreferenceChangeListener interface ----------------
 
-   def preferenceChange( e: PreferenceChangeEvent ) {
+   def preferenceChange( e: PreferenceChangeEvent ): Unit =
       e.getKey match {
          case PrefsUtil.KEY_FADEVIEWMODE        => fadeViewMode         = FadeViewMode(        e.getNewValue.toInt )
          case PrefsUtil.KEY_STAKEBORDERVIEWMODE => stakeBorderViewMode  = StakeBorderViewMode( e.getNewValue.toInt )
          case _ =>
       }
-   }
 
    private class ToolAction( t: TrackTool, strokeText: String ) extends AbstractAction( t.name ) {
-      def actionPerformed( e: ActionEvent ) {
-         ggCombo.setSelectedItem( this )
-      }
+      def actionPerformed( e: ActionEvent ): Unit = ggCombo.setSelectedItem( this )
 
-      def perform() { currentTool_=( t )}
+      def perform(): Unit = currentTool_=( t )
 
       override def toString = t.name + " " + strokeText
    }

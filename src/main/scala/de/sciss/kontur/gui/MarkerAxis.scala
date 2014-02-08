@@ -126,7 +126,7 @@ with desktop.impl.DynamicComponentImpl {
 //	protected Trail.Editor				editor			= null;
 
   private val mil = new MouseInputAdapter() {
-    override def mousePressed(e: MouseEvent) {
+    override def mousePressed(e: MouseEvent): Unit = {
       val scale = visibleSpan.length.toDouble / math.max(1, getWidth)
       val pos = (e.getX * scale + visibleSpan.start + 0.5).toLong
 
@@ -152,7 +152,7 @@ with desktop.impl.DynamicComponentImpl {
       }
     }
 
-    override def mouseReleased(e: MouseEvent) {
+    override def mouseReleased(e: MouseEvent): Unit =
       drag.foreach { d =>
         // dispatchEvent( Event.DRAGSTOPPED, (d.lastMark getOrElse d.firstMark).span )
 
@@ -173,10 +173,9 @@ with desktop.impl.DynamicComponentImpl {
         }
         drag = None
       }
-    }
 
-    override def mouseDragged(e: MouseEvent) {
-      drag.foreach(d => {
+    override def mouseDragged(e: MouseEvent): Unit =
+      drag.foreach { d =>
         if (!d.started) {
           if (math.abs(e.getX - d.startX) < 5) return
           d.started = true
@@ -191,27 +190,25 @@ with desktop.impl.DynamicComponentImpl {
         //				val dirtySpan = new Span( min( oldPos, newPos ), max( oldPos, newPos ))
         d.lastMark = Some(Marker(newPos, d.firstMark.name))
         //				dispatchEvent( Event.DRAGADJUSTED, dirtySpan )
-      })
-    }
+      }
   }
 
   private val kl = new KeyAdapter() {
-    override def keyPressed(e: KeyEvent) {
+    override def keyPressed(e: KeyEvent): Unit =
       if (e.getKeyCode == KeyEvent.VK_ESCAPE) {
         if (drag.isDefined) {
           drag = None
           //					dispatchEvent( Event.DRAGSTOPPED, visibleSpan )
         }
       }
-    }
   }
 
   /*
    *  Constructs a new object for
    *  displaying the timeline ruler
    */
-  setMaximumSize(new Dimension(getMaximumSize.width, barExtent))
-  setMinimumSize(new Dimension(getMinimumSize.width, barExtent))
+  setMaximumSize  (new Dimension(getMaximumSize  .width, barExtent))
+  setMinimumSize  (new Dimension(getMinimumSize  .width, barExtent))
   setPreferredSize(new Dimension(getPreferredSize.width, barExtent))
 
   setOpaque(true)
@@ -219,59 +216,61 @@ with desktop.impl.DynamicComponentImpl {
 //    GraphicsHandler.FONT_SYSTEM | GraphicsHandler.FONT_MINI))
 
   def trail = trailVar
-	def trail_=( newTrail: Option[ Trail[ Marker ]]) {
-        trailVar.foreach( t => {
-            if( isListening ) t.removeListener( trailListener )
-		})
-        trailVar = newTrail
-        newTrail.foreach( t => {
-            if( isListening ) t.addListener( trailListener )
-		})
-		triggerRedisplay()
-	}
 
-    def editor = editorVar
-	def editor_=( newEditor: Option[ TrailEditor[ Marker ]]) {
-		if( editorVar != newEditor ) {
-          if( editorVar.isDefined && newEditor.isEmpty ) {
-              removeMouseListener( mil )
-              removeMouseMotionListener( mil )
-              removeKeyListener( kl )
-          } else if( editorVar.isEmpty && newEditor.isDefined ) {
-              addMouseListener( mil )
-              addMouseMotionListener( mil )
-              addKeyListener( kl )
-          }
-          editorVar = newEditor
-		}
-	}
+  def trail_=(newTrail: Option[Trail[Marker]]): Unit = {
+    trailVar.foreach(t => {
+      if (isListening) t.removeListener(trailListener)
+    })
+    trailVar = newTrail
+    newTrail.foreach(t => {
+      if (isListening) t.addListener(trailListener)
+    })
+    triggerRedisplay()
+  }
 
-	protected def getResourceString( key: String ) =
-		key // XXX TODO AbstractApplication.getApplication.getResourceString( key )
+  def editor = editorVar
 
-	private def recalcDisplay( fm: FontMetrics ) {
-		val scale = recentWidth.toDouble / visibleSpan.length
+  def editor_=(newEditor: Option[TrailEditor[Marker]]): Unit = {
+    if (editorVar != newEditor) {
+      if (editorVar.isDefined && newEditor.isEmpty) {
+        removeMouseListener(mil)
+        removeMouseMotionListener(mil)
+        removeKeyListener(kl)
+      } else if (editorVar.isEmpty && newEditor.isDefined) {
+        addMouseListener(mil)
+        addMouseMotionListener(mil)
+        addKeyListener(kl)
+      }
+      editorVar = newEditor
+    }
+  }
 
-		shpFlags.reset()
-        marks.clear()
-        trailVar.foreach( t => {
-          t.visitRange( visibleSpan ) { m =>
-            val flagPos = (((m.pos - visibleSpan.start) * scale) + 0.5).toInt
-            marks += Mark( flagPos, m.name )
-			shpFlags.append( new Rectangle( flagPos, 1, fm.stringWidth( m.name ) + 8, markExtent ), false )
-          }
-        })
-		doRecalc = false
-	}
+  protected def getResourceString(key: String) =
+    key // XXX TODO AbstractApplication.getApplication.getResourceString( key )
 
-	override def paintComponent( g: Graphics ) {
-		super.paintComponent( g )
+  private def recalcDisplay(fm: FontMetrics): Unit = {
+    val scale = recentWidth.toDouble / visibleSpan.length
 
-		val g2 = g.asInstanceOf[ Graphics2D ]
-		val fm	= g2.getFontMetrics
-		val y	= fm.getAscent + 2
+    shpFlags.reset()
+    marks.clear()
+    trailVar.foreach(t => {
+      t.visitRange(visibleSpan) { m =>
+        val flagPos = (((m.pos - visibleSpan.start) * scale) + 0.5).toInt
+        marks += Mark(flagPos, m.name)
+        shpFlags.append(new Rectangle(flagPos, 1, fm.stringWidth(m.name) + 8, markExtent), false)
+      }
+    })
+    doRecalc = false
+  }
 
-		if( doRecalc || (recentWidth != getWidth) ) {
+  override def paintComponent(g: Graphics): Unit = {
+    super.paintComponent(g)
+
+    val g2 = g.asInstanceOf[Graphics2D]
+    val fm = g2.getFontMetrics
+    val y  = fm.getAscent + 2
+
+    if( doRecalc || (recentWidth != getWidth) ) {
 			recentWidth = getWidth
 			recalcDisplay( fm )
 		}
@@ -291,22 +290,22 @@ with desktop.impl.DynamicComponentImpl {
 			g2.drawString( m.label, m.flagPos + 4, y )
 		})
 
-		// handle dnd graphics
-        drag.foreach( _.lastMark.foreach( lastMark => {
-			val dragMarkFlagPos = (((lastMark.pos - visibleSpan.start) * recentWidth.toDouble / visibleSpan.length) + 0.5).toInt
-			g2.setPaint( pntMarkFlagDrag )
-			g2.fillRect( dragMarkFlagPos, 1, fm.stringWidth( lastMark.name ) + 8, markExtent )
-			g2.setColor( colrLabelDrag )
-			g2.drawString( lastMark.name, dragMarkFlagPos + 4, y )
-        }))
-	}
+    // handle dnd graphics
+    drag.foreach(_.lastMark.foreach(lastMark => {
+      val dragMarkFlagPos = (((lastMark.pos - visibleSpan.start) * recentWidth.toDouble / visibleSpan.length) + 0.5).toInt
+      g2.setPaint(pntMarkFlagDrag)
+      g2.fillRect(dragMarkFlagPos, 1, fm.stringWidth(lastMark.name) + 8, markExtent)
+      g2.setColor(colrLabelDrag)
+      g2.drawString(lastMark.name, dragMarkFlagPos + 4, y)
+    }))
+  }
 
-	def paintFlagSticks( g2: Graphics2D, bounds: Rectangle ) {
-		if( doRecalc ) {
-			recalcDisplay( g2.getFontMetrics )	// XXX nicht ganz sauber (anderer graphics-context!)
-		}
+  def paintFlagSticks(g2: Graphics2D, bounds: Rectangle): Unit = {
+    if (doRecalc) {
+      recalcDisplay(g2.getFontMetrics) // XXX nicht ganz sauber (anderer graphics-context!)
+    }
 
-		val strkOrig	= g2.getStroke
+    val strkOrig	= g2.getStroke
 
 		g2.setPaint( pntMarkStick )
 		g2.setStroke( strkStick )
@@ -321,7 +320,7 @@ with desktop.impl.DynamicComponentImpl {
 		g2.setStroke( strkOrig )
 	}
 
-	private def triggerRedisplay() {
+	private def triggerRedisplay(): Unit = {
 		doRecalc = true
 //		if( host != null ) {
 			host.update( this )
@@ -330,8 +329,8 @@ with desktop.impl.DynamicComponentImpl {
 //		}
 	}
 
-	def addMarker( pos: Long ) {
-		if( editorVar.isEmpty ) throw new IllegalStateException()
+  def addMarker(pos: Long): Unit = {
+    if( editorVar.isEmpty ) throw new IllegalStateException()
 
         val ed          = editorVar.get
 		val posC		= timelineView.timeline.span.clip( pos )
@@ -346,8 +345,8 @@ with desktop.impl.DynamicComponentImpl {
 		}}
 	}
 
-	protected def removeMarkerLeftTo( pos: Long ) {
-		if( editorVar.isEmpty ) throw new IllegalStateException()
+  protected def removeMarkerLeftTo(pos: Long): Unit = {
+    if( editorVar.isEmpty ) throw new IllegalStateException()
 
 		getMarkerLeftTo( pos ).foreach( m => {
 //          val posC	= timelineView.timeline.span.clip( pos )
@@ -534,7 +533,7 @@ with desktop.impl.DynamicComponentImpl {
 
 	// -------------- Disposable interface --------------
 
-	def dispose() {
+	def dispose(): Unit = {
 //		stopListening()
 		editor = None
 		trail  = None
@@ -548,13 +547,13 @@ with desktop.impl.DynamicComponentImpl {
 
 // ---------------- DynamicListening interface ----------------
 
-  protected def componentShown() {
+  protected def componentShown(): Unit = {
     timelineView.addListener(timelineListener)
     trailVar.foreach(_.addListener(trailListener))
     triggerRedisplay()
   }
 
-  protected def componentHidden() {
+  protected def componentHidden(): Unit = {
     trailVar.foreach(_.removeListener(trailListener))
     timelineView.removeListener(timelineListener)
   }

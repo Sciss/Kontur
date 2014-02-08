@@ -28,13 +28,11 @@ object GlobalActions {
     None
   }
 
-  def openDocument(file: File) {
-    ActionOpen.perform(file)
-  }
+  def openDocument(file: File): Unit = ActionOpen.perform(file)
 
   def closeDocument(document: Session, force: Boolean, confirmed: Flag): Option[ProcessingThread] = {
     val sfs: List[SessionFrame] = Kontur.windowHandler.windows.collect({
-      case sf: SessionFrame if (sf.document == document) => sf
+      case sf: SessionFrame if sf.document == document => sf
     }).toList
 
     sfs.headOption match {
@@ -56,9 +54,8 @@ object GlobalActions {
      *  to confirm. A file chooser will pop up for
      *  the user to select the session to open.
      */
-    def apply() {
+    def apply(): Unit =
       queryFile().foreach(f => perform(f))
-    }
 
     private def queryFile(): Option[File] = {
       val w = Kontur.getComponent[de.sciss.desktop.Window](Kontur.COMP_MAIN)
@@ -129,20 +126,17 @@ object GlobalActions {
       }
 
       override def startElement(uri: String, localName: String,
-                                qName: String, attributes: sax.Attributes) {
+                                qName: String, attributes: sax.Attributes): Unit = {
         // eventually we will have a version check here
         // (using attributes) and
         // could then throw more detailed information
-        throw (if (qName == Session.XML_START_ELEMENT)
+        throw if (qName == Session.XML_START_ELEMENT)
           new SessionFoundException
         else
           new SessionNotFoundException
-        )
       }
 
-      def dispose() {
-        // nothing actually
-      }
+      def dispose() = () // nothing actually
 
       private class SessionFoundException    extends sax.SAXException
       private class SessionNotFoundException extends sax.SAXException
@@ -158,7 +152,7 @@ object GlobalActions {
      *
      * @param  file the file of the document to be loaded
      */
-    def perform(file: File) {
+    def perform(file: File): Unit =
       try {
         val doc = Session.newFrom(file)
 // XXX TODO
@@ -169,6 +163,5 @@ object GlobalActions {
       catch {
         case e1: IOException => Window.showDialog(e1 -> title)
       }
-    }
   }
 }

@@ -64,17 +64,17 @@ with PreferenceChangeListener {
 //    preferences.addPreferenceChangeListener(this)
   }
 
-  def dispose() {
+  def dispose(): Unit = {
     // XXX TODO
 //    preferences.removePreferenceChangeListener(this)
   }
 
-  override def setActive(onOff: Boolean) {
+  override def setActive(onOff: Boolean): Unit = {
     super.setActive(onOff)
     preferences.put(KEY_ACTIVE, onOff)
   }
 
-  override def setFolderAndCapacity(folder: File, capacity: Int) {
+  override def setFolderAndCapacity(folder: File, capacity: Int): Unit = {
     super.setFolderAndCapacity(folder, capacity)
     import desktop.Implicits._
     preferences.put(KEY_FOLDER, folder)
@@ -83,7 +83,7 @@ with PreferenceChangeListener {
 
 // ------- PreferenceChangeListener interface -------
 
-	def preferenceChange( e: PreferenceChangeEvent) {
+	def preferenceChange( e: PreferenceChangeEvent): Unit = {
 		val key = e.getKey
 
     import desktop.Implicits._

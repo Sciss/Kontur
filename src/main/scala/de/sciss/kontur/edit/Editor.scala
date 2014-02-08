@@ -37,14 +37,14 @@ trait Editor {
     new BasicCompoundEdit(name)
   }
 
-  def editEnd(ce: AbstractCompoundEdit) {
+  def editEnd(ce: AbstractCompoundEdit): Unit = {
     if (!EventQueue.isDispatchThread) throw new IllegalMonitorStateException()
     ce.perform()
     ce.end()
     undoManager.add(ce)
   }
 
-  def editCancel(ce: AbstractCompoundEdit) {
+  def editCancel(ce: AbstractCompoundEdit): Unit = {
     if (!EventQueue.isDispatchThread) throw new IllegalMonitorStateException()
     ce.cancel()
   }

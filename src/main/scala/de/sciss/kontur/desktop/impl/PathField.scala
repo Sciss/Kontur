@@ -134,7 +134,7 @@ class PathField(mode0: PathField.Mode = PathField.Input)
   makeCompactGrid()
   deriveFrom(new Array[PathField](0), "")
   this.addPropertyChangeListener("font", new PropertyChangeListener {
-    def propertyChange(e: PropertyChangeEvent) {
+    def propertyChange(e: PropertyChangeEvent): Unit = {
       val fnt = (e.getSource.asInstanceOf[PathField]).getFont
       ggPath.setFont(fnt)
       ggFormat.foreach(_.setFont(fnt))
@@ -144,20 +144,20 @@ class PathField(mode0: PathField.Mode = PathField.Input)
   private var _dialogText = ""
 
   private object listener extends PathListener with ActionListener with PropertyChangeListener {
-    def propertyChange(pce: PropertyChangeEvent) {
+    def propertyChange(pce: PropertyChangeEvent): Unit = {
       val key   = pce.getPropertyName
       val value = pce.getNewValue
       ggPath.putClientProperty(key, value)
       ggFormat.foreach(_.putClientProperty(key, value))
     }
 
-    def pathChanged(e: PathEvent) {
+    def pathChanged(e: PathEvent): Unit = {
       val f = e.getPath
       scheme = createScheme(f.getPath)
       setFileAndDispatchEvent(f)
     }
 
-    def actionPerformed(e: ActionEvent) {
+    def actionPerformed(e: ActionEvent): Unit = {
       val str = if (ggPath.getText.length == 0) {
         evalScheme(scheme)
       }
@@ -175,13 +175,13 @@ class PathField(mode0: PathField.Mode = PathField.Input)
   addPropertyChangeListener("JComponent.sizeVariant", listener)
 
   def dialogText = _dialogText
-  def dialogText_=(value: String) {
+  def dialogText_=(value: String): Unit = {
     _dialogText = value
     ggChoose.dialogText = value
   }
 
   def showFormat: Boolean = ggFormat.isDefined
-  def showFormat_=(value: Boolean) {
+  def showFormat_=(value: Boolean): Unit =
     if (ggFormat.isDefined != value) {
       if (value) {
         val res = new ColoredTextField
@@ -195,31 +195,28 @@ class PathField(mode0: PathField.Mode = PathField.Input)
         ggFormat = None
       }
     }
-  }
 
-  /**
-   * Returns the path displayed in the gadget.
-   *
-   * @return the <code>File</code> corresponding to the path string in the gadget
-   */
+  /** Returns the path displayed in the gadget.
+    *
+    * @return the <code>File</code> corresponding to the path string in the gadget
+    */
   def file: File = {
     val path = ggPath.getText
     new File(path)
   }
 
-  /**
-   * Sets the gadget's path. This is path will be
-   * used as default setting when the file chooser is shown
-   *
-   * @param  value	the new path for the button
-   */
-  def file_=(value: File) {
+  /** Sets the gadget's path. This is path will be
+    * used as default setting when the file chooser is shown
+    *
+    * @param  value	the new path for the button
+    */
+  def file_=(value: File): Unit = {
     setFileIgnoreScheme(value)
     scheme = createScheme(value.getPath)
   }
 
   def warnWhenExists = _warnWhenExists
-  def warnWhenExists_=(value: Boolean) {
+  def warnWhenExists_=(value: Boolean): Unit = {
     if (_warnWhenExists != value) {
       _warnWhenExists = value
       updateIconAndColour()
@@ -227,7 +224,7 @@ class PathField(mode0: PathField.Mode = PathField.Input)
   }
 
   def errorWhenExistsNot = _errWhenExistsNot
-  def errorWhenExistsNot_=(value: Boolean) {
+  def errorWhenExistsNot_=(value: Boolean): Unit = {
     if (_errWhenExistsNot != value) {
       _errWhenExistsNot = value
       updateIconAndColour()
@@ -235,47 +232,44 @@ class PathField(mode0: PathField.Mode = PathField.Input)
   }
 
   def errorWhenWriteProtected = _errWhenWriteProtected  
-  def errorWhenWriteProtected_=(value: Boolean) {
+  def errorWhenWriteProtected_=(value: Boolean): Unit = {
     if (_errWhenWriteProtected != value) {
       _errWhenWriteProtected = value
       updateIconAndColour()
     }
   }
 
-  private def setFileIgnoreScheme(file: File) {
+  private def setFileIgnoreScheme(file: File): Unit = {
     ggPath.setText(file.getPath)
     ggChoose.file = if (file.getPath == "") None else Some(file)
     collChildren.foreach(_.motherSpeaks(file))
     updateIconAndColour()
   }
 
-  /**
-   * Sets a new path and dispatches a <code>PathEvent</code>
-   * to registered listeners
-   *
-   * @param  f	the new path for the gadget and the event
-   */
-  protected def setFileAndDispatchEvent(f: File) {
+  /** Sets a new path and dispatches a <code>PathEvent</code>
+    * to registered listeners
+    *
+    * @param  f	the new path for the gadget and the event
+    */
+  protected def setFileAndDispatchEvent(f: File): Unit = {
     setFileIgnoreScheme(f)
     elm.dispatchEvent(new PathEvent(this, PathEvent.CHANGED, System.currentTimeMillis, f))
   }
 
-  /**
-   * Gets the string displayed in the format gadget.
-   *
-   * @return		a tuple consisting of the currently displayed format text or an empty string if the path field
-   *          has no format gadget, and a boolean indicating whether the format was determined successfully
-   *          (`true`) or not (`false`
-   */
+  /** Gets the string displayed in the format gadget.
+    *
+    * @return		a tuple consisting of the currently displayed format text or an empty string if the path field
+    *          has no format gadget, and a boolean indicating whether the format was determined successfully
+    *          (`true`) or not (`false`
+    */
   def format = _format
 
-  /**
-   * Changes the contents of the format gadget.
-   *
-   * @param  value			a tuple consisting of the text to be displayed in the format gadget
-   *                    and a success indicator
-   */
-  def format_=(value: (String, Boolean)) {
+  /** Changes the contents of the format gadget.
+    *
+    * @param  value			a tuple consisting of the text to be displayed in the format gadget
+    *                    and a success indicator
+    */
+  def format_=(value: (String, Boolean)): Unit = {
     if (_format != value) {
       _format = value
       ggFormat.foreach { gg =>
@@ -286,16 +280,15 @@ class PathField(mode0: PathField.Mode = PathField.Input)
     }
   }
 
-  /**
-   * Gets the type of the path field.
-   *
-   * @return the gadget's type as specified in the constructor
-   *         use bitwise-AND with <code>TYPE_BASICMASK</code> to query the
-   *         file access type.
-   */
+  /** Gets the type of the path field.
+    *
+    * @return the gadget's type as specified in the constructor
+    *         use bitwise-AND with <code>TYPE_BASICMASK</code> to query the
+    *         file access type.
+    */
   def mode = _mode
 
-  def mode_=(value: Mode) {
+  def mode_=(value: Mode): Unit =
     if (_mode != value) {
       _mode = value
       warnWhenExists          = value == Output
@@ -303,42 +296,37 @@ class PathField(mode0: PathField.Mode = PathField.Input)
       errorWhenWriteProtected = value == Output
       ggChoose.mode           = value
     }
-  }
 
   def filter: Option[FileFilter] = ggChoose.filter // Option(ggChoose.getFilter)
 
-  /**
-   * Sets the filter to use for enabling or disabling items
-   * in the file dialog.
-   *
-   * @param	value the new filter or null to remove an existing filter
-   */
-  def filter_=(value: Option[FileFilter]) {
-    ggChoose.filter = filter
-  }
+  /** Sets the filter to use for enabling or disabling items
+    * in the file dialog.
+    *
+    * @param	value the new filter or null to remove an existing filter
+    */
+  def filter_=(value: Option[FileFilter]): Unit = ggChoose.filter = filter
 
   override def getBaseline(width: Int, height: Int) =
     ggPath.getBaseline(width, height) + ggPath.getY
 
   def isEditable = ggPath.isEditable
 
-  def setEditable(value: Boolean) {
+  def setEditable(value: Boolean): Unit = {
     ggPath.setEditable(value)
     ggChoose.setEnabled(value)
   }
 
-  def selectDirectoryPart() {
+  def selectDirectoryPart(): Unit = {
     val s = ggPath.getText
     val i = s.lastIndexOf(File.separatorChar) + 1
     ggPath.select(0, i)
   }
 
-  /**
-   * Selects the file name portion of the text contents.
-   *
-   * @param	extension	whether to include the file name suffix or not
-   */
-  def selectFilenamePart(extension: Boolean) {
+  /** Selects the file name portion of the text contents.
+    *
+    * @param	extension	whether to include the file name suffix or not
+    */
+  def selectFilenamePart(extension: Boolean): Unit = {
     val s = ggPath.getText
     val i = s.lastIndexOf(File.separatorChar) + 1
     val j = if (extension) s.length else s.lastIndexOf('.')
@@ -347,72 +335,65 @@ class PathField(mode0: PathField.Mode = PathField.Input)
 
   override def requestFocusInWindow: Boolean = ggPath.requestFocusInWindow
 
-  /**
-   * <code>PathField</code> offers a mechanism to automatically derive
-   * a path name from a "mother" <code>PathField</code>. This applies
-   * usually to output files whose names are derived from
-   * PathFields which represent input paths. The provided
-   * 'scheme' String can contain the Tags
-   * <pre>
-   * $Dx = Directory of superPath x; $Fx = Filename; $E = Extension; $Bx = Brief filename
-   * </pre>
-   * where 'x' is the index in the provided array of
-   * mother PathFields. Whenever the mother contents
-   * changes, the child PathField will recalculate its
-   * name. When the user changes the contents of the child
-   * PathField, an algorithm tries to find out which components
-   * are related to the mother's pathname, parts that cannot
-   * be identified will not be automatically changing any more
-   * unless the user completely clears the PathField (i.e.
-   * restores full automation).
-   * <p>
-   * The user can abbreviate or extend filenames by pressing the appropriate
-   * key; in this case the $F and $B tags are exchanged in the scheme.
-   *
-   * @param  superPaths array of mother path fields to listen to
-   * @param  scheme automatic formatting scheme which can incorporate
-   *              placeholders for the mother fields' paths.
-   */
-  def deriveFrom(superPaths: Seq[PathField], scheme: String) {
+  /** <code>PathField</code> offers a mechanism to automatically derive
+    * a path name from a "mother" <code>PathField</code>. This applies
+    * usually to output files whose names are derived from
+    * PathFields which represent input paths. The provided
+    * 'scheme' String can contain the Tags
+    * <pre>
+    * $Dx = Directory of superPath x; $Fx = Filename; $E = Extension; $Bx = Brief filename
+    * </pre>
+    * where 'x' is the index in the provided array of
+    * mother PathFields. Whenever the mother contents
+    * changes, the child PathField will recalculate its
+    * name. When the user changes the contents of the child
+    * PathField, an algorithm tries to find out which components
+    * are related to the mother's pathname, parts that cannot
+    * be identified will not be automatically changing any more
+    * unless the user completely clears the PathField (i.e.
+    * restores full automation).
+    * <p>
+    * The user can abbreviate or extend filenames by pressing the appropriate
+    * key; in this case the $F and $B tags are exchanged in the scheme.
+    *
+    * @param  superPaths array of mother path fields to listen to
+    * @param  scheme automatic formatting scheme which can incorporate
+    *              placeholders for the mother fields' paths.
+    */
+  def deriveFrom(superPaths: Seq[PathField], scheme: String): Unit = {
     this.superPaths   = superPaths
     this.scheme       = scheme
     this.protoScheme  = scheme
     superPaths.foreach(_.addChildPathField(this))
   }
 
-  private def addChildPathField(child: PathField) {
+  private def addChildPathField(child: PathField): Unit =
     if (!collChildren.contains(child)) collChildren :+= child
-  }
 
-  private def motherSpeaks(superPath: File) {
+  private def motherSpeaks(superPath: File): Unit =
     setFileAndDispatchEvent(new File(evalScheme(scheme)))
-  }
 
-  /**
-   * Registers a <code>PathListener</code>
-   * which will be informed about changes of
-   * the path (i.e. user selections in the
-   * file chooser or text editing).
-   *
-   * @param  listener	the <code>PathListener</code> to register
-   * @see	de.sciss.app.EventManager#addListener( Object )
-   */
-  def addPathListener(listener: PathListener) {
+  /** Registers a <code>PathListener</code>
+    * which will be informed about changes of
+    * the path (i.e. user selections in the
+    * file chooser or text editing).
+    *
+    * @param  listener	the <code>PathListener</code> to register
+    * @see	de.sciss.app.EventManager#addListener( Object )
+    */
+  def addPathListener(listener: PathListener): Unit =
     elm.addListener(listener)
-  }
 
-  /**
-   * Unregisters a <code>PathListener</code>
-   * from receiving path change events.
-   *
-   * @param  listener	the <code>PathListener</code> to unregister
-   * @see	de.sciss.app.EventManager#removeListener( Object )
-   */
-  def removePathListener(listener: PathListener) {
+  /** Unregisters a <code>PathListener</code>
+    * from receiving path change events.
+    *
+    * @param  listener	the <code>PathListener</code> to unregister
+    * @see	de.sciss.app.EventManager#removeListener( Object )
+    */
+  def removePathListener(listener: PathListener): Unit =
     elm.removeListener(listener)
-  }
 
-  def processEvent(e: BasicEvent) {
+  def processEvent(e: BasicEvent): Unit =
     e match {
       case pe: PathEvent =>
         var i = 0
@@ -422,9 +403,8 @@ class PathField(mode0: PathField.Mode = PathField.Input)
           i += 1
         }
     }
-  }
 
-  private def updateIconAndColour() {
+  private def updateIconAndColour(): Unit = {
     val f           = file
     val parent      = f.getParentFile
     val folder      = mode == Folder
@@ -597,21 +577,21 @@ class PathField(mode0: PathField.Mode = PathField.Input)
   protected def expandScheme(orig: String): String = {
     val i = orig.indexOf("$B")
     if (i >= 0) {
-      (orig.substring(0, i) + "$F" + orig.substring(i + 2))
+      orig.substring(0, i) + "$F" + orig.substring(i + 2)
     } else {
       orig
     }
   }
 
   protected def udirScheme(orig: String, idx: Int): String = {
-    val udir = userPaths.getPath(idx)
-    if (udir == null) return orig
+    val uDir = userPaths.getPath(idx)
+    if (uDir == null) return orig
     val i = if (orig.startsWith("$D")) {
       3
     } else {
       orig.lastIndexOf(File.separatorChar) + 1
     }
-    (new File(udir, orig.substring(i)).getPath)
+    new File(uDir, orig.substring(i)).getPath
   }
 
   protected def createPathButton(): PathButton = new PathButton(mode)
@@ -619,33 +599,33 @@ class PathField(mode0: PathField.Mode = PathField.Input)
   private class IOTextField extends ColoredTextField(32) {
     init()
 
-    def init() {
+    def init(): Unit = {
       val inputMap  = getInputMap
       val actionMap = getActionMap
       inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, myMeta + InputEvent.ALT_MASK), "abbr")
       actionMap.put("abbr", new AbstractAction {
-        def actionPerformed(e: ActionEvent) {
+        def actionPerformed(e: ActionEvent): Unit = {
           scheme = abbrScheme(scheme)
           setFileAndDispatchEvent(new File(evalScheme(scheme)))
         }
       })
       inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, myMeta + InputEvent.ALT_MASK), "expd")
       actionMap.put("expd", new AbstractAction {
-        def actionPerformed(e: ActionEvent) {
+        def actionPerformed(e: ActionEvent): Unit = {
           scheme = expandScheme(scheme)
           setFileAndDispatchEvent(new File(evalScheme(scheme)))
         }
       })
       inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, myMeta), "auto")
       actionMap.put("auto", new AbstractAction {
-        def actionPerformed(e: ActionEvent) {
+        def actionPerformed(e: ActionEvent): Unit = {
           scheme = protoScheme
           setFileAndDispatchEvent(new File(evalScheme(scheme)))
         }
       })
       inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "lost")
       actionMap.put("lost", new AbstractAction {
-        def actionPerformed(e: ActionEvent) {
+        def actionPerformed(e: ActionEvent): Unit = {
           val rp = SwingUtilities.getRootPane(IOTextField.this)
           if (rp != null) rp.requestFocus()
         }
@@ -668,11 +648,10 @@ class PathField(mode0: PathField.Mode = PathField.Input)
 
       private var oldPaint: Paint = null
 
-      def actionPerformed(e: ActionEvent) {
+      def actionPerformed(e: ActionEvent): Unit =
         if (e.getSource == visualFeedback) {
           ggPath.setPaint(oldPaint)
-        }
-        else {
+        } else {
           val dir = file.getParentFile
           if (dir != null) {
             userPaths.setPath(idx, dir)
@@ -685,11 +664,10 @@ class PathField(mode0: PathField.Mode = PathField.Input)
             }
           }
         }
-      }
     }
 
     private class RecallUserDirAction(idx: Int) extends AbstractAction {
-      def actionPerformed(e: ActionEvent) {
+      def actionPerformed(e: ActionEvent): Unit = {
         scheme = udirScheme(scheme, idx)
         setFileAndDispatchEvent(new File(evalScheme(scheme)))
       }

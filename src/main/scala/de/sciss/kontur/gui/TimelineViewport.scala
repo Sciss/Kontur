@@ -44,49 +44,46 @@ final class TimelineViewport(timelineView: TimelineView)
 //     new DynamicAncestorAdapter( this ).addTo( this )
 //  }
 
-  protected def componentShown() {
+  protected def componentShown(): Unit =
      timelineView.addListener( timelineViewListener )
-  }
 
-  protected def componentHidden() {
+  protected def componentHidden(): Unit =
      timelineView.removeListener( timelineViewListener )
-  }
 
   private val timelineViewListener: Model.Listener = {
-      case TimelineView.SpanChanged( oldSpan, newSpan ) => {
-//         val dim = getPreferredSize()
-         val tlSpan = timelineView.timeline.span
-         if( !tlSpan.isEmpty && !newSpan.isEmpty ) {
-//             val scale = dim.getWidth.toDouble / tlSpan.getLength
-             val e = getExtentSize
-if( verbose ) println( "e.w " + e.width + "; tl.len " + tlSpan.length + "; visi.len " + newSpan.length )
-             val w = (tlSpan.length.toDouble / newSpan.length * e.width + 0.5).toInt
-             val x = ((newSpan.start - tlSpan.start).toDouble / tlSpan.length * w + 0.5).toInt
-             val d = getViewSize
-             val p = getViewPosition
-if( verbose ) println( "old.x" + p.x + "; old.w " + d.width + "; new.x " + x + "; new.w " + w )
-             if( w != d.width ) {
-                  val v = getView
-                  val pref = v.getPreferredSize
-                  pref.width = w
-                  v.setPreferredSize( pref )
-                  v.asInstanceOf[ JComponent ].revalidate() // bad bad
-                  d.width = w
-                  super.setViewSize( d )
-             }
-             if( x != p.x ) {
-                super.setViewPosition( p )
-             }
-         }
+    case TimelineView.SpanChanged(oldSpan, newSpan) =>
+      //         val dim = getPreferredSize()
+      val tlSpan = timelineView.timeline.span
+      if (!tlSpan.isEmpty && !newSpan.isEmpty) {
+        //             val scale = dim.getWidth.toDouble / tlSpan.getLength
+        val e = getExtentSize
+        if (verbose) println("e.w " + e.width + "; tl.len " + tlSpan.length + "; visi.len " + newSpan.length)
+        val w = (tlSpan.length.toDouble / newSpan.length * e.width + 0.5).toInt
+        val x = ((newSpan.start - tlSpan.start).toDouble / tlSpan.length * w + 0.5).toInt
+        val d = getViewSize
+        val p = getViewPosition
+        if (verbose) println("old.x" + p.x + "; old.w " + d.width + "; new.x " + x + "; new.w " + w)
+        if (w != d.width) {
+          val v = getView
+          val pref = v.getPreferredSize
+          pref.width = w
+          v.setPreferredSize(pref)
+          v.asInstanceOf[JComponent].revalidate() // bad bad
+          d.width = w
+          super.setViewSize(d)
+        }
+        if (x != p.x) {
+          super.setViewPosition(p)
+        }
       }
   }
 
-//  override protected def fireStateChanged() {
+  //  override protected def fireStateChanged() {
 //    println( "---VP : fireStateChanged()" )
 //    super.fireStateChanged()
 //  }
 
-  override def scrollRectToVisible( contentRect: Rectangle ) {
+  override def scrollRectToVisible( contentRect: Rectangle ): Unit = {
     if( verbose ) {
       println( "---VP : scrollRectToVisible( new Rectangle( " +
         contentRect.x + ", " + contentRect.y + ", " +
@@ -95,7 +92,7 @@ if( verbose ) println( "old.x" + p.x + "; old.w " + d.width + "; new.x " + x + "
     super.scrollRectToVisible( contentRect )
   }
 
-  override def setExtentSize( newExtent: Dimension ) {
+  override def setExtentSize( newExtent: Dimension ): Unit = {
     if( verbose ) {
       println( "---VP: setExtentSize( new Dimension( " +
         newExtent.width + ", " + newExtent.height + " ))" )
@@ -104,7 +101,7 @@ if( verbose ) println( "old.x" + p.x + "; old.w " + d.width + "; new.x " + x + "
   }
 
 // OOO
-  override def setViewPosition( p: Point ) {
+  override def setViewPosition( p: Point ): Unit = {
 //     println( "---VP: setViewPosition( new Point( " + p.x + ", " + p.y + " ))" )
       val tlSpan  = timelineView.timeline.span
       val w       = getViewSize.width
@@ -124,7 +121,7 @@ if( verbose ) println( "old.x" + p.x + "; old.w " + d.width + "; new.x " + x + "
       }
   }
 
-  override def setViewSize( newSize: Dimension ) {
+  override def setViewSize( newSize: Dimension ): Unit = {
      if( verbose ) {
        println( "---VP: setViewSize( new Dimension( " +
          newSize.width + ", " + newSize.height + " ))" )

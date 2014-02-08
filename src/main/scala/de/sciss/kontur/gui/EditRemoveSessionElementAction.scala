@@ -32,7 +32,7 @@ final class EditRemoveSessionElementAction[T](elemName: String, elem: T, ed: Ses
                                               nameInAction: Boolean = false)
   extends Action(if (nameInAction) "Remove " + elemName else "Remove") {
 
-  def apply() {
+  def apply(): Unit = {
     val ce = ed.editBegin("Remove " + elemName)
     ed.editRemove(ce, elem)
     ed.editEnd(ce)

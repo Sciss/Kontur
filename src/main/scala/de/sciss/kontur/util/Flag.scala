@@ -9,5 +9,5 @@ object Flag {
 final class Flag private(var value: Boolean) {
   override def toString = s"Flag($value)"
   def apply() = value
-  def update(value: Boolean) { this.value = value }
+  def update(value: Boolean): Unit = this.value = value
 }

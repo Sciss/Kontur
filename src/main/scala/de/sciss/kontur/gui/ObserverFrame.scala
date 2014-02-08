@@ -35,7 +35,7 @@ import de.sciss.desktop.{Window, DocumentHandler}
 import de.sciss.desktop.impl.WindowImpl
 
 class ObserverFrame extends WindowImpl {
-  protected def style = Window.Palette
+  override protected def style = Window.Palette
 
   private val ggTabPane = new JTabbedPane()
   private var mapTabs = Map[String, ObserverPage]()
@@ -56,7 +56,7 @@ class ObserverFrame extends WindowImpl {
 
   //        ggTabPane.setPreferredSize( new Dimension( 400, 400 )) // XXX
   ggTabPane.addChangeListener(new ChangeListener {
-    def stateChanged(e: ChangeEvent) {
+    def stateChanged(e: ChangeEvent): Unit = {
       val c = ggTabPane.getSelectedComponent
       val newShown = if (c != null) {
         mapTabs.find(_._2.component == c).map(_._2)
@@ -79,36 +79,33 @@ class ObserverFrame extends WindowImpl {
 
   def handler = Kontur.windowHandler
 
-  override def dispose() {
+  override def dispose(): Unit = {
     Kontur.documentHandler.removeListener(listener)
     super.dispose()
   }
 
-  def addPage(page: ObserverPage) {
+  def addPage(page: ObserverPage): Unit = {
     if (containsPage(page.id)) removePage(page.id)
     ggTabPane.addTab(page.title, page.component)
     //       pack()
   }
 
-  def removePage(id: String) {
+  def removePage(id: String): Unit =
     mapTabs.get(id).foreach(page => {
       mapTabs -= id
       ggTabPane.remove(page.component)
     })
-  }
 
-  def selectPage(id: String) {
+  def selectPage(id: String): Unit =
     mapTabs.get(id).foreach(page => {
       ggTabPane.setSelectedComponent(page.component)
     })
-  }
 
-  def setPageEnabled(id: String, enabled: Boolean) {
+  def setPageEnabled(id: String, enabled: Boolean): Unit =
     mapTabs.get(id).foreach(page => {
       val idx = ggTabPane.indexOfTabComponent(page.component)
       if (idx >= 0) ggTabPane.setEnabledAt(idx, enabled)
     })
-  }
 
   def containsPage(id: String) = mapTabs.contains(id)
 

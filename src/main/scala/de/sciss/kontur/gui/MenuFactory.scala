@@ -186,9 +186,7 @@ class MenuFactory {
   private object ActionNewEmpty extends Action("New Empty Document") {
     accelerator = Some(menu1 + VK_N)
 
-    def apply() {
-      perform()
-    }
+    def apply(): Unit = perform()
 
     def perform(): Session = {
       val doc = Session.newEmpty
@@ -199,9 +197,7 @@ class MenuFactory {
   }
 
   private object ActionScalaInterpreter extends Action("Scala Interpreter") {
-    def apply() {
-      new ScalaInterpreterFrame()
-    }
+    def apply(): Unit = new ScalaInterpreterFrame()
   }
 
 //  protected class ActionOpen(text: String, shortcut: KeyStroke)
@@ -335,7 +331,7 @@ class MenuFactory {
   private object ActionCtrlRoom extends Action("Control Room") {
     accelerator = Some(menu1 + VK_NUMPAD2)
 
-    def apply() {
+    def apply(): Unit = {
       val f = Kontur.getComponent[ControlRoomFrame](Kontur.COMP_CTRLROOM).getOrElse(new ControlRoomFrame())
       f.visible = true
       f.front()
@@ -346,7 +342,7 @@ class MenuFactory {
   private object ActionObserver extends Action("Observer") {
     accelerator = Some(menu1 + VK_NUMPAD3)
 
-    def apply() {
+    def apply(): Unit = {
       val f = Kontur.getComponent[ObserverFrame](Kontur.COMP_OBSERVER).getOrElse(new ObserverFrame())
       f.visible = true
       f.front()

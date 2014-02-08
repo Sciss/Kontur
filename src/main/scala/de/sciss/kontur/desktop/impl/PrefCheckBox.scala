@@ -46,14 +46,12 @@ class PrefCheckBox(protected val prefs: Preferences.Entry[Boolean], protected va
   protected def dynamicComponent = this
 
   private object listener extends ActionListener {
-    def actionPerformed(e: ActionEvent) {
-      updatePrefs()
-    }
+    def actionPerformed(e: ActionEvent): Unit = updatePrefs()
   }
 
   def value: Boolean = isSelected
 
-  def value_=(b: Boolean) {
+  def value_=(b: Boolean): Unit = {
     val guiState = isSelected
     if (b != guiState) {
       if (isListening) removeActionListener(listener)

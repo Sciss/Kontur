@@ -94,31 +94,25 @@ class ConvolutionDiffusionGUI(autoApply: Boolean)
     )
 
     ggName.addActionListener(new ActionListener {
-      def actionPerformed(e: ActionEvent) {
-        editRename(ggName.getText)
-      }
+      def actionPerformed(e: ActionEvent): Unit = editRename(ggName.getText)
     })
 
     ggPath.addPathListener(new PathListener {
-      def pathChanged(e: PathEvent) {
-        editSetPath(e.getPath)
-      }
+      def pathChanged(e: PathEvent): Unit = editSetPath(e.getPath)
     })
 
     ggGain.addListener(new BasicParamField.Listener {
-      def paramValueChanged(e: BasicParamField.Event) {
+      def paramValueChanged(e: BasicParamField.Event): Unit =
         if (!e.isAdjusting) editSetGain(e.getTranslatedValue(spcAbsGain).value.toFloat)
-      }
 
-      def paramSpaceChanged(e: BasicParamField.Event) {}
+      def paramSpaceChanged(e: BasicParamField.Event) = ()
     })
 
     ggDelay.addListener(new BasicParamField.Listener {
-      def paramValueChanged(e: BasicParamField.Event) {
+      def paramValueChanged(e: BasicParamField.Event): Unit =
         if (!e.isAdjusting) editSetDelay((e.value.value / 1000).toFloat)
-      }
 
-      def paramSpaceChanged(e: BasicParamField.Event) {}
+      def paramSpaceChanged(e: BasicParamField.Event) = ()
     })
 
     layout.setHorizontalGroup(layout.createSequentialGroup()
@@ -168,7 +162,7 @@ class ConvolutionDiffusionGUI(autoApply: Boolean)
     }
   }
 
-  private def withEditor(editName: String, fun: (DiffusionEditor, AbstractCompoundEdit) => Unit) {
+  private def withEditor(editName: String, fun: (DiffusionEditor, AbstractCompoundEdit) => Unit): Unit = {
     val eds = objects.filter(_.editor.isDefined).map(_.editor.get)
     if (eds.isEmpty) return
     val ed = eds.head
@@ -177,18 +171,16 @@ class ConvolutionDiffusionGUI(autoApply: Boolean)
     ed.editEnd(ce)
   }
 
-  private def editRename(newName: String) {
+  private def editRename(newName: String): Unit =
     withEditor("editRename", (ed, ce) => ed.editRename(ce, newName))
-  }
 
-  private def editSetPath(newPath: File) {
+  private def editSetPath(newPath: File): Unit =
     withEditor("editSetPath", (ed, ce) => ed match {
       case cdiff: ConvolutionDiffusion => cdiff.editSetPath(ce, Some(newPath))
       case _ =>
     })
-  }
 
-  private def editSetGain(newGain: Float) {
+  private def editSetGain(newGain: Float): Unit = {
     println("new gain = " + newGain)
     withEditor("editSetGain", (ed, ce) => ed match {
       case cdiff: ConvolutionDiffusion => cdiff.editSetGain(ce, newGain)
@@ -196,7 +188,7 @@ class ConvolutionDiffusionGUI(autoApply: Boolean)
     })
   }
 
-  private def editSetDelay(newDelay: Float) {
+  private def editSetDelay(newDelay: Float): Unit = {
     println("new delay = " + newDelay)
     withEditor("editSetDelay", (ed, ce) => ed match {
       case cdiff: ConvolutionDiffusion => cdiff.editSetDelay(ce, newDelay)
@@ -212,7 +204,7 @@ class ConvolutionDiffusionGUI(autoApply: Boolean)
     else head
   }
 
-  private def updateGadgets() {
+  private def updateGadgets(): Unit = {
     val enabled = !objects.isEmpty
     val editable = enabled && objects.forall(_.editor.isDefined)
     ggName.setText(collapse(objects.map(_.name): _*))
@@ -242,7 +234,7 @@ class ConvolutionDiffusionGUI(autoApply: Boolean)
     }
   }
 
-  def setObjects(diff: Diffusion*) {
+  def setObjects(diff: Diffusion*): Unit = {
     objects.foreach(_.removeListener(diffListener))
     objects = diff.toList
     if (isListening) {
@@ -251,12 +243,11 @@ class ConvolutionDiffusionGUI(autoApply: Boolean)
     }
   }
 
-  protected def componentShown() {
+  protected def componentShown(): Unit = {
     updateGadgets()
     objects.foreach(_.addListener(diffListener))
   }
 
-  protected def componentHidden() {
+  protected def componentHidden(): Unit =
     objects.foreach(_.removeListener(diffListener))
-  }
 }

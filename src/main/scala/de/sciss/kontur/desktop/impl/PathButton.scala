@@ -59,18 +59,18 @@ class PathButton(var mode: PathField.Mode = PathField.Input)
     private var dndInit     = Option.empty[MouseEvent]
     private var dndStarted  = false
 
-    override def mousePressed(e: MouseEvent) {
+    override def mousePressed(e: MouseEvent): Unit = {
       dndInit     = Some(e)
       dndStarted  = false
     }
 
-    override def mouseReleased(e: MouseEvent) {
+    override def mouseReleased(e: MouseEvent): Unit = {
       if (!dndStarted && contains(e.getPoint)) showFileChooser()
       dndInit     = None
       dndStarted  = false
     }
 
-    override def mouseDragged(e: MouseEvent) {
+    override def mouseDragged(e: MouseEvent): Unit =
       dndInit.foreach { e0 =>
         if (!dndStarted && ((math.abs(e.getX - e0.getX) > 5) || (math.abs(e.getY - e0.getY) > 5))) {
           e.getSource match {
@@ -81,42 +81,35 @@ class PathButton(var mode: PathField.Mode = PathField.Input)
           }
         }
       }
-    }
   }
 
   addMouseListener(mia)
   addMouseMotionListener(mia)
 
-  private def setFileAndDispatchEvent(f: File) {
+  private def setFileAndDispatchEvent(f: File): Unit = {
     file = Some(f)
     elm.dispatchEvent(new PathEvent(this, PathEvent.CHANGED, System.currentTimeMillis, f))
   }
 
-  /**
-   * Register a <code>PathListener</code>
-   * which will be informed about changes of
-   * the path (i.e. user selections in the
-   * file chooser).
-   *
-   * @param  listener	the <code>PathListener</code> to register
-   * @see	de.sciss.app.EventManager#addListener( Object )
-   */
-  def addPathListener(listener: PathListener) {
-    elm.addListener(listener)
-  }
+  /** Registers a <code>PathListener</code>
+    * which will be informed about changes of
+    * the path (i.e. user selections in the
+    * file chooser).
+    *
+    * @param  listener	the <code>PathListener</code> to register
+    * @see	de.sciss.app.EventManager#addListener( Object )
+    */
+  def addPathListener(listener: PathListener): Unit = elm.addListener(listener)
 
-  /**
-   * Unregister a <code>PathListener</code>
-   * from receiving path change events.
-   *
-   * @param  listener	the <code>PathListener</code> to unregister
-   * @see	de.sciss.app.EventManager#removeListener( Object )
-   */
-  def removePathListener(listener: PathListener) {
-    elm.removeListener(listener)
-  }
+  /** Unregisters a <code>PathListener</code>
+    * from receiving path change events.
+    *
+    * @param  listener	the <code>PathListener</code> to unregister
+    * @see	de.sciss.app.EventManager#removeListener( Object )
+    */
+  def removePathListener(listener: PathListener): Unit = elm.removeListener(listener)
 
-  def processEvent(e: BasicEvent) {
+  def processEvent(e: BasicEvent): Unit =
     e match {
       case pe: PathEvent =>
         var i = 0
@@ -126,13 +119,10 @@ class PathButton(var mode: PathField.Mode = PathField.Input)
           i += 1
         }
     }
-  }
 
-  protected def showDialog(dlg: Dialog) {
-    dlg.setVisible(true)
-  }
+  protected def showDialog(dlg: Dialog): Unit = dlg.setVisible(true)
 
-  private def showFileChooser() {
+  private def showFileChooser(): Unit = {
     @tailrec def findFrame(parent: Component): Frame = {
       SwingUtilities.getWindowAncestor(parent) match {
         case f: Frame => f
@@ -204,31 +194,9 @@ class PathButton(var mode: PathField.Mode = PathField.Input)
       case _ => null
     }
 
-    protected override def exportDone(source: JComponent, data: Transferable, action: Int) {}
+    protected override def exportDone(source: JComponent, data: Transferable, action: Int) = ()
 
-    override def canImport(c: JComponent, flavors: Array[DataFlavor]): Boolean = {
-      {
-        var i: Int = 0
-        while (i < flavors.length) {
-          {
-            {
-              var j: Int = 0
-              while (j < supportedFlavors.length) {
-                {
-                  if (flavors(i) == supportedFlavors(j)) return true
-                }
-                ({
-                  j += 1; j - 1
-                })
-              }
-            }
-          }
-          ({
-            i += 1; i - 1
-          })
-        }
-      }
-      false
-    }
+    override def canImport(c: JComponent, flavors: Array[DataFlavor]): Boolean =
+      flavors.exists(f => supportedFlavors.contains(f))
   }
 }

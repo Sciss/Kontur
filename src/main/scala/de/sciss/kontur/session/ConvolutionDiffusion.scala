@@ -64,7 +64,7 @@ extends BasicDiffusion( doc ) {
    private var delayVar             = 0f
 
    def path = pathVar
-   def path_=( newPath: Option[ File ]) {
+   def path_=( newPath: Option[ File ]): Unit = {
        var changes: List[ AnyRef ] = Nil
        if( newPath != pathVar ) {
           val defaults = (0L, 1, 1.0)
@@ -89,26 +89,24 @@ extends BasicDiffusion( doc ) {
    }
 
    def gain = gainVar
-   def gain_=( newGain: Float ) {
+   def gain_=( newGain: Float ): Unit =
       if( newGain != gainVar ) {
          val change = GainChanged( gainVar, newGain )
          gainVar = newGain
          dispatch( change )
       }
-   }
 
    def delay = delayVar
 
    /**
     *    @param   newDelay   delay in seconds
     */
-   def delay_=( newDelay: Float ) {
+   def delay_=( newDelay: Float ): Unit =
       if( newDelay != delayVar ) {
          val change = DelayChanged( delayVar, newDelay )
          delayVar = newDelay
          dispatch( change )
       }
-   }
 
    def numInputChannels    = 1
    def numOutputChannels   = numOutputChannelsVar
@@ -128,7 +126,7 @@ extends BasicDiffusion( doc ) {
          <sampleRate>{sampleRate}</sampleRate>
       </diffusion>
 
-   def fromXML( node: Node ) {
+   def fromXML( node: Node ): Unit = {
        nameVar              = (node \ "name").text
        pathVar              = (node \ "path").headOption.map( n => new File( n.text ))
        gainVar              = (node \ "gain").text.toFloat
@@ -139,29 +137,29 @@ extends BasicDiffusion( doc ) {
    }
 
    // ---- editor ----
-   def editSetPath( ce: AbstractCompoundEdit, newPath: Option[ File ]) {
+   def editSetPath( ce: AbstractCompoundEdit, newPath: Option[ File ]): Unit = {
       val edit = new SimpleEdit( "editSetPath" ) {
          lazy val oldPath = path
-         def apply() { oldPath; path = newPath }
-         def unapply() { path = oldPath }
+         def apply(): Unit = { oldPath; path = newPath }
+         def unapply(): Unit = path = oldPath
       }
       ce.addPerform( edit )
    }
 
-   def editSetGain( ce: AbstractCompoundEdit, newGain: Float ) {
+   def editSetGain( ce: AbstractCompoundEdit, newGain: Float ): Unit = {
       val edit = new SimpleEdit( "editSetGain" ) {
          lazy val oldGain = gain
-         def apply() { oldGain; gain = newGain }
-         def unapply() { gain = oldGain }
+         def apply(): Unit = { oldGain; gain = newGain }
+         def unapply(): Unit = gain = oldGain
       }
       ce.addPerform( edit )
    }
 
-   def editSetDelay( ce: AbstractCompoundEdit, newDelay: Float ) {
+   def editSetDelay( ce: AbstractCompoundEdit, newDelay: Float ): Unit = {
       val edit = new SimpleEdit( "editSetDelay" ) {
          lazy val oldDelay = delay
-         def apply() { oldDelay; delay = newDelay }
-         def unapply() { delay = oldDelay }
+         def apply(): Unit = { oldDelay; delay = newDelay }
+         def unapply(): Unit = delay = oldDelay
       }
       ce.addPerform( edit )
    }

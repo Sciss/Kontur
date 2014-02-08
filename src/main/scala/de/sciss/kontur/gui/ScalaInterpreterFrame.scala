@@ -40,7 +40,7 @@ import de.sciss.desktop.impl.WindowImpl
 
 object ScalaInterpreterFrame {
    final class ProvideEditing private[ScalaInterpreterFrame] ( e: Editor ) {
-      def edit( name: String )( fun: AbstractCompoundEdit => Unit ) { defer {
+      def edit( name: String )( fun: AbstractCompoundEdit => Unit ): Unit = defer {
          val ce = e.editBegin( name )
          var succ = false
          try {
@@ -50,15 +50,13 @@ object ScalaInterpreterFrame {
             if( succ ) e.editEnd( ce ) else e.editCancel( ce )
          }
       }}
-   }
 
-   def defer(thunk: => Unit) {
+   def defer(thunk: => Unit): Unit =
       java.awt.EventQueue.invokeLater(
          new Runnable() {
-            def run() { thunk }
+            def run(): Unit = thunk
          }
       )
-   }
 
    class REPLSupport( val app: de.sciss.desktop.Application { type Document = Session }) {
       def doc : Session             = app.documentHandler.activeDocument.getOrElse {
@@ -71,15 +69,13 @@ object ScalaInterpreterFrame {
 
 //      def Span( start: Long, stop: Long ) = Span( start, stop )
 
-      def defer(thunk: => Unit) { ScalaInterpreterFrame.defer( thunk )}
+     def defer(thunk: => Unit): Unit = ScalaInterpreterFrame.defer(thunk)
 
-      implicit def provideEditing( e: Editor ) : ProvideEditing = new ProvideEditing( e )
+     implicit def provideEditing(e: Editor): ProvideEditing = new ProvideEditing(e)
    }
 }
 
 class ScalaInterpreterFrame extends WindowImpl {
-  protected def style = Window.Regular
-
   import ScalaInterpreterFrame._
 
   title = "Scala Interpreter" // getResourceString("frameScalaInterpreter")
@@ -113,13 +109,13 @@ class ScalaInterpreterFrame extends WindowImpl {
       }
 
       val support = new REPLSupport(Kontur)
-      ic.bindings = Seq(
+      ic.bindings = List(
 //         NamedParam( "app", app ),
          NamedParam( "replsupport", support )
 //         NamedParam( "sc", SuperColliderClient.instance )
       )
 
-      ic.imports = Seq(
+      ic.imports = List(
          "de.sciss.kontur.session._",
          "math._",
          "replsupport._"

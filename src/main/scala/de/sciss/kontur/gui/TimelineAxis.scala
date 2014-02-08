@@ -26,7 +26,6 @@
 package de.sciss.kontur
 package gui
 
-import java.awt.Rectangle
 import java.awt.event.MouseEvent
 import javax.swing.event.MouseInputAdapter
 import session.Timeline
@@ -36,6 +35,7 @@ import de.sciss.span.Span
 import legacy.ComponentHost
 import de.sciss.audiowidgets.j.Axis
 import desktop.impl.DynamicComponentImpl
+import de.sciss.audiowidgets.AxisFormat
 
 class TimelineAxis( view: TimelineView, host: Option[ ComponentHost ])
 extends Axis() with DynamicComponentImpl
@@ -43,7 +43,7 @@ extends Axis() with DynamicComponentImpl
 
   protected def dynamicComponent = this
 
-  format = Axis.Format.Time()
+  format = AxisFormat.Time()
 //  componentHost = host  // XXX TODO
 
 //	private var isListening		= false
@@ -58,18 +58,18 @@ extends Axis() with DynamicComponentImpl
         	private var shiftDrag       = false
             private var altDrag         = false
 
-        	override def mousePressed( e: MouseEvent ) {
+        	override def mousePressed( e: MouseEvent ): Unit = {
         		shiftDrag		= e.isShiftDown
         		altDrag			= e.isAltDown
         		selectionStart  = -1L
         		dragTimelinePosition( e )
         	}
 
-        	override def mouseDragged( e: MouseEvent ) {
+        	override def mouseDragged( e: MouseEvent ): Unit = {
         		dragTimelinePosition( e )
         	}
 
-      private def dragTimelinePosition(e: MouseEvent) {
+      private def dragTimelinePosition(e: MouseEvent): Unit = {
         view.editor.foreach(ed => {
           // translate into a valid time offset
           val position = view.timeline.span.clip(
@@ -164,7 +164,7 @@ extends Axis() with DynamicComponentImpl
 	}
 */
 
-  private def recalcSpace(trigger: Boolean) {
+  private def recalcSpace(trigger: Boolean): Unit = {
 //    val spc = if ((format & Axis.Format.) == 0) {
 //      VectorSpace.createLinSpace(timelineVis.start,
 //        timelineVis.stop,
@@ -186,20 +186,20 @@ extends Axis() with DynamicComponentImpl
 
   // ---------------- DynamicListening interface ----------------
 
-    protected def componentShown() {
-      view.addListener( timelineListener )
-      timelineVis = view.span
-      recalcSpace( trigger = true )
-    }
+  protected def componentShown(): Unit = {
+    view.addListener(timelineListener)
+    timelineVis = view.span
+    recalcSpace(trigger = true)
+  }
 
-    protected def componentHidden() {
-      view.removeListener( timelineListener )
-    }
+  protected def componentHidden(): Unit = {
+    view.removeListener(timelineListener)
+  }
 
-	protected def getResourceString( key: String ) =
-		key // XXX TODO AbstractApplication.getApplication.getResourceString( key )
+  protected def getResourceString(key: String) =
+    key // XXX TODO AbstractApplication.getApplication.getResourceString( key )
 
-	// -------------- Disposable interface --------------
+  // -------------- Disposable interface --------------
 
 //	override def dispose() {
 //		stopListening()

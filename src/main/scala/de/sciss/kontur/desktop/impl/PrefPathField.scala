@@ -8,12 +8,12 @@ import de.sciss.desktop.Preferences
 class PrefPathField(protected val prefs: Preferences.Entry[File], default: File)(mode: PathField.Mode = PathField.Input)
   extends PathField(mode) with PreferencesWidgetImpl[File] {
 
-  override protected def setFileAndDispatchEvent(f: File) {
+  override protected def setFileAndDispatchEvent(f: File): Unit = {
     super.setFileAndDispatchEvent(f)
     updatePrefs()
   }
 
-  override def file_=(value: File) {
+  override def file_=(value: File): Unit = {
     super.file_=(value)
     updatePrefs()
   }
@@ -21,7 +21,7 @@ class PrefPathField(protected val prefs: Preferences.Entry[File], default: File)
   protected def dynamicComponent = this
 
   protected def value = file
-  protected def value_=(file: File) { this.file = file }
+  protected def value_=(file: File): Unit = this.file = file
 
 //	private def readPrefsFromString(prefsValue: Option[String]) {
 //    val s = prefsValue.getOrElse {

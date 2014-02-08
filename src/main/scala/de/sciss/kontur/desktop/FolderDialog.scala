@@ -17,20 +17,19 @@ final class FolderDialog(parent: java.awt.Frame, title: String) extends FileDial
     if (f != null) new File(d, f).getPath else d
 	}
 
-	override def setMode(mode: Int) { throw new UnsupportedOperationException("setMode on a FolderDialog") }
+	override def setMode(mode: Int): Unit = throw new UnsupportedOperationException("setMode on a FolderDialog")
 
-	/**
-	 * Make the dialog visible. Since the dialog is modal, this method
-	 * will not return until either the user dismisses the dialog or
-	 * you make it invisible yourself via <code>setVisible(false)</code>
-	 * or <code>dispose()</code>.
-	 */
-	override def show() {
+	/** Makes the dialog visible. Since the dialog is modal, this method
+	  * will not return until either the user dismisses the dialog or
+	  * you make it invisible yourself via <code>setVisible(false)</code>
+	  * or <code>dispose()</code>.
+	  */
+	override def show(): Unit = {
     val key       = "apple.awt.fileDialogForDirectories"
     val props     = sys.props
     val oldValue  = props.put(key, "true")
     try {
-      super.show()
+      super.show() // deprecated but `setVisible` is not doing the same thing
     } finally {
       oldValue match {
         case Some(v)  => props.put(key, v)
