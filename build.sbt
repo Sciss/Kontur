@@ -6,19 +6,19 @@ version        := "1.2.0-SNAPSHOT"
 
 organization   := "de.sciss"
 
-scalaVersion   := "2.10.0"
+scalaVersion   := "2.10.3"
 
 description    := "An extensible multitrack audio editor based on ScalaCollider"
 
-homepage      <<= name { n => Some(url("https://github.com/Sciss/" + n)) }
+homepage       := Some(url("https://github.com/Sciss/" + name.value))
 
 licenses       := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt"))
 
 libraryDependencies ++= Seq(
-  "de.sciss" %% "scalacolliderswing" % "1.5.+",
-  "de.sciss" %% "span" % "1.1.+",
-  "de.sciss" %% "scissdsp" % "1.1.+",
-  "de.sciss" % "scisslib" % "0.15"
+  "de.sciss" %% "scalacolliderswing" % "1.13.+",
+  "de.sciss" %% "span"               % "1.2.+",
+  "de.sciss" %% "scissdsp"           % "1.2.+",
+  "de.sciss" %  "scisslib"           % "1.0.0"
 )
 
 retrieveManaged := true
