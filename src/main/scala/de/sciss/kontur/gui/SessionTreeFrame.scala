@@ -50,27 +50,35 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 		                         	   ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER )
 
       ggTree.addMouseListener( new MouseAdapter() {
-       override def mousePressed( e: MouseEvent ) {
-          val selRow  = ggTree.getRowForLocation( e.getX, e.getY )
-          if( selRow == -1 ) return
-          val selPath = ggTree.getPathForLocation( e.getX, e.getY )
+        private def getNode(e: MouseEvent): Option[AnyRef] = {
+          val selRow = ggTree.getRowForLocation(e.getX, e.getY)
+          if (selRow == -1) return None
+          val selPath = ggTree.getPathForLocation(e.getX, e.getY)
           val node = selPath.getLastPathComponent
-
-          if( e.isPopupTrigger ) popup( node, e )
-          else if( e.getClickCount == 2 ) doubleClick( node, e )
-       }
-       
-        private def popup( node: AnyRef, e: MouseEvent ) {
-           node match {
-              case hcm: HasContextMenu => {
-                  hcm.createContextMenu().foreach( root => {
-                      val pop = root.createPopup( frame )
-                      pop.show( e.getComponent, e.getX, e.getY )
-                  })
-              }
-                case _ =>
-            }
+          Some(node)
         }
+
+        override def mousePressed(e: MouseEvent): Unit =
+          if (!checkPopup(e) && e.getClickCount == 2) getNode(e).foreach(doubleClick(_, e))
+
+        override def mouseReleased(e: MouseEvent): Unit = checkPopup(e)
+
+        private def checkPopup(e: MouseEvent): Boolean = getNode(e).exists { n =>
+          val tr = e.isPopupTrigger
+          if (tr) popup(n, e)
+          tr
+        }
+
+        private def popup(node: AnyRef, e: MouseEvent): Unit =
+          node match {
+            case hcm: HasContextMenu =>
+              hcm.createContextMenu().foreach(root => {
+                val pop = root.createPopup(frame)
+                pop.show(e.getComponent, e.getX, e.getY)
+              })
+
+            case _ =>
+          }
 
         private def doubleClick( node: AnyRef, e: MouseEvent ) {
            node match {
