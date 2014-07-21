@@ -66,7 +66,7 @@ class SCSession( val doc: Session ) {
 //println( "SESSION <<<<<< " )
 
   // ---- SynthContext ----
-  def invalidate( obj: AnyRef ) {}
+  def invalidate( obj: AnyRef ) = ()
 //      def send( msg: OSCMessage ) {
 //         val b = bndl getOrElse {
 //            val newBundle = new MixedBundle
@@ -86,7 +86,7 @@ class SCSession( val doc: Session ) {
    def diffusion( diff: Diffusion ) : DiffusionSynth = diffusions( diff )
    def timeline( tl: Timeline ) : SCTimeline = timelines( tl )
 
-   def dispose() {
+   def dispose(): Unit = {
       if( realtime ) {
          doc.timelines.removeListener( timeListener )
          doc.diffusions.removeListener( diffListener )
@@ -96,7 +96,7 @@ class SCSession( val doc: Session ) {
       group.free(); panGroup.free()
    }
 
-   private def addDiffusion( diff: Diffusion ) {
+   private def addDiffusion( diff: Diffusion ): Unit = {
       DiffusionSynthFactory.get( diff ).foreach( dsf => {
          val ds = dsf.create
          ds.play()
@@ -104,17 +104,17 @@ class SCSession( val doc: Session ) {
       })
    }
 
-   private def removeDiffusion( diff: Diffusion ) {
+   private def removeDiffusion( diff: Diffusion ): Unit = {
       val odiff = diffusions( diff )
       diffusions -= diff
       odiff.dispose()
    }
 
-   def addTimeline( sctl: SCTimeline ) {
+   def addTimeline( sctl: SCTimeline ): Unit = {
       timelines += sctl.tl -> sctl
    }
 
-   private def removeTimeline( tl: Timeline ) {
+   private def removeTimeline( tl: Timeline ): Unit = {
       val otl = timelines( tl )
       timelines -= tl
       otl.dispose()

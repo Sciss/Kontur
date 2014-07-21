@@ -41,11 +41,11 @@ extends JViewport with DynamicListening {
      new DynamicAncestorAdapter( this ).addTo( this )
 //  }
 
-  def startListening() {
+  def startListening(): Unit = {
      timelineView.addListener( timelineViewListener )
   }
 
-  def stopListening() {
+  def stopListening(): Unit = {
      timelineView.removeListener( timelineViewListener )
   }
 
@@ -83,7 +83,7 @@ if( verbose ) println( "old.x" + p.x + "; old.w " + d.width + "; new.x " + x + "
 //    super.fireStateChanged()
 //  }
 
-  override def scrollRectToVisible( contentRect: Rectangle ) {
+  override def scrollRectToVisible( contentRect: Rectangle ): Unit = {
     if( verbose ) {
       println( "---VP : scrollRectToVisible( new Rectangle( " +
         contentRect.x + ", " + contentRect.y + ", " +
@@ -92,7 +92,7 @@ if( verbose ) println( "old.x" + p.x + "; old.w " + d.width + "; new.x " + x + "
     super.scrollRectToVisible( contentRect )
   }
 
-  override def setExtentSize( newExtent: Dimension ) {
+  override def setExtentSize( newExtent: Dimension ): Unit = {
     if( verbose ) {
       println( "---VP: setExtentSize( new Dimension( " +
         newExtent.width + ", " + newExtent.height + " ))" )
@@ -101,7 +101,7 @@ if( verbose ) println( "old.x" + p.x + "; old.w " + d.width + "; new.x " + x + "
   }
 
 // OOO
-  override def setViewPosition( p: Point ) {
+  override def setViewPosition( p: Point ): Unit = {
 //     println( "---VP: setViewPosition( new Point( " + p.x + ", " + p.y + " ))" )
       val tlSpan  = timelineView.timeline.span
       val w       = getViewSize.width
@@ -121,7 +121,7 @@ if( verbose ) println( "old.x" + p.x + "; old.w " + d.width + "; new.x " + x + "
       }
   }
 
-  override def setViewSize( newSize: Dimension ) {
+  override def setViewSize( newSize: Dimension ): Unit = {
      if( verbose ) {
        println( "---VP: setViewSize( new Dimension( " +
          newSize.width + ", " + newSize.height + " ))" )

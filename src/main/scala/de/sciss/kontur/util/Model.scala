@@ -12,7 +12,7 @@ trait Model {
   private var listeners = Queue.empty[Listener]
   private val sync = new AnyRef
 
-  protected def dispatch(change: Any) {
+  protected def dispatch(change: Any): Unit = {
     listeners foreach { l =>
       try {
         if (l isDefinedAt change) l(change)

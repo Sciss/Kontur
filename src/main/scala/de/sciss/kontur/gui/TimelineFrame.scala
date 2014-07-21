@@ -183,11 +183,11 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
    
    protected def elementName = Some( tl.name )
 
-   protected def windowClosing() { invokeDispose() }
+   protected def windowClosing(): Unit = invokeDispose()
 
    def nudgeFrames : Long = ActionNudgeAmount.numFrames
 
-	private def initBounds() {
+	private def initBounds(): Unit = {
 		val cp	= getClassPrefs
 		val bwh	= getWindowHandler
 		val sr	= bwh.getWindowSpace
@@ -231,7 +231,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 	}
 
    // welcome back to generics hell....
-   protected def transformSelectedStakes( name: String, func: Stake[ _ ] => Option[ List[ _ ]]) {
+   protected def transformSelectedStakes( name: String, func: Stake[ _ ] => Option[ List[ _ ]]): Unit = {
       timelineView.timeline.editor.foreach( ed => {
          val ce = ed.editBegin( name )
          tracksPanel.foreach( elem => {
@@ -271,7 +271,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
       protected def timeline : Timeline = timelineView.timeline
       protected def parent : Component = getWindow
 
-      protected def initiate( v: Param, trans: ParamSpace.Translator ) {
+      protected def initiate( v: Param, trans: ParamSpace.Translator ): Unit = {
          prefs.put( PrefsUtil.KEY_NUDGEAMOUNT, v.toString )
       }
 
@@ -293,7 +293,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
       protected def parent : Component = getWindow
       protected def initialValue : Param = new Param( 60.0, ParamSpace.TIME | ParamSpace.SECS )
 
-      protected def initiate( v: Param, trans: ParamSpace.Translator ) {
+      protected def initiate( v: Param, trans: ParamSpace.Translator ): Unit = {
          val delta   = (trans.translate( v, ParamSpace.spcTimeSmps ).`val` + 0.5).toLong
          if( delta <= 0L ) return
          val pos     = timelineView.cursor.position
@@ -348,18 +348,17 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
    }
 
    private object ActionRemoveSpan extends MenuAction {
-      def actionPerformed( e: ActionEvent ) { perform() }
+      def actionPerformed( e: ActionEvent ): Unit = perform()
 
       private def editName = getValue( Action.NAME ).toString
 
-      def perform() {
+      def perform(): Unit =
          timelineView.selection.span match {
            case sp @ Span(_, _) if sp.nonEmpty => perform(sp)
            case _ =>
          }
-      }
 
-     private def perform(span: Span) {
+     private def perform(span: Span): Unit = {
          val tlSpan        = tl.span
          val affectedSpan  = Span( span.start, tlSpan.stop )
          val delta         = -span.length
@@ -442,18 +441,18 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
    }
 
    private object ActionClearSpan extends MenuAction {
-      def actionPerformed( e: ActionEvent ) { perform() }
+      def actionPerformed( e: ActionEvent ): Unit = perform()
 
       private def editName = getValue( Action.NAME ).toString
 
-      def perform() {
+      def perform(): Unit = {
          timelineView.selection.span match {
            case sp @ Span(_, _) if sp.nonEmpty => perform(sp)
            case _ =>
          }
       }
 
-     private def perform(span: Span) {
+     private def perform(span: Span): Unit = {
          tl.editor.foreach( ed => {
             val ce = ed.editBegin( editName )
             try {
@@ -507,18 +506,18 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
    }
 
    private object ActionDupSpanToPos extends MenuAction {
-      def actionPerformed( e: ActionEvent ) { perform() }
+      def actionPerformed( e: ActionEvent ): Unit = perform()
 
       private def editName = getValue( Action.NAME ).toString
 
-      def perform() {
+      def perform(): Unit = {
          timelineView.selection.span match {
            case sp @ Span(_, _) if sp.nonEmpty => perform(sp)
            case _ =>
          }
       }
 
-     private def perform(srcSpan: Span) {
+     private def perform(srcSpan: Span): Unit = {
          val delta   = timelineView.cursor.position - srcSpan.start
 //         val dstSpan = srcSpan.shift( delta )
          val tlSpan  = tl.span
@@ -588,9 +587,9 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 	 */
    private class ActionSpanWidth( factor: Double )
 	extends AbstractAction {
-	   def actionPerformed( e: ActionEvent ) { perform() }
+	   def actionPerformed( e: ActionEvent ): Unit = perform()
 
-      def perform() {
+      def perform(): Unit = {
 		   val visiSpan	= timelineView.span
 			val visiLen		= visiSpan.length
 			val pos			= timelineView.cursor.position
@@ -640,11 +639,12 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 	 *				there were quantization errors. with double seems
 	 *				to be fine. haven't checked with really long files!!
 	 */
-	private class ActionSelToPos( weight: Double, deselect: Boolean )
-	extends AbstractAction {
-		def actionPerformed( e: ActionEvent ) { perform() }
+  private class ActionSelToPos(weight: Double, deselect: Boolean)
+    extends AbstractAction {
 
-    private def perform() {
+    def actionPerformed(e: ActionEvent): Unit = perform()
+
+    private def perform(): Unit = {
       timelineView.selection.span match {
         case sel @ Span(selStart, _) =>
           timelineView.editor.foreach { ed =>
@@ -671,9 +671,9 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
    extends AbstractAction {
       import ActionScroll._
 
-      def actionPerformed( e: ActionEvent ) { perform() }
+      def actionPerformed( e: ActionEvent ): Unit = perform()
 
-      def perform() {
+      def perform(): Unit = {
          timelineView.editor.foreach { ed =>
             val pos       = timelineView.cursor.position
             val visiSpan  = timelineView.span
@@ -741,9 +741,9 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
    extends AbstractAction {
       import ActionSelect._
 
-      def actionPerformed( e: ActionEvent ) { perform() }
+      def actionPerformed( e: ActionEvent ): Unit = perform()
 
-      def perform() {
+      def perform(): Unit = {
          timelineView.editor.foreach { ed =>
             val pos = timelineView.cursor.position
             val selSpan = timelineView.selection.span match {
@@ -780,36 +780,36 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
     private object ActionCut
     extends MenuAction {
-        def actionPerformed( e: ActionEvent ) { perform() }
+        def actionPerformed( e: ActionEvent ): Unit = perform()
 
-        def perform() {
+        def perform(): Unit = {
             println( "CUT NOT YET IMPLEMENTED")
         }
     }
 
     private object ActionCopy
     extends MenuAction {
-        def actionPerformed( e: ActionEvent ) { perform() }
+        def actionPerformed( e: ActionEvent ): Unit = perform()
 
-        def perform() {
+        def perform(): Unit = {
             println( "COPY NOT YET IMPLEMENTED")
         }
     }
 
     private object ActionPaste
     extends MenuAction {
-        def actionPerformed( e: ActionEvent ) { perform() }
+        def actionPerformed( e: ActionEvent ): Unit = perform()
 
-        def perform() {
+        def perform(): Unit = {
             println( "PASTE NOT YET IMPLEMENTED")
         }
     }
 
     private object ActionDelete
     extends MenuAction {
-        def actionPerformed( e: ActionEvent ) { perform() }
+        def actionPerformed( e: ActionEvent ): Unit = perform()
 
-        def perform() {
+        def perform(): Unit = {
             tracksPanel.editor.foreach( ed => {
                 val ce = ed.editBegin( getValue( Action.NAME ).toString )
                 tracksPanel.foreach( elem => {
@@ -830,9 +830,9 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
    private class ActionNudge( factor: Double )
    extends MenuAction {
-      def actionPerformed( e: ActionEvent ) { perform() }
+      def actionPerformed( e: ActionEvent ): Unit = perform()
 
-      def perform() {
+      def perform(): Unit = {
 //         val pos	      = timelineView.cursor.position
          val delta      = (factor * nudgeFrames + 0.5).toLong
          transformSelectedStakes( getValue( Action.NAME ).toString, stake => Some( List( stake.move( delta ))))
@@ -841,9 +841,9 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
     private class ActionSplitObjects
     extends MenuAction {
-        def actionPerformed( e: ActionEvent ) { perform() }
+        def actionPerformed( e: ActionEvent ): Unit = perform()
 
-    	def perform() {
+    	def perform(): Unit = {
         	val pos	= timelineView.cursor.position
          transformSelectedStakes( getValue( Action.NAME ).toString, stake => stake match {
             case rStake: ResizableStake[ _ ] if( stake.span.contains( pos )) => {
@@ -857,9 +857,9 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 
    private class ActionSelectFollowingObjects
    extends MenuAction {
-      def actionPerformed( e: ActionEvent ) { perform() }
+      def actionPerformed( e: ActionEvent ): Unit = perform()
 
-      def perform() {
+      def perform(): Unit = {
          val pos	= timelineView.cursor.position
          val stop = timelineView.timeline.span.length
          val span = Span( pos, stop )
@@ -882,9 +882,9 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
    }
 
    private class ActionAlignObjectsStartToTimelinePosition extends MenuAction {
-      def actionPerformed( e: ActionEvent ) { perform() }
+      def actionPerformed( e: ActionEvent ): Unit = perform()
 
-      def perform() {
+      def perform(): Unit = {
          val pos	= timelineView.cursor.position
          transformSelectedStakes( getValue( Action.NAME ).toString, stake => stake match {
             case rStake: ResizableStake[ _ ] if( stake.span.start != pos ) => {
@@ -896,9 +896,9 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
    }
 
    private class ActionShowInEisK extends MenuAction {
-      def actionPerformed( e: ActionEvent ) { perform() }
+      def actionPerformed( e: ActionEvent ): Unit = perform()
 
-      def perform() {
+      def perform(): Unit = {
          tracksPanel.find( _.trailView.selectedStakes.headOption match {
             case Some( ar: AudioRegion ) => {
                val delta      = ar.offset - ar.span.start
@@ -916,7 +916,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
    }
 
    private class ActionBounce extends MenuAction {
-      def actionPerformed( e: ActionEvent ) {
+      def actionPerformed( e: ActionEvent ): Unit = {
          query.foreach {
            case (tls, span @ Span(_, _), path, spec) =>
             perform( tls, span, path, spec )
@@ -924,16 +924,16 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
          }
       }
 
-      def perform( tracks: List[ Track ], span: Span, path: File, spec: AudioFileSpec ) {
+      def perform( tracks: List[ Track ], span: Span, path: File, spec: AudioFileSpec ): Unit = {
          val ggProgress = new JProgressBar()
          val name = getValue( Action.NAME ).toString
          val ggCancel = new JButton( getResourceString( "buttonAbort" ))
          ggCancel.setFocusable( false )
          val options = Array[ AnyRef]( ggCancel )
          val op = new JOptionPane( ggProgress, JOptionPane.INFORMATION_MESSAGE, 0, null, options )
-         def fDispose() { val w = SwingUtilities.getWindowAncestor( op ); if( w != null ) w.dispose() }
+         def fDispose(): Unit = { val w = SwingUtilities.getWindowAncestor( op ); if( w != null ) w.dispose() }
          ggCancel.addActionListener( new ActionListener {
-            def actionPerformed( e: ActionEvent ) { fDispose() }
+            def actionPerformed( e: ActionEvent ): Unit = fDispose()
          })
          var done = false
          try {

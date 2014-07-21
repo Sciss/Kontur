@@ -56,14 +56,14 @@ class RTree[ U, V <: Shaped[ U ]]( val dim: Int, val capacity: Int = 10, val min
 	// constructor
 	clear()
 
-	def clear() {
+	def clear(): Unit = {
 //		root.set( new Leaf( this, Nil )( view, mgr ))
 		root = new Leaf( this, Nil )( view, mgr )
 	}
 
    def isEmpty : Boolean = root.numChildren == 0
 
-	def insert( v: V ) {
+	def insert( v: V ): Unit = {
 //		val rootID = root.get()
 //		val rootG = if( rootID == null ) {
 //			root.get().value
@@ -100,7 +100,7 @@ class RTree[ U, V <: Shaped[ U ]]( val dim: Int, val capacity: Int = 10, val min
 
 	private def equalsNode( a: Node, b: Node ) : Boolean = (a == b)
 
-	def remove( v: V ) {
+	def remove( v: V ): Unit = {
 		val (path, leaf) = root.findLeaf( v )
 		if( leaf == null ) return
 
@@ -109,22 +109,22 @@ class RTree[ U, V <: Shaped[ U ]]( val dim: Int, val capacity: Int = 10, val min
 		condenseTree( path, leaf )
 	}
 
-	def findOverlapping( shape: Shape[ U ], visitor: (V) => Unit ) {
+	def findOverlapping( shape: Shape[ U ], visitor: (V) => Unit ): Unit = {
 		root.findOverlapping( shape, visitor )
 	}
 
 	def getRoot: Node = root
 
-	def debugDump() {
+	def debugDump(): Unit = {
 		root.debugDump( 0 )
 	}
 
- 	private def adjustTree( path: Seq[ Index ]) {
+ 	private def adjustTree( path: Seq[ Index ]): Unit = {
 		path.foreach( _.updateBounds() )
  	}
 
 	@tailrec
- 	private def adjustTree( path: Seq[ Index ], split: Node ) {
+ 	private def adjustTree( path: Seq[ Index ], split: Node ): Unit = {
 		if( path.isEmpty ) return
  		val p = path.head
  		if( p.numChildren < capacity ) {
@@ -147,7 +147,7 @@ class RTree[ U, V <: Shaped[ U ]]( val dim: Int, val capacity: Int = 10, val min
  		}
  	}
 
-	private def condenseTree( path: Seq[ Index ], last: Node ) {
+	private def condenseTree( path: Seq[ Index ], last: Node ): Unit = {
 		var q: List[ Node ] = Nil
 		var n = last
 		path.foreach( p => {
@@ -227,7 +227,7 @@ extends Shaped[ U ] {
 //		if( bValid ) b.set( b.union( n.shape ))
 //	}
 
-	def remove( n: C ) {
+	def remove( n: C ): Unit = {
 		children = children.diff( List( n )) // XXX
 //		children.set( children.diff( List( n ))) // XXX
 		numChildren -= 1
@@ -382,7 +382,7 @@ extends RTreeNode[ U, V, RTreeNode[ U, V, _ ]]( t, c, false )( view, mgr ) {
 
 	import mgr._
 
-	def updateBounds() {
+	def updateBounds(): Unit = {
 		b = if( children.isEmpty ) {
 			Rect( Vector.fill( tree.dim )( Interval( zero, zero )))
 		} else {
@@ -398,7 +398,7 @@ extends RTreeNode[ U, V, RTreeNode[ U, V, _ ]]( t, c, false )( view, mgr ) {
 		Tuple2( n1, n2 )
     }
 
-	def insert( n: RTreeNode[ U, V, _ ]) {
+	def insert( n: RTreeNode[ U, V, _ ]): Unit = {
     	// XXX space inefficient, maybe better
     	// to use a fat list?
 		children = n :: children
@@ -417,11 +417,11 @@ extends RTreeNode[ U, V, RTreeNode[ U, V, _ ]]( t, c, false )( view, mgr ) {
 	def findLeaf( v: V ) : (Seq[ tree.Index ], tree.Leaf) =
 		findLeaf( List( this ), v )
 
-	def findOverlapping( shape: Shape[ U ], visitor: (V) => Unit ) {
+	def findOverlapping( shape: Shape[ U ], visitor: (V) => Unit ): Unit = {
 		children.foreach( _.findOverlapping( shape, visitor ))
 	}
 
-    def debugDump( level: Int ) {
+    def debugDump( level: Int ): Unit = {
 		for( i <- (0 until level) ) print( "  " )
 		println( "Index : " + shape )
 		children.foreach( _.debugDump( level + 1 ))
@@ -436,7 +436,7 @@ extends RTreeNode[ U, V, V ]( t, c, true )( view, mgr ) {
 
 	import mgr._
 
-	def updateBounds() {
+	def updateBounds(): Unit = {
 		b = if( children.isEmpty ) {
 			Rect( Vector.fill( tree.dim )( Interval( zero, zero )))
 		} else {
@@ -452,7 +452,7 @@ extends RTreeNode[ U, V, V ]( t, c, true )( view, mgr ) {
 		Tuple2( n1, n2 )
     }
 
- 	def insert( n: V ) {
+ 	def insert( n: V ): Unit = {
     	// XXX space inefficient, maybe better
     	// to use a fat list?
 		children = n :: children
@@ -468,13 +468,13 @@ extends RTreeNode[ U, V, V ]( t, c, true )( view, mgr ) {
 	def findLeaf( v: V ) : (Seq[ tree.Index ], tree.Leaf) =
 		(Nil -> (if( children.contains( v )) this else null) )
 
-    def findOverlapping( shape: Shape[ U ], visitor: (V) => Unit ) {
+    def findOverlapping( shape: Shape[ U ], visitor: (V) => Unit ): Unit = {
 		children.foreach( child => {
 			if( shape.overlaps( child.shape )) visitor( child )
 		})
 	}
 
-    def debugDump( level: Int ) {
+    def debugDump( level: Int ): Unit = {
 		for( i <- (0 until level) ) print( "  " )
 		println( "Leaf : " + shape )
 		children.foreach( child => {

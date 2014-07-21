@@ -48,22 +48,22 @@ class AppWindow( mode: Int ) extends de.sciss.common.AppWindow( mode ) {
       new Dimension( Integer.parseInt( tok.nextToken() ), Integer.parseInt( tok.nextToken() ))
 	}
 
-   protected def makeUnifiedLook() {
+   protected def makeUnifiedLook(): Unit = {
       putRootPaneProperty( "apple.awt.brushMetalLook", java.lang.Boolean.TRUE )
    }
 
-   protected def setWindowFile( f: File ) {
+   protected def setWindowFile( f: File ): Unit = {
       putRootPaneProperty( "Window.documentFile", f )
    }
 
-   private def putRootPaneProperty( name: String, value: AnyRef ) {
+   private def putRootPaneProperty( name: String, value: AnyRef ): Unit = {
       getWindow match {
          case rpc: RootPaneContainer => rpc.getRootPane.putClientProperty( name, value )
          case _ =>
       }
    }
 
-   protected def setAlpha( amount: Float ) {
+   protected def setAlpha( amount: Float ): Unit = {
       putRootPaneProperty( "Window.alpha", new java.lang.Float( amount ))
       putRootPaneProperty( "apple.awt.draggableWindowBackground", java.lang.Boolean.FALSE )
    }

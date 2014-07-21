@@ -66,7 +66,7 @@ with TopPaintable {
    private val playHeadRect         = new Rectangle( 0, 0, 3, 0 ) // 2D.Float()
 
    private val playTimer = new Timer( 33, new ActionListener {
-      def actionPerformed( e: ActionEvent ) {
+      def actionPerformed( e: ActionEvent ): Unit = {
 	      // the swing timer doesn't have a cancel method,
 			// hence events already scheduled will be delivered
 			// even if stop is called between firing and delivery(?)
@@ -131,19 +131,19 @@ with TopPaintable {
 	}
 
     def viewPort = viewPortVar
-    def viewPort_=( newPort: Option[ JViewport ]) {
+    def viewPort_=( newPort: Option[ JViewport ]): Unit = {
         viewPortVar = newPort
     }
 
     def trackList = trackListVar
-    def trackList_=( newTL: TrackList ) {
+    def trackList_=( newTL: TrackList ): Unit = {
       trackListVar.removeListener( trackListListener )
       trackListVar = newTL
       trackListVar.addListener( trackListListener )
       updateSelectionAndRepaint()
     }
 
-	protected def repaintMarkers( affectedSpan: Span ) {
+	protected def repaintMarkers( affectedSpan: Span ): Unit = {
 		if( !markVisible || !affectedSpan.touches( timelineVis )) return
 
 		val span = affectedSpan.shift( -timelineVis.start )
@@ -159,9 +159,8 @@ with TopPaintable {
 		}
 	}
 
-   private def updatePlayHeadRefreshRate() {
+   private def updatePlayHeadRefreshRate(): Unit =
       playTimer.setDelay( math.max( (1000 / (vpScale * timelineRate * math.abs( playRate ))).toInt, 33 ))
-   }
 
     private val normalRect = new Rectangle
     private def normalBounds: Rectangle = {
@@ -183,10 +182,10 @@ with TopPaintable {
 //    }
 
     // subclasses might want to use this
-    protected def viewRectChanged( r: Rectangle ) {}
+    protected def viewRectChanged( r: Rectangle ) = ()
 
 //	override def paintComponent( g: Graphics ) {}
-   override def paintChildren( g: Graphics ) {
+   override def paintChildren( g: Graphics ): Unit = {
 //    super.paintComponent( g )
       super.paintChildren( g )
         
@@ -220,7 +219,7 @@ with TopPaintable {
       paintOnTop( g2 )
 	}
 
-	private def play( startPos: Long, rate: Double ) {
+	private def play( startPos: Long, rate: Double ): Unit = {
 		playRate		   = rate
       updatePlayHeadRefreshRate()
 		isPlaying		= true
@@ -235,21 +234,21 @@ with TopPaintable {
       updatePlayHeadRefreshRate
    }
 */
-	private def stop() {
+	private def stop(): Unit = {
 		isPlaying = false
 		playTimer.stop()
       clearPlayHead()
 	}
 
-	/* override */ def dispose() {
-      transport.foreach( _.removeListener( transportListener ))
-		timelineView.removeListener( timelineListener )
-      trackList = new DummyTrackList
-		stop()
-//		super.dispose
-	}
+  /* override */ def dispose(): Unit = {
+    transport.foreach(_.removeListener(transportListener))
+    timelineView.removeListener(timelineListener)
+    trackList = new DummyTrackList
+    stop()
+    //		super.dispose
+  }
 
-	private def recalcTransforms( newRect: Rectangle ) {
+	private def recalcTransforms( newRect: Rectangle ): Unit = {
 		vpRecentRect = newRect // getViewRect();
 
         val span = timelineView.timeline.span // whole line, _not_ view
@@ -276,13 +275,13 @@ with TopPaintable {
 		}
 	}
 
-   private def clearPlayHead() {
+   private def clearPlayHead(): Unit = {
       vpUpdateRect.x       = playHeadRect.x
       vpUpdateRect.width   = 5
       repaint( vpUpdateRect )
    }
 
-   private def updatePlayHead( pos: Long, oldShown: Boolean ) {
+   private def updatePlayHead( pos: Long, oldShown: Boolean ): Unit = {
       val x          = (pos * vpScale + 0.5).toInt - 1
       val oldX       = playHeadRect.x
 
@@ -308,7 +307,7 @@ with TopPaintable {
       }
    }
 
-	protected def updatePositionAndRepaint() {
+	protected def updatePositionAndRepaint(): Unit = {
 		val pEmpty = (vpPositionRect.x + vpPositionRect.width < 0) || (vpPositionRect.x > vpRecentRect.width)
 		if( !pEmpty ) vpUpdateRect.setBounds( vpPositionRect )
 
@@ -351,7 +350,7 @@ with TopPaintable {
 	/**
 	 *  Only call in the Swing thread!
 	 */
-   protected def updateSelectionAndRepaint() {
+   protected def updateSelectionAndRepaint(): Unit = {
 		val r = new Rectangle( 0, 0, getWidth, getHeight )
 
 		vpUpdateRect.setBounds( vpSelectionRect )
@@ -368,7 +367,7 @@ with TopPaintable {
 		}
 	}
 
-	private def updateTransformsAndRepaint( verticalSelection: Boolean ) {
+	private def updateTransformsAndRepaint( verticalSelection: Boolean ): Unit = {
 		val r = new Rectangle( 0, 0, getWidth, getHeight )
 
 		vpUpdateRect = vpSelectionRect.union( vpPositionRect )
@@ -381,7 +380,7 @@ with TopPaintable {
 	}
 
 	// sync: caller must sync on timeline + grp + tc
-	private def updateSelection() {
+	private def updateSelection(): Unit = {
 		vpSelections = Nil
 
     	if( timelineSel.isEmpty ) return

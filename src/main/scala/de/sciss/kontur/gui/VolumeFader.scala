@@ -37,13 +37,12 @@ class VolumeFader extends JSlider( SwingConstants.VERTICAL, -72, 18, 0 ) {
       setPaintLabels( true )
       setValue( 0 )
 
-      addMouseListener( new MouseAdapter {
-         override def mouseClicked( e: MouseEvent ) {
-            if( e.isAltDown ) resetVolume()
-         }
-      })
+     addMouseListener(new MouseAdapter {
+       override def mouseClicked(e: MouseEvent): Unit =
+         if (e.isAltDown) resetVolume()
+     })
       if( lbZero != null ) addChangeListener( new ChangeListener {
-         def stateChanged( e: ChangeEvent ) {
+         def stateChanged( e: ChangeEvent ): Unit = {
             if( isZero ) {
                if( getValue != 0 ) {
                   isZero = false
@@ -61,7 +60,7 @@ class VolumeFader extends JSlider( SwingConstants.VERTICAL, -72, 18, 0 ) {
       })
    }
 
-	def resetVolume() {
+	def resetVolume(): Unit = {
 		setValue( 0 )
 	}
 
@@ -76,11 +75,10 @@ class VolumeFader extends JSlider( SwingConstants.VERTICAL, -72, 18, 0 ) {
 		if( db == -72 ) 0f else db.dbamp
 	}
 
-	def volumeDecibels_=( db: Float ) {
+	def volumeDecibels_=( db: Float ): Unit =
 		setValue( math.max( -72, (db + 0.5f).toInt ))
-	}
 
-	def volumeLinear_=( linear: Float ) {
+	def volumeLinear_=( linear: Float ): Unit = {
       import synth._
 		val db = if( linear == 0f ) -72 else math.max( -72, math.min( 18, (linear.ampdb + 0.5).toInt ))
 		setValue( db )

@@ -34,13 +34,13 @@ class SegmentedButtonPanel extends JPanel {
       setLayout( new BoxLayout( this, BoxLayout.X_AXIS ))
   }
 
-  protected def setButtons( buttons: List[ AbstractButton ], style: String = "capsule" ) {
+  protected def setButtons( buttons: List[ AbstractButton ], style: String = "capsule" ): Unit = {
       removeAll()
       makeSegmented( buttons, style )
       buttons.foreach( b => add( b ))
   }
 
-  private def makeSegmented( buttons: List[ AbstractButton ], style: String ) {
+  private def makeSegmented( buttons: List[ AbstractButton ], style: String ): Unit = {
      if( buttons.isEmpty ) return
      val first = buttons.head
      val last  = buttons.last

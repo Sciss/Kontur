@@ -52,18 +52,17 @@ with DynamicListening {
         	private var shiftDrag       = false
             private var altDrag         = false
 
-        	override def mousePressed( e: MouseEvent ) {
-        		shiftDrag		= e.isShiftDown
-        		altDrag			= e.isAltDown
-        		selectionStart  = -1L
-        		dragTimelinePosition( e )
-        	}
+      override def mousePressed(e: MouseEvent): Unit = {
+        shiftDrag = e.isShiftDown
+        altDrag = e.isAltDown
+        selectionStart = -1L
+        dragTimelinePosition(e)
+      }
 
-        	override def mouseDragged( e: MouseEvent ) {
-        		dragTimelinePosition( e )
-        	}
+      override def mouseDragged(e: MouseEvent): Unit =
+        dragTimelinePosition(e)
 
-      private def dragTimelinePosition(e: MouseEvent) {
+      private def dragTimelinePosition(e: MouseEvent): Unit = {
         view.editor.foreach(ed => {
           // translate into a valid time offset
           val position = view.timeline.span.clip(
@@ -119,7 +118,7 @@ with DynamicListening {
     // note that the view rect change might be _before_
     // the delivery of TimelineView.SpanChanged, therefore
     // we need to synthesize the span from the view rect!
-    override protected def viewRectChanged( r: Rectangle ) {
+    override protected def viewRectChanged( r: Rectangle ): Unit = {
         val tlSpan      = view.timeline.span
         val w           = getWidth
         val scale       = tlSpan.length.toDouble / w
@@ -157,7 +156,7 @@ with DynamicListening {
 		}
 	}
 */
-	private def recalcSpace( trigger: Boolean ) {
+	private def recalcSpace( trigger: Boolean ): Unit = {
 // println( "TimelineAxis : recalcSpace. visi = " + visibleSpan )
         val spc = if( (flags & Axis.TIMEFORMAT) == 0 ) {
 			VectorSpace.createLinSpace( timelineVis.start,
@@ -178,7 +177,7 @@ with DynamicListening {
 
 // ---------------- DynamicListening interface ----------------
 
-    def startListening() {
+    def startListening(): Unit = {
     	if( !isListening ) {
 //println( "TIMELINE AXIS START")
     		isListening = true
@@ -188,7 +187,7 @@ with DynamicListening {
     	}
     }
 
-    def stopListening() {
+    def stopListening(): Unit = {
     	if( isListening ) {
     		isListening = false
     		view.removeListener( timelineListener )
@@ -200,7 +199,7 @@ with DynamicListening {
 
 	// -------------- Disposable interface --------------
 
-	override def dispose() {
+	override def dispose(): Unit = {
 		stopListening()
 //		editor = null
 		super.dispose()

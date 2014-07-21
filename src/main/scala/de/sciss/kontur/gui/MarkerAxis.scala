@@ -128,7 +128,7 @@ with DynamicListening with Disposable {
 //	protected Trail.Editor				editor			= null;
 
 	private val mil = new MouseInputAdapter() {
-			override def mousePressed( e: MouseEvent ) {
+			override def mousePressed( e: MouseEvent ): Unit = {
 				val scale	= visibleSpan.length.toDouble / math.max( 1, getWidth )
 				val pos		= (e.getX * scale + visibleSpan.start + 0.5).toLong
 
@@ -150,7 +150,7 @@ with DynamicListening with Disposable {
 				}
 			}
 
-      		override def mouseReleased( e: MouseEvent ) {
+      		override def mouseReleased( e: MouseEvent ): Unit = {
                 drag.foreach( d => {
 //					dispatchEvent( Event.DRAGSTOPPED, (d.lastMark getOrElse d.firstMark).span )
 
@@ -172,7 +172,7 @@ with DynamicListening with Disposable {
 				})
 			}
 
-			override def mouseDragged( e: MouseEvent ) {
+			override def mouseDragged( e: MouseEvent ): Unit = {
               drag.foreach( d => {
 				if( !d.started ) {
 					if( math.abs( e.getX - d.startX ) < 5 ) return
@@ -193,7 +193,7 @@ with DynamicListening with Disposable {
 		}
 
 	private val kl = new KeyAdapter() {
-		    override def keyPressed( e: KeyEvent ) {
+		    override def keyPressed( e: KeyEvent ): Unit = {
 				if( e.getKeyCode == KeyEvent.VK_ESCAPE ) {
                   if( drag.isDefined ) {
                     drag = None
@@ -220,7 +220,7 @@ with DynamicListening with Disposable {
 	}
 
     def trail = trailVar
-	def trail_=( newTrail: Option[ Trail[ Marker ]]) {
+	def trail_=( newTrail: Option[ Trail[ Marker ]]): Unit = {
         trailVar.foreach( t => {
             if( isListening ) t.removeListener( trailListener )
 		})
@@ -232,7 +232,7 @@ with DynamicListening with Disposable {
 	}
 
     def editor = editorVar
-	def editor_=( newEditor: Option[ TrailEditor[ Marker ]]) {
+	def editor_=( newEditor: Option[ TrailEditor[ Marker ]]): Unit = {
 		if( editorVar != newEditor ) {
           if( editorVar.isDefined && newEditor.isEmpty ) {
               removeMouseListener( mil )
@@ -250,7 +250,7 @@ with DynamicListening with Disposable {
 	protected def getResourceString( key: String ) =
 		AbstractApplication.getApplication.getResourceString( key )
 
-	private def recalcDisplay( fm: FontMetrics ) {
+	private def recalcDisplay( fm: FontMetrics ): Unit = {
 		val scale = recentWidth.toDouble / visibleSpan.length
 
 		shpFlags.reset()
@@ -265,7 +265,7 @@ with DynamicListening with Disposable {
 		doRecalc = false
 	}
 
-	override def paintComponent( g: Graphics ) {
+	override def paintComponent( g: Graphics ): Unit = {
 		super.paintComponent( g )
 
 		val g2 = g.asInstanceOf[ Graphics2D ]
@@ -302,7 +302,7 @@ with DynamicListening with Disposable {
         }))
 	}
 
-	def paintFlagSticks( g2: Graphics2D, bounds: Rectangle ) {
+	def paintFlagSticks( g2: Graphics2D, bounds: Rectangle ): Unit = {
 		if( doRecalc ) {
 			recalcDisplay( g2.getFontMetrics )	// XXX nicht ganz sauber (anderer graphics-context!)
 		}
@@ -322,7 +322,7 @@ with DynamicListening with Disposable {
 		g2.setStroke( strkOrig )
 	}
 
-	private def triggerRedisplay() {
+	private def triggerRedisplay(): Unit = {
 		doRecalc = true
 //		if( host != null ) {
 			host.update( this )
@@ -331,7 +331,7 @@ with DynamicListening with Disposable {
 //		}
 	}
 
-	def addMarker( pos: Long ) {
+	def addMarker( pos: Long ): Unit = {
 		if( editorVar.isEmpty ) throw new IllegalStateException()
 
         val ed          = editorVar.get
@@ -347,7 +347,7 @@ with DynamicListening with Disposable {
 		}}
 	}
 
-	protected def removeMarkerLeftTo( pos: Long ) {
+	protected def removeMarkerLeftTo( pos: Long ): Unit = {
 		if( editorVar.isEmpty ) throw new IllegalStateException()
 
 		getMarkerLeftTo( pos ).foreach( m => {
@@ -535,7 +535,7 @@ with DynamicListening with Disposable {
 
 	// -------------- Disposable interface --------------
 
-	def dispose() {
+	def dispose(): Unit = {
 		stopListening()
 		editor = None
 		trail  = None
@@ -549,7 +549,7 @@ with DynamicListening with Disposable {
 
 // ---------------- DynamicListening interface ----------------
 
-    def startListening() {
+    def startListening(): Unit = {
 		if( !isListening ) {
 			timelineView.addListener( timelineListener )
             trailVar.foreach( _.addListener( trailListener ))
@@ -558,7 +558,7 @@ with DynamicListening with Disposable {
 		}
     }
 
-    def stopListening() {
+    def stopListening(): Unit = {
 		if( isListening ) {
             trailVar.foreach( _.removeListener( trailListener ))
 			timelineView.removeListener( timelineListener )

@@ -78,7 +78,7 @@ extends ActionListener {
       }
    }
 
-   def dispose() {
+   def dispose(): Unit = {
       stop()
       tracks.foreach( t => removeTrack( 0, t ))
       if( realtime ) {
@@ -88,7 +88,7 @@ extends ActionListener {
    }
 
    // triggered by timer
-   def actionPerformed( e: ActionEvent ) {
+   def actionPerformed( e: ActionEvent ): Unit = {
 if( verbose ) println( "| | | | | timer " + currentPos )
       val sr         = context.sampleRate
       // sucyk swing timer exhibits drift... we need to refer to systemtime
@@ -105,13 +105,13 @@ if( verbose ) println( "| | | | | timer " + currentPos )
 
    def track( t: Track ) : SCTrackPlayer = mapPlayers( t )
 
-   def step( currentPos: Long, span: Span ) {
+   def step( currentPos: Long, span: Span ): Unit = {
       inGroup( scDoc.diskGroup ) {
          players.foreach( _.step( currentPos, span ))
       }
    }
 
-   private def addTrack( idx: Int, t: Track ) {
+   private def addTrack( idx: Int, t: Track ): Unit = {
       val player: SCTrackPlayer = t match {
          case at: AudioTrack => new SCAudioTrackPlayer( scDoc, at )
          case _ => new SCDummyPlayer( t )
@@ -120,11 +120,10 @@ if( verbose ) println( "| | | | | timer " + currentPos )
       players.insert( idx, player )
    }
 
-   def addTrack( t: Track ) {
+   def addTrack( t: Track ): Unit =
       addTrack( players.size, t )
-   }
 
-   private def removeTrack( idx: Int, t: Track ) {
+   private def removeTrack( idx: Int, t: Track ): Unit = {
       mapPlayers.get( t ).foreach( ptest => {
          mapPlayers -= t
          val player = players.remove( idx )
@@ -133,7 +132,7 @@ if( verbose ) println( "| | | | | timer " + currentPos )
       })
    }
 
-   def play( from: Long, rate: Double ) {
+   def play( from: Long, rate: Double ): Unit = {
 if( verbose ) println( "play ; deltaFrames = " + deltaFrames )
       start = from // + latencyFrames
       startTime = System.currentTimeMillis // sucky swing timer is imprecise
@@ -143,7 +142,7 @@ if( verbose ) println( "play ; deltaFrames = " + deltaFrames )
       if( realtime ) timer.start()
    }
 
-   def stop() {
+   def stop(): Unit = {
 if( verbose ) println( "stop" )
 players.foreach( _.stop() )
       if( realtime ) timer.stop()

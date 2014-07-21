@@ -49,11 +49,11 @@ class EisenkrautClient {
    private var queryIDCount                  = 0
 
    private val prefsListener = new PreferenceChangeListener {
-      def preferenceChange( e: PreferenceChangeEvent ) { e.getKey match {
+      def preferenceChange( e: PreferenceChangeEvent ): Unit = e.getKey match {
          case PrefsUtil.KEY_EISKOSCPORT     => shutDown()
          case PrefsUtil.KEY_EISKOSCPROTOCOL => shutDown()
          case _ =>
-      }}
+      }
    }
 
    private val receiveAction = (p: osc.Packet) => p match {
@@ -66,11 +66,11 @@ class EisenkrautClient {
       prefs.addPreferenceChangeListener( prefsListener )
    }
 
-   def dispose() {
+   def dispose(): Unit = {
       prefs.removePreferenceChangeListener( prefsListener )
    }
 
-   def openAudioFile( path: File, cursor: Option[ Long ] = None, selection: SpanOrVoid = Span.Void ) {
+   def openAudioFile( path: File, cursor: Option[ Long ] = None, selection: SpanOrVoid = Span.Void ): Unit = {
       spawn {
          send( "/doc", "open", path.getCanonicalPath )
          documentForPath( path ).foreach( addr => {
@@ -103,7 +103,7 @@ class EisenkrautClient {
       }) getOrElse None
    }
 
-   private def send( path: String, args: Any* ) {
+   private def send( path: String, args: Any* ): Unit = {
 //      println( "AQUI 5" )
       val a = Actor.self.asInstanceOf[ OSCActor ]
 //      println( "AQUI 6 " + a.c )
@@ -149,7 +149,7 @@ class EisenkrautClient {
        result
     }
 
-   private def spawn( body: => Unit ) {
+   private def spawn( body: => Unit ): Unit = {
       if( actorVar.isDefined ) {
          println( "ACTOR BUSY!" )
          return
@@ -161,7 +161,7 @@ class EisenkrautClient {
       })
    }
 
-   private def shutDown() {
+   private def shutDown(): Unit = {
       oscVar.foreach( c => {
          c.close()
          oscVar = None
@@ -209,7 +209,7 @@ class EisenkrautClient {
    }
 
    private class OSCActor( val c: osc.Client, body: => Unit ) extends Actor {
-      def act() {
+      def act(): Unit = {
          body
          if( actorVar == Some( Actor.self )) actorVar = None
       }

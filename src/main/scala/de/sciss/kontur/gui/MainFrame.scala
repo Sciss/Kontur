@@ -36,15 +36,15 @@ class MainFrame extends AppWindow( AbstractWindow.REGULAR ) {
 
   // --- constructor ---
   {
-//	  val app     = AbstractApplication.getApplication()
-      val strMain = app.getResourceString( "frameMain" )
+    //	  val app     = AbstractApplication.getApplication()
+    val strMain = app.getResourceString("frameMain")
 
-      if( app.getWindowHandler.usesInternalFrames ) {
-		setTitle( strMain )
-		getWindow.asInstanceOf[ JInternalFrame ].setClosable( false )
-	  } else {
-		setTitle( app.getName + " : " + strMain )
-	  }
+    if (app.getWindowHandler.usesInternalFrames) {
+      setTitle(strMain)
+      getWindow.asInstanceOf[JInternalFrame].setClosable(false)
+    } else {
+      setTitle(app.getName + " : " + strMain)
+    }
 
       val lta       = new LogTextArea( 32, 60, false, null )
       lta.makeSystemOutput()
@@ -78,28 +78,27 @@ class MainFrame extends AppWindow( AbstractWindow.REGULAR ) {
 
 //    cp.add( new JLabel( "Testin" ), BorderLayout.SOUTH )
 
-      getWindow.setBackground( new Color( 0, 0, 0, 0x7F ))
+    // this quits on Linux!?
+    // getWindow.setBackground( new Color( 0, 0, 0, 0x7F ))
 
       app.getMenuBarRoot.putMimic( "edit.clear", this, lta.getClearAction )
-	  val winListener = new AbstractWindow.Adapter {
-			override def windowClosing( e: AbstractWindow.Event ) {
-				app.quit()
-			}
-      }
-      addListener( winListener )
+    val winListener = new AbstractWindow.Adapter {
+      override def windowClosing(e: AbstractWindow.Event): Unit = app.quit()
+    }
+    addListener(winListener)
 
-      setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE )
+    setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
 
-      init()
-  	  app.addComponent( Kontur.COMP_MAIN, this )
-	  setVisible( true )
+    init()
+    app.addComponent(Kontur.COMP_MAIN, this)
+    setVisible(true)
 
 //      println( "Testin one two")
   }
 
    override protected def getPreferredLocation: Point2D = new Point2D.Float( 0f, 0f )
 
-   override def dispose() {
+   override def dispose(): Unit = {
 		app.removeComponent( Kontur.COMP_MAIN )
 		super.dispose()
 	}

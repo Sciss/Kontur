@@ -42,8 +42,8 @@ class SuperColliderFrame extends AppWindow( AbstractWindow.SUPPORT /* PALETTE */
    private val serverPanel = new JServerStatusPanel(
       JServerStatusPanel.COUNTS | JServerStatusPanel.BOOT_BUTTON ) {
 
-     override protected def bootServer() { superCollider.boot() }
-     override protected def stopServer() { superCollider.stop() }
+     override protected def bootServer(): Unit = superCollider.boot()
+     override protected def stopServer(): Unit = superCollider.stop()
      override protected def couldBoot: Boolean = true
    }
 
@@ -79,7 +79,7 @@ class SuperColliderFrame extends AppWindow( AbstractWindow.SUPPORT /* PALETTE */
 
    private class ActionDumpTree( controls: Boolean  )
    extends AbstractAction {
-      def actionPerformed( e: ActionEvent ) {
+      def actionPerformed( e: ActionEvent ): Unit = {
          superCollider.server.foreach( s => {
              if( s.condition == Server.Running ) {
                 s.dumpTree( controls )
@@ -91,7 +91,7 @@ class SuperColliderFrame extends AppWindow( AbstractWindow.SUPPORT /* PALETTE */
    private class ActionDumpOSC
    extends AbstractAction {
       private var dumping = false
-      def actionPerformed( e: ActionEvent ) {
+      def actionPerformed( e: ActionEvent ): Unit = {
          dumping = !dumping
          println( "Dumping is " + (if( dumping ) "on" else "off") ) // XXX resource
          superCollider.dumpOSC( if( dumping ) osc.Dump.Text else osc.Dump.Off )

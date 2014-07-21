@@ -34,7 +34,7 @@ import de.sciss.kontur.session.Renamable
 
 class EditRenameAction( r: Renamable, ed: Editor, name: String = "Rename..." )
 extends MenuAction( name ) {
-   def actionPerformed( a: ActionEvent ) {
+   def actionPerformed( a: ActionEvent ): Unit = {
       val op = new JOptionPane( "Enter new name:", JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )
       op.setWantsInput( true )
       op.setInitialSelectionValue( r.name )

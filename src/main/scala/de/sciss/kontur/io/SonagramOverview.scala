@@ -59,7 +59,7 @@ case class SonagramSpec( sampleRate: Double, minFreq: Float, maxFreq: Float,
 
    val numKernels = ConstQ.getNumKernels( bandsPerOct, maxFreq, minFreq )
 
-   def encode( dos: DataOutputStream ) {
+   def encode( dos: DataOutputStream ): Unit = {
       dos.writeDouble( sampleRate )
       dos.writeFloat( minFreq )
       dos.writeFloat( maxFreq )
@@ -125,7 +125,7 @@ case class SonagramFileSpec( sona: SonagramSpec, lastModified: Long, audioPath: 
       })
    }
 
-   def makeAllAvailable() {
+   def makeAllAvailable(): Unit = {
       decimSpecs.foreach( d => d.windowsReady = d.numWindows )
    }
 
@@ -149,7 +149,7 @@ case class SonagramFileSpec( sona: SonagramSpec, lastModified: Long, audioPath: 
       baos.toByteArray
    }
 
-   def encode( dos: DataOutputStream ) {
+   def encode( dos: DataOutputStream ): Unit = {
       dos.writeInt( COOKIE )
       sona.encode( dos )
       dos.writeLong( lastModified )
@@ -270,7 +270,7 @@ object SonagramOverview {
       }
    }
 
-   private def releaseSonaImage( spec: SonagramImageSpec ) {
+   private def releaseSonaImage( spec: SonagramImageSpec ): Unit = {
       sync.synchronized {
          releaseImage( spec.dim )
          releaseFileBuf( spec )
@@ -300,7 +300,7 @@ object SonagramOverview {
 //   private def releaseConstQ( constQ: ConstQ ) : Unit =
 //      releaseConstQ( specFromConstQ( constQ ))
 
-   private def releaseConstQ( spec: SonagramSpec ) {
+   private def releaseConstQ( spec: SonagramSpec ): Unit = {
       sync.synchronized {
          val entry   = constQCache( spec ) // let it throw an exception if not contained
          entry.useCount -= 1
@@ -310,7 +310,7 @@ object SonagramOverview {
       }
    }
 
-   private[this] def releaseImage( dim: Dimension ) {
+   private[this] def releaseImage( dim: Dimension ): Unit = {
       sync.synchronized {
          val entry = imageCache( dim ) // let it throw an exception if not contained
          entry.useCount -= 1
@@ -320,7 +320,7 @@ object SonagramOverview {
       }
    }
 
-   private[this] def releaseFileBuf( spec: SonagramImageSpec ) {
+   private[this] def releaseFileBuf( spec: SonagramImageSpec ): Unit = {
       sync.synchronized {
          val entry = fileBufCache( spec ) // let it throw an exception if not contained
          entry.useCount -= 1
@@ -352,14 +352,14 @@ object SonagramOverview {
    private[this] var workerQueue = Queue[ WorkingSonagram ]()
    private[this] var runningWorker: Option[ WorkingSonagram ] = None
 
-   private def queue( sona: SonagramOverview ) {
+   private def queue( sona: SonagramOverview ): Unit = {
       sync.synchronized {
          workerQueue = workerQueue.enqueue( new WorkingSonagram( sona ))
          checkRun()
       }
    }
 
-   private[this] def dequeue( ws: WorkingSonagram ) {
+   private[this] def dequeue( ws: WorkingSonagram ): Unit = {
       sync.synchronized {
          val (s, q) = workerQueue.dequeue
          workerQueue = q
@@ -368,13 +368,13 @@ object SonagramOverview {
       }
    }
 
-   private[this] def checkRun() {
+   private[this] def checkRun(): Unit = {
       sync.synchronized {
          if( runningWorker.isEmpty ) {
             workerQueue.headOption.foreach( next => {
                runningWorker = Some( next )
                next.addPropertyChangeListener( new PropertyChangeListener {
-                  def propertyChange( e: PropertyChangeEvent ) {
+                  def propertyChange( e: PropertyChangeEvent ): Unit = {
 if( verbose ) println( "WorkingSonagram got in : " + e.getPropertyName + " / " + e.getNewValue )
                      if( e.getNewValue == SwingWorker.StateValue.DONE ) {
                         runningWorker = None
@@ -404,7 +404,7 @@ if( verbose ) println( "WorkingSonagram got in : " + e.getPropertyName + " / " +
 
    private class WorkingSonagram( val sona: SonagramOverview )
    extends SwingWorker[ Unit, Unit ] {
-      override protected def doInBackground() {
+      override protected def doInBackground(): Unit = {
          try {
             sona.render( this )
          }
@@ -430,7 +430,7 @@ class SonagramOverview @throws( classOf[ IOException ]) private (
    private val imgData           = sonaImg.img.getRaster.getDataBuffer.asInstanceOf[ DataBufferInt ].getData
 
    // caller must have sync
-   private def seekWindow( decim: SonagramDecimSpec, idx: Long ) {
+   private def seekWindow( decim: SonagramDecimSpec, idx: Long ): Unit = {
       val framePos = idx * numKernels + decim.offset
       if( /* (decim.windowsReady > 0L) && */ (decimAF.getFramePosition != framePos) ) {
          decimAF.seekFrame( framePos )
@@ -440,7 +440,7 @@ class SonagramOverview @throws( classOf[ IOException ]) private (
 //   val rnd = new java.util.Random()
    def paint( spanStart: Double, spanStop: Double, g2: Graphics2D, tx: Int,
               ty: Int, width: Int, height: Int,
-              ctrl: SonagramPaintController ) {
+              ctrl: SonagramPaintController ): Unit = {
       val idealDecim    = ((spanStop - spanStart) / width).toFloat
       val in            = fileSpec.getBestDecim( idealDecim )
 //      val scaleW        = idealDecim / in.totalDecim
@@ -547,7 +547,7 @@ if( verbose ) println( "drawImage( img<" + sonaImg.img.getWidth + "," + sonaImg.
       }
    }
 
-   protected def render( ws: WorkingSonagram ) {
+   protected def render( ws: WorkingSonagram ): Unit = {
       val constQ = allocateConstQ( fileSpec.sona )
 //      val fftSize = constQ.getFFTSize
       val t1 = System.currentTimeMillis
@@ -575,7 +575,7 @@ if( verbose ) println( "drawImage( img<" + sonaImg.img.getWidth + "," + sonaImg.
       if( verbose ) println( "primary : secondary ratio = " + (t2 - t1).toDouble / (t3 - t2) )
    }
 
-   private def primaryRender( ws: WorkingSonagram, constQ: ConstQ, in: AudioFile ) {
+   private def primaryRender( ws: WorkingSonagram, constQ: ConstQ, in: AudioFile ): Unit = {
       val fftSize       = constQ.fftSize
       val stepSize      = fileSpec.sona.stepSize
       val inBuf         = Array.ofDim[ Float ]( numChannels, fftSize )
@@ -622,7 +622,7 @@ if( verbose ) println( "drawImage( img<" + sonaImg.img.getWidth + "," + sonaImg.
 
    // XXX THIS NEEDS BIGGER BUFSIZE BECAUSE NOW WE SEEK IN THE SAME FILE
    // FOR INPUT AND OUTPUT!!!
-   private def secondaryRender( ws: WorkingSonagram, in: SonagramDecimSpec, out: SonagramDecimSpec ) {
+   private def secondaryRender( ws: WorkingSonagram, in: SonagramDecimSpec, out: SonagramDecimSpec ): Unit = {
       val dec           = out.decimFactor
       val bufSize       = dec * numKernels
       val buf           = Array.ofDim[ Float ]( numChannels, bufSize )
@@ -669,7 +669,7 @@ if( verbose ) println( "drawImage( img<" + sonaImg.img.getWidth + "," + sonaImg.
    }
 
    private var disposed = false
-   def dispose() {
+   def dispose(): Unit = {
       if( !disposed ) {
          disposed = true
          releaseSonaImage( imgSpec )

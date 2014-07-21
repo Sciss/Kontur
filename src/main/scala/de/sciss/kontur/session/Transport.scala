@@ -35,7 +35,7 @@ object Transport {
 
 trait Transport extends Model {
    def timeline: Timeline
-   def play( from: Long, rate: Double = 1.0 )
+   def play( from: Long, rate: Double = 1.0 ): Unit
    def stop() : Unit
    def isPlaying: Boolean
    def currentPos: Long
@@ -50,7 +50,7 @@ extends Transport {
    private var startTime = 0L
    private val stopPos = 0L
 
-   def play( from: Long, rate: Double = 1.0 ) {
+   def play( from: Long, rate: Double = 1.0 ): Unit = {
       stop()
       playing = true
       startPos = from
@@ -59,7 +59,7 @@ extends Transport {
       dispatch( Play( from, rate ))
    }
 
-   def stop() {
+   def stop(): Unit = {
       if( isPlaying ) {
         playing = false
         dispatch( Stop( currentPos ))

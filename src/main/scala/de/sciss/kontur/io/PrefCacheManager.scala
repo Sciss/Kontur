@@ -64,16 +64,16 @@ with PreferenceChangeListener {
 		preferences.addPreferenceChangeListener( this )
 	}
 
-   def dispose() {
+   def dispose(): Unit = {
       preferences.removePreferenceChangeListener( this )
    }
 
-	override def setActive( onOff: Boolean ) {
+	override def setActive( onOff: Boolean ): Unit = {
 		super.setActive( onOff )
 		preferences.putBoolean( KEY_ACTIVE, onOff )
 	}
 
-	override def setFolderAndCapacity( folder: File, capacity: Int ) {
+	override def setFolderAndCapacity( folder: File, capacity: Int ): Unit = {
 		super.setFolderAndCapacity( folder, capacity )
 		preferences.put( KEY_FOLDER, folder.getPath )
 		preferences.put( KEY_CAPACITY, new Param( capacity, ParamSpace.NONE | ParamSpace.ABS ).toString )
@@ -81,7 +81,7 @@ with PreferenceChangeListener {
 
 // ------- PreferenceChangeListener interface -------
 
-	def preferenceChange( e: PreferenceChangeEvent) {
+	def preferenceChange( e: PreferenceChangeEvent): Unit = {
 		val key = e.getKey
 
 		if( key == KEY_FOLDER ) {

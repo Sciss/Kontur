@@ -31,7 +31,7 @@ import de.sciss.common.BasicPathField
 class PathField( typ: Int, title: String )
 extends BasicPathField( typ, title ) {
     addPropertyChangeListener( "JComponent.sizeVariant", new PropertyChangeListener {
-        def propertyChange( pce: PropertyChangeEvent ) {
+        def propertyChange( pce: PropertyChangeEvent ): Unit = {
            ggPath.putClientProperty( pce.getPropertyName, pce.getNewValue )
            if( ggFormat != null ) ggFormat.putClientProperty( pce.getPropertyName, pce.getNewValue )
         }
@@ -40,7 +40,7 @@ extends BasicPathField( typ, title ) {
     override def getBaseline( width: Int, height: Int ) =
        ggPath.getBaseline( width, height ) + ggPath.getY
 
-    def setEditable( b: Boolean ) {
+    def setEditable( b: Boolean ): Unit = {
        ggPath.setEditable( b )
        ggChoose.setEnabled( b )
     }

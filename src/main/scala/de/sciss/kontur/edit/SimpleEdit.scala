@@ -37,12 +37,12 @@ extends BasicUndoableEdit {
   def apply() : Unit
   def unapply() : Unit
 
-  override def undo() {
+  override def undo(): Unit = {
     super.undo()
     unapply()
   }
 
-  override def redo() {
+  override def redo(): Unit = {
     super.redo()
     apply()
   }

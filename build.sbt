@@ -2,11 +2,13 @@ import AssemblyKeys._
 
 name           := "Kontur"
 
-version        := "1.2.1"
+version        := "1.3.0-SNAPSHOT"
 
 organization   := "de.sciss"
 
-scalaVersion   := "2.10.3"
+scalaVersion   := "2.11.1"
+
+crossScalaVersions := Seq("2.11.1", "2.10.4")
 
 description    := "An extensible multitrack audio editor based on ScalaCollider"
 
@@ -15,16 +17,16 @@ homepage       := Some(url("https://github.com/Sciss/" + name.value))
 licenses       := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt"))
 
 libraryDependencies ++= Seq(
-  "de.sciss" %% "scalacolliderswing" % "1.13.+",
-  "de.sciss" %% "span"               % "1.2.+",
-  "de.sciss" %% "scissdsp"           % "1.2.+",
+  "de.sciss" %% "scalacolliderswing" % "1.16.0",
+  "de.sciss" %% "span"               % "1.2.1",
+  "de.sciss" %% "scissdsp"           % "1.2.1",
   "de.sciss" %  "scisslib"           % "1.0.0",
   "org.scala-lang" % "scala-actors" % scalaVersion.value
 )
 
-retrieveManaged := true
+// retrieveManaged := true
 
-scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature")
+scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-Xfuture")
 
 // ---- build info ----
 
@@ -43,19 +45,18 @@ buildInfoPackage := "de.sciss.kontur"
 
 publishMavenStyle := true
 
-publishTo <<= version { (v: String) =>
-  Some( if( v.endsWith( "-SNAPSHOT" ))
+publishTo :=
+  Some( if( version.value endsWith "-SNAPSHOT" )
     "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
   else
     "Sonatype Releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2"
   )
-}
 
 publishArtifact in Test := false
 
 pomIncludeRepository := { _ => false }
 
-pomExtra <<= name { n =>
+pomExtra := { val n = name.value
 <scm>
   <url>git@github.com:Sciss/{n}.git</url>
   <connection>scm:git:git@github.com:Sciss/{n}.git</connection>
@@ -73,7 +74,7 @@ pomExtra <<= name { n =>
 
 seq(assemblySettings: _*)
 
-test in assembly := {}
+test in assembly := ()
 
 seq(appbundle.settings: _*)
 
@@ -96,9 +97,9 @@ jarName in assembly := s"${name.value}.jar"
 
 seq(lsSettings :_*)
 
-(LsKeys.tags in LsKeys.lsync) := Seq("audio", "multitrack", "music", "daw")
+(LsKeys.tags   in LsKeys.lsync) := Seq("audio", "multitrack", "music", "daw")
 
 (LsKeys.ghUser in LsKeys.lsync) := Some("Sciss")
 
-(LsKeys.ghRepo in LsKeys.lsync) <<= name(Some(_))
+(LsKeys.ghRepo in LsKeys.lsync) := Some(name.value)
 

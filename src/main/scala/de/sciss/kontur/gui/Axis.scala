@@ -164,13 +164,13 @@ with TopPaintable
   	}
 
     def flags = flagsVar
-	def flags_=( newFlags: Int ) {
+	def flags_=( newFlags: Int ): Unit = {
 		if( flagsVar == newFlags ) return
         flagsVar = newFlags
         flagsUpdated()
     }
 
-    private def flagsUpdated() {
+    private def flagsUpdated(): Unit = {
 		flMirroir		= (flags & MIRROIR) != 0
 		flTimeFormat	= (flags & TIMEFORMAT) != 0
 		flIntegers		= (flags & INTEGERS) != 0
@@ -189,12 +189,12 @@ with TopPaintable
 	}
 
     def space = spaceVar
-	def space_=( newSpace: VectorSpace ) {
+	def space_=( newSpace: VectorSpace ): Unit = {
         spaceVar = newSpace
 		triggerRedisplay()
 	}
 
-    protected def setSpaceNoRepaint( newSpace: VectorSpace ) {
+    protected def setSpaceNoRepaint( newSpace: VectorSpace ): Unit = {
        spaceVar = newSpace
 		doRecalc = true
     }
@@ -219,9 +219,9 @@ with TopPaintable
     }
 
     // subclasses might want to use this
-    protected def viewRectChanged( r: Rectangle ) {}
+    protected def viewRectChanged( r: Rectangle ) = ()
 
-	override def paintComponent( g: Graphics ) {
+	override def paintComponent( g: Graphics ): Unit = {
 		super.paintComponent( g )
 
 //    println( "axis " + viewPort.get.getViewPosition + "; " + getWidth )
@@ -273,7 +273,7 @@ with TopPaintable
         paintOnTop( g2 )
     }
 
-	private def recalcTransforms() {
+	private def recalcTransforms(): Unit = {
 		trnsVertical.setToRotation( -Pi / 2, recentHeight.toDouble / 2,
 										     recentHeight.toDouble / 2 )
 	}
@@ -292,7 +292,7 @@ with TopPaintable
 		max( calcStringWidth( fntMetr, mini ), calcStringWidth( fntMetr, maxi )) + MIN_LABSPC
 	}
 
-	private def recalcLabels( g: Graphics ) {
+	private def recalcLabels( g: Graphics ): Unit = {
 		val fntMetr	= g.getFontMetrics
 //		int					shift, width, height, numTicks, numLabels, ptrnIdx, ptrnIdx2, minLbDist;
 //		double				scale, pixelOff, pixelStep, tickStep, minK, maxK;
@@ -487,7 +487,7 @@ with TopPaintable
 	}
 
 
-	private def recalcLogLabels() {
+	private def recalcLogLabels(): Unit = {
 throw new IllegalStateException( "LOG NOT YET IMPLEMENTED" )
 /*
 		int				numLabels, width, height, numTicks, mult, expon, newPtrnIdx, ptrnIdx;
@@ -575,7 +575,7 @@ throw new IllegalStateException( "LOG NOT YET IMPLEMENTED" )
         */
 	}
 
-	private def triggerRedisplay() {
+	private def triggerRedisplay(): Unit = {
 		doRecalc = true
 		if( host.isDefined ) {
 			host.get.update( this )
@@ -586,7 +586,7 @@ throw new IllegalStateException( "LOG NOT YET IMPLEMENTED" )
 
 	// -------------- Disposable interface --------------
 
-	def dispose() {
+	def dispose(): Unit = {
 		labels      = null
 		shpTicks.reset()
 		img.flush()

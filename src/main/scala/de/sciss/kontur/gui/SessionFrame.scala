@@ -49,11 +49,10 @@ trait SessionFrame {
    private val actionSaveAs	= new ActionSaveAs( false )
 
    private val winListener = new AbstractWindow.Adapter() {
-        override def windowClosing( e: AbstractWindow.Event ) {
-            frame.windowClosing()
-        }
+     override def windowClosing(e: AbstractWindow.Event): Unit =
+       frame.windowClosing()
 
-        override def windowActivated( e: AbstractWindow.Event ) {
+        override def windowActivated( e: AbstractWindow.Event ): Unit = {
             // need to check 'disposed' to avoid runtime exception in doc handler if document was just closed
             if( !disposed ) {
                 app.getDocumentHandler.setActiveDocument( frame, doc )
@@ -94,7 +93,7 @@ trait SessionFrame {
 
    protected def windowClosing() : Unit
 
-   protected def invokeDispose() {
+   protected def invokeDispose(): Unit = {
       disposed = true	// important to avoid "too late window messages" to be processed; fucking swing doesn't kill them despite listener being removed
       removeListener( winListener )
       doc.removeListener( docListener )
@@ -107,7 +106,7 @@ trait SessionFrame {
 	 *  Recreates the main frame's title bar
 	 *  after a sessions name changed (clear/load/save as session)
 	 */
-   protected def updateTitle() {
+   protected def updateTitle(): Unit = {
       writeProtected	= doc.path.map( !_.canWrite ) getOrElse false
 
       val name = doc.displayName
@@ -133,12 +132,12 @@ trait SessionFrame {
 //      frame.dispose()
 //   }
 
-   protected def documentClosed() {
+   protected def documentClosed(): Unit = {
       app.getDocumentHandler.removeDocument( this, doc )	// XXX
       invokeDispose() // dispose()
    }
 
-   def closeDocument( force: Boolean, wasClosed: Flag ) {
+   def closeDocument( force: Boolean, wasClosed: Flag ): Unit = {
 //      doc.getTransport().stop();
       val okToClose = force || {
          val name = getResourceString( "menuClose" )
@@ -219,7 +218,7 @@ trait SessionFrame {
          rp.getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW ).put(
            KeyStroke.getKeyStroke( KeyEvent.VK_D, BasicMenuFactory.MENU_SHORTCUT ), "dont" )
          rp.getActionMap.put( "dont", new AbstractAction {
-            def actionPerformed( e: ActionEvent ) {
+            def actionPerformed( e: ActionEvent ): Unit = {
                dont.set(  true )
                d.dispose()
             }
@@ -268,11 +267,10 @@ trait SessionFrame {
    }
 
    protected class ActionClose extends MenuAction {
-      def actionPerformed( e: ActionEvent ) { perform() }
+      def actionPerformed( e: ActionEvent ): Unit = perform()
 
-      def perform() {
+      def perform(): Unit =
          closeDocument( force = false, new Flag( false ))
-      }
    }
 
    // action for the Save-Session menu item
@@ -283,7 +281,7 @@ trait SessionFrame {
        *  wasn't saved before, a file chooser
        *  is shown before.
        */
-      def actionPerformed( e: ActionEvent ) {
+      def actionPerformed( e: ActionEvent ): Unit = {
          val name = getValue( Action.NAME ).toString
          (doc.path orElse actionSaveAs.query( name )).foreach( f =>
             perform( name, f, asCopy = false, openAfterSave = false ))
@@ -319,7 +317,7 @@ trait SessionFrame {
       /*
        *  Query a file name from the user and save the Session
        */
-      def actionPerformed( e: ActionEvent ) {
+      def actionPerformed( e: ActionEvent ): Unit = {
          val name = getValue( Action.NAME ).toString
          query( name ).foreach( f => {
             actionSave.perform( name, f, asCopy, openAfterSave.isSet )

@@ -85,7 +85,7 @@ with DynamicListening with Disposable {
 			 *  Meta+Click  = Toggle item & set all others to opposite state
 			 *	</pre>
 			 */
-			override def mousePressed( e: MouseEvent ) {
+			override def mousePressed( e: MouseEvent ): Unit = {
 //				val id = editor.editBegin( this, getResourceString( "editTrackSelection" ))
                 trackList.editor.foreach( ed => {
                     val ce = ed.editBegin( "trackSelection" )
@@ -199,7 +199,7 @@ with DynamicListening with Disposable {
 		}
 	}
 */
-	def dispose() {
+	def dispose(): Unit = {
 		stopListening()
 	}
 
@@ -211,7 +211,7 @@ with DynamicListening with Disposable {
 	 */
 //	def isSelected = selected
 
-	override def paintComponent( g: Graphics ) {
+	override def paintComponent( g: Graphics ): Unit = {
 		super.paintComponent( g )
 
       val g2   = g.asInstanceOf[ Graphics2D ]
@@ -232,7 +232,7 @@ with DynamicListening with Disposable {
 	g2.translate( 0, 8 - h )
 	}
 
-	override def paintChildren( g: Graphics ) {
+  override def paintChildren(g: Graphics): Unit = {
 		super.paintChildren( g )
 		val g2 = g.asInstanceOf[ Graphics2D ]
 		val w	= getWidth
@@ -240,7 +240,7 @@ with DynamicListening with Disposable {
 		g2.fillRect( 0, 0, w, 8 )
 	}
 
-	private def checkTrackName() {
+	private def checkTrackName(): Unit = {
 		if( lbTrackName.getText != track.name ) {
 			lbTrackName.setText( track.name )
 		}
@@ -255,7 +255,7 @@ with DynamicListening with Disposable {
       case Renamable.NameChanged( _, newName ) => checkTrackName()
     }
 
-    def startListening() {
+    def startListening(): Unit = {
     	if( !isListening ) {
     		isListening = true
             trackList.addListener( trackListListener )
@@ -263,7 +263,7 @@ with DynamicListening with Disposable {
     	}
     }
 
-    def stopListening() {
+    def stopListening(): Unit = {
     	if( isListening ) {
     		isListening = false
             trackList.removeListener( trackListListener )
@@ -271,13 +271,13 @@ with DynamicListening with Disposable {
     }
 }
 
-class AudioTrackHeaderComponent( audioTrack: AudioTrack, trackList: TrackList )
-extends DefaultTrackHeaderComponent( audioTrack, trackList ) {
+class AudioTrackHeaderComponent(audioTrack: AudioTrack, trackList: TrackList)
+  extends DefaultTrackHeaderComponent(audioTrack, trackList) {
 
-    // ---- constructor ----
+  // ---- constructor ----
     {
         new DropTarget( this, DnDConstants.ACTION_LINK, new DropTargetAdapter {
-           private def process( dtde: DropTargetDragEvent ) {
+           private def process( dtde: DropTargetDragEvent ): Unit = {
               if( dtde.isDataFlavorSupported( Diffusion.flavor )) {
                   dtde.acceptDrag( DnDConstants.ACTION_LINK )
               } else {
@@ -285,10 +285,10 @@ extends DefaultTrackHeaderComponent( audioTrack, trackList ) {
               }
            }
 
-           override def dragEnter( dtde: DropTargetDragEvent ) { process( dtde )}
-           override def dragOver( dtde: DropTargetDragEvent ) { process( dtde )}
+           override def dragEnter( dtde: DropTargetDragEvent ): Unit = process( dtde )
+           override def dragOver( dtde: DropTargetDragEvent ): Unit = process( dtde )
 
-           def drop( dtde: DropTargetDropEvent ) {
+           def drop( dtde: DropTargetDropEvent ): Unit = {
              if( dtde.isDataFlavorSupported( Diffusion.flavor )) {
                  dtde.acceptDrop( DnDConstants.ACTION_LINK )
                  dtde.getTransferable.getTransferData( Diffusion.flavor ) match {

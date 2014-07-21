@@ -55,7 +55,7 @@ extends BasicSessionElementSeq[ Track ]( doc, "Tracks" ) {
       {innerToXML( c )}
       </tracks>
 
-   def fromXML( c: SerializerContext, parent: Node ) {
+   def fromXML( c: SerializerContext, parent: Node ): Unit = {
       val innerXML = SessionElement.getSingleXML( parent, "tracks" )
       innerFromXML( c, innerXML )
    }

@@ -46,10 +46,10 @@ trait AsyncModel extends AsyncAction {
    private var isOnlineVar = false
    private var wasOnline = false
 
-   def asyncDone() { isOnline = true }
+   def asyncDone(): Unit = isOnline = true
 
    def isOnline: Boolean = isOnlineVar
-   def isOnline_=( newState: Boolean ) {
+   def isOnline_=( newState: Boolean ): Unit = {
       if( newState != isOnlineVar ) {
          isOnlineVar = newState
          if( newState ) {
@@ -65,7 +65,7 @@ trait AsyncModel extends AsyncAction {
       }
    }
 
-   def whenOnline( thunk: => Unit ) {
+   def whenOnline( thunk: => Unit ): Unit = {
       val fun = () => thunk
       if( isOnline ) {
          thunk
@@ -74,7 +74,7 @@ trait AsyncModel extends AsyncAction {
       }
    }
 
-   def whenOffline( thunk: => Unit ) {
+   def whenOffline( thunk: => Unit ): Unit = {
       val fun = () => thunk
       if( !wasOnline || isOnline ) {
          collWhenOffline = collWhenOffline.enqueue( fun )
@@ -87,10 +87,10 @@ trait AsyncModel extends AsyncAction {
 class RichSynthDef( val synthDef: SynthDef )
 extends AsyncModel {
    def play : RichSynth = play()
-   def play( args: ControlSetMap* ) : RichSynth =
+   def play( args: ControlSet* ) : RichSynth =
       SynthContext.current.play( this, args )
 
-   override def whenOffline( thunk: => Unit ) {
+   override def whenOffline( thunk: => Unit ): Unit = {
       throw new IllegalStateException( "OPERATION NOT YET SUPPORTED" )
    }
 }
@@ -98,13 +98,13 @@ extends AsyncModel {
 trait RichNode extends AsyncModel {
    def node: Node
 
-   def free() {
+   def free(): Unit = {
       whenOnline {
          SynthContext.current.add( node.freeMsg )
       }
    }
 
-   def set( pairs: ControlSetMap* ) {
+   def set( pairs: ControlSet* ): Unit = {
       SynthContext.current.add( node.setMsg( pairs: _* ))
    }
 }
@@ -134,12 +134,12 @@ extends AsyncAction {
 
    def free() : Unit
 
-   def whenReady( thunk: => Unit ) {
+   def whenReady( thunk: => Unit ): Unit = {
       val fun = () => thunk
       collWhenReady = collWhenReady.enqueue( fun )
    }
 
-   def asyncDone() {
+   def asyncDone(): Unit = {
       val cpy = collWhenReady
       collWhenReady = Queue[ () => Unit ]()
       cpy.foreach( _.apply() )
@@ -170,12 +170,12 @@ extends RichBuffer {
    def numChannels = buffer.numChannels
    
    protected def protRead( path: String, offsetI: Int, numFrames: Int, bufStartFrame: Int,
-                           leaveOpen: Boolean ) {
+                           leaveOpen: Boolean ): Unit = {
       SynthContext.current.addAsync(
          buffer.readMsg( path, offsetI, numFrames, bufStartFrame, leaveOpen ), this )
    }
 
-   def free() {
+   def free(): Unit = {
       if( wasOpened ) {
          SynthContext.current.addAsync( buffer.closeMsg )
          wasOpened = false
@@ -189,7 +189,7 @@ extends RichBuffer {
    def id: Int = buffers.head.id
    val numChannels = buffers.size
 
-   protected def protRead( path: String, offsetI: Int, numFrames: Int, bufStartFrame: Int, leaveOpen: Boolean ) {
+   protected def protRead( path: String, offsetI: Int, numFrames: Int, bufStartFrame: Int, leaveOpen: Boolean ): Unit = {
       val context = SynthContext.current
       var ch = 0; buffers.foreach( buf => {
          val msg = buf.readChannelMsg( path, offsetI, numFrames, bufStartFrame, leaveOpen, List( ch ))
@@ -201,7 +201,7 @@ extends RichBuffer {
       ch += 1 })
    }
 
-   def free() {
+   def free(): Unit = {
       whenReady {
          buffers.foreach( buf => {
             if( wasOpened ) SynthContext.current.addAsync( buf.closeMsg )
@@ -213,7 +213,7 @@ extends RichBuffer {
 }
 
 class RichBus( val bus: Bus ) {
-   def free() {
+   def free(): Unit = {
       bus.free() // XXX
    }
 
@@ -230,7 +230,7 @@ object SynthContext {
 //      currentVar = c
 //   }
 
-   def inGroup( g: RichGroup )( thunk: => Unit ) {
+   def inGroup( g: RichGroup )( thunk: => Unit ): Unit = {
       current.inGroup( g )( thunk )
    }
 
@@ -259,15 +259,13 @@ object SynthContext {
    def sampleRate : Double = current.sampleRate
 
    def timebase : Double = current.timebase
-   def timebase_=( newVal: Double ) { current.timebase_=( newVal )}
+   def timebase_=( newVal: Double ): Unit = current.timebase_=( newVal )
 
-   def delayed( tb: Double, delay: Double )( thunk: => Unit ) {
+   def delayed( tb: Double, delay: Double )( thunk: => Unit ): Unit =
       current.delayed( tb, delay )( thunk )
-   }
 
-   def invalidate( obj: AnyRef ) {
+   def invalidate( obj: AnyRef ): Unit =
       current.dispatch( Invalidation( obj ))
-   }
 
    case class Invalidation( obj: AnyRef )
 }
@@ -286,28 +284,28 @@ extends Model with Disposable {
 
    protected def initBundle( delta: Double ) : AbstractBundle
 
-   protected def deferIfNeeded( thunk: => Unit ) {
+   protected def deferIfNeeded( thunk: => Unit ): Unit = {
       if( EventQueue.isDispatchThread ) thunk else EventQueue.invokeLater( new Runnable {
-         def run() { thunk }
+         def run(): Unit = thunk
       })
    }
 
-   def perform( thunk: => Unit ) {
+   def perform( thunk: => Unit ): Unit = {
       perform( thunk, -1, send = true )
    }
 
    /**
     * Like perform but ignores the messages silently. Use this to clean up after the server shut down.
     */
-   def consume( thunk: => Unit ) {
+   def consume( thunk: => Unit ): Unit = {
       perform( thunk, -1, send = false )
    }
 
-   def delayed( tb: Double, delay: Double )( thunk: => Unit ) {
+   def delayed( tb: Double, delay: Double )( thunk: => Unit ): Unit = {
       perform( thunk, (tb - timebase) + delay, send = true )
    }
    
-   private def perform( thunk: => Unit, time: Double, send: Boolean ) {
+   private def perform( thunk: => Unit, time: Double, send: Boolean ): Unit = {
       require( EventQueue.isDispatchThread, "Invoked 'perform' outside dispatch thread" )
       val savedContext  = SynthContext.current
       val savedBundle   = bundleVar
@@ -382,7 +380,7 @@ extends Model with Disposable {
       rb
    }
 
-   def inGroup( g: RichGroup )( thunk: => Unit ) {
+   def inGroup( g: RichGroup )( thunk: => Unit ): Unit = {
       val saved = currentTarget
       try {
          currentTarget = g
@@ -415,7 +413,7 @@ extends Model with Disposable {
       }
    }
 
-   def play( rsd: RichSynthDef, args: Seq[ ControlSetMap ]) : RichSynth = {
+  def play(rsd: RichSynthDef, args: Seq[ControlSet]): RichSynth = {
       val synth = Synth( server )
       val rs    = new RichSynth( synth )
       val tgt   = currentTarget  // freeze
@@ -429,23 +427,23 @@ extends Model with Disposable {
       rs
    }
 
-   def addAsync( async: AsyncAction ) {
+   def addAsync( async: AsyncAction ): Unit = {
       bundleVar.addAsync( async )
    }
 
-   def addAsync( msg: osc.Message ) {
+   def addAsync( msg: osc.Message ): Unit = {
       bundleVar.addAsync( msg )
    }
 
-   def addAsync( msg: osc.Message, async: AsyncAction ) {
+   def addAsync( msg: osc.Message, async: AsyncAction ): Unit = {
       bundleVar.addAsync( msg, async )
    }
 
-   def add( msg: osc.Message ) {
+   def add( msg: osc.Message ): Unit = {
       bundleVar.add( msg )
    }
 
-   def endsAfter( rn: RichNode, dur: Double ) {}
+   def endsAfter( rn: RichNode, dur: Double ) = ()
 
    trait AbstractBundle {
 //      protected var msgs     = Queue[ osc.Message ]()
@@ -456,22 +454,22 @@ extends Model with Disposable {
       @throws( classOf[ IOException ])
       def send(): Unit
 
-      def add( msg: osc.Message ) {
+      def add( msg: osc.Message ): Unit = {
 //         msgs = msgs.enqueue( msg )
          msgs :+= msg
       }
 
-      def addAsync( msg: osc.Message ) {
+      def addAsync( msg: osc.Message ): Unit = {
          hasAsyncVar = true
          add( msg )
       }
 
-      def addAsync( msg: osc.Message, async: AsyncAction ) {
+      def addAsync( msg: osc.Message, async: AsyncAction ): Unit = {
          addAsync( async )
          add( msg )
       }
 
-      def addAsync( async: AsyncAction ) {
+      def addAsync( async: AsyncAction ): Unit = {
           hasAsyncVar = true
           asyncs   = asyncs.enqueue( async )
        }
@@ -480,7 +478,7 @@ extends Model with Disposable {
 
       def messages: Seq[ osc.Message ] = msgs
 
-      def doAsync() {
+      def doAsync(): Unit = {
          asyncs.foreach( _.asyncDone() )
       }
    }
@@ -511,7 +509,7 @@ extends SynthContext( s, true ) {
    // ---- constructor ----
    resp.add()
 
-   def dispose() {
+   def dispose(): Unit = {
       resp.remove()
    }
 
@@ -521,7 +519,7 @@ extends SynthContext( s, true ) {
       timebaseVar
    }
 
-   def timebase_=( newVal: Double ) {
+   def timebase_=( newVal: Double ): Unit = {
       if( newVal == 0.0 ) timebaseSysRef = System.currentTimeMillis
       timebaseVar = newVal
    }
@@ -535,7 +533,7 @@ extends SynthContext( s, true ) {
    private class Bundle( count: Int, ref: Long )
    extends AbstractBundle {
       @throws( classOf[ IOException ])
-      def send() {
+      def send(): Unit = {
          val cpy = if( hasAsync ) {
             syncWait += count -> this
 //            msgs.enqueue( new scosc.SyncedMessage( count ))

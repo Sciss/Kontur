@@ -33,7 +33,7 @@ extends de.sciss.gui.PrefParamField( ut ) {
     def this() = this( new DefaultUnitTranslator() )
 
     addPropertyChangeListener( "JComponent.sizeVariant", new PropertyChangeListener {
-        def propertyChange( pce: PropertyChangeEvent ) {
+        def propertyChange( pce: PropertyChangeEvent ): Unit = {
             ggNumber.putClientProperty( pce.getPropertyName, pce.getNewValue )
         }
     })
@@ -41,9 +41,8 @@ extends de.sciss.gui.PrefParamField( ut ) {
     override def getBaseline( width: Int, height: Int ) =
        ggNumber.getBaseline( width, height ) + ggNumber.getY
 
-    def setEditable( b: Boolean ) {
+    def setEditable( b: Boolean ): Unit =
       ggNumber.setEditable( b )
-    }
 
     def isEditable = ggNumber.isEditable
 }

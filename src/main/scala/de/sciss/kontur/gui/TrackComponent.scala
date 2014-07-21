@@ -102,7 +102,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
 //    protected val isSelected: track.T /* Stake[ _ ]*/ => Boolean =
 //        (trailView.map( _.isSelected _ ) getOrElse (_ => false))
 
-   protected def checkSpanRepaint( span: Span, outcode: Int = 2, tm: Long = 0L ) {
+   protected def checkSpanRepaint( span: Span, outcode: Int = 2, tm: Long = 0L ): Unit = {
       if( span.overlaps( timelineView.span )) {
          repaint( span, outcode, tm )
       }
@@ -119,7 +119,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
    }
 
     private val mia = new MouseAdapter {
-      override def mousePressed( e: MouseEvent ) {
+      override def mousePressed( e: MouseEvent ): Unit = {
           trackTools.foreach( tt => {
               val pos    = screenToVirtual( e.getX )
               val span   = Span( pos, pos + 1 )
@@ -196,7 +196,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
       } else Span.Void
    }
 
-   private def showObserverPage() {
+   private def showObserverPage(): Unit = {
 //       val page      = StakeObserverPage.instance
 //       val observer  = AbstractApplication.getApplication()
 //          .getComponent( Main.COMP_OBSERVER ).asInstanceOf[ ObserverFrame ]
@@ -225,7 +225,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
        new DynamicAncestorAdapter( this ).addTo( this )
     }
 
-   def registerTools( tools: TrackTools ) {
+   def registerTools( tools: TrackTools ): Unit = {
       visualBoostVar          = tools.visualBoost
       fadeViewModeVar         = tools.fadeViewMode
       stakeBorderViewModeVar  = tools.stakeBorderViewMode
@@ -234,7 +234,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
       trackToolsListener( TrackTools.ToolChanged( tools.currentTool, tools.currentTool ))
    }
 
-    def startListening() {
+    def startListening(): Unit = {
        trailView.addListener( trailViewListener )
        trail.addListener( trailListener )
        if( trailViewEditor.isDefined ) {
@@ -243,7 +243,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
        }
     }
 
-    def stopListening() {
+    def stopListening(): Unit = {
        removeMouseListener( mia )
 //       removeMouseMotionListener( mia )
        trail.removeListener( trailListener )
@@ -251,18 +251,18 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
     }
 
    protected def visualBoost = visualBoostVar
-   protected def visualBoost_=( boost: Float ) {
+   protected def visualBoost_=( boost: Float ): Unit = {
       visualBoostVar = boost
    }
 
    protected def fadeViewMode = fadeViewModeVar
-   protected def fadeViewMode_=( mode: FadeViewMode ) {
+   protected def fadeViewMode_=( mode: FadeViewMode ): Unit = {
       fadeViewModeVar = mode
       checkSpanRepaint( timelineView.span )
    }
 
    protected def stakeBorderViewMode = stakeBorderViewModeVar
-   protected def stakeBorderViewMode_=( mode: StakeBorderViewMode ) {
+   protected def stakeBorderViewMode_=( mode: StakeBorderViewMode ): Unit = {
       stakeBorderViewModeVar = mode
       checkSpanRepaint( timelineView.span )
    }
@@ -283,7 +283,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
       ((pos - tlSpan.start) * scale + 0.5).toInt
    }
 
-   protected def repaint( span: Span, outcode: Int = 2, tm: Long = 0L ) {
+   protected def repaint( span: Span, outcode: Int = 2, tm: Long = 0L ): Unit = {
         val x1 = virtualToScreen( span.start )
         val x2 = virtualToScreen( span.stop )
 //        val r  = new Rectangle( x1 - outcode, 0, x2 - x1 + outcode + outcode, getHeight )
@@ -309,7 +309,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
     }
 
    private val clipRect = new Rectangle // avoid re-allocation
-   override def paintComponent( g: Graphics ) {
+   override def paintComponent( g: Graphics ): Unit = {
       super.paintComponent( g )
       val span = if( forceFullPaint ) {
          timelineView.timeline.span
@@ -319,7 +319,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
       paintTrack( g.asInstanceOf[ Graphics2D ], 0, 0, getWidth, getHeight, span )
    }
 
-   def paintTrack( g2: Graphics2D, x: Int, y: Int, width: Int, height: Int, viewSpan: Span ) {
+   def paintTrack( g2: Graphics2D, x: Int, y: Int, width: Int, height: Int, viewSpan: Span ): Unit = {
       val tlSpan = timelineView.timeline.span
       g2.getClipBounds( clipRect )
       val pc = PaintContext( g2, x, y, -tlSpan.start, width.toDouble / tlSpan.length, height, viewSpan, clipRect )
@@ -330,7 +330,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
 //   protected class DefaultPainter extends DefaultPainterTrait
 
    protected trait DefaultPainterTrait extends Painter {
-      def paintStake( pc: PaintContext, stake: track.T, selected: Boolean ) {
+      def paintStake( pc: PaintContext, stake: track.T, selected: Boolean ): Unit = {
          val x = pc.virtualToScreen( stake.span.start )
          val y = pc.y
          val width = ((stake.span.stop + pc.p_off) * pc.p_scale + 0.5).toInt - x
@@ -351,7 +351,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
          }
       }
 
-      def paint( pc: PaintContext ) {
+      def paint( pc: PaintContext ): Unit = {
          trail.visitRange( pc.viewSpan )(
             stake => paintStake( pc, stake, trailView.isSelected( stake )))
       }
@@ -368,7 +368,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
 
       protected var dragTrail: Option[ BasicTrail[ track.T ]] = None
 
-     def adjusted() {
+     def adjusted(): Unit = {
        val tTrail = new BasicTrail[track.T](doc)
        dragTrail = Some(tTrail)
        val tStakes = trailView.selectedStakes.toList.map(transform _)
@@ -389,7 +389,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
 
      protected def transform( stake: track.T ): track.T
 
-      def finish( ce: AbstractCompoundEdit ) {
+      def finish( ce: AbstractCompoundEdit ): Unit = {
          painter = oldPainter
          // refresh is handled through stake exchange
          dragTrail.foreach( tTrail => {
@@ -411,7 +411,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
          })
       }
 
-     def cancel() {
+     def cancel(): Unit = {
        val repaintSpan = lastDraggedUnion.union(initialUnion)
        painter = oldPainter
        repaintSpan match {
@@ -420,7 +420,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
        }
      }
 
-     override def paint( pc: PaintContext ) {
+     override def paint( pc: PaintContext ): Unit = {
          if( dragTrail.isEmpty ) {
             super.paint( pc )
             return
@@ -447,7 +447,7 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
       private var moveStop       = 0L
       private var moveVertical   = 0
 
-      def adjustMove( newMove: Long, newMoveVertical: Int, newCopy: Boolean ) {
+      def adjustMove( newMove: Long, newMoveVertical: Int, newCopy: Boolean ): Unit = {
          move           = newMove
          moveVertical   = newMoveVertical
          if( copyTransform != newCopy ) {
@@ -456,12 +456,12 @@ extends JComponent with TrackComponent with TrackToolsListener with DynamicListe
          }
       }
 
-      def adjustResize( newMoveStart: Long, newMoveStop: Long ) {
+      def adjustResize( newMoveStart: Long, newMoveStop: Long ): Unit = {
          moveStart   = newMoveStart
          moveStop    = newMoveStop
       }
 
-      def adjustSlide( newMoveOuter: Long, newMoveInner: Long ) {
+      def adjustSlide( newMoveOuter: Long, newMoveInner: Long ): Unit = {
          moveOuter   = newMoveOuter
          moveInner   = newMoveInner
       }
@@ -553,22 +553,18 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
     // ---- constructor ----
     {
         new DropTarget( this, DnDConstants.ACTION_COPY, new DropTargetAdapter {
-           override def dragEnter( dtde: DropTargetDragEvent ) {
-              process( dtde )
-           }
+           override def dragEnter( dtde: DropTargetDragEvent ): Unit = process( dtde )
 
-           override def dragOver( dtde: DropTargetDragEvent ) {
-              process( dtde )
-           }
+           override def dragOver( dtde: DropTargetDragEvent ): Unit = process( dtde )
 
-           override def dragExit( dte: DropTargetEvent ) {
+           override def dragExit( dte: DropTargetEvent ): Unit = {
               dropPos.foreach( pos => {
                  dropPos = None
                  repaint( Span( pos, pos ))
               })
            }
 
-           private def process( dtde: DropTargetDragEvent ) {
+           private def process( dtde: DropTargetDragEvent ): Unit = {
               val newLoc = if( dtde.isDataFlavorSupported( DataFlavor.stringFlavor )) {
                   dtde.acceptDrag( DnDConstants.ACTION_COPY )
                   Some( screenToVirtual( dtde.getLocation.x ))
@@ -590,7 +586,7 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
               }
            }
 
-           def drop( dtde: DropTargetDropEvent ) {
+           def drop( dtde: DropTargetDropEvent ): Unit = {
               dropPos.foreach( pos => {
                  dropPos = None
                  repaint( Span( pos, pos ))
@@ -677,12 +673,12 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
       }
    }
 
-   override protected def visualBoost_=( boost: Float ) {
+   override protected def visualBoost_=( boost: Float ): Unit = {
       super.visualBoost_=( boost )
       checkSpanRepaint( timelineView.span, tm = 200L )
    }
 
-      private def pasteExtern( path: File, fileSpan: Span, insPos: Long ) {
+      private def pasteExtern( path: File, fileSpan: Span, insPos: Long ): Unit = {
          try {
 //            val spec = AudioFile.readSpec( path )
 
@@ -711,7 +707,7 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
          catch { case e: IOException => e.printStackTrace() }
       }
 
-      override def paintComponent( g: Graphics ) {
+      override def paintComponent( g: Graphics ): Unit = {
 /*
        audioTrack.trail.visitRange( span )( ar => {
           p_rect.x     = ((ar.span.start + p_off) * p_scale + 0.5).toInt
@@ -793,7 +789,7 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
    extends AudioStakePainter with TransformativePainter {
       private var dragGain       = 1f
 
-      def adjustGain( newGain: Float ) {
+      def adjustGain( newGain: Float ): Unit = {
          dragGain = newGain
       }
 
@@ -819,7 +815,7 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
       private var dragFdOutTime  = 0L  // actually delta
       private var dragFdOutCurve = 0f  // actually delta
 
-      def adjustFade( newInTime: Long, newOutTime: Long, newInCurve: Float, newOutCurve: Float ) {
+      def adjustFade( newInTime: Long, newOutTime: Long, newInCurve: Float, newOutCurve: Float ): Unit = {
          dragFdInTime   = newInTime
          dragFdOutTime  = newOutTime
          dragFdInCurve  = newInCurve
@@ -870,7 +866,8 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
 
    protected trait AudioStakePainter extends DefaultPainterTrait {
 //      DefaultPainter =>
-      private def paintFade( f: FadeSpec, pc: PaintContext, y1: Float, y2: Float, x: Float, y: Float, h: Float, x0: Float ) {
+      private def paintFade( f: FadeSpec, pc: PaintContext, y1: Float, y2: Float,
+                             x: Float, y: Float, h: Float, x0: Float ): Unit = {
          import math._
          val shpFill = new Path2D.Float()
          val shpDraw = new Path2D.Float()
@@ -901,7 +898,7 @@ extends DefaultTrackComponent( doc, audioTrack, trackList, timelineView )
 
       protected def stakeInfo( stake: AudioRegion ) : Option[ String ] = None
 
-      override def paintStake( pc: PaintContext, stake: track.T, selected: Boolean ) {
+      override def paintStake( pc: PaintContext, stake: track.T, selected: Boolean ): Unit = {
          import math._
          stake match {
             case ar: AudioRegion => { // man, no chance to skip this matching??

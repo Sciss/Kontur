@@ -37,9 +37,9 @@ abstract class ActionQueryDuration extends MenuAction {
    private var value: Option[ Param ] = None
    private var space: Option[ ParamSpace ] = None
 
-   def actionPerformed( e: ActionEvent ) { perform() }
+  def actionPerformed(e: ActionEvent): Unit = perform()
 
-   def perform() {
+  def perform(): Unit = {
       val msgPane     = new SpringPanel( 4, 2, 4, 2 )
       val timeTrans   = new DefaultUnitTranslator()
       val ggDuration  = new ParamField( timeTrans )

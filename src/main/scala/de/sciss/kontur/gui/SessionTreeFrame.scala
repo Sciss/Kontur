@@ -80,7 +80,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
             case _ =>
           }
 
-        private def doubleClick( node: AnyRef, e: MouseEvent ) {
+        private def doubleClick( node: AnyRef, e: MouseEvent ): Unit = {
            node match {
               case hdca: HasDoubleClickAction => hdca.doubleClickAction()
               case _ =>
@@ -103,7 +103,7 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
 	  toFront()
    }
 
-   protected def windowClosing() { actionClose.perform() }
+   protected def windowClosing(): Unit = actionClose.perform()
 
    override protected def autoUpdatePrefs = true
    override protected def alwaysPackSize = false

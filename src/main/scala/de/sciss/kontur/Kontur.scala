@@ -34,29 +34,27 @@ import de.sciss.kontur.util.PrefsUtil
 import de.sciss.util.Flag
 import sc.SuperColliderClient
 
-/**
- *  The <code>Main</code> class contains the java VM
- *  startup static <code>main</code> method which
- *  creates a new instance of <code>Main</code>. This instance
- *  will initialize localized strings (ResourceBundle),
- *  Preferences, the <code>transport</code>, the <code>menuFactory</code>
- *  object (a prototype of the applications menu and its
- *  actions).
- *  <p>
- *  Common components are created and registered:
- *  <code>SuperColliderFrame</code>, <code>TransportPalette</code>,
- *  <code>ObserverPalette</code>, and <code>DocumentFrame</code>.
- *  <p>
- *  The <code>Main</code> class extends the <code>Application</code>
- *  class from the <code>de.sciss.app</code> package.
- *
- *	@todo		OSC /main/quit doesn't work repeatedly
- *				; seems to be a problem of menuFactory.closeAll!
- */
-
+/** The <code>Main</code> class contains the java VM
+  * startup static <code>main</code> method which
+  * creates a new instance of <code>Main</code>. This instance
+  * will initialize localized strings (ResourceBundle),
+  * Preferences, the <code>transport</code>, the <code>menuFactory</code>
+  * object (a prototype of the applications menu and its
+  * actions).
+  * <p>
+  * Common components are created and registered:
+  * <code>SuperColliderFrame</code>, <code>TransportPalette</code>,
+  * <code>ObserverPalette</code>, and <code>DocumentFrame</code>.
+  * <p>
+  * The <code>Main</code> class extends the <code>Application</code>
+  * class from the <code>de.sciss.app</code> package.
+  *
+  * @todo		OSC /main/quit doesn't work repeatedly
+  *          ; seems to be a problem of menuFactory.closeAll!
+  */
 object Kontur {
-   private val name          = "Kontur"
-   private val version = 1.1
+  private val name    = "Kontur"
+  private val version = 1.1
 
 //    private val APP_NAME	= "Kontur"
 
@@ -105,38 +103,35 @@ object Kontur {
 
    val COMP_CTRLROOM    = "ControlRoom"
 
-    /**
-	 *  java VM starting method. does some
-	 *  static initializations and then creates
-	 *  an instance of <code>Main</code>.
-	 *
-	 *  @param  args	are not parsed.
-	 */
-	def main( args: Array[ String ]) {
-		// --- run the main application ---
-		// Schedule a job for the event-dispatching thread:
-		// creating and showing this application's GUI.
-		EventQueue.invokeLater( new Runnable() {
-			def run() {
-				new Kontur( args )
-			}
-		})
-	}
+  /** java VM starting method. does some
+    * static initializations and then creates
+    * an instance of <code>Main</code>.
+    *
+    * @param  args	are not parsed.
+    */
+  def main(args: Array[String]): Unit = {
+    // --- run the main application ---
+    // Schedule a job for the event-dispatching thread:
+    // creating and showing this application's GUI.def main
+    EventQueue.invokeLater(new Runnable() {
+      def run(): Unit = new Kontur(args)
+    })
+  }
 }
 
-class Kontur( args: Array[ String ])
-extends BasicApplication( classOf[ Kontur ], Kontur.name ) {
-   	private val quitAfterSaveListener = new ProcessingThread.Listener {
-		def processStarted( e: ProcessingThread.Event ) { /* empty */ }
+class Kontur(args: Array[String])
+  extends BasicApplication(classOf[Kontur], Kontur.name) {
 
-        // if the saving was successfull, we will call closeAll again
-		def processStopped( e: ProcessingThread.Event ) {
-			if( e.isDone ) quit()
-		}
-	}
+  private val quitAfterSaveListener = new ProcessingThread.Listener {
+    def processStarted(e: ProcessingThread.Event) = ()
 
-    // ---- constructor ----
-    preInit()
+    // if the saving was successfull, we will call closeAll again
+    def processStopped(e: ProcessingThread.Event): Unit =
+      if (e.isDone) quit()
+  }
+
+  // ---- constructor ----
+  preInit()
 
 	/**
 	 *	The arguments may contain the following options:
@@ -147,7 +142,7 @@ extends BasicApplication( classOf[ Kontur ], Kontur.name ) {
 	 *	All other arguments not starting with a hyphen are considered to be paths to documents
 	 *	that will be opened after launch.
 	 */
-	private def preInit() {
+	private def preInit(): Unit = {
 		val prefs = getUserPrefs
 
 		// ---- init prefs ----
@@ -209,12 +204,12 @@ extends BasicApplication( classOf[ Kontur ], Kontur.name ) {
 
 		// ---- component views ----
 
-		val mainFrame	= new MainFrame()
-		getWindowHandler.asInstanceOf[ BasicWindowHandler ].setDefaultBorrower( mainFrame )
-//        val ctrlRoom	= new ControlRoomFrame()
-//		val observer	= new ObserverPalette()
-		val scFrame = new SuperColliderFrame()
-        scFrame.setVisible( true )
+    val mainFrame = new MainFrame()
+    getWindowHandler.asInstanceOf[BasicWindowHandler].setDefaultBorrower(mainFrame)
+    //        val ctrlRoom	= new ControlRoomFrame()
+    //		val observer	= new ObserverPalette()
+    val scFrame = new SuperColliderFrame()
+    scFrame.setVisible(true)
 
 		// means no preferences found, so
 		// do some more default initializations
@@ -253,7 +248,7 @@ extends BasicApplication( classOf[ Kontur ], Kontur.name ) {
 
 	private var shouldForceQuit = false
 
-   override def quit() {
+   override def quit(): Unit = {
       val confirmed  = new Flag( false )
 //println( "---0 " + shouldForceQuit )
       val pt         = getMenuFactory.closeAll( shouldForceQuit, confirmed )
@@ -271,7 +266,7 @@ extends BasicApplication( classOf[ Kontur ], Kontur.name ) {
       }
 	}
 
-    def forceQuit() {
+    def forceQuit(): Unit = {
 		shouldForceQuit = true
 		quit()
 	}

@@ -85,7 +85,7 @@ extends SynthContext( s, false ) {
    }
 
    def timebase = timebaseVar
-   def timebase_=( newVal: Double ) {
+   def timebase_=( newVal: Double ): Unit = {
       if( newVal < timebaseVar ) throw new IllegalArgumentException( newVal.toString )
       if( newVal > timebaseVar ) {
          advanceTo( newVal )
@@ -96,7 +96,7 @@ extends SynthContext( s, false ) {
 
    override val sampleRate : Double = server.config.sampleRate // .value
 
-   private def advanceTo( newTime: Double ) {
+   private def advanceTo( newTime: Double ): Unit = {
       var keepGoing = true
       while( keepGoing ) {
          keepGoing = bundleQueue.headOption.map( b => {
@@ -121,7 +121,7 @@ extends SynthContext( s, false ) {
       close()
 
       val dur = timebaseVar // in seconds
-      val program = server.config.programPath // .value
+      val program = server.config.program // .value
 //      println( "Booting '" + program + "'" )
       val appPath = new File( program )
       // -N cmd-filename input-filename output-filename sample-rate header-format sample-format -o numOutChans
@@ -143,7 +143,7 @@ extends SynthContext( s, false ) {
             // we used a SwingWorker before here, but it never ran on Scala 2.8.0...
             // might be connected to the actor starvation problem (using the same thread pool??)
             val printWorker   = new Thread {
-               override def run() {
+               override def run(): Unit = {
 //println( "PRINT WORKER STARTED" )
                   try {
                      var lastProg = 0
@@ -194,20 +194,20 @@ extends SynthContext( s, false ) {
    }
 
    @throws( classOf[ IOException ])
-   private def close() {
+   private def close(): Unit = {
       if( fileOpen ) {
          oscFile.close()
          fileOpen = false
       }
    }
 
-   override def play( rsd: RichSynthDef, args: Seq[ ControlSetMap ]) : RichSynth = {
+   override def play( rsd: RichSynthDef, args: Seq[ControlSet]) : RichSynth = {
       val rs = super.play( rsd, args )
       addAsync( rs ) // simulate n_go
       rs
    }
 
-   def dispose() {
+   def dispose(): Unit = {
       try {
          close()
          if( !oscPath.delete ) oscPath.deleteOnExit()
@@ -215,20 +215,20 @@ extends SynthContext( s, false ) {
       catch { case e: IOException => e.printStackTrace() }
    }
 
-   override def endsAfter( rn: RichNode, dur: Double ) {
+   override def endsAfter( rn: RichNode, dur: Double ): Unit = {
 //println( "endsAfter " + dur + ": " + rn.node )
       delayed( timebase, dur + SECURITY_BOUND ) {
 //println( "endsAfter really " + dur + ": " + rn.node )
 //         add( rn.node.freeMsg )
 //         rn.isOnline = false
          addAsync( new AsyncAction {
-            def asyncDone() { rn.isOnline = false }
+            def asyncDone(): Unit = rn.isOnline = false
          })
       } // simulate n_end
    }
 
    @throws( classOf[ IOException ])
-   private def write( b: Bundle ) {
+   private def write( b: Bundle ): Unit = {
       val bndl = osc.Bundle.secs( b.time, b.messages: _* )
       bb.clear
       bndl.encode( codec, bb )
@@ -242,7 +242,7 @@ extends SynthContext( s, false ) {
    }
 
    @throws( classOf[ IOException ])
-   private def enqueue( b: Bundle ) {
+   private def enqueue( b: Bundle ): Unit = {
       if( b.time < timebase ) throw new IOException( "Negative bundle time" )
       if( b.time == timebase ) {
          write( b )
@@ -252,7 +252,7 @@ extends SynthContext( s, false ) {
    }
 
    @throws( classOf[ IOException ])
-   private def flush() {
+   private def flush(): Unit = {
       while( bundleQueue.nonEmpty ) {
          val b = bundleQueue.dequeue()
          if( b.time <= timebaseVar ) {
@@ -265,9 +265,7 @@ extends SynthContext( s, false ) {
    private class Bundle( val time: Double )
    extends AbstractBundle {
       @throws( classOf[ IOException ])
-      def send() {
-         enqueue( this )
-      }
+      def send(): Unit = enqueue( this )
    }
 
    private object BundleOrdering extends Ordering[ Bundle ] {

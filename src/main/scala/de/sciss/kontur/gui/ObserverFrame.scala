@@ -46,7 +46,7 @@ with DocumentListener {
 
 //        ggTabPane.setPreferredSize( new Dimension( 400, 400 )) // XXX
         ggTabPane.addChangeListener( new ChangeListener {
-            def stateChanged( e: ChangeEvent ) {
+            def stateChanged( e: ChangeEvent ): Unit = {
                 val c = ggTabPane.getSelectedComponent
                 val newShown  = if( c != null ) {
                   mapTabs.find( _._2.component == c ).map( _._2 )
@@ -70,26 +70,26 @@ with DocumentListener {
     override protected def autoUpdatePrefs = true
 	override protected def alwaysPackSize = false
 
-    def addPage( page: ObserverPage ) {
+    def addPage( page: ObserverPage ): Unit = {
        if( containsPage( page.id )) removePage( page.id )
        ggTabPane.addTab( page.title, page.component )
 //       pack()
     }
 
-    def removePage( id: String ) {
+    def removePage( id: String ): Unit = {
         mapTabs.get( id ).foreach( page => {
             mapTabs -= id
             ggTabPane.remove( page.component )
         })
     }
 
-    def selectPage( id: String ) {
+    def selectPage( id: String ): Unit = {
         mapTabs.get( id ).foreach( page => {
             ggTabPane.setSelectedComponent( page.component )
         })
     }
 
-    def setPageEnabled( id: String, enabled: Boolean ) {
+    def setPageEnabled( id: String, enabled: Boolean ): Unit = {
         mapTabs.get( id ).foreach( page => {
             val idx = ggTabPane.indexOfTabComponent( page.component )
             if( idx >= 0 ) ggTabPane.setEnabledAt( idx, enabled )
@@ -102,13 +102,13 @@ with DocumentListener {
 
     // ---- DocumentListener interface ----
     
-	def documentFocussed( e: DocumentEvent ) {
+	def documentFocussed( e: DocumentEvent ): Unit = {
         val newDoc = e.getDocument
         mapTabs.foreach( entry => entry._2.documentChanged( newDoc ))
 	}
 
-	def documentAdded( e: DocumentEvent ) { /* ignore */ }
-	def documentRemoved( e: DocumentEvent ) { /* ignore */ }
+	def documentAdded( e: DocumentEvent ) = ()
+	def documentRemoved( e: DocumentEvent ) = ()
 }
 
 trait ObserverPage /* extends DynamicListening */ {
@@ -117,7 +117,7 @@ trait ObserverPage /* extends DynamicListening */ {
     def title:        String
     def pageShown():  Unit
     def pageHidden(): Unit
-    def documentChanged( newDoc: Document )
+    def documentChanged( newDoc: Document ): Unit
 }
 
 object DiffusionObserverPage {

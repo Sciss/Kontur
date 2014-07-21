@@ -57,7 +57,7 @@ extends Track with TrackEditor with Renamable {
    val trail: AudioTrail = new AudioTrail( doc )
    private var diffusionVar: Option[ Diffusion ] = None
    def diffusion = diffusionVar
-   def diffusion_=( newDiff: Option[ Diffusion ]) {
+   def diffusion_=( newDiff: Option[ Diffusion ]): Unit = {
       if( newDiff != diffusionVar ) {
          val change = DiffusionChanged( diffusionVar, newDiff )
          diffusionVar = newDiff
@@ -74,7 +74,7 @@ extends Track with TrackEditor with Renamable {
       {trail.toXML( c )}
       </audioTrack>
 
-   def fromXML( c: SerializerContext, node: Node ) {
+   def fromXML( c: SerializerContext, node: Node ): Unit = {
       nameVar = (node \ "name").text
       (node \ "diffusion").foreach( diffN => {
          diffusionVar = Some( c.byID[ Diffusion ]( diffN ))
@@ -88,11 +88,11 @@ extends Track with TrackEditor with Renamable {
 
    // ---- TrackEditor ----
 
-   def editDiffusion( ce: AbstractCompoundEdit, newDiff: Option[ Diffusion ]) {
+   def editDiffusion( ce: AbstractCompoundEdit, newDiff: Option[ Diffusion ]): Unit = {
       val edit = new SimpleEdit( "editTrackDiffusion" ) {
          lazy val oldDiff = diffusion
-         def apply() { oldDiff; diffusion = newDiff }
-         def unapply() { diffusion = oldDiff }
+         def apply(): Unit = { oldDiff; diffusion = newDiff }
+         def unapply(): Unit = { diffusion = oldDiff }
       }
       ce.addPerform( edit )
    }

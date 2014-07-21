@@ -31,22 +31,22 @@ import de.sciss.app.AbstractCompoundEdit
 import de.sciss.common.BasicCompoundEdit
 
 trait Editor {
-   def undoManager: UndoManager
+  def undoManager: UndoManager
 
-   def editBegin( name: String ) : AbstractCompoundEdit = {
-      if( !EventQueue.isDispatchThread ) throw new IllegalMonitorStateException()
-      new BasicCompoundEdit( name )
-   }
+  def editBegin(name: String): AbstractCompoundEdit = {
+    if (!EventQueue.isDispatchThread) throw new IllegalMonitorStateException()
+    new BasicCompoundEdit(name)
+  }
 
-   def editEnd( ce: AbstractCompoundEdit ) {
-      if( !EventQueue.isDispatchThread ) throw new IllegalMonitorStateException()
-      ce.perform()
-      ce.end()
-      undoManager.addEdit( ce )
-   }
+  def editEnd(ce: AbstractCompoundEdit): Unit = {
+    if (!EventQueue.isDispatchThread) throw new IllegalMonitorStateException()
+    ce.perform()
+    ce.end()
+    undoManager.addEdit(ce)
+  }
 
-   def editCancel( ce: AbstractCompoundEdit ) {
-      if( !EventQueue.isDispatchThread ) throw new IllegalMonitorStateException()
-      ce.cancel()
-   }
+  def editCancel(ce: AbstractCompoundEdit): Unit = {
+    if (!EventQueue.isDispatchThread) throw new IllegalMonitorStateException()
+    ce.cancel()
+  }
 }

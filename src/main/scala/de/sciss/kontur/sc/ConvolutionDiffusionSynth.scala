@@ -63,7 +63,7 @@ extends DiffusionSynth {
        diffusion.addListener( diffusionListener )
    }
 
-   def play() {
+   def play(): Unit = {
       val d       = diffusion
 //      val bufSize = MathUtil.nextPowerOfTwo( min( 32768, d.numFrames ).toInt )
       val bufSize = nextPowerOfTwo( d.numFrames.toInt )  // u should know what u are doing
@@ -99,12 +99,12 @@ extends DiffusionSynth {
       synth = Some( syn )
    }
 
-   def stop() {
+   def stop(): Unit = {
       synth.foreach( _.free() )
       synth = None
    }
 
-   def dispose() {
+   def dispose(): Unit = {
       diffusion.removeListener( diffusionListener )
       stop()
       inBus.free()

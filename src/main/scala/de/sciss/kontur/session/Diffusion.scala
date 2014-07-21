@@ -75,7 +75,7 @@ extends BasicSessionElementSeq[ Diffusion ]( doc, "Diffusions" ) {
   {innerToXML( c )}
 </diffusions>
 
-  def fromXML( c: SerializerContext, parent: Node ) {
+  def fromXML( c: SerializerContext, parent: Node ): Unit = {
      val innerXML = SessionElement.getSingleXML( parent, "diffusions" )
      innerFromXML( c, innerXML )
   }

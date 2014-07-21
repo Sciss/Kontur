@@ -88,14 +88,14 @@ extends BasicDocument with Model {
 </konturSession>
 
     @throws( classOf[ IOException ])
-    def fromXML( c: SerializerContext, elem: Node ) {
+    def fromXML( c: SerializerContext, elem: Node ): Unit = {
        audioFiles.fromXML( c, elem )
        diffusions.fromXML( c, elem )
        timelines.fromXML( c, elem )
     }
 
     @throws( classOf[ IOException ])
-    def save( f: File ) {
+    def save( f: File ): Unit = {
        val c = new BasicSerializerContext
        XML.save( f.getAbsolutePath, toXML( c ), "UTF-8", xmlDecl = true, null )
     }
@@ -112,16 +112,15 @@ extends BasicDocument with Model {
 	 * 	@throws	IllegalStateException			if another process is still running
 	 * 	@see	#checkProcess()
 	 */
-	def start( process: ProcessingThread ) {
+	def start( process: ProcessingThread ): Unit = {
 		if( !EventQueue.isDispatchThread ) throw new IllegalMonitorStateException()
 		if( pt.isDefined ) throw new IllegalStateException( "Process already running" )
 
 		pt = Some( process )
 		process.addListener( new ProcessingThread.Listener() {
-			def processStarted( e: ProcessingThread.Event ) { /* empty */ }
-			def processStopped( e: ProcessingThread.Event ) {
+			def processStarted( e: ProcessingThread.Event ) = ()
+			def processStopped( e: ProcessingThread.Event ): Unit =
 				pt = None
-			}
 		})
 		process.start()
 	}
@@ -152,7 +151,7 @@ extends BasicDocument with Model {
 	}
 
     def path = pathVar
-    def path_=( newPath: Option[ File ]) {
+    def path_=( newPath: Option[ File ]): Unit = {
        if( newPath != pathVar ) {
           val change = PathChanged( pathVar, newPath )
           pathVar = newPath
@@ -178,7 +177,7 @@ extends BasicDocument with Model {
       
 	def isDirty : Boolean = dirty
 
-    def setDirty( newDirty: Boolean ) {
+    def setDirty( newDirty: Boolean ): Unit = {
 		if( dirty != newDirty ) {
 			dirty = newDirty
          dispatch( DirtyChanged( newDirty ))
@@ -190,7 +189,7 @@ extends BasicDocument with Model {
 
 	def getUndoManager : de.sciss.app.UndoManager = undo
 
-    def dispose() {
+    def dispose(): Unit = {
        // nada
     }
 }

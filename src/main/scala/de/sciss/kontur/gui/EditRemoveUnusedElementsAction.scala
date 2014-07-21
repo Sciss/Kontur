@@ -39,7 +39,7 @@ extends MenuAction( "Remove Unused " + (if( nameInAction ) elemName else "") + "
    private def fullName    = "Remove Unused " + elemName
 //   private def actionName  = getValue( Action.NAME ).toString
 
-   def actionPerformed( e: ActionEvent ) {
+   def actionPerformed( e: ActionEvent ): Unit = {
       val unused = collect //
       if( unused.isEmpty ) {
          val op = new JOptionPane( "There are currently no unused " + elemName + ".", JOptionPane.INFORMATION_MESSAGE )
@@ -49,8 +49,8 @@ extends MenuAction( "Remove Unused " + (if( nameInAction ) elemName else "") + "
          pane.add( new JLabel( "The following " + elemName + " will be removed:" ), BorderLayout.NORTH )
          val list = new JList( unused.map( display( _ )).toArray[ AnyRef ])
          list.setSelectionModel( new DefaultListSelectionModel {
-            override def addSelectionInterval( index0: Int, index1: Int ) {}
-            override def setSelectionInterval( index0: Int, index1: Int ) {}
+            override def addSelectionInterval( index0: Int, index1: Int ) = ()
+            override def setSelectionInterval( index0: Int, index1: Int ) = ()
          })
          pane.add( new JScrollPane( list ), BorderLayout.CENTER )
          val op = new JOptionPane( pane, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )

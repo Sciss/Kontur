@@ -48,7 +48,7 @@ with DynamicListening {
 
   private var isListening = false
 
-    def startListening() {
+    def startListening(): Unit = {
       isListening = true
 // some version of scalac cannot deal with Enumeration
 // that is not generified ....
@@ -64,7 +64,7 @@ with DynamicListening {
        }
    }
 
-  def stopListening() {
+  def stopListening(): Unit = {
       isListening = false
 //      new JEnumerationWrapper( children() ).foreach( _ match {
 //        case d: DynamicTreeNode => d.stopListening
@@ -78,17 +78,17 @@ with DynamicListening {
      }
     }
 
-  protected def addDyn( elem: DynamicTreeNode ) {
+  protected def addDyn( elem: DynamicTreeNode ): Unit = {
     add( elem )
     if( isListening ) elem.startListening()
   }
 
-  protected def insertDyn( idx: Int, elem: DynamicTreeNode ) {
+  protected def insertDyn( idx: Int, elem: DynamicTreeNode ): Unit = {
     model.insertNodeInto( elem, this, idx )
     if( isListening ) elem.startListening()
   }
   
-  protected def removeDyn( idx: Int ) {
+  protected def removeDyn( idx: Int ): Unit = {
     getChildAt( idx ) match {
       case d: DynamicTreeNode => {
           d.stopListening()
@@ -109,13 +109,11 @@ with DynamicListening {
 
   setRoot( docRoot )
 
-  def startListening() {
+  def startListening(): Unit =
     docRoot.startListening()
-  }
 
-  def stopListening() {
+  def stopListening(): Unit =
     docRoot.stopListening()
-  }
 }
 
 /*
@@ -156,7 +154,7 @@ extends DynamicTreeNode( model, seq, true )
       case seq.ElementRemoved( idx, elem ) => removeDyn( idx )
     }
     
-    override def startListening() {
+    override def startListening(): Unit = {
       // cheesy shit ...
       // that is why eventually we should use
       // our own tree model instead of the defaulttreemodel...
@@ -166,7 +164,7 @@ extends DynamicTreeNode( model, seq, true )
       super.startListening()
     }
     
-    override def stopListening() {
+    override def stopListening(): Unit = {
       seq.removeListener( seqListener )
       super.stopListening()
       removeAllChildren()
@@ -182,7 +180,7 @@ with HasContextMenu {
     def createContextMenu() : Option[ PopupRoot ] = {
      val root = new PopupRoot()
      val miAddNew = new MenuItem( "new", new AbstractAction( "New Timeline" ) {
-        def actionPerformed( a: ActionEvent ) {
+        def actionPerformed( a: ActionEvent ): Unit = {
            timelines.editor.foreach( ed => {
              val ce = ed.editBegin( getValue( Action.NAME ).toString )
              val tl = BasicTimeline.newEmpty( model.doc )
@@ -208,7 +206,7 @@ with HasContextMenu with CanBeDropTarget {
       val root = new PopupRoot()
       val miAddNew = new MenuItem( "new", new AbstractAction( "Add..." )
                                  with FilenameFilter {
-         def actionPerformed( a: ActionEvent ) {
+         def actionPerformed( a: ActionEvent ): Unit = {
             audioFiles.editor.foreach( ed => {
                getPath.foreach( path => {
                   val name = "Add Audio File" // getValue( Action.NAME ).toString
@@ -296,7 +294,7 @@ with HasContextMenu with CanBeDropTarget {
          val (name, gf) = entry
          val fullName = strNew + " " + gf.factory.humanReadableName
          val miAddNew = new MenuItem( name, new AbstractAction( gf.factory.humanReadableName ) {
-            def actionPerformed( a: ActionEvent ) {
+            def actionPerformed( a: ActionEvent ): Unit = {
                val panel = gf.createPanel( model.doc )
                val op = new JOptionPane( panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION )
                val result = BasicWindowHandler.showDialog( op, null, fullName )
@@ -387,7 +385,7 @@ with HasContextMenu {
 class TimelineTreeLeaf( model: SessionTreeModel, tl: Timeline )
 extends SessionElementTreeNode( model, tl, false )
 with HasDoubleClickAction {
-    def doubleClickAction() {
+    def doubleClickAction(): Unit = {
       new TimelineFrame( model.doc, tl )
    }
   override def toString = "View"
@@ -399,7 +397,7 @@ with HasContextMenu with CanBeDropTarget {
    def createContextMenu() : Option[ PopupRoot ] = {
       val root = new PopupRoot()
       val miAddNewAudio = new MenuItem( "new", new AbstractAction( "New Audio Track" ) {
-         def actionPerformed( a: ActionEvent ) {
+         def actionPerformed( a: ActionEvent ): Unit = {
             tl.tracks.editor.foreach( ed => {
                val ce = ed.editBegin( getValue( Action.NAME ).toString )
                val t = new AudioTrack( model.doc )
@@ -482,9 +480,7 @@ with HasContextMenu with CanBeDragSource {
 class AudioFileTreeLeaf( model: SessionTreeModel, coll: SessionElementSeq[ AudioFileElement ], afe: AudioFileElement )
 extends SessionElementTreeNode( model, afe, false )
 with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
-    def doubleClickAction() {
-//      println( "DANG" )
-   }
+    def doubleClickAction() = ()
 
    def createContextMenu() : Option[ PopupRoot ] = {
       val root = new PopupRoot()
@@ -492,7 +488,7 @@ with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
          case afs: AudioFileSeq => {
             val name = "Replace With Other File"
             val miReplace = new MenuItem( "replace", new AbstractAction( name + "..." ) with FilenameFilter {
-               def actionPerformed( a: ActionEvent ) {
+               def actionPerformed( a: ActionEvent ): Unit = {
                   getPath.foreach( path => {
                      try {
                         val newFile = AudioFileElement.fromPath( model.doc, path )
@@ -562,9 +558,7 @@ with HasDoubleClickAction with HasContextMenu with CanBeDragSource {
 class DiffusionTreeLeaf( model: SessionTreeModel, diff: Diffusion )
 extends SessionElementTreeNode( model, diff, false )
 with HasContextMenu with HasDoubleClickAction with CanBeDragSource {
-    def doubleClickAction() {
-
-   }
+    def doubleClickAction() = ()
 
    def createContextMenu() : Option[ PopupRoot ] = {
       var items = IndexedSeq.empty[ MenuItem ]
@@ -579,7 +573,7 @@ with HasContextMenu with HasDoubleClickAction with CanBeDragSource {
                val strEdit    = "Edit"
                val fullName   = strEdit + " " + MatrixDiffusion.humanReadableName + " " + diff.name
                val miEdit     = new MenuItem( "edit", new AbstractAction( strEdit + "..." ) {
-                  def actionPerformed( a: ActionEvent ) {
+                  def actionPerformed( a: ActionEvent ): Unit = {
                      val panel   = new MatrixDiffusionGUI()
                      panel.setObjects( diff )
                      val op      = new JOptionPane( panel, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION )

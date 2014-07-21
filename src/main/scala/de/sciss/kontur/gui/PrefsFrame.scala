@@ -61,7 +61,7 @@ class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
       val layout = new BorderLayout()
       cp.setLayout( layout )
 
-      def activateTab( tab: AbstractAction ) {
+      def activateTab( tab: AbstractAction ): Unit = {
         val panel = tab.getValue( "de.sciss.tabpanel" ).asInstanceOf[ JComponent ]
         val old = layout.getLayoutComponent( BorderLayout.CENTER )
         if( old != null ) cp.remove( old )
@@ -70,8 +70,8 @@ class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
       }
 
       def newTab( key: String, panel: JComponent ) : AbstractButton = {
-        val action = new AbstractAction( getResourceString( key )) {
-            def actionPerformed( e: ActionEvent ) { activateTab( this )}
+        val action = new AbstractAction(getResourceString(key)) {
+          def actionPerformed(e: ActionEvent): Unit = activateTab(this)
         }
         val ggTab = new JToggleButton( action )
         ggTab.putClientProperty( "JButton.buttonType", "toolbar" )
@@ -94,7 +94,7 @@ class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
      // ---------- listeners ----------
 
       addListener( new AbstractWindow.Adapter() {
-			override def windowClosing( e: AbstractWindow.Event ) {
+			override def windowClosing( e: AbstractWindow.Event ): Unit = {
 				setVisible( false )
 				dispose()
 			}
@@ -122,7 +122,7 @@ class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
         (panel, layout)
     }
 
-    override def dispose() {
+    override def dispose(): Unit = {
         app.removeComponent( Kontur.COMP_PREFS )
         super.dispose()
     }
@@ -147,17 +147,17 @@ class PrefsFrame extends AppWindow( AbstractWindow.SUPPORT ) {
         }
         ggWarn.add( lbWarn )
 
-        def addWarn( b: { def addActionListener( l: ActionListener ): Unit }, pes: PreferenceEntrySync ) {
-			val initialValue = pes.getPreferenceNode.get( pes.getPreferenceKey, null )
-            b.addActionListener( new ActionListener {
-                def actionPerformed( e: ActionEvent ) {
-                  val newValue = pes.getPreferenceNode.get( pes.getPreferenceKey, initialValue )
-        		  if( newValue != initialValue ) {
-                      lbWarn.setVisible( true )
-                  }
-                }
-			})
-        }
+      def addWarn(b: {def addActionListener(l: ActionListener): Unit}, pes: PreferenceEntrySync): Unit = {
+        val initialValue = pes.getPreferenceNode.get(pes.getPreferenceKey, null)
+        b.addActionListener(new ActionListener {
+          def actionPerformed(e: ActionEvent): Unit = {
+            val newValue = pes.getPreferenceNode.get(pes.getPreferenceKey, initialValue)
+            if (newValue != initialValue) {
+              lbWarn.setVisible(true)
+            }
+          }
+        })
+      }
 
         val lbLAF   = new JLabel( getResourceString( "prefsLookAndFeel" ))
         val ggLAF   = new PrefComboBox()

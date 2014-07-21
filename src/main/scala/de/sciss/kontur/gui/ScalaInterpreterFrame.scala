@@ -38,7 +38,7 @@ import language.implicitConversions
 
 object ScalaInterpreterFrame {
    final class ProvideEditing private[ScalaInterpreterFrame] ( e: Editor ) {
-      def edit( name: String )( fun: AbstractCompoundEdit => Unit ) { defer {
+      def edit( name: String )( fun: AbstractCompoundEdit => Unit ) : Unit = defer {
          val ce = e.editBegin( name )
          var succ = false
          try {
@@ -47,13 +47,13 @@ object ScalaInterpreterFrame {
          } finally {
             if( succ ) e.editEnd( ce ) else e.editCancel( ce )
          }
-      }}
+      }
    }
 
-   def defer(thunk: => Unit) {
+   def defer(thunk: => Unit): Unit = {
       java.awt.EventQueue.invokeLater(
          new Runnable() {
-            def run() { thunk }
+            def run(): Unit = thunk
          }
       )
    }
@@ -67,7 +67,7 @@ object ScalaInterpreterFrame {
 
 //      def Span( start: Long, stop: Long ) = Span( start, stop )
 
-      def defer(thunk: => Unit) { ScalaInterpreterFrame.defer( thunk )}
+      def defer(thunk: => Unit): Unit = ScalaInterpreterFrame.defer( thunk )
 
       implicit def provideEditing( e: Editor ) : ProvideEditing = new ProvideEditing( e )
    }

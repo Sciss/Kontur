@@ -59,7 +59,7 @@ extends TimelineView with TimelineViewEditor {
   private var spanVar = timeline.span
 
   def span: Span = spanVar
-  def span_=( newSpan: Span ) {
+  def span_=( newSpan: Span ): Unit = {
       if( newSpan != spanVar ) {
         val change = SpanChanged( spanVar, newSpan )
         spanVar = newSpan
@@ -82,7 +82,7 @@ extends TimelineView with TimelineViewEditor {
     timeline.addListener( forward ) // XXX a little dangerous
   }
 
-  def dispose() {
+  def dispose(): Unit = {
     timeline.removeListener( forward )
   }
 
@@ -91,35 +91,35 @@ extends TimelineView with TimelineViewEditor {
 
   def undoManager: UndoManager = doc.getUndoManager
 
-  def editPosition( ce: AbstractCompoundEdit, newPos: Long ) {
+  def editPosition( ce: AbstractCompoundEdit, newPos: Long ): Unit = {
     val edit = new SimpleEdit( "editTimelinePosition", false ) {
        lazy val oldPos = basicCsr.position
-       def apply() { oldPos; basicCsr.position = newPos }
-       def unapply() { basicCsr.position = oldPos }
+       def apply(): Unit = { oldPos; basicCsr.position = newPos }
+       def unapply(): Unit = { basicCsr.position = oldPos }
     }
     ce.addPerform( edit )
    }
 
-  def editScroll( ce: AbstractCompoundEdit, newSpan: Span ) {
+  def editScroll( ce: AbstractCompoundEdit, newSpan: Span ): Unit = {
 //     println( "editScroll " + newSpan )
 //     (new Throwable).printStackTrace()
 
     val edit = new SimpleEdit( "editTimelineScroll", false ) {
        lazy val oldSpan = span
-       def apply() {
+       def apply(): Unit = {
           oldSpan
           span = newSpan
        }
-       def unapply() { span = oldSpan }
+       def unapply(): Unit = span = oldSpan
     }
     ce.addPerform( edit )
    }
 
-   def editSelect( ce: AbstractCompoundEdit, newSpan: SpanOrVoid ) {
+   def editSelect( ce: AbstractCompoundEdit, newSpan: SpanOrVoid) : Unit = {
       val edit = new SimpleEdit( "editTimelineSelection", false ) {
         lazy val oldSpan = basicSel.span
-        def apply() { oldSpan; basicSel.span = newSpan }
-        def unapply() { basicSel.span = oldSpan }
+        def apply(): Unit = { oldSpan; basicSel.span = newSpan }
+        def unapply(): Unit = { basicSel.span = oldSpan }
       }
       ce.addPerform( edit )
    }
@@ -140,7 +140,7 @@ extends TimelineCursor {
   private var positionVar = 0L
 
   def position: Long = positionVar
-  def position_=( newPosition: Long ) {
+  def position_=( newPosition: Long ): Unit = {
       if( newPosition != positionVar ) {
         val change = PositionChanged( positionVar, newPosition )
         positionVar = newPosition
@@ -164,7 +164,7 @@ extends TimelineSelection {
   private var spanVar = Span.Void: SpanOrVoid
 
   def span: SpanOrVoid = spanVar
-  def span_=( newSpan: SpanOrVoid ) {
+  def span_=( newSpan: SpanOrVoid ): Unit = {
       if( newSpan != spanVar ) {
         val change = SpanChanged( spanVar, newSpan )
         spanVar = newSpan

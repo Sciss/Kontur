@@ -140,7 +140,7 @@ class AudioTrail( doc: Session ) extends BasicTrail[ AudioRegion ]( doc ) {
   {getAll().map( _.toXML( c ))}
 </trail>
 
-   def fromXML( c: SerializerContext, parent: Node ) {
+   def fromXML( c: SerializerContext, parent: Node ): Unit = {
       val node = SessionElement.getSingleXML( parent, "trail" )
       add( (node \ AudioRegion.XML_NODE).map( n => AudioRegion.fromXML( c, doc, n )): _* )
    }

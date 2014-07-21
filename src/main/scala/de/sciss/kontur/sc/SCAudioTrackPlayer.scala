@@ -52,12 +52,12 @@ extends SCTrackPlayer {
          var syn     = Option.empty[ RichSynth ]
          var stopped = false
 
-         def stop() {
+         def stop(): Unit = {
             stopped = true
             syn.foreach { s => scDoc.context.perform( s.free() )}
          }
 
-         def ready( synO: Option[ RichSynth ]) {
+         def ready( synO: Option[ RichSynth ]): Unit = {
             syn = synO
             if( stopped ) stop()
          }
@@ -71,7 +71,7 @@ extends SCTrackPlayer {
       res
    }
 
-   def step( currentPos: Long, span: Span ) {
+   def step( currentPos: Long, span: Span ): Unit = {
       if( !playing ) throw new IllegalStateException( "Was not playing" )
       
       track.diffusion.foreach { diff =>
@@ -91,10 +91,10 @@ extends SCTrackPlayer {
       }
    }
    
-   private def L( elems: ControlSetMap* ) : List[ ControlSetMap ] = List( elems: _* )
+   private def L( elems: ControlSet* ) : List[ControlSet] = List( elems: _* )
 
    private def play( diff: Diffusion, ar: AudioRegion, frameOffset: Long, delay: Double, force: Boolean )
-                   ( whenReady: Option[ RichSynth ] => Unit ) {
+                   ( whenReady: Option[ RichSynth ] => Unit ): Unit = {
       val numChannels = ar.audioFile.numChannels
       val equalChans  = numChannels == diff.numInputChannels
       val monoMix     = !equalChans && (diff.numInputChannels == 1)
@@ -140,7 +140,7 @@ extends SCTrackPlayer {
       val buf  = cue( ar.audioFile, ar.offset + frameOffset )
 //      stakes += ar
 
-      def playStake() {
+      def playStake(): Unit = {
          val res = if( force || playing ) {
             val syn = sd.play( (L( "i_buf" -> buf.id,
                "i_frames" -> ar.span.length.toFloat,
@@ -179,7 +179,7 @@ extends SCTrackPlayer {
       }
    }
 
-   def play() {
+   def play(): Unit = {
       if( !playing ) {
          playing = true
       } else {
@@ -187,7 +187,7 @@ extends SCTrackPlayer {
       }
    }
 
-   def stop() {
+   def stop(): Unit = {
       if( playing ) {
          playing = false
          synths.foreach( _.free() )
@@ -195,7 +195,7 @@ extends SCTrackPlayer {
       }
    }
 
-   def dispose() {
+   def dispose(): Unit = {
        stop()
    }
 }

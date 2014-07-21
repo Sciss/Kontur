@@ -104,16 +104,14 @@ trait TrackTool extends Model {
 //}
 
 trait TrackToolsListener {
-    def registerTools( tools: TrackTools )
+    def registerTools( tools: TrackTools ): Unit
 }
 
 class TrackCursorTool( trackList: TrackList, timelineView: TimelineView ) extends TrackTool {
    def defaultCursor = Cursor.getPredefinedCursor( Cursor.TEXT_CURSOR )
    val name = "Cursor"
 
-    def handleSelect( e: MouseEvent, hitTrack: TrackListElement, pos: Long, stakeO: Option[ Stake[ _ ]]) {
-
-    }
+    def handleSelect( e: MouseEvent, hitTrack: TrackListElement, pos: Long, stakeO: Option[ Stake[ _ ]]) = ()
 }
 
 object TrackStakeTool {
@@ -128,7 +126,7 @@ trait TrackStakeTool extends TrackTool {
    protected def trackList: TrackList
    protected def timelineView: TimelineView
 
-   def handleSelect( e: MouseEvent, tle: TrackListElement, pos: Long, stakeO: Option[ Stake[ _ ]]) {
+   def handleSelect( e: MouseEvent, tle: TrackListElement, pos: Long, stakeO: Option[ Stake[ _ ]]): Unit = {
       val track      = tle.track // "stable"
       val tvCast     = tle.trailView.asInstanceOf[ TrailView[ track.T ]]
       val stakeOCast = stakeO.asInstanceOf[ Option[ track.T ]]
@@ -208,7 +206,7 @@ extends TrackStakeTool {
 
    protected def dragToParam( d: Drag ) : P
 
-   protected def dragEnd() {
+   protected def dragEnd(): Unit = {
       // XXX it becomes a little arbitrary which editor
       // to use to initiate an edit... should change this somehow
       timelineView.timeline.editor.foreach( ed => {
@@ -218,11 +216,11 @@ extends TrackStakeTool {
       })
    }
 
-   protected def dragCancel( d: this.Drag ) {
+   protected def dragCancel( d: this.Drag ): Unit = {
       dispatch( DragCancel )
    }
    
-   protected def handleSelect( e: MouseEvent, tle: TrackListElement, pos: Long, stake: Stake[ _ ]) {
+   protected def handleSelect( e: MouseEvent, tle: TrackListElement, pos: Long, stake: Stake[ _ ]): Unit = {
       if( e.getClickCount == 2 ) {
          handleDoubleClick()
       } else {
@@ -233,14 +231,14 @@ extends TrackStakeTool {
    protected def dragStarted( d: this.Drag ) : Boolean =
       d.currentEvent.getPoint.distanceSq( d.firstEvent.getPoint ) > 16
    
-   protected def dragBegin( d: this.Drag ) {
+   protected def dragBegin( d: this.Drag ): Unit = {
        val p = dragToParam( d )
        currentParamVar = Some( p )
        dispatch( DragBegin )
        dispatch( p )
    }
 
-   protected def dragAdjust( d: this.Drag ) {
+   protected def dragAdjust( d: this.Drag ): Unit = {
       currentParamVar.foreach( oldP => {
           val p = dragToParam( d )
           if( p != oldP ) {
@@ -252,7 +250,7 @@ extends TrackStakeTool {
 
    protected def dialog: Option[ P ]
 
-   protected def handleDoubleClick() {
+   protected def handleDoubleClick(): Unit = {
       dialog.foreach( p => {
          timelineView.timeline.editor.foreach( ed => {
 //println( "GOT " + p )
@@ -294,19 +292,19 @@ extends TrackStakeTool {
          comp.requestFocus()
       }
 
-      override def mouseReleased( e: MouseEvent ) {
+      override def mouseReleased( e: MouseEvent ): Unit = {
          unregister()
          if( started ) dragEnd()
       }
 
-      private def unregister() {
+      private def unregister(): Unit = {
          val comp = firstEvent.getComponent
          comp.removeMouseListener( this )
          comp.removeMouseMotionListener( this )
          comp.removeKeyListener( this )
       }
 
-      private def calcCurrent( e: MouseEvent ) {
+      private def calcCurrent( e: MouseEvent ): Unit = {
          currentEventVar = e
          currentTLEFVar  = firstTLE  // default assumption
          val comp = e.getComponent
@@ -324,7 +322,7 @@ extends TrackStakeTool {
          currentPosVar   = screenToVirtual( convE )
       }
 
-      override def mouseDragged( e: MouseEvent ) {
+      override def mouseDragged( e: MouseEvent ): Unit = {
          calcCurrent( e )
          if( !started ) {
             started = dragStarted( this )
@@ -335,14 +333,14 @@ extends TrackStakeTool {
          dragAdjust( this )
       }
 
-      def keyPressed( e: KeyEvent ) {
+      def keyPressed( e: KeyEvent ): Unit = {
          if( e.getKeyCode == KeyEvent.VK_ESCAPE ) {
             unregister()
             dragCancel( this )
          }
       }
-      def keyTyped( e: KeyEvent ) {}
-      def keyReleased( e: KeyEvent ) {}
+      def keyTyped( e: KeyEvent ) = ()
+      def keyReleased( e: KeyEvent ) = ()
    }
 }
 
@@ -512,7 +510,7 @@ class TrackMuteTool(
 extends TrackStakeTool {
    import TrackMuteTool._
 
-   protected def handleSelect( e: MouseEvent, tle: TrackListElement, pos: Long, stake: Stake[ _ ]) {
+   protected def handleSelect( e: MouseEvent, tle: TrackListElement, pos: Long, stake: Stake[ _ ]): Unit = {
       stake match {
          case mStake: MuteableStake[ _ ] => {
             timelineView.timeline.editor.foreach( ed => {
@@ -540,7 +538,7 @@ object TrackAuditionTool {
 class TrackAuditionTool( doc: Session,
    protected val trackList: TrackList, protected val timelineView: TimelineView )
 extends TrackStakeTool {
-   protected def handleSelect( e: MouseEvent, tle: TrackListElement, pos: Long, stake: Stake[ _ ]) {
+   protected def handleSelect( e: MouseEvent, tle: TrackListElement, pos: Long, stake: Stake[ _ ]): Unit = {
       val fromStart = e.isAltDown
       if( !fromStart ) {
          timelineView.editor.foreach { ed =>
@@ -559,7 +557,7 @@ extends TrackStakeTool {
             val stopper       = atp.play( ar, frameOffset )
             val comp          = e.getComponent
             comp.addMouseListener( new MouseAdapter {
-               override def mouseReleased( e2: MouseEvent ) {
+               override def mouseReleased( e2: MouseEvent ): Unit = {
                   stopper.stop()
                   comp.removeMouseListener( this )
                }

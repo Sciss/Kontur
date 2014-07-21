@@ -52,9 +52,8 @@ with DynamicListening {
       setResizable( false )
 
       ggVolume.addChangeListener( new ChangeListener() {
- 			def stateChanged( e: ChangeEvent ) {
+ 			def stateChanged( e: ChangeEvent ): Unit =
              superCollider.volume = ggVolume.volumeLinear
- 			}
  		})
 
  		ggLimiter.setNumColumns( 8 )
@@ -63,7 +62,7 @@ with DynamicListening {
  //		ggLimiter.addItem( "Limiter", null, new Color( 0xFF, 0xFA, 0x9D ), new Color( 0xFA, 0xE7, 0x9D ));
  ggLimiter.addItem( "Limiter", null, new Color( 0xFF, 0xFA, 0x9D ))
  		ggLimiter.addActionListener( new ActionListener {
- 			def actionPerformed( e: ActionEvent ) {
+ 			def actionPerformed( e: ActionEvent ): Unit = {
 // 				superCollider.setLimiter( ggLimiter.getSelectedIndex() == 1 );
              superCollider.limiter = ggLimiter.getSelectedIndex == 1
  			}
@@ -92,16 +91,14 @@ with DynamicListening {
 
 		// ---- listeners -----
 
-		addListener( new AbstractWindow.Adapter {
-			override def windowOpened( e: AbstractWindow.Event ) {
-				startListening()
-			}
+     addListener(new AbstractWindow.Adapter {
+       override def windowOpened(e: AbstractWindow.Event): Unit = startListening()
 
-         override def windowClosing( e: AbstractWindow.Event ) {
-				setVisible( false )
-				dispose()
-			}
-		})
+       override def windowClosing(e: AbstractWindow.Event): Unit = {
+         setVisible(false)
+         dispose()
+       }
+     })
 
       updateVolume()
 
@@ -118,7 +115,7 @@ with DynamicListening {
 
    override protected def getPreferredLocation : Point2D = new Point2D.Float( 0.95f, 0.2f )
 
-   override def dispose() {
+   override def dispose(): Unit = {
   		AbstractApplication.getApplication.removeComponent( Kontur.COMP_CTRLROOM )
 //  		lmm.dispose()
 //  		if( grpMeters != null ) {
@@ -135,7 +132,7 @@ with DynamicListening {
   		super.dispose()
   	}
 
-  	private def updateVolume() {
+  	private def updateVolume(): Unit = {
   		ggVolume.volumeLinear = superCollider.volume
   	}
 
@@ -181,7 +178,7 @@ with DynamicListening {
 //  		Console.err.println( name + " : " + t.getClass.getName + " : " + t.getLocalizedMessage )
 //   }
 
-  	private def rebuildMeters() {
+  	private def rebuildMeters(): Unit = {
 //  		val oCfg = superCollider.getOutputConfig
 //
 //  		if( oCfg != null ) {
@@ -221,7 +218,7 @@ with DynamicListening {
 ////      mapPlayers.clear()
 //  	}
 
-   def startListening() {
+   def startListening(): Unit = {
    	isListening = true
 //	   superCollider.addServerListener( this )
 //	   superCollider.addClientListener( this )
@@ -231,7 +228,7 @@ with DynamicListening {
 //	   startMeters()
    }
 
-   def stopListening() {
+   def stopListening(): Unit = {
       isListening = false
 //	   stopMeters()
 //	   unregisterTaskSyncs()

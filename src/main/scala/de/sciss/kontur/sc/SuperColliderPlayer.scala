@@ -53,7 +53,7 @@ extends Disposable {
 
    override def toString = "SuperColliderPlayer(" + doc.name.getOrElse( "<Untitled>" ) + ")"
 
-    private def serverRunning() {
+    private def serverRunning(): Unit = {
       client.server.foreach( s => {
 //println( "---- CONSTRUCTING RealtimeSynthContext" )
          val context = new RealtimeSynthContext( s )
@@ -68,7 +68,7 @@ extends Disposable {
 
    def session: Option[ SCSession ] = online
 
-    private def serverOffline() {
+    private def serverOffline(): Unit = {
        online.foreach( ol => {
           ol.context.consume {
              ol.dispose()
@@ -77,7 +77,7 @@ extends Disposable {
        })
     }
 
-    def dispose() {
+    def dispose(): Unit = {
        client.removeListener( clientListener )
        online.foreach( ol => {
           ol.context.perform {

@@ -15,10 +15,10 @@ trait ManagedNumber[ N ] {
 }
 
 trait NumberManager[ N ] {
-	@inline val zero : N
-	@inline val one : N
-	@inline val min : N
-	@inline val max : N
+	val zero : N
+	val one : N
+	val min : N
+	val max : N
 }
 
 class ManagedInt( i: Int ) extends ManagedNumber[ Int ] {

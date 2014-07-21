@@ -47,15 +47,15 @@ extends DropTarget {
       setDefaultActions( actions )
    }
 
-   override def dragEnter( dtde: DropTargetDragEvent ) {
+   override def dragEnter( dtde: DropTargetDragEvent ): Unit = {
       process( dtde )
    }
 
-   override def dragOver( dtde: DropTargetDragEvent ) {
+   override def dragOver( dtde: DropTargetDragEvent ): Unit = {
       process( dtde )
    }
 
-   private def process( dtde: DropTargetDragEvent ) {
+   private def process( dtde: DropTargetDragEvent ): Unit = {
       findDropTarget( dtde ).map( tup => {
          dtde.acceptDrag( tup._3 )
       }) getOrElse {
@@ -79,7 +79,7 @@ extends DropTarget {
       }
    }
 
-   override def drop( dtde: DropTargetDropEvent ) {
+   override def drop( dtde: DropTargetDropEvent ): Unit = {
       findDropTarget( dtde ).map( tup => {
          val (cbdt, flavor, action) = tup
          dtde.acceptDrop( action )

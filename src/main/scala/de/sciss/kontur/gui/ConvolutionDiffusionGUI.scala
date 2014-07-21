@@ -95,26 +95,26 @@ extends JPanel with DynamicListening with FilenameFilter {
             _.putClientProperty( "JComponent.sizeVariant", "small" )
       )
 
-      ggName.addActionListener( new ActionListener {
-         def actionPerformed( e: ActionEvent ) { editRename( ggName.getText )}
-      })
+     ggName.addActionListener(new ActionListener {
+       def actionPerformed(e: ActionEvent): Unit = editRename(ggName.getText)
+     })
 
-      ggPath.addPathListener( new PathListener {
-         def pathChanged( e: PathEvent ) { editSetPath( e.getPath )}
-      })
+     ggPath.addPathListener(new PathListener {
+       def pathChanged(e: PathEvent): Unit = editSetPath(e.getPath)
+     })
 
       ggGain.addListener( new ParamF.Listener {
-         def paramValueChanged( e: ParamF.Event ) {
+         def paramValueChanged( e: ParamF.Event ): Unit = {
             if( !e.isAdjusting ) editSetGain( e.getTranslatedValue( spcAbsGain ).`val`.toFloat )
          }
-         def paramSpaceChanged( e: ParamF.Event ) {}
+         def paramSpaceChanged( e: ParamF.Event ) = ()
       })
 
       ggDelay.addListener( new ParamF.Listener {
-         def paramValueChanged( e: ParamF.Event ) {
+         def paramValueChanged( e: ParamF.Event ): Unit = {
             if( !e.isAdjusting ) editSetDelay( (e.getValue.`val` / 1000).toFloat )
          }
-         def paramSpaceChanged( e: ParamF.Event ) {}
+         def paramSpaceChanged( e: ParamF.Event ) = ()
       })
 
       layout.setHorizontalGroup( layout.createSequentialGroup()
@@ -162,7 +162,7 @@ extends JPanel with DynamicListening with FilenameFilter {
       catch { case e: IOException => false }
    }
 
-   private def withEditor( editName: String, fun: (DiffusionEditor, AbstractCompoundEdit) => Unit ) {
+   private def withEditor( editName: String, fun: (DiffusionEditor, AbstractCompoundEdit) => Unit ): Unit = {
       val eds = objects.filter( _.editor.isDefined ).map( _.editor.get )
       if( eds.isEmpty ) return
       val ed = eds.head
@@ -171,18 +171,18 @@ extends JPanel with DynamicListening with FilenameFilter {
       ed.editEnd( ce )
    }
 
-   private def editRename( newName: String ) {
+   private def editRename( newName: String ): Unit = {
       withEditor( "editRename", (ed, ce) => ed.editRename( ce, newName ))
    }
 
-   private def editSetPath( newPath: File ) {
+   private def editSetPath( newPath: File ): Unit = {
       withEditor( "editSetPath", (ed, ce) => ed match {
          case cdiff: ConvolutionDiffusion => cdiff.editSetPath( ce, Some( newPath ))
          case _ =>
       })
    }
 
-   private def editSetGain( newGain: Float ) {
+   private def editSetGain( newGain: Float ): Unit = {
       println( "new gain = " + newGain )
       withEditor( "editSetGain", (ed, ce) => ed match {
          case cdiff: ConvolutionDiffusion => cdiff.editSetGain( ce, newGain )
@@ -190,7 +190,7 @@ extends JPanel with DynamicListening with FilenameFilter {
       })
    }
 
-   private def editSetDelay( newDelay: Float ) {
+   private def editSetDelay( newDelay: Float ): Unit = {
       println( "new delay = " + newDelay )
       withEditor( "editSetDelay", (ed, ce) => ed match {
          case cdiff: ConvolutionDiffusion => cdiff.editSetDelay( ce, newDelay )
@@ -206,7 +206,7 @@ extends JPanel with DynamicListening with FilenameFilter {
       else head
    }
 
-   private def updateGadgets() {
+   private def updateGadgets(): Unit = {
       val enabled  = !objects.isEmpty
       val editable = enabled && objects.forall( _.editor.isDefined )
       ggName.setText( collapse( objects.map( _.name ): _* ))
@@ -236,7 +236,7 @@ extends JPanel with DynamicListening with FilenameFilter {
       }
    }
 
-   def setObjects( diff: Diffusion* ) {
+   def setObjects( diff: Diffusion* ): Unit = {
       objects.foreach( _.removeListener( diffListener ))
       objects = diff.toList
       if( isListening ) {
@@ -245,13 +245,13 @@ extends JPanel with DynamicListening with FilenameFilter {
       }
    }
 
-   def startListening() {
+   def startListening(): Unit = {
       isListening = true
       updateGadgets()
       objects.foreach( _.addListener( diffListener ))
    }
 
-   def stopListening() {
+   def stopListening(): Unit = {
       isListening = false
       objects.foreach( _.removeListener( diffListener ))
    }

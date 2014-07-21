@@ -98,7 +98,7 @@ extends BasicSessionElementSeq[ AudioFileElement ]( doc, "Audio Files" ) {
   {innerToXML( c )}
 </audioFiles>
 
-   def fromXML( c: SerializerContext, parent: Node ) {
+   def fromXML( c: SerializerContext, parent: Node ): Unit = {
       val innerXML = SessionElement.getSingleXML( parent, "audioFiles" )
       innerFromXML( c, innerXML )
    }
@@ -110,7 +110,7 @@ extends BasicSessionElementSeq[ AudioFileElement ]( doc, "Audio Files" ) {
     *  Smart edit checking all usage of that file,
     *  and moving around stakes accordingly.
     */
-   def editReplace( ce: AbstractCompoundEdit, oldFile: AudioFileElement, newFile: AudioFileElement ) {
+   def editReplace( ce: AbstractCompoundEdit, oldFile: AudioFileElement, newFile: AudioFileElement ): Unit = {
       var trails = Set[ Trail[ _ ]]()
       doc.timelines.foreach( tl => {
          tl.tracks.foreach( t => {

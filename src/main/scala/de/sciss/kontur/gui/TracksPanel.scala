@@ -87,7 +87,7 @@ with BasicTrackList with TrackToolsListener {
         }
     }
 
-	def registerTools( tt: TrackTools ) {
+	def registerTools( tt: TrackTools ): Unit = {
         trackTools.foreach( tt => {
             tt.removeListener( trackToolsListener )
         })
@@ -104,7 +104,7 @@ with BasicTrackList with TrackToolsListener {
         })
     }
 
-    private def addTrack( idx: Int, elem: TrackListElement ) {
+    private def addTrack( idx: Int, elem: TrackListElement) : Unit = {
         trackTools.foreach( tt => {
             elem.renderer.trackComponent match {
                 case ttl: TrackToolsListener => ttl.registerTools( tt )
@@ -117,7 +117,7 @@ with BasicTrackList with TrackToolsListener {
         timelinePanel.revalidate()
     }
 
-    private def removeTrack( idx: Int, elem: TrackListElement ) {
+    private def removeTrack( idx: Int, elem: TrackListElement ): Unit = {
       rowHeaderView.remove( idx )
       timelinePanel.remove( idx )
       // we could dispose the header if dispose was defined,

@@ -29,8 +29,6 @@ import java.awt.Graphics
 import javax.swing.JComponent
 import de.sciss.kontur.session.BasicTimeline
 
-class TrailPanel( tl: BasicTimeline ) extends JComponent {
-  override def paintComponent( g: Graphics ) {
-    
-  }
+class TrailPanel(tl: BasicTimeline) extends JComponent {
+  override def paintComponent(g: Graphics) = ()
 }

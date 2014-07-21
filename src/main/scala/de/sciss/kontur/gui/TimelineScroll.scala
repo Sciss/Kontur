@@ -114,7 +114,7 @@ with AdjustmentListener with DynamicListening {
 		setFocusable( false )
 //    }
 
-  private def calcLenShift() {
+  private def calcLenShift(): Unit = {
     var i = 0
     while ((timelineSpan.length >> i) > 0x3FFFFFFF) i += 1
     timelineLenShift = i
@@ -125,7 +125,7 @@ with AdjustmentListener with DynamicListening {
 	 *  the super class's method. Additionally
 	 *  paints timeline position and selection cues
 	 */
-    override def paintComponent( g: Graphics ) {
+    override def paintComponent( g: Graphics ): Unit = {
         super.paintComponent( g )
 
 		val d         = getSize()
@@ -152,7 +152,7 @@ with AdjustmentListener with DynamicListening {
 		g2.setPaint( pntOrig )
     }
 
-    private def recalcBoundedRange() {
+    private def recalcBoundedRange(): Unit = {
 		val len   = (timelineSpan.length >> timelineLenShift).toInt
 		val len2  = (timelineVis.length >> timelineLenShift).toInt
 // println( "recalcBoundedRange: len = " + len + "; len2 = " + len2 )
@@ -171,7 +171,7 @@ with AdjustmentListener with DynamicListening {
      *  Calculates virtual->screen coordinates
      *  for timeline position and selection
      */
-    private def recalcTransforms() {
+    private def recalcTransforms(): Unit = {
 		if( !timelineSpan.isEmpty ) {
 			val scale = (recentSize.width - trackMargin.left - trackMargin.right).toDouble / timelineSpan.length
 			timelineSel match {
@@ -203,7 +203,7 @@ with AdjustmentListener with DynamicListening {
 	 *
 	 *  @see	java.awt.Component#repaint( long )
 	 */
-	def setPosition( pos: Long, patience: Long, typ: Int ) {
+	def setPosition( pos: Long, patience: Long, typ: Int ): Unit = {
 		if( prefCatch && (catchBypassCount == 0) /* && timelineVis.contains( timelinePos ) */ &&
 //			(timelineVis.getStop() < timelineLen) &&
 			!timelineVis.contains( pos + (if( typ == TYPE_TRANSPORT ) timelineVis.length >> 3 else 0) )) {
@@ -241,14 +241,14 @@ with AdjustmentListener with DynamicListening {
 		repaint( patience )
 	}
 
-	def addCatchBypass() {
+	def addCatchBypass(): Unit = {
         catchBypassCount += 1
 		if( catchBypassCount == 1 ) {
 			catchBypassWasSynced = timelineVis.contains( timelinePos )
 		}
 	}
 
-	def removeCatchBypass() {
+	def removeCatchBypass(): Unit = {
         catchBypassCount -= 1
 		if( (catchBypassCount == 0) && catchBypassWasSynced ) {
 			catchBypassWasSynced = false
@@ -274,7 +274,7 @@ with AdjustmentListener with DynamicListening {
 
 // ---------------- DynamicListening interface ----------------
 
-    def startListening() {
+    def startListening(): Unit = {
     	if( !isListening ) {
     		isListening = true
 //println( "TimelineScroll : startListening ")
@@ -284,7 +284,7 @@ with AdjustmentListener with DynamicListening {
     	}
     }
 
-    def stopListening() {
+    def stopListening(): Unit = {
     	if( isListening ) {
     		isListening = false
             timelineView.removeListener( timelineListener )
@@ -293,7 +293,7 @@ with AdjustmentListener with DynamicListening {
 
 // ---------------- PreferenceChangeListener interface ----------------
 
-	def setCatch( onOff: Boolean ) {
+	def setCatch( onOff: Boolean ): Unit = {
 		if( onOff == prefCatch ) return
 
 		prefCatch	= onOff
@@ -342,7 +342,7 @@ with AdjustmentListener with DynamicListening {
 // ---------------- AdjustmentListener interface ----------------
 // we're listening to ourselves
 
-    def adjustmentValueChanged( e: AdjustmentEvent ) {
+    def adjustmentValueChanged( e: AdjustmentEvent ): Unit = {
     	if( !isEnabled ) return
 
     	val isAdjusting	= e.getValueIsAdjusting

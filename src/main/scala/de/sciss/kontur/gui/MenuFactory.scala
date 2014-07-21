@@ -49,11 +49,9 @@ extends BasicMenuFactory( app ) {
    private val actionNewEmpty = new ActionNewEmpty( getResourceString( "menuNewEmpty" ),
 											 KeyStroke.getKeyStroke( KeyEvent.VK_N, MENU_SHORTCUT ))
 
-   def openDocument( f: File ) {
-		actionOpen.perform( f )
-	}
+   def openDocument( f: File ): Unit = actionOpen.perform( f )
 
-	def showPreferences() {
+	def showPreferences(): Unit = {
 		var prefsFrame = app.getComponent( Kontur.COMP_PREFS ).asInstanceOf[ PrefsFrame ]
 
 		if( prefsFrame == null ) {
@@ -65,7 +63,7 @@ extends BasicMenuFactory( app ) {
 
 	protected def getOpenAction : Action = actionOpen
 
-   protected def addMenuItems() {
+   protected def addMenuItems(): Unit = {
 	   // Ctrl on Mac / Ctrl+Alt on PC
       val myCtrl = if( MENU_SHORTCUT == InputEvent.CTRL_MASK ) InputEvent.CTRL_MASK | InputEvent.ALT_MASK
          else InputEvent.CTRL_MASK
@@ -171,7 +169,7 @@ extends BasicMenuFactory( app ) {
 	protected class ActionNewEmpty( text: String, shortcut: KeyStroke )
 	extends MenuAction( text, shortcut )
 	{
-		def actionPerformed( e: ActionEvent ) {
+		def actionPerformed( e: ActionEvent ): Unit = {
 //			final AudioFileDescr afd = query();
 //			if( afd != null ) {
               perform // ( afd )
@@ -194,9 +192,8 @@ extends BasicMenuFactory( app ) {
 
    protected class ActionScalaInterpreter( text: String )
    extends MenuAction( text ) {
-      def actionPerformed( e: ActionEvent ) {
+      def actionPerformed( e: ActionEvent ): Unit =
          new ScalaInterpreterFrame()
-      }
    }
 
 	protected class ActionOpen( text: String, shortcut: KeyStroke )
@@ -208,9 +205,8 @@ extends BasicMenuFactory( app ) {
 		 *  to confirm. A file chooser will pop up for
 		 *  the user to select the session to open.
 		 */
-		def actionPerformed( e: ActionEvent ) {
+		def actionPerformed( e: ActionEvent ): Unit =
 			queryFile().foreach( f => perform( f ))
-		}
 
       private def queryFile() : Option[ File ] = {
 			val w = app.getComponent( Kontur.COMP_MAIN ).asInstanceOf[ AbstractWindow ]
@@ -277,7 +273,7 @@ extends BasicMenuFactory( app ) {
 
          @throws( classOf[ SAXException ])
          override def startElement( uri: String, localName: String,
-            qName: String, attributes: Attributes ) {
+            qName: String, attributes: Attributes ): Unit = {
 
             // eventually we will have a version check here
             // (using attributes) and
@@ -286,7 +282,7 @@ extends BasicMenuFactory( app ) {
             else new SessionNotFoundException)
          }
 
-         def dispose() {
+         def dispose(): Unit = {
             // nothing actually
          }
 
@@ -303,7 +299,7 @@ extends BasicMenuFactory( app ) {
        *
 		 *  @param  path	the file of the document to be loaded
 		 */
-		def perform( path: File ) {
+		def perform( path: File ): Unit = {
 //			Session	doc;
 
 //			// check if the document is already open
@@ -329,7 +325,7 @@ extends BasicMenuFactory( app ) {
    // action for the Control Room menu item
 	private class ActionCtrlRoom( text: String, shortcut: KeyStroke )
 	extends MenuAction( text, shortcut ) {
-		def actionPerformed( e: ActionEvent ) {
+		def actionPerformed( e: ActionEvent ): Unit = {
 			var f = getApplication.getComponent( Kontur.COMP_CTRLROOM ).asInstanceOf[ ControlRoomFrame ]
 			if( f == null ) {
 				f = new ControlRoomFrame()	// automatically adds component
@@ -339,16 +335,18 @@ extends BasicMenuFactory( app ) {
 		}
 	}
 
-	// action for the Observer menu item
-	private class ActionObserver( text: String, shortcut: KeyStroke )
-	extends MenuAction( text, shortcut ) {
-		def actionPerformed( e: ActionEvent ) {
-         val f = app.getComponent( Kontur.COMP_OBSERVER ) match {
-            case fr: ObserverFrame => fr
-            case _ => new ObserverFrame()
-         }
-			f.setVisible( true )
-			f.toFront()
-		}
-	}
+  // action for the Observer menu item
+  private class ActionObserver(text: String, shortcut: KeyStroke)
+    extends MenuAction(text, shortcut) {
+
+    def actionPerformed(e: ActionEvent): Unit = {
+      val f = app.getComponent(Kontur.COMP_OBSERVER) match {
+        case fr: ObserverFrame => fr
+        case _ => new ObserverFrame()
+      }
+      f.setVisible(true)
+      f.toFront()
+    }
+  }
+
 }

@@ -32,7 +32,7 @@ import de.sciss.kontur.session.SessionElementSeqEditor
 class EditRemoveSessionElementAction[ T ]( elemName: String, elem: T, ed: SessionElementSeqEditor[ T ],
                                            nameInAction: Boolean = false )
 extends MenuAction( if( nameInAction ) "Remove " + elemName else "Remove" ) {
-   def actionPerformed( a: ActionEvent ) {
+   def actionPerformed( a: ActionEvent ): Unit = {
       val ce = ed.editBegin( "Remove " + elemName )
       ed.editRemove( ce, elem )
       ed.editEnd( ce )

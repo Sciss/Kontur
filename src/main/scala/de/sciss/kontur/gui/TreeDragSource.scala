@@ -56,7 +56,7 @@ extends DragSourceAdapter with DragGestureListener {
 //    }
 
     // ---- DragGestureListener ----
-   def dragGestureRecognized( dge: DragGestureEvent ) {
+   def dragGestureRecognized( dge: DragGestureEvent ): Unit = {
       val path = tree.getSelectionPath
       if( path == null ) return
       path.getLastPathComponent match {

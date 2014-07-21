@@ -60,7 +60,7 @@ trait TrackList extends Model {
    def editor : Option[ TrackListEditor ]
 
    // support these common methods
-   def foreach[ U ]( f: TrackListElement => U ) { toList.foreach( f )}
+   def foreach[ U ]( f: TrackListElement => U ): Unit = toList.foreach( f )
 
    def filter( p: (TrackListElement) => Boolean ): List[ TrackListElement ] =
       toList.filter( p )
@@ -115,7 +115,7 @@ extends TrackList with TrackListEditor {
    *  Adds all tracks from the timeline
    *  to the list view
    */
-  def addAllTracks() {
+  def addAllTracks(): Unit = {
       tracks.foreach( t => addTrack( t, force = true ))
   }
 
@@ -135,11 +135,11 @@ extends TrackList with TrackListEditor {
       tracks.addListener( tracksListener )
   }
 
-  def followTracks() {
+  def followTracks(): Unit = {
      following = true
   }
 
-   override def foreach[ U ]( f: TrackListElement => U ) { elements.foreach( f )}
+   override def foreach[ U ]( f: TrackListElement => U ): Unit = elements.foreach( f )
 
    override def filter( p: (TrackListElement) => Boolean ): List[ TrackListElement ] =
         elements.filter( p ).toList
@@ -166,7 +166,7 @@ extends TrackList with TrackListEditor {
                                 trailView: TrailView[ _ <: Stake[ _ ]]) : TrackListElement =
       new BasicTrackListElement( t, renderer, trailView )
 
-   private def addTrack( t: Track, force: Boolean ) {
+   private def addTrack( t: Track, force: Boolean ): Unit = {
       if( mapElem.contains( t )) return
       if( force || everAdded.contains( t )) {
          val trailView = createTrailView( t ) // must be before renderer!
@@ -180,22 +180,22 @@ extends TrackList with TrackListEditor {
       }
    }
 
-   private def removeTrack( t: Track ) {
+   private def removeTrack( t: Track ): Unit = {
       if( following || everAdded.contains( t )) {
          println( "REMOVE TRACK : NOT YET IMPLEMENTED" )
       }
    }
 
-   def dispose() {
+   def dispose(): Unit = {
       tracks.removeListener( tracksListener )
       everAdded = Set[ Track ]()
       mapElem   = Map[ Track, TrackListElement ]()
    }
 
-   def select( e: TrackListElement* ) { setSelection( e, state = true )}
-   def deselect( e: TrackListElement* ) { setSelection( e, state = false )}
+   def select( e: TrackListElement* ): Unit = { setSelection( e, state = true )}
+   def deselect( e: TrackListElement* ): Unit = { setSelection( e, state = false )}
 
-   private def setSelection( e: Seq[ TrackListElement ], state: Boolean ) {
+   private def setSelection( e: Seq[ TrackListElement ], state: Boolean ): Unit = {
       val ef = e.filterNot( elem => elem.selected == state )
       if( !ef.isEmpty ) {
         val change = SelectionChanged( ef: _* )
@@ -219,17 +219,17 @@ extends TrackList with TrackListEditor {
 
    def undoManager: UndoManager = doc.getUndoManager
 
-   def editSelect( ce: AbstractCompoundEdit, e: TrackListElement* ) { editSetSelection( ce, e, state = true )}
+   def editSelect( ce: AbstractCompoundEdit, e: TrackListElement* ): Unit = editSetSelection( ce, e, state = true )
 
-   def editDeselect( ce: AbstractCompoundEdit, e: TrackListElement* ) { editSetSelection( ce, e, state = false )}
+   def editDeselect( ce: AbstractCompoundEdit, e: TrackListElement* ): Unit = editSetSelection( ce, e, state = false )
 
    private def editSetSelection( ce: AbstractCompoundEdit,
-                                 e: Seq[ TrackListElement ], state: Boolean ) {
+                                 e: Seq[ TrackListElement ], state: Boolean ): Unit = {
       val ef = e.filterNot( _.selected == state )
       if( !ef.isEmpty ) {
          val edit = new SimpleEdit( "editTrackSelection", false ) {
-            def apply() { setSelection( ef, state )}
-            def unapply() { setSelection( ef, !state )}
+            def apply(): Unit = setSelection( ef, state )
+            def unapply(): Unit = setSelection( ef, !state )
          }
          ce.addPerform( edit )
       }

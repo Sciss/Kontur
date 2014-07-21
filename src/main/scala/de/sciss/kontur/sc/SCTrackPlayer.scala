@@ -31,15 +31,15 @@ import de.sciss.span.Span
 
 trait SCTrackPlayer extends Disposable {
    def track: Track
-   def step( currentPos: Long, span: Span )
-   def play()
-   def stop()
+   def step( currentPos: Long, span: Span ): Unit
+   def play(): Unit
+   def stop(): Unit
 }
 
 class SCDummyPlayer( val track: Track )
 extends SCTrackPlayer {
-   def dispose() {}
-   def step( currentPos: Long, span: Span ) {}
-   def play() {}
-   def stop() {}
+   def dispose() = ()
+   def step( currentPos: Long, span: Span ) = ()
+   def play() = ()
+   def stop() = ()
 }
