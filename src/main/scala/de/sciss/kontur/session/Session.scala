@@ -32,87 +32,86 @@ import de.sciss.util.Flag
 import util.{Model, BasicSerializerContext, SerializerContext}
 import java.awt.EventQueue
 import java.io.{ File, IOException }
+import scala.util.control.NonFatal
 import scala.xml.{ Node, XML }
 import collection.JavaConversions
 import de.sciss.kontur.gui.SessionFrame
 
 object Session {
-    def newEmpty = new Session( None )
+  def newEmpty = new Session(None)
 
-    val XML_START_ELEMENT = "konturSession"
+  final val XML_START_ELEMENT = "konturSession"
 
-    @throws( classOf[ IOException ])
-    def newFrom( path: File ) : Session = {
-       val xml = XML.loadFile( path )
-       if( xml.label != XML_START_ELEMENT ) throw new IOException( "Not a session file" )
-       val doc = new Session( Some( path ))
-       val c = new BasicSerializerContext
-       try {
-         doc.fromXML( c, xml )
-       }
-       catch { case e: Exception => throw new IOException( e )}
-       doc
+  def newFrom(path: File): Session = {
+    val xml = XML.loadFile(path)
+    if (xml.label != XML_START_ELEMENT) throw new IOException("Not a session file")
+    val doc = new Session(Some(path))
+    val c = new BasicSerializerContext
+    try {
+      doc.fromXML(c, xml)
     }
+    catch {
+      case NonFatal(e) => throw new IOException(e)
+    }
+    doc
+  }
 
-    case class DirtyChanged( newDirty: Boolean )
-    case class PathChanged( oldPath: Option[ File ], newPath: Option[ File ])
+  case class DirtyChanged(newDirty: Boolean)
+  case class PathChanged(oldPath: Option[File], newPath: Option[File])
 }
 
-class Session( private var pathVar: Option[ File ] )
-extends BasicDocument with Model {
+class Session(private var pathVar: Option[File])
+  extends BasicDocument with Model {
 
-    import Session._
+  import Session._
 
-	 private var pt: Option[ ProcessingThread ] = None
-	 private val undo  = new de.sciss.app.UndoManager( this )
-    private var dirty = false
+  private var pt        = Option.empty[ProcessingThread]
+  private lazy val undo = new de.sciss.app.UndoManager(this)
+  private var dirty     = false
 
-//  private var path: Option[ File ] = None
+  //  private var path: Option[ File ] = None
 
-    val timelines   = new Timelines( this )
-    val audioFiles  = new AudioFileSeq( this )
-    val diffusions  = new Diffusions( this )
+  val timelines   = new Timelines   (this)
+  val audioFiles  = new AudioFileSeq(this)
+  val diffusions  = new Diffusions  (this)
 
-//    def createID : Long = {
-//      val res = idCount
-//      idCount += 1
-//      res
-//    }
+  //    def createID : Long = {
+  //      val res = idCount
+  //      idCount += 1
+  //      res
+  //    }
 
-    // note: the order is crucial
-    // in order to resolve dependancies when loading
-    def toXML( c: SerializerContext ) = <konturSession>
+  // note: the order is crucial
+  // in order to resolve dependancies when loading
+  def toXML(c: SerializerContext) = <konturSession>
     {audioFiles.toXML( c )}
     {diffusions.toXML( c )}
     {timelines.toXML( c )}
 </konturSession>
 
-    @throws( classOf[ IOException ])
-    def fromXML( c: SerializerContext, elem: Node ): Unit = {
-       audioFiles.fromXML( c, elem )
-       diffusions.fromXML( c, elem )
-       timelines.fromXML( c, elem )
-    }
+  def fromXML(c: SerializerContext, elem: Node): Unit = {
+    audioFiles.fromXML(c, elem)
+    diffusions.fromXML(c, elem)
+    timelines.fromXML(c, elem)
+  }
 
-    @throws( classOf[ IOException ])
-    def save( f: File ): Unit = {
-       val c = new BasicSerializerContext
-       XML.save( f.getAbsolutePath, toXML( c ), "UTF-8", xmlDecl = true, null )
-    }
+  def save(f: File): Unit = {
+    val c = new BasicSerializerContext
+    XML.save(f.getAbsolutePath, toXML(c), "UTF-8", xmlDecl = true, null)
+  }
 
-	/**
-	 * 	Starts a <code>ProcessingThread</code>. Only one thread
-	 * 	can exist at a time. To ensure that no other thread is running,
-	 * 	call <code>checkProcess()</code>.
+  /** Starts a <code>ProcessingThread</code>. Only one thread
+    * can exist at a time. To ensure that no other thread is running,
+    * call <code>checkProcess()</code>.
     *
-    * 	__synchronization__: must be called in the event thread
-	 *
-	 * 	@param	process	the thread to launch
-	 * 	@throws	IllegalMonitorStateException	if called from outside the event thread
-	 * 	@throws	IllegalStateException			if another process is still running
-	 * 	@see	#checkProcess()
-	 */
-	def start( process: ProcessingThread ): Unit = {
+    * __synchronization__: must be called in the event thread
+    *
+    * @param	process	the thread to launch
+    * @throws	IllegalMonitorStateException	if called from outside the event thread
+    * @throws	IllegalStateException			if another process is still running
+    * @see	#checkProcess()
+    */
+  def start(process: ProcessingThread): Unit = {
 		if( !EventQueue.isDispatchThread ) throw new IllegalMonitorStateException()
 		if( pt.isDefined ) throw new IllegalStateException( "Process already running" )
 
@@ -125,71 +124,66 @@ extends BasicDocument with Model {
 		process.start()
 	}
 
-	def closeDocument( force: Boolean, confirmed: Flag ) : ProcessingThread = {
-      import JavaConversions._
-      AbstractApplication.getApplication.getWindowHandler.getWindows.collect({
-         case sf: SessionFrame if( sf.doc == this ) => sf
-      }).toList.headOption match {
-         case Some( sf ) =>
-//println( ">>>>> CONFIRM" )
-//            val saved = sf.confirmUnsaved( "Close", confirmed )
-//println( "<<<<< CONFIRM " + saved )
-//            if( saved ) confirmed.set( true )   // tricky disco
-//
-            sf.closeDocument( force, confirmed )
+  def closeDocument(force: Boolean, confirmed: Flag): ProcessingThread = {
+    import JavaConversions._
+    AbstractApplication.getApplication.getWindowHandler.getWindows.collect({
+      case sf: SessionFrame if sf.doc == this => sf
+    }).toList.headOption match {
+      case Some(sf) =>
+        //println( ">>>>> CONFIRM" )
+        //            val saved = sf.confirmUnsaved( "Close", confirmed )
+        //println( "<<<<< CONFIRM " + saved )
+        //            if( saved ) confirmed.set( true )   // tricky disco
+        //
+        sf.closeDocument(force, confirmed)
 
-         case None =>
-            println( "Wooop -- no document frame found ?!" )
-            confirmed.set( true )
-      }
-      null
+      case None =>
+        println("Wooop -- no document frame found ?!")
+        confirmed.set(true)
+    }
+    null
 
-////		return frame.closeDocument( force, wasClosed );	// XXX should be in here not frame!!!
-//      wasClosed.set( true )
-//	  AbstractApplication.getApplication.getDocumentHandler.removeDocument( this, this )
-//      null
-	}
+    ////		return frame.closeDocument( force, wasClosed );	// XXX should be in here not frame!!!
+    //      wasClosed.set( true )
+    //	  AbstractApplication.getApplication.getDocumentHandler.removeDocument( this, this )
+    //      null
+  }
 
-    def path = pathVar
-    def path_=( newPath: Option[ File ]): Unit = {
-       if( newPath != pathVar ) {
-          val change = PathChanged( pathVar, newPath )
-          pathVar = newPath
-          dispatch( change )
-       }
+  def path = pathVar
+
+  def path_=(newPath: Option[File]): Unit =
+    if (newPath != pathVar) {
+      val change = PathChanged(pathVar, newPath)
+      pathVar = newPath
+      dispatch(change)
     }
 
-    def name: Option[ String ] = pathVar.map( p => {
-            val n = p.getName
-            val i = n.lastIndexOf( '.' )
-            if( i == -1 ) n else n.substring( 0, i )
-        })
+  def name: Option[String] = pathVar.map { p =>
+    val n = p.getName
+    val i = n.lastIndexOf('.')
+    if (i == -1) n else n.substring(0, i)
+  }
 
-	def getName = name getOrElse null
+	def getName = name.orNull
 
-   override def toString = "Session(" + name.getOrElse( "<Untitled>" ) + ")"
+  override def toString = s"Session(${name.getOrElse("<Untitled>")})"
 
-    def displayName =
-       name getOrElse getResourceString( "frameUntitled" )
+  def displayName = name getOrElse getResourceString("frameUntitled")
 
-  	protected def getResourceString( key: String ) : String =
-		getApplication().getResourceString( key )
-      
-	def isDirty : Boolean = dirty
+  protected def getResourceString(key: String): String =
+    getApplication().getResourceString(key)
 
-    def setDirty( newDirty: Boolean ): Unit = {
-		if( dirty != newDirty ) {
-			dirty = newDirty
-         dispatch( DirtyChanged( newDirty ))
-		}
-	}
+  def isDirty: Boolean = dirty
 
-	def getApplication : de.sciss.app.Application =
-      AbstractApplication.getApplication
-
-	def getUndoManager : de.sciss.app.UndoManager = undo
-
-    def dispose(): Unit = {
-       // nada
+  def setDirty(newDirty: Boolean): Unit =
+    if (dirty != newDirty) {
+      dirty = newDirty
+      dispatch(DirtyChanged(newDirty))
     }
+
+  def getApplication: de.sciss.app.Application = AbstractApplication.getApplication
+
+  def getUndoManager: de.sciss.app.UndoManager = undo
+
+  def dispose(): Unit = ()  // nada
 }
