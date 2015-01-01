@@ -149,7 +149,7 @@ extends AppWindow( AbstractWindow.REGULAR ) {
 //      val sp = new JSplitPane( SwingConstants.HORIZONTAL )
 //      sp.setTopComponent( ip )
 //      sp.setBottomComponent( lp )
-      cp.add( sp.component )
+      cp.add( sp.component.peer )
 //      val b = GraphicsEnvironment.getLocalGraphicsEnvironment.getMaximumWindowBounds
 //      setSize( b.width / 2, b.height * 7 / 8 )
 //      sp.setDividerLocation( b.height * 2 / 3 )

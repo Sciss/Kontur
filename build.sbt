@@ -6,9 +6,9 @@ version        := "1.3.0-SNAPSHOT"
 
 organization   := "de.sciss"
 
-scalaVersion   := "2.11.1"
+scalaVersion   := "2.11.4"
 
-crossScalaVersions := Seq("2.11.1", "2.10.4")
+crossScalaVersions := Seq("2.11.4", "2.10.4")
 
 description    := "An extensible multitrack audio editor based on ScalaCollider"
 
@@ -17,7 +17,7 @@ homepage       := Some(url("https://github.com/Sciss/" + name.value))
 licenses       := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt"))
 
 libraryDependencies ++= Seq(
-  "de.sciss" %% "scalacolliderswing" % "1.16.0",
+  "de.sciss" %% "scalacolliderswing-interpreter" % "1.21.0",
   "de.sciss" %% "span"               % "1.2.1",
   "de.sciss" %% "scissdsp"           % "1.2.1",
   "de.sciss" %  "scisslib"           % "1.0.0",
@@ -26,7 +26,7 @@ libraryDependencies ++= Seq(
 
 // retrieveManaged := true
 
-scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-Xfuture")
+scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture")
 
 // ---- build info ----
 
