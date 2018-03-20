@@ -105,6 +105,7 @@ extends SCTrackPlayer {
 
 //      val L    = List[ ControlSetMap ] _
       val sd   = graph( "disk", numChannels, monoMix ) {
+         import de.sciss.synth.Ops.stringToControl
          val out           = "out".kr
          val i_buf         = "i_buf".ir
          val smpDur        = SampleDur.ir
@@ -112,13 +113,13 @@ extends SCTrackPlayer {
          val i_frameOff    = "i_frameOff".ir
          val i_fadeIn      = "i_fadeIn".ir
          val i_fadeOut     = "i_fadeOut".ir
-         val amp           = "amp".kr( 1 )
-         val i_finShape    = "i_finShape".ir( 1 )
-         val i_finCurve    = "i_finCurve".ir( 0 )
-         val i_finFloor    = "i_finFloor".ir( 0 )
-         val i_foutShape   = "i_foutShape".ir( 1 )
-         val i_foutCurve   = "i_foutCurve".ir( 0 )
-         val i_foutFloor   = "i_foutFloor".ir( 0 )
+         val amp           = "amp".kr(1f)
+         val i_finShape    = "i_finShape" .ir(1f)
+         val i_finCurve    = "i_finCurve" .ir(0f)
+         val i_finFloor    = "i_finFloor" .ir(0f)
+         val i_foutShape   = "i_foutShape".ir(1f)
+         val i_foutCurve   = "i_foutCurve".ir(0f)
+         val i_foutFloor   = "i_foutFloor".ir(0f)
 
          val frameIndex     = Line.ar( i_frameOff, i_frames, (i_frames - i_frameOff) * smpDur, freeSelf )
 

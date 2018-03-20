@@ -256,7 +256,7 @@ ggApp.setBackground( bg )
 		val lbRate = new JLabel( getResourceString( "prefsAudioRate" ))
 		val ggRateParam  = new PrefParamField()
 		ggRateParam.addSpace( ParamSpace.spcFreqHertz )
-		val ggRate = new JComboBox()
+		val ggRate = new JComboBox[StringItem]()
         val RATE_ITEMS = List(
           new StringItem( new Param( 0, ParamSpace.FREQ | ParamSpace.HERTZ ).toString, "System Default" ),
           new StringItem( new Param( 44100, ParamSpace.FREQ | ParamSpace.HERTZ ).toString, "44.1 kHz" ),

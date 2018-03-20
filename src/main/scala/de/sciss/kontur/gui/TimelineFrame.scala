@@ -26,21 +26,22 @@
 package de.sciss.kontur.gui
 
 import de.sciss.app.AbstractWindow
-import de.sciss.common.{ BasicMenuFactory, BasicWindowHandler}
+import de.sciss.common.{BasicMenuFactory, BasicWindowHandler}
 import de.sciss.gui.{GUIUtil, MenuAction, PathField => PathF}
 import de.sciss.kontur.io.EisenkrautClient
-import de.sciss.kontur.session.{ AudioRegion, AudioTrack, Session, SessionUtil, Stake,
-                                 ResizableStake, Timeline, Track }
+import de.sciss.kontur.session.{AudioRegion, AudioTrack, ResizableStake, Session, SessionUtil, Stake, Timeline, Track, TrailEditor}
 import de.sciss.kontur.util.PrefsUtil
-import de.sciss.util.{ DefaultUnitTranslator, Param, ParamSpace }
-import java.awt.event.{ ActionEvent, ActionListener, InputEvent, KeyEvent }
-import java.awt.{ BorderLayout, Component, Dimension, Point, Rectangle }
+import de.sciss.util.{DefaultUnitTranslator, Param, ParamSpace}
+import java.awt.event.{ActionEvent, ActionListener, InputEvent, KeyEvent}
+import java.awt.{BorderLayout, Component, Dimension, Point, Rectangle}
 import java.io.File
-import javax.swing.{ AbstractAction, Action, Box, ButtonGroup, JButton, JComponent, JLabel, JOptionPane, JProgressBar,
-                     JRadioButton, KeyStroke, SwingUtilities }
+
+import javax.swing.{AbstractAction, Action, Box, ButtonGroup, JButton, JComponent, JLabel, JOptionPane, JProgressBar, JRadioButton, KeyStroke, SwingUtilities}
+
 import scala.math._
 import de.sciss.io.{AudioFileDescr, AudioFileFormatPane, IOUtil}
-import de.sciss.synth.io.{AudioFileType, SampleFormat, AudioFileSpec}
+import de.sciss.synth.io.{AudioFileSpec, AudioFileType, SampleFormat}
+
 import language.reflectiveCalls
 import de.sciss.span.Span
 import de.sciss.span.Span.SpanOrVoid
@@ -317,26 +318,30 @@ extends AppWindow( AbstractWindow.REGULAR ) with SessionFrame {
                })
                tracksPanel.filter( _.selected ).foreach( elem => {
                   val t = elem.track // "stable"
-                  val tvCast = elem.trailView.asInstanceOf[ TrailView[ t.T ]] // que se puede...
-                  tvCast.editor.foreach( ed2 => {
-                     val stakes = tvCast.trail.getRange( affectedSpan )
-                     ed2.editDeselect( ce, stakes: _* )
-                     tvCast.trail.editor.foreach( ed3 => {
-                        ed3.editRemove( ce, stakes: _* )
+
+                 def process[T <: Stake[T]](tvCast: TrailView[T]): Unit = {
+//                   val tvCast = elem.trailView.asInstanceOf[TrailView[t.T]] // que se puede...
+                   tvCast.editor.foreach(ed2 => {
+                     val stakes: List[T] = tvCast.trail.getRange(affectedSpan)
+                     ed2.editDeselect(ce, stakes: _*)
+                     tvCast.trail.editor.foreach(ed3 => {
+                       ed3.editRemove(ce, stakes: _*)
                      })
-                     val (split, nosplit) = stakes.partition( _.span.contains( pos ))
-                     val newStakes = split.flatMap( _ match {
-                        case rs: ResizableStake[ _ ] => {
-                           val (nomove, move) = rs.split( pos )
-                           List( nomove, move.move( delta ))
-                        }
-                        case x => List( x )
-                     }) ++ nosplit.map( _.move( delta ))
-                     tvCast.trail.editor.foreach( ed3 => {
-                        ed3.editAdd( ce, newStakes: _* )
-                     })
-                     ed2.editSelect( ce, newStakes: _* )
-                  })
+                     val (split: List[T], nosplit: List[T]) = stakes.partition(_.span.contains(pos))
+                     val newStakes: List[T] = split.flatMap(_ match {
+                       case rs: ResizableStake[T] =>
+                         val (nomove, move) = rs.split(pos)
+                         List(nomove, move.move(delta))
+
+                       case x => List(x)
+                     }) ++ nosplit.map(_.move(delta))
+                     tvCast.trail.editor.foreach { ed3: TrailEditor[T] =>
+                       ed3.editAdd(ce, newStakes: _*)
+                     }
+                     ed2.editSelect(ce, newStakes: _*)
+                   })
+                 }
+                 process(elem.trailView.asInstanceOf[TrailView[t.T]])
                })
                ed.editEnd( ce )
             }

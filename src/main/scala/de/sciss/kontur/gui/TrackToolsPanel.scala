@@ -55,7 +55,7 @@ extends JPanel with TrackTools with PreferenceChangeListener {
    )
 
    private var currentToolVar: TrackTool                    = tools.head
-   private val ggCombo                                      = new JComboBox()
+   private val ggCombo                                      = new JComboBox[ToolAction]()
    private var visualBoostVar                               = slidToBoost( 64 ) // 1f;
    private var fadeViewModeVar: FadeViewMode                = FadeViewMode.Curve
    private var stakeBorderViewModeVar: StakeBorderViewMode  = StakeBorderViewMode.TitledBox

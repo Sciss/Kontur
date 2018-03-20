@@ -72,9 +72,10 @@ extends DiffusionSynth {
       d.path.foreach( p => buf.read( p ))
 
       val syn = graph( "diff_conv", d.numInputChannels, d.numOutputChannels, d.path ) {
+        import de.sciss.synth.Ops.stringToControl
          val in         = "in".ir
          val out        = "out".ir
-         val amp        = "amp".kr( 1 )
+         val amp        = "amp".kr(1f)
          val dly        = "dly".ir
 //         val dlyFrames  = dlySec * SampleRate.ir
          val inSig      = In.ar( in, d.numInputChannels )

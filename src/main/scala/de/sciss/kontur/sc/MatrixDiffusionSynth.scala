@@ -61,6 +61,7 @@ extends DiffusionSynth {
    def play(): Unit = {
       val d    = diffusion
       val df   = graph( "diff_matrix", d.numInputChannels, d.numOutputChannels, d.matrix ) {
+         import de.sciss.synth.Ops.stringToControl
          val in      = "in".ir
          val out     = "out".ir
          val inSig   = In.ar( in, d.numInputChannels )
