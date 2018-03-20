@@ -1,5 +1,7 @@
 # Kontur
 
+[![Build Status](https://travis-ci.org/Sciss/Kontur.svg?branch=master)](https://travis-ci.org/Sciss/Kontur)
+
 ## statement
 
 Kontur is (C)opyright by 2004&ndash;2018 Hanns Holger. All rights reserved. It is released under the [GNU General Public License](http://github.com/Sciss/Kontur/blob/master/licenses/Kontur-License.txt). Kontur is a multi-track audio editor based on ScalaCollider. It provides programmatic (REPL) access to its session elements, allowing for algorithmic manipulation in the Scala programming language.
